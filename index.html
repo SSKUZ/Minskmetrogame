@@ -26,29 +26,38 @@ for(const x of [-3.1,3.1]){box(cab,.7,.7,2.15,x,1.56,3.5,cabShell);box(cab,.14,1
 // Embedded photo: no additional image upload or external host required.
 const familyPhoto=new Image();
 familyPhoto.src='data:image/jpeg;base64,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';
-const nameplateCanvas=document.createElement('canvas');nameplateCanvas.width=720;nameplateCanvas.height=240;
+const nameplateCanvas=document.createElement('canvas');nameplateCanvas.width=620;nameplateCanvas.height=780;
 const np=nameplateCanvas.getContext('2d');
 const nameplateTexture=new THREE.CanvasTexture(nameplateCanvas);
 function paintNameplate(){
- np.fillStyle='#111923';np.fillRect(0,0,720,240);
- np.strokeStyle='#b7a992';np.lineWidth=10;np.strokeRect(8,8,704,224);
- np.strokeStyle='#5b6c79';np.lineWidth=2;np.strokeRect(23,23,674,194);
- np.fillStyle='#e8d9b9';np.textAlign='center';
- np.font='bold 35px Arial, sans-serif';np.fillText('МАШИНИСТ',223,78);
- np.font='bold 44px Arial, sans-serif';np.fillText('КУЗНЕЦОВ',223,140);
- np.font='bold 48px Arial, sans-serif';np.fillText('ЗАХАР',223,197);
+ np.fillStyle='#101820';np.fillRect(0,0,620,780);
+ np.strokeStyle='#bdb09a';np.lineWidth=13;np.strokeRect(10,10,600,760);
+ np.strokeStyle='#5f6e78';np.lineWidth=3;np.strokeRect(28,28,564,724);
+ np.fillStyle='#f2e3c6';np.textAlign='center';
+ np.font='bold 49px Arial, sans-serif';np.fillText('МАШИНИСТ',310,99);
+ np.font='bold 58px Arial, sans-serif';np.fillText('КУЗНЕЦОВ',310,166);
+ np.font='bold 68px Arial, sans-serif';np.fillText('ЗАХАР',310,244);
  if(familyPhoto.complete&&familyPhoto.naturalWidth){
-  np.drawImage(familyPhoto,458,27,235,186);
-  np.strokeStyle='#d9c8a8';np.lineWidth=5;np.strokeRect(458,27,235,186);
+  const x=43,y=285,w=534,h=440;
+  const iw=familyPhoto.naturalWidth,ih=familyPhoto.naturalHeight;
+  // Contain the entire family photo; never cut off faces.
+  const k=Math.min(w/iw,h/ih),dw=iw*k,dh=ih*k;
+  np.fillStyle='#28313b';np.fillRect(x,y,w,h);
+  np.drawImage(familyPhoto,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+  np.strokeStyle='#d9c8a8';np.lineWidth=6;np.strokeRect(x,y,w,h);
  }
  nameplateTexture.needsUpdate=true;
 }
 familyPhoto.onload=paintNameplate;
 paintNameplate();
-const familyPlaque=new THREE.Group();familyPlaque.position.set(-2.54,1.96,3.47);familyPlaque.rotation.x=-.50;cab.add(familyPlaque);
-box(familyPlaque,1.45,.49,.045,0,0,0,new THREE.MeshStandardMaterial({color:0x121820,metalness:.55,roughness:.32}));
-const familyPlaqueFace=new THREE.Mesh(new THREE.PlaneGeometry(1.39,.45),new THREE.MeshBasicMaterial({map:nameplateTexture,side:THREE.DoubleSide}));
-familyPlaqueFace.position.z=.029;familyPlaque.add(familyPlaqueFace);
+// Upright portrait plate on the LEFT front/side window pillar; faces the driver.
+const familyPlaque=new THREE.Group();
+familyPlaque.position.set(-3.02,2.94,2.51);
+familyPlaque.rotation.set(0,.20,0);
+cab.add(familyPlaque);
+box(familyPlaque,1.06,1.35,.06,0,0,0,new THREE.MeshStandardMaterial({color:0x171c22,metalness:.58,roughness:.34}));
+const familyPlaqueFace=new THREE.Mesh(new THREE.PlaneGeometry(1.01,1.29),new THREE.MeshBasicMaterial({map:nameplateTexture,side:THREE.DoubleSide,depthTest:false}));
+familyPlaqueFace.position.z=.044;familyPlaqueFace.renderOrder=8;familyPlaque.add(familyPlaqueFace);
 
 const instrumentDeck=new THREE.Group();instrumentDeck.position.set(0,1.79,3.24);instrumentDeck.rotation.x=.39;cab.add(instrumentDeck);
 box(instrumentDeck,6.0,.13,1.32,0,0,0,cabShell);
