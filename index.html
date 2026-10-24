@@ -367,31 +367,36 @@ function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyl
 
 // Recorded CC0 metro audio. No oscillators, noise synthesis or generated chimes.
 // Real metro audio from the three user-approved recordings, hosted in this repository.
-const metroRecordings={acceleration:'audio/acceleration.mp3',cruise:'audio/cruise.mp3',braking:'audio/braking.mp3'};
+// Real recordings stored under /audio in this repository (no external hosts).
+const metroRecordings={idle:'audio/idle.mp3',acceleration:'audio/acceleration.mp3',cruise:'audio/cruise.mp3',braking:'audio/braking.mp3'};
 let metroAudio=null;
 function initMetroAudio(){
  if(metroAudio)return;
- const make=(src)=>{const a=new Audio(src);a.preload='auto';a.loop=true;a.volume=0;return a};
- const acceleration=make(metroRecordings.acceleration),cruise=make(metroRecordings.cruise),braking=make(metroRecordings.braking);
- metroAudio={acceleration,cruise,braking,previousSpeed:0};
- // Start all three tracks on the user's start-button gesture to unlock mobile audio.
- for(const a of [acceleration,cruise,braking])a.play().catch(e=>console.warn('Metro audio:',a.src,e));
+ const make=(name)=>{const audio=new Audio(metroRecordings[name]);audio.preload='auto';audio.loop=true;audio.volume=0;audio.addEventListener('error',()=>{const status=document.querySelector('#status');if(status)status.textContent='⚠ Звук не загружен: '+name+'.mp3 — добавьте файлы в папку audio на GitHub';console.warn('Missing metro audio:',audio.src)});return audio};
+ const idle=make('idle'),acceleration=make('acceleration'),cruise=make('cruise'),braking=make('braking');
+ metroAudio={idle,acceleration,cruise,braking,previousSpeed:0};
+ // Unlock playback in the Start Ride user gesture; keep sources running silently.
+ for(const audio of [idle,acceleration,cruise,braking])audio.play().catch(e=>console.warn('Metro audio playback:',e));
+ idle.volume=.22;
 }
 function updateMetroAudio(v,traction){
  const a=metroAudio;if(!a)return;
- const now=performance.now(),moving=v>1,brake=traction<-.04&&moving,accelerate=traction>.04&&moving;
- const targetAccel=accelerate?Math.min(.85,.25+v/180):0;
- const targetBrake=brake?Math.min(.85,.35+v/190):0;
- const targetCruise=moving?Math.min(.70,.12+v/150)*(brake?.38:accelerate?.55:1):0;
- for(const [audio,target] of [[a.acceleration,targetAccel],[a.cruise,targetCruise],[a.braking,targetBrake]]){
-  if(audio.paused&&moving)audio.play().catch(()=>{});
-  audio.volume=Math.max(0,Math.min(1,audio.volume+(target-audio.volume)*.10));
+ const moving=v>1,brake=traction<-.04&&moving,accelerate=traction>.04&&moving;
+ const targets=[
+  [a.idle,moving?.035:.23],
+  [a.acceleration,accelerate?Math.min(.72,.20+v/190):0],
+  [a.cruise,moving?Math.min(.60,.10+v/180)*(brake?.35:accelerate?.55:1):0],
+  [a.braking,brake?Math.min(.75,.27+v/190):0]
+ ];
+ for(const [audio,target] of targets){
+  // Avoid repeated play attempts on missing files.
+  if(audio.paused&&audio.readyState>=2)audio.play().catch(()=>{});
+  audio.volume=Math.max(0,Math.min(1,audio.volume+(target-audio.volume)*.12));
  }
- a.acceleration.playbackRate=Math.max(.8,Math.min(1.25,.82+v/220));
- a.cruise.playbackRate=Math.max(.85,Math.min(1.16,.9+v/360));
- a.previousSpeed=v;
+ a.acceleration.playbackRate=Math.max(.82,Math.min(1.2,.86+v/260));
+ a.cruise.playbackRate=Math.max(.9,Math.min(1.12,.92+v/440));
 }
-function metroChime(open){/* No fake door sound; real door recording can be added separately. */}
+function metroChime(open){/* No synthesized door noise. Add a real door file later. */}
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){initMetroAudio();playing=true;}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
 const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');function setMaster(e){const r=masterTrack.getBoundingClientRect();const relative=(e.clientY-r.top)/r.height;lever=Math.max(-1,Math.min(1,(.5-relative)*2));masterHandle.style.top=(50-lever*43)+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
