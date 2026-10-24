@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Минское метро — Машинист Захар</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101923;color:#fff;font:16px system-ui;overflow:hidden}#game{display:block;width:100vw;height:68dvh;background:#111}#cab{height:32dvh;background:linear-gradient(#344454,#18212d);padding:9px;display:flex;flex-direction:column;gap:8px}#name{color:#77ff9a;text-shadow:0 0 9px #16b849;text-align:center;font-weight:800;font-size:clamp(15px,4vw,23px);letter-spacing:1px}#info{display:flex;justify-content:space-around;font-weight:bold}#controls{display:flex;gap:8px;flex:1;min-height:0}button{flex:1;border:2px solid #8b9ba9;border-radius:12px;background:#283e52;color:white;font-weight:800;font-size:clamp(14px,4vw,22px);touch-action:none}button:active{background:#3b7995}#brake{background:#8b3434}#door{background:#23634b}#msg{text-align:center;font-size:13px;min-height:18px}
+</style>
+<canvas id="game"></canvas><div id="cab"><div id="name">🚇 МАШИНИСТ КУЗНЕЦОВ ЗАХАР</div><div id="info"><span id="speed">0 км/ч</span><span id="distance">До станции: 700 м</span><span id="score">Пассажиры: 0</span></div><div id="msg">Разгоняйся и остановись у платформы!</div><div id="controls"><button id="brake">ТОРМОЗ</button><button id="gas">ГАЗ</button><button id="door">ДВЕРИ</button></div></div>
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const speedEl=document.getElementById('speed'),distEl=document.getElementById('distance'),scoreEl=document.getElementById('score'),msg=document.getElementById('msg');
+let speed=0,remaining=700,passengers=0,gas=false,brake=false,doors=false,station=0,last=performance.now();
+const stations=['Плошча Перамогі','Кастрычніцкая','Плошча Леніна','Інстытут культуры'];
+function say(t,lang='ru-RU'){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=lang;u.rate=.88;speechSynthesis.speak(u)}
+function announce(){say('Осторожно, двери закрываются. Следующая станция — '+stations[station%stations.length]);}
+function bind(id,down,up){const b=document.getElementById(id);b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);down()});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,up)}
+bind('gas',()=>{if(!doors)gas=true},()=>gas=false);bind('brake',()=>brake=true,()=>brake=false);
+document.getElementById('door').onclick=()=>{if(speed>1){msg.textContent='Сначала останови поезд!';return}if(remaining>35||remaining< -25){msg.textContent='До платформы ещё далеко!';return}if(!doors){doors=true;passengers+=10+Math.floor(Math.random()*25);msg.textContent='Двери открыты. Пассажиры входят!';say('Станция '+stations[station%stations.length]+'. Осторожно, двери открываются.');}else{doors=false;station++;remaining=700;msg.textContent='Двери закрыты. Можно ехать!';announce()}};
+function resize(){const r=canvas.getBoundingClientRect(),d=devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}addEventListener('resize',resize);resize();
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;if(!doors){if(gas)speed=Math.min(70,speed+19*dt);else speed=Math.max(0,speed-4*dt);if(brake)speed=Math.max(0,speed-36*dt);remaining-=speed/3.6*dt}if(remaining< -80){remaining=700;speed=0;msg.textContent='Проехал станцию! Попробуй снова.'}
+const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.fillStyle='#10131c';ctx.fillRect(0,0,w,h);
+const cx=w/2,vanish=h*.27;ctx.fillStyle='#27313b';ctx.beginPath();ctx.moveTo(cx-32,vanish);ctx.lineTo(cx+32,vanish);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
+ctx.fillStyle='#4b515b';ctx.beginPath();ctx.moveTo(cx-12,vanish);ctx.lineTo(cx+12,vanish);ctx.lineTo(cx+w*.30,h);ctx.lineTo(cx-w*.30,h);ctx.fill();
+for(const side of [-1,1]){ctx.strokeStyle='#b7b8ba';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx+side*7,vanish);ctx.lineTo(cx+side*w*.22,h);ctx.stroke()}
+const shift=(700-remaining)*.5;for(let i=0;i<15;i++){let z=((i*72+shift)%1050)/1050;let y=vanish+(h-vanish)*z*z;let spread=10+w*.25*z;ctx.strokeStyle='#6f5c4a';ctx.lineWidth=2+z*7;ctx.beginPath();ctx.moveTo(cx-spread,y);ctx.lineTo(cx+spread,y);ctx.stroke()}
+if(remaining<210){const z=Math.max(.05,1-Math.max(remaining,0)/210);const py=vanish+(h-vanish)*z*.7;ctx.fillStyle='#d6c4a1';ctx.fillRect(cx+w*.19*z,py,w*.42*z,Math.max(8,90*z));ctx.fillStyle='#f2d657';ctx.fillRect(cx+w*.19*z,py,w*.42*z,4);ctx.fillStyle='#fff';ctx.font='bold '+Math.max(10,18*z)+'px sans-serif';ctx.fillText(stations[station%stations.length],cx+w*.2*z,py-8)}
+ctx.fillStyle='#26313c';ctx.fillRect(0,0,w,25);ctx.fillRect(0,h-25,w,25);ctx.fillRect(0,0,15,h);ctx.fillRect(w-15,0,15,h);
+speedEl.textContent=Math.round(speed)+' км/ч';distEl.textContent='До станции: '+Math.round(remaining)+' м';scoreEl.textContent='Пассажиры: '+passengers;
+if(remaining<35&&remaining> -25&&speed<1&&!doors)msg.textContent='Отличная остановка! Открой двери.';
+requestAnimationFrame(frame)}requestAnimationFrame(frame);
+</script></html>
