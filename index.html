@@ -85,24 +85,33 @@ box(cab,2.1,2.8,.19,0,2.16,9.21,rearTrim);
 box(cab,.65,.15,.22,0,2.25,9.07,cabMetal);
 const cabLight=new THREE.PointLight(0xb4d8ef,3.2,10);cabLight.position.set(0,3.4,4.0);scene.add(cabLight);
 
-// Interactive 3D desk controls. Raycast taps into real meshes, not screen-space icons.
+// Large labelled tactile controls beside the speedometer, built in 3D.
 const cabHitTargets=[],cabRaycaster=new THREE.Raycaster(),cabTapPoint=new THREE.Vector2();
-const infoButton=new THREE.Group();infoButton.position.set(-2.23,2.06,2.62);cab.add(infoButton);
-const infoBase=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.10,24),cabMetal);infoBase.rotation.x=Math.PI/2;infoButton.add(infoBase);
-const infoCap=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.12,24),new THREE.MeshStandardMaterial({color:0x2589bd,emissive:0x0b3047,metalness:.35,roughness:.3}));infoCap.rotation.x=Math.PI/2;infoCap.position.z=.11;infoButton.add(infoCap);
-const infoLabel=document.createElement('canvas');infoLabel.width=256;infoLabel.height=96;const il=infoLabel.getContext('2d');il.fillStyle='#101a20';il.fillRect(0,0,256,96);il.fillStyle='#d4f5ff';il.textAlign='center';il.font='bold 48px Arial';il.fillText('INFO',128,65);
-const infoTag=new THREE.Mesh(new THREE.PlaneGeometry(.55,.21),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(infoLabel),side:THREE.DoubleSide}));infoTag.position.set(0,-.35,.18);infoButton.add(infoTag);
-cabHitTargets.push({mesh:infoCap,type:'info'});
-const doorSwitch=new THREE.Group();doorSwitch.position.set(2.22,2.06,2.62);cab.add(doorSwitch);
-const switchBase=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.11,24),cabMetal);switchBase.rotation.x=Math.PI/2;doorSwitch.add(switchBase);
-const switchLever=new THREE.Group();switchLever.position.z=.12;doorSwitch.add(switchLever);
-const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.047,.066,.36,14),cabMetal);shaft.rotation.x=Math.PI/2;shaft.position.z=.17;switchLever.add(shaft);
-const switchKnob=new THREE.Mesh(new THREE.SphereGeometry(.12,18,12),cabRubber);switchKnob.position.z=.37;switchLever.add(switchKnob);
-const doorTag=document.createElement('canvas');doorTag.width=512;doorTag.height=96;const dl=doorTag.getContext('2d');dl.fillStyle='#101a20';dl.fillRect(0,0,512,96);dl.fillStyle='#d4f5ff';dl.textAlign='center';dl.font='bold 40px Arial';dl.fillText('ДВЕРИ  ОТКР / ЗАКР',256,63);
-const doorPlate=new THREE.Mesh(new THREE.PlaneGeometry(1.14,.21),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(doorTag),side:THREE.DoubleSide}));doorPlate.position.set(0,-.37,.18);doorSwitch.add(doorPlate);
-cabHitTargets.push({mesh:switchKnob,type:'door'},{mesh:shaft,type:'door'});
-function pressInfo(){infoCap.position.z=.045;infoCap.material.emissive.setHex(0x146b8e);speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');setTimeout(()=>{infoCap.position.z=.11;infoCap.material.emissive.setHex(0x0b3047)},950)}
-function toggleCabDoors(){document.querySelector('#doors').click();switchLever.rotation.x=doors?-.48:.48}
+function labelTexture(text,background='#17242d',foreground='#f0f8ff'){
+ const c=document.createElement('canvas');c.width=512;c.height=256;const g=c.getContext('2d');g.fillStyle=background;g.fillRect(0,0,512,256);
+ g.fillStyle=foreground;g.textAlign='center';g.textBaseline='middle';g.font='bold 105px Arial';g.fillText(text,256,128);return new THREE.CanvasTexture(c);
+}
+const controlFace=new THREE.MeshBasicMaterial({map:labelTexture('Info','#116398'),side:THREE.DoubleSide});
+const infoButton=new THREE.Group();infoButton.position.set(-1.32,2.14,2.62);cab.add(infoButton);
+box(infoButton,.96,.52,.14,0,0,0,cabMetal);
+const infoCap=box(infoButton,.85,.41,.15,0,0,.16,new THREE.MeshStandardMaterial({color:0x1684bd,emissive:0x073c56,metalness:.15,roughness:.3}));
+const infoText=new THREE.Mesh(new THREE.PlaneGeometry(.74,.34),controlFace);infoText.position.z=.245;infoButton.add(infoText);
+cabHitTargets.push({mesh:infoCap,type:'info'},{mesh:infoText,type:'info'});
+const doorSwitch=new THREE.Group();doorSwitch.position.set(1.30,2.14,2.62);cab.add(doorSwitch);
+box(doorSwitch,1.18,.63,.14,0,0,0,cabMetal);
+const doorOpenMat=new THREE.MeshBasicMaterial({map:labelTexture('ОТКР','#126e51'),side:THREE.DoubleSide});
+const doorCloseMat=new THREE.MeshBasicMaterial({map:labelTexture('ЗАКР','#883c37'),side:THREE.DoubleSide});
+const doorCap=box(doorSwitch,1.07,.53,.17,0,0,.16,new THREE.MeshStandardMaterial({color:0x315e66,metalness:.2,roughness:.35}));
+const doorFace=new THREE.Mesh(new THREE.PlaneGeometry(.96,.44),doorCloseMat);doorFace.position.z=.253;doorSwitch.add(doorFace);
+cabHitTargets.push({mesh:doorCap,type:'door'},{mesh:doorFace,type:'door'});
+function pressInfo(){infoCap.position.z=.08;infoText.position.z=.165;infoCap.material.emissive.setHex(0x106c95);
+ speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');
+ clearTimeout(pressInfo.timer);pressInfo.timer=setTimeout(()=>{infoCap.position.z=.16;infoText.position.z=.245;infoCap.material.emissive.setHex(0x073c56)},1000)}
+function toggleCabDoors(){doors=!doors;doorCap.position.z=doors?.09:.16;doorFace.position.z=doors?.183:.253;doorFace.material=doors?doorOpenMat:doorCloseMat;
+ status.textContent=doors?'Двери открыты':'Двери закрыты';
+ if(doors){lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%'}
+ else{departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=850;paintSign()}}
+ speak(doors?'Осторожно, двери открываются.':'Осторожно, двери закрываются.')}
 let cabPointerStart=null;
 renderer.domElement.addEventListener('pointerdown',e=>{cabPointerStart={x:e.clientX,y:e.clientY}},true);
 renderer.domElement.addEventListener('pointerup',e=>{if(!cabPointerStart||Math.hypot(e.clientX-cabPointerStart.x,e.clientY-cabPointerStart.y)>15){cabPointerStart=null;return}cabPointerStart=null;
