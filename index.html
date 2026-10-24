@@ -84,6 +84,32 @@ for(const side of [-1,1]){
 box(cab,2.1,2.8,.19,0,2.16,9.21,rearTrim);
 box(cab,.65,.15,.22,0,2.25,9.07,cabMetal);
 const cabLight=new THREE.PointLight(0xb4d8ef,3.2,10);cabLight.position.set(0,3.4,4.0);scene.add(cabLight);
+
+// Interactive 3D desk controls. Raycast taps into real meshes, not screen-space icons.
+const cabHitTargets=[],cabRaycaster=new THREE.Raycaster(),cabTapPoint=new THREE.Vector2();
+const infoButton=new THREE.Group();infoButton.position.set(-2.23,2.06,2.62);cab.add(infoButton);
+const infoBase=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.10,24),cabMetal);infoBase.rotation.x=Math.PI/2;infoButton.add(infoBase);
+const infoCap=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.12,24),new THREE.MeshStandardMaterial({color:0x2589bd,emissive:0x0b3047,metalness:.35,roughness:.3}));infoCap.rotation.x=Math.PI/2;infoCap.position.z=.11;infoButton.add(infoCap);
+const infoLabel=document.createElement('canvas');infoLabel.width=256;infoLabel.height=96;const il=infoLabel.getContext('2d');il.fillStyle='#101a20';il.fillRect(0,0,256,96);il.fillStyle='#d4f5ff';il.textAlign='center';il.font='bold 48px Arial';il.fillText('INFO',128,65);
+const infoTag=new THREE.Mesh(new THREE.PlaneGeometry(.55,.21),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(infoLabel),side:THREE.DoubleSide}));infoTag.position.set(0,-.35,.18);infoButton.add(infoTag);
+cabHitTargets.push({mesh:infoCap,type:'info'});
+const doorSwitch=new THREE.Group();doorSwitch.position.set(2.22,2.06,2.62);cab.add(doorSwitch);
+const switchBase=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.11,24),cabMetal);switchBase.rotation.x=Math.PI/2;doorSwitch.add(switchBase);
+const switchLever=new THREE.Group();switchLever.position.z=.12;doorSwitch.add(switchLever);
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.047,.066,.36,14),cabMetal);shaft.rotation.x=Math.PI/2;shaft.position.z=.17;switchLever.add(shaft);
+const switchKnob=new THREE.Mesh(new THREE.SphereGeometry(.12,18,12),cabRubber);switchKnob.position.z=.37;switchLever.add(switchKnob);
+const doorTag=document.createElement('canvas');doorTag.width=512;doorTag.height=96;const dl=doorTag.getContext('2d');dl.fillStyle='#101a20';dl.fillRect(0,0,512,96);dl.fillStyle='#d4f5ff';dl.textAlign='center';dl.font='bold 40px Arial';dl.fillText('ДВЕРИ  ОТКР / ЗАКР',256,63);
+const doorPlate=new THREE.Mesh(new THREE.PlaneGeometry(1.14,.21),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(doorTag),side:THREE.DoubleSide}));doorPlate.position.set(0,-.37,.18);doorSwitch.add(doorPlate);
+cabHitTargets.push({mesh:switchKnob,type:'door'},{mesh:shaft,type:'door'});
+function pressInfo(){infoCap.position.z=.045;infoCap.material.emissive.setHex(0x146b8e);speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');setTimeout(()=>{infoCap.position.z=.11;infoCap.material.emissive.setHex(0x0b3047)},950)}
+function toggleCabDoors(){document.querySelector('#doors').click();switchLever.rotation.x=doors?-.48:.48}
+let cabPointerStart=null;
+renderer.domElement.addEventListener('pointerdown',e=>{cabPointerStart={x:e.clientX,y:e.clientY}},true);
+renderer.domElement.addEventListener('pointerup',e=>{if(!cabPointerStart||Math.hypot(e.clientX-cabPointerStart.x,e.clientY-cabPointerStart.y)>15){cabPointerStart=null;return}cabPointerStart=null;
+const rect=renderer.domElement.getBoundingClientRect();cabTapPoint.set(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);cabRaycaster.setFromCamera(cabTapPoint,camera);
+const hits=cabRaycaster.intersectObjects(cabHitTargets.map(x=>x.mesh),false);if(!hits.length)return;
+const target=cabHitTargets.find(x=>x.mesh===hits[0].object);if(target?.type==='info')pressInfo();else if(target?.type==='door')toggleCabDoors();
+},true);
 const chunks=[];function addChunk(z){const g=new THREE.Group();g.position.z=z;scene.add(g);box(g,12,.4,32,0,-.35,-16,dark);box(g,.4,7.5,32,-5.8,3.5,-16,concrete);box(g,.4,7.5,32,5.8,3.5,-16,concrete);box(g,12,.4,32,0,7.4,-16,concrete);for(let k=0;k<8;k++){const z=-k*4;box(g,.13,7,.14,-5.52,3.4,z,steel);box(g,.13,7,.14,5.52,3.4,z,steel);box(g,11,.12,.18,0,7.1,z,steel);box(g,.13,.13,32,-5.4,2.2,-16,dark);box(g,.13,.13,32,5.4,2.2,-16,dark)}for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);for(let j=0;j<16;j++)box(g,4.1,.12,.28,0,-.02,-j*2,wood);
 for(let j=0;j<4;j++){let zz=-3-j*8;box(g,2.7,.08,1.4,0,7.13,zz,light);box(g,.2,1.3,.15,-5.48,4.3,zz,light);box(g,.2,1.3,.15,5.48,4.3,zz,light);box(g,.24,7,.24,-5.4,3.5,zz,concrete);box(g,.24,7,.24,5.4,3.5,zz,concrete)}chunks.push(g)}for(let i=0;i<8;i++)addChunk(-i*32);
 // Detailed island station: open view through marble columns to the opposite track.
