@@ -109,7 +109,7 @@ function syncDoorButtons(){for(const [b,active] of [[openControl,doors],[closeCo
  b.cap.position.y=active?.055:.10;b.face.position.y=active?.108:.153;
  b.cap.material.emissive.setHex(active?0x153329:0x000000);
  }}
-syncDoorButtons();
+// Initial button state is set after doors is initialized.
 function pressInfo(){infoControl.cap.position.y=.045;infoControl.face.position.y=.098;
  speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');
  clearTimeout(pressInfo.timer);pressInfo.timer=setTimeout(()=>{infoControl.cap.position.y=.10;infoControl.face.position.y=.153},1000)}
@@ -200,6 +200,7 @@ for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platfo
 const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
 const names=['Плошча Перамогі','Кастрычніцкая','Плошча Леніна','Інстытут культуры'];let index=0,dist=850,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 updateStationClock();
+syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){playing=true;speak('Добро пожаловать, машинист Кузнецов Захар!')}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
