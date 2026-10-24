@@ -282,7 +282,12 @@ for(let i=0;i<8;i++)addChunk(-i*32);
 // Fixed-distance signal placements inside repeating tunnel sections.
 addSignal(chunks[2],-17,true);addSignal(chunks[5],-19,false);addSignal(chunks[7],-10,true);
 // Detailed island station: open view through marble columns to the opposite track.
+// Continuous rail approach fills the seam between the arched tunnel and the station hall.
+const approachRailBed=mat(0x292d30);
 const platform=new THREE.Group();scene.add(platform);
+box(platform,6.4,.3,48,0,-.30,29,approachRailBed);
+for(const x of [-1.15,1.15])box(platform,.12,.16,48,x,.05,29,rail);
+for(let j=0;j<24;j++)box(platform,3.3,.10,.24,0,-.06,6+j*2,wood);
 const entranceGlow=new THREE.Mesh(new THREE.PlaneGeometry(5.8,5.4),new THREE.MeshBasicMaterial({color:0xb8d4e4,transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));
 entranceGlow.position.set(0,3.4,6.0);platform.add(entranceGlow);
 // Bright station lighting, independent of the train headlights.
@@ -383,7 +388,9 @@ if(lever>0.015){
  speed=Math.max(0,speed-1.2*dt);
 }
 speed=Math.min(90,speed);const move=speed/3.6*dt*1.22;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
- for(const g of chunks)g.visible=(dist>0 || g.position.z<stationEntrance+32);
+ // The station hall must replace tunnel walls, not be enclosed by them.
+ // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
+ for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance-8 || g.position.z<stationEntrance-160);}
  scene.fog.color.setHex(dist<155?0x10171c:0x030508);
  scene.fog.near=dist<155?28:18;scene.fog.far=dist<155?155:120;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
 </script><script>
