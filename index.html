@@ -5,12 +5,15 @@
 <script type="module">
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x030508);scene.fog=new THREE.Fog(0x030508,18,120);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.32));const headlamp=new THREE.SpotLight(0xeaf3ff,240,105,Math.PI/5,.55);headlamp.position.set(0,2.5,3.6);headlamp.target.position.set(0,1.8,-38);scene.add(headlamp,headlamp.target);const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x030508);scene.fog=new THREE.Fog(0x030508,18,120);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.32));const headlamp=new THREE.SpotLight(0xeaf3ff,240,105,Math.PI/5,.55);headlamp.position.set(0,2.15,1.0);headlamp.target.position.set(0,1.8,-38);scene.add(headlamp,headlamp.target);const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
 const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:metal}),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
 function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
 const cab=new THREE.Group();cab.scale.set(.73,.95,.88);cab.position.z=-.20;scene.add(cab);
+// Independent cabin illumination: does not spill into the tunnel.
+const cabinFill=new THREE.AmbientLight(0xdbeeff,1.15);cab.add(cabinFill);
+const cabinLamp=new THREE.PointLight(0xf2f5ed,36,8,1.8);cabinLamp.position.set(0,3.7,5.5);cab.add(cabinLamp);
 const cabShell=mat(0x454b50,.35),cabEdge=mat(0x8c8377,.45),cabRubber=mat(0x171d22),cabMetal=mat(0x9ca6ab,.65),cabButton=[mat(0x3d9464),mat(0xa64d42),mat(0xc39b47),mat(0x4479a8),mat(0x787d86)];
 const cabGlow=new THREE.MeshBasicMaterial({color:0x8ac9db});
 box(cab,6.8,.25,2.3,0,1.37,3.55,cabShell);
@@ -268,6 +271,9 @@ for(let i=0;i<8;i++)addChunk(-i*32);
 addSignal(chunks[2],-17,true);addSignal(chunks[5],-19,false);addSignal(chunks[7],-10,true);
 // Detailed island station: open view through marble columns to the opposite track.
 const platform=new THREE.Group();scene.add(platform);
+// Bright station lighting, independent of the train headlights.
+const stationFill=new THREE.AmbientLight(0xf1f4ff,.95);platform.add(stationFill);
+for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.PointLight(0xf4f6ff,18,16,2);lamp.position.set(x,7.5,z);platform.add(lamp)}}
 const marble=mat(0xc2bdb4),floorTile=mat(0x999b9a),trim=mat(0x716c68),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
 box(platform,3.25,.8,128,-4.3,.30,-57,floorTile);
 box(platform,.16,.07,128,-2.65,.74,-57,yellow);
