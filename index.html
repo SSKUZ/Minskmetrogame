@@ -99,25 +99,44 @@ function deskButton(x,z,text,color,type){
  const rim=new THREE.Mesh(new THREE.CylinderGeometry(.235,.235,.055,32),cabMetal);rim.position.y=.025;g.add(rim);
  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.198,.198,.10,32),new THREE.MeshStandardMaterial({color,metalness:.12,roughness:.35}));cap.position.y=.10;g.add(cap);
  const face=new THREE.Mesh(new THREE.CircleGeometry(.183,32),buttonLabel(text,color));face.rotation.x=-Math.PI/2;face.position.y=.153;g.add(face);
- cabHitTargets.push({mesh:cap,type},{mesh:face,type});return {cap,face};
+ cabHitTargets.push({mesh:cap,type},{mesh:face,type});return {cap,face,press:0,target:0};
 }
 // Control strip near the speedometer, with a cleared area for finger taps.
 const infoControl=deskButton(-1.30,.38,'Info','#1474a7','info');
 const openControl=deskButton(.65,.38,'ОТКР','#237a54','open');
 const closeControl=deskButton(1.27,.38,'ЗАКР','#9c4942','close');
-function syncDoorButtons(){for(const [b,active] of [[openControl,doors],[closeControl,!doors]]){
- b.cap.position.y=active?.055:.10;b.face.position.y=active?.108:.153;
- b.cap.material.emissive.setHex(active?0x153329:0x000000);
- }}
-// Initial button state is set after doors is initialized.
-function pressInfo(){infoControl.cap.position.y=.045;infoControl.face.position.y=.098;
- speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');
- clearTimeout(pressInfo.timer);pressInfo.timer=setTimeout(()=>{infoControl.cap.position.y=.10;infoControl.face.position.y=.153},1000)}
-function setCabDoors(open){if(doors===open)return;doors=open;syncDoorButtons();
+// Deep, spring-like travel with smooth movement every animation frame.
+const cabButtons=[infoControl,openControl,closeControl];
+function syncDoorButtons(){openControl.target=doors?1:0;closeControl.target=doors?0:1}
+function animateCabButtons(dt){
+ for(const b of cabButtons){
+ b.press+=(b.target-b.press)*Math.min(1,dt*15);
+ // Raised 0.23 above the mounting plate; depressed nearly flush.
+ b.cap.position.y=.22-b.press*.17;
+ b.face.position.y=.273-b.press*.17;
+ b.cap.material.emissive.setHex(b.press>.8?0x112c28:0x000000);
+ }
+}
+function pressInfo(){
+ infoControl.target=1;
+ clearTimeout(pressInfo.timer);
+ const announcement='Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.';
+ if('speechSynthesis' in window){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(announcement);u.lang='ru-RU';u.rate=.9;
+  u.onend=()=>{infoControl.target=0;clearTimeout(pressInfo.timer)};
+  u.onerror=()=>{infoControl.target=0;clearTimeout(pressInfo.timer)};
+  speechSynthesis.speak(u);
+  pressInfo.timer=setTimeout(()=>{infoControl.target=0},Math.max(3500,announcement.length*115));
+ }else{infoControl.timer=setTimeout(()=>{infoControl.target=0},1800)}
+}
+function setCabDoors(open){
+ if(doors===open)return;doors=open;syncDoorButtons();
  status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors){lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%'}
  else{departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=850;paintSign()}}
- speak(doors?'Осторожно, двери открываются.':'Осторожно, двери закрываются.')}
+ speak(doors?'Осторожно, двери открываются.':'Осторожно, двери закрываются.');
+}
 let cabPointerStart=null;
 renderer.domElement.addEventListener('pointerdown',e=>{cabPointerStart={x:e.clientX,y:e.clientY}},true);
 renderer.domElement.addEventListener('pointerup',e=>{if(!cabPointerStart||Math.hypot(e.clientX-cabPointerStart.x,e.clientY-cabPointerStart.y)>15){cabPointerStart=null;return}cabPointerStart=null;
@@ -209,7 +228,7 @@ document.querySelector('#doors').onclick=()=>{if(speed>1){status.textContent='С
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}addEventListener('resize',resize);
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;if(playing&&!doors){speed=Math.max(0,Math.min(75,speed+(lever>0?lever*18:-3)*dt+(lever<0?lever*40:0)*dt));const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;for(const g of chunks)g.visible=dist>145;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;animateCabButtons(dt);if(playing&&!doors){speed=Math.max(0,Math.min(75,speed+(lever>0?lever*18:-3)*dt+(lever<0?lever*40:0)*dt));const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;for(const g of chunks)g.visible=dist>145;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
 </script><script>
 (function(){let active=false,speed=0,lever=0,dist=850,people=0,idx=0,doors=false,yaw=0,pitch=0,last=performance.now();const $=x=>document.getElementById(x),canvas=$('scene'),names=['Плошча Перамогі','Кастрычніцкая','Плошча Леніна','Інстытут культуры'];function start(){if(active||window.metro3DReady)return;active=true;$('status').textContent='Режим совместимости — управление включено';requestAnimationFrame(frame)}
 setTimeout(()=>{if(window.metro3DReady)return;const masterTrack=$('masterTrack'),masterHandle=$('masterHandle'),masterValue=$('masterValue'),view=$('scene');function drive(e){const r=masterTrack.getBoundingClientRect();lever=Math.max(-1,Math.min(1,(.5-(e.clientY-r.top)/r.height)*2));masterHandle.style.top=50-lever*43+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{masterTrack.setPointerCapture(e.pointerId);drive(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))drive(e)});let pointer=null,x=0,y=0;view.addEventListener('pointerdown',e=>{pointer=e.pointerId;x=e.clientX;y=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(e.pointerId!==pointer)return;yaw=Math.max(-1.04,Math.min(1.04,yaw-(e.clientX-x)*.008));pitch=Math.max(-.42,Math.min(.54,pitch-(e.clientY-y)*.006));x=e.clientX;y=e.clientY});view.addEventListener('pointerup',e=>{if(e.pointerId===pointer)pointer=null});$('doors').onclick=()=>{if(speed>1){$('status').textContent='Сначала останови поезд';return}if(Math.abs(dist)>32){$('status').textContent='До платформы ещё далеко';return}doors=!doors;if(doors){people+=20;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';$('status').textContent='Двери открыты'}else{idx++;dist=850;$('status').textContent='Двери закрыты'}};if(window.metroStarted)start();window.addEventListener('metro-start',start)},1000);
