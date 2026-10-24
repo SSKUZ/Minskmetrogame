@@ -90,8 +90,9 @@ function renderRearMirrors(){
  const m=rearMirrors[Math.floor(mirrorFrameNumber/3)%2];
  cab.visible=false;
  for(const item of rearMirrors)item.face.visible=false;
- m.mirrorCamera.position.set(m.side*2.70,3.05,3.1);
- m.mirrorCamera.lookAt(m.side*4.0,2.0,33);
+ m.mirrorCamera.position.set(m.side*2.74,3.1,3.15);
+ // Look down the near platform alongside the train, towards the boarding doors.
+ m.mirrorCamera.lookAt(m.side*3.15,1.65,19);
  renderer.setRenderTarget(m.target);
  renderer.clear();
  renderer.render(scene,m.mirrorCamera);
@@ -423,9 +424,9 @@ for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,
 // Human figures: anatomically proportioned meshes, varied clothing and poses.
 const coats=[mat(0x394c63),mat(0x855648),mat(0x507064),mat(0x77716b),mat(0x46475b),mat(0x977e61)],skins=[mat(0xe1b69b),mat(0xc99576),mat(0xf0c5a8)],hairs=[mat(0x30231e),mat(0x6a4b32),mat(0x191b21),mat(0x9b7956)];
 function human(i,x,z){const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);const scale=.87+(i%6)*.055;p.scale.setScalar(scale);const coat=coats[i%coats.length],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
-const torso=new THREE.Mesh(new THREE.CylinderGeometry(.24,.29,.78,9),coat);torso.position.y=1.18;p.add(torso);
-for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.105,.085,.74,8),dark);leg.position.set(side*.13,.39,0);leg.rotation.z=side*(i%3-1)*.07;p.add(leg);const shoe=new THREE.Mesh(new THREE.BoxGeometry(.19,.12,.31),dark);shoe.position.set(side*.13,.08,-.07);p.add(shoe);
-const arm=new THREE.Mesh(new THREE.CylinderGeometry(.09,.075,.65,8),coat);arm.position.set(side*.32,1.2,0);arm.rotation.z=side*(.18+(i%4)*.09);p.add(arm);
+p.userData.walkLimbs=[];const torso=new THREE.Mesh(new THREE.CylinderGeometry(.24,.29,.78,9),coat);torso.position.y=1.18;p.add(torso);
+for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.105,.085,.74,8),dark);leg.position.set(side*.13,.39,0);leg.rotation.z=side*(i%3-1)*.07;p.add(leg);p.userData.walkLimbs.push({mesh:leg,side,kind:'leg'});const shoe=new THREE.Mesh(new THREE.BoxGeometry(.19,.12,.31),dark);shoe.position.set(side*.13,.08,-.07);p.add(shoe);
+const arm=new THREE.Mesh(new THREE.CylinderGeometry(.09,.075,.65,8),coat);arm.position.set(side*.32,1.2,0);arm.rotation.z=side*(.18+(i%4)*.09);p.add(arm);p.userData.walkLimbs.push({mesh:arm,side,kind:'arm'});
 const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,8,7),skin);hand.position.set(side*.38,.88,0);p.add(hand)}
 const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,8),skin);neck.position.y=1.68;p.add(neck);
 const face=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),skin);face.scale.set(1,.12/.19*1.4,.87);face.position.y=1.87;p.add(face);
@@ -434,32 +435,43 @@ for(const side of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.016
 p.rotation.y=(i%5-2)*.35;
 return p;
 }
+// Passenger exchange: staggered boarding and alighting at both platforms.
+// Characters are concentrated near the rear of the cab so side mirrors can see them.
 const platformPassengers=[];
-for(let i=0;i<34;i++){
- const side=i%4===0?1:-1,z=5-i*3.55,x=side*(3.5+(i%3)*.52);
- const person=human(i,x,z);
- platformPassengers.push({person,homeX:x,homeZ:z,phase:i%4===0?'exiting':'boarding',offset:i*.32});
+for(let i=0;i<44;i++){
+ const side=i%2===0?-1:1;
+ const z=-2-(Math.floor(i/2)%11)*2.1;
+ const homeX=side*(3.55+(i%3)*.22);
+ const person=human(i,homeX,z);
+ const exiting=i%4===0||i%4===1;
+ platformPassengers.push({person,side,homeX,homeZ:z,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
 }
-// Animated boarding and alighting only while the train is stopped with doors open.
-let passengerDoorTime=0;
+let passengerDoorTime=0,passengerExchangeStarted=false;
 function updatePlatformPassengers(dt){
- const atPlatform=Math.abs(dist)<46&&speed<1.2;
- if(atPlatform&&doors)passengerDoorTime+=dt;
- else if(!doors)passengerDoorTime=0;
+ const atPlatform=Math.abs(dist)<70&&speed<1.5;
+ if(atPlatform&&doors){
+  if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0}
+  passengerDoorTime+=dt;
+ }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0}
  for(const p of platformPassengers){
-  const t=Math.max(0,passengerDoorTime-p.offset);
-  const k=Math.min(1,t/4.2);
-  const eased=k*k*(3-2*k);
-  const isExit=p.phase==='exiting';
-  // Approach the train doors first, then travel away from the train / toward the concourse.
-  const fromX=isExit?-1.65:p.homeX;
-  const toX=isExit?p.homeX:-1.65;
   const active=atPlatform&&doors;
-  p.person.position.x=active?fromX+(toX-fromX)*eased:p.homeX;
-  p.person.position.z=p.homeZ+(active?Math.sin(Math.min(1,t/2)*Math.PI)*.28:0);
-  p.person.rotation.y=active?(isExit?Math.PI/2:-Math.PI/2):(p.offset%2-.5)*.5;
-  const swing=active&&k<1?Math.sin(t*9)*.07:0;
-  p.person.rotation.z=swing;
+  const t=Math.max(0,passengerDoorTime-p.offset);
+  const k=active?Math.min(1,t/5.4):0;
+  const smooth=k*k*(3-2*k);
+  // Exiting: doorway -> platform; boarding: platform -> doorway.
+  const doorX=p.side*1.9;
+  const startX=p.exiting?doorX:p.homeX;
+  const finishX=p.exiting?p.homeX:doorX;
+  p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
+  p.person.position.z=p.homeZ+(active?Math.sin(k*Math.PI)*.38:0);
+  p.person.visible=!(active&&!p.exiting&&k>=1);
+  p.person.rotation.y=active?(p.exiting?(p.side<0?-Math.PI/2:Math.PI/2):(p.side<0?Math.PI/2:-Math.PI/2)):0;
+  const walk=active&&k>0&&k<1;
+  const stride=walk?Math.sin(t*10)*.38:0;
+  for(const limb of p.person.userData.walkLimbs){
+   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*stride;
+  }
+  p.person.rotation.z=walk?Math.sin(t*10)*.025:0;
  }
 }
 // Platform signage and benches.
