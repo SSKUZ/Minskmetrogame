@@ -293,11 +293,6 @@ box(platform,3.25,.8,128,-4.3,.30,-57,floorTile);
 box(platform,.16,.07,128,-2.65,.74,-57,yellow);
 box(platform,3.2,.8,128,4.3,.30,-57,floorTile);
 box(platform,.16,.07,128,2.65,.74,-57,yellow);
-// Seamless approach: same track geometry continues into the illuminated station.
-const approachBed=mat(0x313439);
-box(platform,6.3,.20,52,0,-.28,32,approachBed);
-for(const x of [-1.15,1.15])box(platform,.12,.16,52,x,.02,32,rail);
-for(let j=0;j<26;j++)box(platform,3.3,.11,.24,0,-.08,6+j*2,wood);
 // Station hall: columns rather than a solid wall. Opposite side remains visible.
 for(let j=0;j<13;j++){const z=5-j*10;
 for(const x of [-5.55,5.55]){box(platform,.65,6.3,.72,x,3.9,z,marble);box(platform,.85,.25,.92,x,6.95,z,trim);box(platform,.85,.18,.92,x,.86,z,trim)}
@@ -387,7 +382,7 @@ if(lever>0.015){
  // Neutral: coasting with small rolling resistance.
  speed=Math.max(0,speed-1.2*dt);
 }
-speed=Math.min(90,speed);const move=speed/3.6*dt*1.22; // Slightly faster perceived travel at 90 km/h; speedometer and controller unchanged.dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
+speed=Math.min(90,speed);const move=speed/3.6*dt*1.22;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
  for(const g of chunks)g.visible=(dist>0 || g.position.z<stationEntrance+32);
  scene.fog.color.setHex(dist<155?0x10171c:0x030508);
  scene.fog.near=dist<155?28:18;scene.fog.far=dist<155?155:120;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
