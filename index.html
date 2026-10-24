@@ -86,13 +86,13 @@ for(const side of [-1,1]){
 let mirrorFrameNumber=0;
 function renderRearMirrors(){
  // Reduced resolution and 1 mirror per 3 frames keeps Android performance acceptable.
- if(++mirrorFrameNumber%2!==0)return;
- const m=rearMirrors[Math.floor(mirrorFrameNumber/2)%2];
+ if(++mirrorFrameNumber%3!==0)return;
+ const m=rearMirrors[Math.floor(mirrorFrameNumber/3)%2];
  cab.visible=false;
  for(const item of rearMirrors)item.face.visible=false;
- // The platform is translated by (-dist+30); track the ACTUAL passengers in world space.
- m.mirrorCamera.position.set(m.side*2.85,3.12,3.4);
- m.mirrorCamera.lookAt(m.side*3.55,1.60,platform.position.z-7);
+ m.mirrorCamera.position.set(m.side*2.74,3.1,3.15);
+ // Look down the near platform alongside the train, towards the boarding doors.
+ m.mirrorCamera.lookAt(m.side*3.15,1.65,19);
  renderer.setRenderTarget(m.target);
  renderer.clear();
  renderer.render(scene,m.mirrorCamera);
@@ -440,7 +440,7 @@ return p;
 const platformPassengers=[];
 for(let i=0;i<44;i++){
  const side=i%2===0?-1:1;
- const z=5-(Math.floor(i/2)%11)*2.1;
+ const z=-2-(Math.floor(i/2)%11)*2.1;
  const homeX=side*(3.55+(i%3)*.22);
  const person=human(i,homeX,z);
  const exiting=i%4===0||i%4===1;
@@ -448,7 +448,7 @@ for(let i=0;i<44;i++){
 }
 let passengerDoorTime=0,passengerExchangeStarted=false;
 function updatePlatformPassengers(dt){
- const atPlatform=doors&&speed<2&&dist<220&&dist>-135;
+ const atPlatform=Math.abs(dist)<70&&speed<1.5;
  if(atPlatform&&doors){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0}
   passengerDoorTime+=dt;
@@ -456,10 +456,10 @@ function updatePlatformPassengers(dt){
  for(const p of platformPassengers){
   const active=atPlatform&&doors;
   const t=Math.max(0,passengerDoorTime-p.offset);
-  const k=active?Math.min(1,t/7.5):0;
+  const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
-  const doorX=p.side*2.70;
+  const doorX=p.side*1.9;
   const startX=p.exiting?doorX:p.homeX;
   const finishX=p.exiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
