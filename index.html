@@ -5,7 +5,7 @@
 <script type="module">
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x090d13);scene.fog=new THREE.Fog(0x090d13,25,155);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x9dbdd2,0x11141b,1.3));const headlamp=new THREE.SpotLight(0xe2efff,110,135,Math.PI/3,.45);headlamp.position.set(0,4,5);headlamp.target.position.set(0,1,-30);scene.add(headlamp,headlamp.target);const ambientStation=new THREE.AmbientLight(0xd7e9ff,.85);scene.add(ambientStation);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x030508);scene.fog=new THREE.Fog(0x030508,18,120);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.32));const headlamp=new THREE.SpotLight(0xeaf3ff,240,105,Math.PI/5,.55);headlamp.position.set(0,2.5,3.6);headlamp.target.position.set(0,1.8,-38);scene.add(headlamp,headlamp.target);const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
 const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:metal}),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
 function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
@@ -219,8 +219,53 @@ document.addEventListener('pointerdown',e=>{
  else if(item.type==='open')setCabDoors(true);
  else if(item.type==='close')setCabDoors(false);
 },true);
-const chunks=[];function addChunk(z){const g=new THREE.Group();g.position.z=z;scene.add(g);box(g,12,.4,32,0,-.35,-16,dark);box(g,.4,7.5,32,-5.8,3.5,-16,concrete);box(g,.4,7.5,32,5.8,3.5,-16,concrete);box(g,12,.4,32,0,7.4,-16,concrete);for(let k=0;k<8;k++){const z=-k*4;box(g,.13,7,.14,-5.52,3.4,z,steel);box(g,.13,7,.14,5.52,3.4,z,steel);box(g,11,.12,.18,0,7.1,z,steel);box(g,.13,.13,32,-5.4,2.2,-16,dark);box(g,.13,.13,32,5.4,2.2,-16,dark)}for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);for(let j=0;j<16;j++)box(g,4.1,.12,.28,0,-.02,-j*2,wood);
-for(let j=0;j<4;j++){let zz=-3-j*8;box(g,2.7,.08,1.4,0,7.13,zz,light);box(g,.2,1.3,.15,-5.48,4.3,zz,light);box(g,.2,1.3,.15,5.48,4.3,zz,light);box(g,.24,7,.24,-5.4,3.5,zz,concrete);box(g,.24,7,.24,5.4,3.5,zz,concrete)}chunks.push(g)}for(let i=0;i<8;i++)addChunk(-i*32);
+// Close, dark tunnel with an arched concrete lining, train headlights and wayside signals.
+const tunnelWall=mat(0x24282c),tunnelRib=mat(0x424a50,.3),tunnelBallast=mat(0x252628),signalBlack=mat(0x101619,.35);
+const signalGreen=new THREE.MeshBasicMaterial({color:0x26ff73}),signalRed=new THREE.MeshBasicMaterial({color:0xff2828});
+const tunnelSignals=[];
+function addSignal(group,z,green){
+ const assembly=new THREE.Group();assembly.position.set(-2.82,0,z);group.add(assembly);
+ box(assembly,.13,4.2,.16,0,2.15,0,tunnelRib);
+ box(assembly,.48,1.17,.26,.05,4.20,0,signalBlack);
+ for(const [height,on,colour] of [[4.47,green,signalGreen],[4.0,!green,signalRed]]){
+  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.145,16,12),on?colour:signalBlack);
+  bulb.position.set(.05,height,.15);assembly.add(bulb);
+  if(on){const glow=new THREE.PointLight(green?0x23f873:0xff2525,1.4,5);glow.position.set(.05,height,.3);assembly.add(glow)}
+ }
+ tunnelSignals.push(assembly);
+}
+const chunks=[];
+function addChunk(z){
+ const g=new THREE.Group();g.position.z=z;scene.add(g);
+ box(g,6.45,.34,32,0,-.32,-16,tunnelBallast);
+ // Faceted arch instead of broad flat rectangular walls.
+ const archPts=[[-3.15,.05],[-3.15,3.3],[-2.94,4.8],[-2.25,6.15],[-1.25,6.85],[0,7.05],[1.25,6.85],[2.25,6.15],[2.94,4.8],[3.15,3.3],[3.15,.05]];
+ for(let j=0;j<archPts.length-1;j++){
+  const [x1,y1]=archPts[j],[x2,y2]=archPts[j+1];
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  const panel=box(g,.22,len,32,(x1+x2)/2,(y1+y2)/2,-16,tunnelWall);
+  panel.rotation.z=-Math.atan2(dx,dy);
+ }
+ for(let k=0;k<4;k++){
+  const zz=-k*8;
+  for(let j=0;j<archPts.length-1;j++){
+   const [x1,y1]=archPts[j],[x2,y2]=archPts[j+1],dx=x2-x1,dy=y2-y1;
+   const rib=box(g,.065,Math.hypot(dx,dy),.095,(x1+x2)/2,(y1+y2)/2,zz,tunnelRib);
+   rib.rotation.z=-Math.atan2(dx,dy);
+  }
+ }
+ for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);
+ for(let j=0;j<16;j++)box(g,3.3,.11,.27,0,-.03,-j*2,wood);
+ // Sparse wall lamps: most of the tunnel stays dark.
+ for(let j=0;j<2;j++){
+  const zz=-6-j*16;
+  box(g,.11,.62,.25,-3.02,3.3,zz,light);
+ }
+ chunks.push(g);
+}
+for(let i=0;i<8;i++)addChunk(-i*32);
+// Fixed-distance signal placements inside repeating tunnel sections.
+addSignal(chunks[2],-17,true);addSignal(chunks[5],-19,false);addSignal(chunks[7],-10,true);
 // Detailed island station: open view through marble columns to the opposite track.
 const platform=new THREE.Group();scene.add(platform);
 const marble=mat(0xc2bdb4),floorTile=mat(0x999b9a),trim=mat(0x716c68),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
@@ -246,8 +291,7 @@ for(const x of [-1.15,1.15])box(platform,.12,.16,128,x,.02,-57,rail);
 for(let j=0;j<65;j++)box(platform,4.1,.12,.3,0,-.08,5-j*2,wood);
 // Portal frame, tunnel mouth and receding track visible beyond station end.
 const portalZ=-118;
-box(platform,8.4,7.7,.38,0,4.2,portalZ,marble);
-box(platform,5.7,6.45,.42,0,3.35,portalZ+.28,portalBlack);
+// Portal is an actual opening, not an opaque black rectangle.
 for(const x of [-2.9,2.9])box(platform,.48,6.7,.6,x,3.45,portalZ+.6,hallTrim);
 box(platform,6.2,.45,.6,0,6.75,portalZ+.6,hallTrim);
 for(let j=0;j<8;j++){const z=portalZ-3-j*5;for(const x of [-1.15,1.15])box(platform,.1,.12,5,x,.04,z,rail);box(platform,5,.1,.22,0,-.12,z,wood)}
@@ -318,7 +362,7 @@ if(lever>0.015){
  // Neutral: coasting with small rolling resistance.
  speed=Math.max(0,speed-1.2*dt);
 }
-speed=Math.min(90,speed);const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;for(const g of chunks)g.visible=dist>145;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
+speed=Math.min(90,speed);const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;for(const g of chunks)g.visible=dist>8;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;requestAnimationFrame(frame);
 </script><script>
 (function(){let active=false,speed=0,lever=0,dist=850,people=0,idx=0,doors=false,yaw=0,pitch=0,last=performance.now();const $=x=>document.getElementById(x),canvas=$('scene'),names=['Плошча Перамогі','Кастрычніцкая','Плошча Леніна','Інстытут культуры'];function start(){if(active||window.metro3DReady)return;active=true;$('status').textContent='Режим совместимости — управление включено';requestAnimationFrame(frame)}
 setTimeout(()=>{if(window.metro3DReady)return;const masterTrack=$('masterTrack'),masterHandle=$('masterHandle'),masterValue=$('masterValue'),view=$('scene');function drive(e){const r=masterTrack.getBoundingClientRect();lever=Math.max(-1,Math.min(1,(.5-(e.clientY-r.top)/r.height)*2));masterHandle.style.top=50-lever*43+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{masterTrack.setPointerCapture(e.pointerId);drive(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))drive(e)});let pointer=null,x=0,y=0;view.addEventListener('pointerdown',e=>{pointer=e.pointerId;x=e.clientX;y=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(e.pointerId!==pointer)return;yaw=Math.max(-1.04,Math.min(1.04,yaw-(e.clientX-x)*.008));pitch=Math.max(-.42,Math.min(.54,pitch-(e.clientY-y)*.006));x=e.clientX;y=e.clientY});view.addEventListener('pointerup',e=>{if(e.pointerId===pointer)pointer=null});$('doors').onclick=()=>{if(speed>1){$('status').textContent='Сначала останови поезд';return}if(Math.abs(dist)>32){$('status').textContent='До платформы ещё далеко';return}doors=!doors;if(doors){people+=20;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';$('status').textContent='Двери открыты'}else{idx++;dist=850;$('status').textContent='Двери закрыты'}};if(window.metroStarted)start();window.addEventListener('metro-start',start)},1000);
