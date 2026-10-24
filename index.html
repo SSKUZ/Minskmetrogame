@@ -48,12 +48,14 @@ function paintNameplate(){
  }
  nameplateTexture.needsUpdate=true;
 }
-familyPhoto.onload=paintNameplate;
+familyPhoto.addEventListener('load',paintNameplate);
+familyPhoto.addEventListener('error',e=>console.warn('Family photo could not be decoded',e));
 paintNameplate();
+familyPhoto.decode().then(paintNameplate).catch(e=>console.warn('Family photo decode error',e));
 // Upright portrait plate on the LEFT front/side window pillar; faces the driver.
 const familyPlaque=new THREE.Group();
-familyPlaque.position.set(-3.02,2.94,2.51);
-familyPlaque.rotation.set(0,.20,0);
+familyPlaque.position.set(-2.91,2.96,3.12);
+familyPlaque.rotation.set(0,.30,0);
 cab.add(familyPlaque);
 box(familyPlaque,1.06,1.35,.06,0,0,0,new THREE.MeshStandardMaterial({color:0x171c22,metalness:.58,roughness:.34}));
 const familyPlaqueFace=new THREE.Mesh(new THREE.PlaneGeometry(1.01,1.29),new THREE.MeshBasicMaterial({map:nameplateTexture,side:THREE.DoubleSide,depthTest:false}));
