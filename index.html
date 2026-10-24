@@ -10,7 +10,7 @@ const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,met
 function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
-const cab=new THREE.Group();scene.add(cab);
+const cab=new THREE.Group();cab.scale.set(.77,1,.88);cab.position.z=-.20;scene.add(cab);
 const cabShell=mat(0x454b50,.35),cabEdge=mat(0x8c8377,.45),cabRubber=mat(0x171d22),cabMetal=mat(0x9ca6ab,.65),cabButton=[mat(0x3d9464),mat(0xa64d42),mat(0xc39b47),mat(0x4479a8),mat(0x787d86)];
 const cabGlow=new THREE.MeshBasicMaterial({color:0x8ac9db});
 box(cab,6.8,.25,2.3,0,1.37,3.55,cabShell);
@@ -19,7 +19,7 @@ box(cab,6.5,.22,.25,0,1.25,4.5,cabRubber);
 for(const x of [-3.1,3.1]){box(cab,.7,.7,2.15,x,1.56,3.5,cabShell);box(cab,.14,1.9,.17,x,2.55,2.47,cabEdge)}
 box(cab,6.6,.12,.17,0,3.54,2.46,cabEdge);
 box(cab,.12,1.65,.14,0,2.75,2.45,cabEdge);
-const instrumentDeck=new THREE.Group();instrumentDeck.position.set(0,1.79,3.24);instrumentDeck.rotation.x=-.22;cab.add(instrumentDeck);
+const instrumentDeck=new THREE.Group();instrumentDeck.position.set(0,1.79,3.24);instrumentDeck.rotation.x=.39;cab.add(instrumentDeck);
 box(instrumentDeck,6.0,.13,1.32,0,0,0,cabShell);
 function cabScreen(x,z,w,h,colour){const g=new THREE.Group();g.position.set(x,.12,z);instrumentDeck.add(g);box(g,w+.13,.12,h+.12,0,0,0,cabEdge);box(g,w,.025,h,0,.076,0,new THREE.MeshBasicMaterial({color:colour}));return g}
 const leftCabScreen=cabScreen(-1.78,-.17,1.24,.72,0x0b2936);
@@ -43,6 +43,31 @@ for(let i=0;i<7;i++){const x=-2.25+i*.74;box(instrumentDeck,.36,.02,.08,x,.12,.8
 box(cab,1.0,.22,.83,-2.35,1.68,4.12,cabEdge);
 box(cab,.16,.6,.17,-2.35,2.02,4.12,cabMetal);
 box(cab,.4,.19,.24,-2.35,2.37,4.12,cabRubber);
+// Cab sidewalls, door frames, glazed side windows and forward windscreen.
+const windowFrame=mat(0x777e80,.65),sideInterior=mat(0x555b5d),seal=mat(0x20272a);
+const glassPane=new THREE.MeshPhysicalMaterial({color:0x9ac4d5,transparent:true,opacity:.11,roughness:.12,metalness:0,depthWrite:false,side:THREE.DoubleSide});
+for(const side of [-1,1]){
+ const x=side*3.95;
+ box(cab,.23,1.05,3.8,x,1.0,3.25,sideInterior);
+ box(cab,.19,.22,3.8,x,1.63,3.25,windowFrame);
+ box(cab,.19,.2,3.8,x,3.52,3.25,windowFrame);
+ for(const z of [1.5,3.25,5.05])box(cab,.2,1.85,.18,x,2.58,z,windowFrame);
+ box(cab,.045,1.58,3.45,x,2.57,3.27,glassPane);
+ box(cab,.3,.23,3.8,x,1.78,3.25,seal);
+ box(cab,.35,.35,.55,side*3.72,1.94,4.45,cabShell);
+ box(cab,.11,.55,.9,side*3.70,2.05,4.48,cabMetal);
+}
+// Windshield frame: the tunnel remains visible through the large front opening.
+box(cab,8.2,.23,.2,0,3.63,1.48,windowFrame);
+box(cab,8.2,.27,.2,0,1.67,1.48,windowFrame);
+for(const x of [-3.97,0,3.97])box(cab,.17,1.94,.22,x,2.64,1.48,windowFrame);
+box(cab,7.7,1.7,.025,0,2.64,1.49,glassPane);
+box(cab,8.1,.25,3.8,0,3.83,3.26,sideInterior);
+// More upright illuminated control cluster facing the driver.
+const rearPanel=new THREE.Group();rearPanel.position.set(0,2.05,2.47);rearPanel.rotation.x=-.20;cab.add(rearPanel);
+box(rearPanel,5.65,.78,.18,0,0,0,cabShell);
+for(let i=0;i<4;i++){const x=-2.05+i*1.35;box(rearPanel,1.13,.55,.04,x,.04,.115,cabEdge);box(rearPanel,.98,.42,.055,x,.04,.15,new THREE.MeshBasicMaterial({color:[0x153b4a,0x23445b,0x173d35,0x263f49][i]}))}
+for(let i=0;i<16;i++){const x=-2.48+(i%8)*.71,y=-.26+Math.floor(i/8)*.45;const lamp=new THREE.Mesh(new THREE.SphereGeometry(.055,8,6),new THREE.MeshBasicMaterial({color:i%3===0?0x62cf89:i%3===1?0xf2ae54:0xd75047}));lamp.position.set(x,y,.17);rearPanel.add(lamp)}
 const cabLight=new THREE.PointLight(0xb4d8ef,3.2,10);cabLight.position.set(0,3.4,4.0);scene.add(cabLight);
 const chunks=[];function addChunk(z){const g=new THREE.Group();g.position.z=z;scene.add(g);box(g,12,.4,32,0,-.35,-16,dark);box(g,.4,7.5,32,-5.8,3.5,-16,concrete);box(g,.4,7.5,32,5.8,3.5,-16,concrete);box(g,12,.4,32,0,7.4,-16,concrete);for(let k=0;k<8;k++){const z=-k*4;box(g,.13,7,.14,-5.52,3.4,z,steel);box(g,.13,7,.14,5.52,3.4,z,steel);box(g,11,.12,.18,0,7.1,z,steel);box(g,.13,.13,32,-5.4,2.2,-16,dark);box(g,.13,.13,32,5.4,2.2,-16,dark)}for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);for(let j=0;j<16;j++)box(g,4.1,.12,.28,0,-.02,-j*2,wood);
 for(let j=0;j<4;j++){let zz=-3-j*8;box(g,2.7,.08,1.4,0,7.13,zz,light);box(g,.2,1.3,.15,-5.48,4.3,zz,light);box(g,.2,1.3,.15,5.48,4.3,zz,light);box(g,.24,7,.24,-5.4,3.5,zz,concrete);box(g,.24,7,.24,5.4,3.5,zz,concrete)}chunks.push(g)}for(let i=0;i<8;i++)addChunk(-i*32);
