@@ -35,6 +35,7 @@ speedPlate.position.set(0,.115,0);speedPlate.rotation.x=-Math.PI/2;midCabScreen.
 let lastCabSpeed=-1;function updateCabDisplay(v){const n=Math.round(v);if(n===lastCabSpeed)return;lastCabSpeed=n;displayCtx.fillStyle='#0b2338';displayCtx.fillRect(0,0,512,256);displayCtx.fillStyle='#81d9e9';displayCtx.textAlign='center';displayCtx.font='bold 120px monospace';displayCtx.fillText(String(n),256,154);displayCtx.font='bold 36px Arial';displayCtx.fillText('км/ч',256,216);displayTexture.needsUpdate=true}updateCabDisplay(0);
 // Hundreds of distinct switches, lamps and keypads in banks.
 for(let row=0;row<4;row++)for(let col=0;col<12;col++){const x=-2.62+col*.46,z=.38+row*.19;
+if(row<3 && ((x>-.1&&x<1.7)||(x>-1.65&&x<-1.0)))continue;
 const color=cabButton[(row*7+col)%cabButton.length];const button=new THREE.Mesh(new THREE.CylinderGeometry(.038,.043,.044,16),color);button.position.set(x,.115,z);instrumentDeck.add(button);
 const bezel=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.014,16),cabMetal);bezel.position.set(x,.075,z);instrumentDeck.add(bezel)}
 for(let i=0;i<8;i++){const x=-2.65+i*.75;const g=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.025,24),cabMetal);g.position.set(x,.12,-.64);instrumentDeck.add(g);const core=new THREE.Mesh(new THREE.CylinderGeometry(.087,.087,.03,24),cabRubber);core.position.set(x,.14,-.64);instrumentDeck.add(core);const needle=box(instrumentDeck,.012,.014,.073,x,.165,-.67,light)}
@@ -85,29 +86,34 @@ box(cab,2.1,2.8,.19,0,2.16,9.21,rearTrim);
 box(cab,.65,.15,.22,0,2.25,9.07,cabMetal);
 const cabLight=new THREE.PointLight(0xb4d8ef,3.2,10);cabLight.position.set(0,3.4,4.0);scene.add(cabLight);
 
-// Large labelled tactile controls beside the speedometer, built in 3D.
+// Three compact controls recessed directly into the sloped instrument desk.
 const cabHitTargets=[],cabRaycaster=new THREE.Raycaster(),cabTapPoint=new THREE.Vector2();
-function labelTexture(text,background='#17242d',foreground='#f0f8ff'){
- const c=document.createElement('canvas');c.width=512;c.height=256;const g=c.getContext('2d');g.fillStyle=background;g.fillRect(0,0,512,256);
- g.fillStyle=foreground;g.textAlign='center';g.textBaseline='middle';g.font='bold 105px Arial';g.fillText(text,256,128);return new THREE.CanvasTexture(c);
+function buttonLabel(text,color){
+ const c=document.createElement('canvas');c.width=256;c.height=256;const ctx=c.getContext('2d');
+ ctx.fillStyle=color;ctx.beginPath();ctx.arc(128,128,123,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 57px Arial';ctx.fillText(text,128,130);
+ return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,side:THREE.DoubleSide,depthWrite:false});
 }
-const controlFace=new THREE.MeshBasicMaterial({map:labelTexture('Info','#116398'),side:THREE.DoubleSide});
-const infoButton=new THREE.Group();infoButton.position.set(-1.32,2.14,2.62);cab.add(infoButton);
-box(infoButton,.96,.52,.14,0,0,0,cabMetal);
-const infoCap=box(infoButton,.85,.41,.15,0,0,.16,new THREE.MeshStandardMaterial({color:0x1684bd,emissive:0x073c56,metalness:.15,roughness:.3}));
-const infoText=new THREE.Mesh(new THREE.PlaneGeometry(.74,.34),controlFace);infoText.position.z=.245;infoButton.add(infoText);
-cabHitTargets.push({mesh:infoCap,type:'info'},{mesh:infoText,type:'info'});
-const doorSwitch=new THREE.Group();doorSwitch.position.set(1.30,2.14,2.62);cab.add(doorSwitch);
-box(doorSwitch,1.18,.63,.14,0,0,0,cabMetal);
-const doorOpenMat=new THREE.MeshBasicMaterial({map:labelTexture('ОТКР','#126e51'),side:THREE.DoubleSide});
-const doorCloseMat=new THREE.MeshBasicMaterial({map:labelTexture('ЗАКР','#883c37'),side:THREE.DoubleSide});
-const doorCap=box(doorSwitch,1.07,.53,.17,0,0,.16,new THREE.MeshStandardMaterial({color:0x315e66,metalness:.2,roughness:.35}));
-const doorFace=new THREE.Mesh(new THREE.PlaneGeometry(.96,.44),doorCloseMat);doorFace.position.z=.253;doorSwitch.add(doorFace);
-cabHitTargets.push({mesh:doorCap,type:'door'},{mesh:doorFace,type:'door'});
-function pressInfo(){infoCap.position.z=.08;infoText.position.z=.165;infoCap.material.emissive.setHex(0x106c95);
+function deskButton(x,z,text,color,type){
+ const g=new THREE.Group();g.position.set(x,.12,z);instrumentDeck.add(g);
+ const rim=new THREE.Mesh(new THREE.CylinderGeometry(.235,.235,.055,32),cabMetal);rim.position.y=.025;g.add(rim);
+ const cap=new THREE.Mesh(new THREE.CylinderGeometry(.198,.198,.10,32),new THREE.MeshStandardMaterial({color,metalness:.12,roughness:.35}));cap.position.y=.10;g.add(cap);
+ const face=new THREE.Mesh(new THREE.CircleGeometry(.183,32),buttonLabel(text,color));face.rotation.x=-Math.PI/2;face.position.y=.153;g.add(face);
+ cabHitTargets.push({mesh:cap,type},{mesh:face,type});return {cap,face};
+}
+// Control strip near the speedometer, with a cleared area for finger taps.
+const infoControl=deskButton(-1.30,.38,'Info','#1474a7','info');
+const openControl=deskButton(.65,.38,'ОТКР','#237a54','open');
+const closeControl=deskButton(1.27,.38,'ЗАКР','#9c4942','close');
+function syncDoorButtons(){for(const [b,active] of [[openControl,doors],[closeControl,!doors]]){
+ b.cap.position.y=active?.055:.10;b.face.position.y=active?.108:.153;
+ b.cap.material.emissive.setHex(active?0x153329:0x000000);
+ }}
+syncDoorButtons();
+function pressInfo(){infoControl.cap.position.y=.045;infoControl.face.position.y=.098;
  speak('Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.');
- clearTimeout(pressInfo.timer);pressInfo.timer=setTimeout(()=>{infoCap.position.z=.16;infoText.position.z=.245;infoCap.material.emissive.setHex(0x073c56)},1000)}
-function toggleCabDoors(){doors=!doors;doorCap.position.z=doors?.09:.16;doorFace.position.z=doors?.183:.253;doorFace.material=doors?doorOpenMat:doorCloseMat;
+ clearTimeout(pressInfo.timer);pressInfo.timer=setTimeout(()=>{infoControl.cap.position.y=.10;infoControl.face.position.y=.153},1000)}
+function setCabDoors(open){if(doors===open)return;doors=open;syncDoorButtons();
  status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors){lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%'}
  else{departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=850;paintSign()}}
@@ -115,9 +121,10 @@ function toggleCabDoors(){doors=!doors;doorCap.position.z=doors?.09:.16;doorFace
 let cabPointerStart=null;
 renderer.domElement.addEventListener('pointerdown',e=>{cabPointerStart={x:e.clientX,y:e.clientY}},true);
 renderer.domElement.addEventListener('pointerup',e=>{if(!cabPointerStart||Math.hypot(e.clientX-cabPointerStart.x,e.clientY-cabPointerStart.y)>15){cabPointerStart=null;return}cabPointerStart=null;
-const rect=renderer.domElement.getBoundingClientRect();cabTapPoint.set(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);cabRaycaster.setFromCamera(cabTapPoint,camera);
-const hits=cabRaycaster.intersectObjects(cabHitTargets.map(x=>x.mesh),false);if(!hits.length)return;
-const target=cabHitTargets.find(x=>x.mesh===hits[0].object);if(target?.type==='info')pressInfo();else if(target?.type==='door')toggleCabDoors();
+ const rect=renderer.domElement.getBoundingClientRect();cabTapPoint.set(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);cabRaycaster.setFromCamera(cabTapPoint,camera);
+ const hits=cabRaycaster.intersectObjects(cabHitTargets.map(x=>x.mesh),false);if(!hits.length)return;
+ const target=cabHitTargets.find(x=>x.mesh===hits[0].object);
+ if(target?.type==='info')pressInfo();else if(target?.type==='open')setCabDoors(true);else if(target?.type==='close')setCabDoors(false);
 },true);
 const chunks=[];function addChunk(z){const g=new THREE.Group();g.position.z=z;scene.add(g);box(g,12,.4,32,0,-.35,-16,dark);box(g,.4,7.5,32,-5.8,3.5,-16,concrete);box(g,.4,7.5,32,5.8,3.5,-16,concrete);box(g,12,.4,32,0,7.4,-16,concrete);for(let k=0;k<8;k++){const z=-k*4;box(g,.13,7,.14,-5.52,3.4,z,steel);box(g,.13,7,.14,5.52,3.4,z,steel);box(g,11,.12,.18,0,7.1,z,steel);box(g,.13,.13,32,-5.4,2.2,-16,dark);box(g,.13,.13,32,5.4,2.2,-16,dark)}for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);for(let j=0;j<16;j++)box(g,4.1,.12,.28,0,-.02,-j*2,wood);
 for(let j=0;j<4;j++){let zz=-3-j*8;box(g,2.7,.08,1.4,0,7.13,zz,light);box(g,.2,1.3,.15,-5.48,4.3,zz,light);box(g,.2,1.3,.15,5.48,4.3,zz,light);box(g,.24,7,.24,-5.4,3.5,zz,concrete);box(g,.24,7,.24,5.4,3.5,zz,concrete)}chunks.push(g)}for(let i=0;i<8;i++)addChunk(-i*32);
