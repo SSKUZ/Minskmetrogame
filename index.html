@@ -183,7 +183,7 @@ function pressInfo(){
 }
 let driverErrorCount=0;
 function setCabDoors(open){
- if(doors===open)return;doors=open;syncDoorButtons();
+ if(doors===open)return;initMetroAudio();metroChime(open);doors=open;syncDoorButtons();
  status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors&&speed>1){driverErrorCount++;document.querySelector('#errorCount').textContent=driverErrorCount;status.textContent='⚠ Ошибка машиниста: открытие дверей на ходу!'}
  if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=850;paintSign()}}
@@ -364,8 +364,52 @@ const names=['Плошча Перамогі','Кастрычніцкая','Пл�
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
+
+// Lightweight procedural metro audio. WebAudio is unlocked by the user's first tap.
+let metroAudio=null;
+function initMetroAudio(){
+ if(metroAudio){metroAudio.ctx.resume().catch(()=>{});return}
+ const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+ try{
+  const ctx=new AudioCtx(),master=ctx.createGain();master.gain.value=.42;master.connect(ctx.destination);
+  const motor=ctx.createOscillator(),motorGain=ctx.createGain();motor.type='sawtooth';motor.frequency.value=55;motorGain.gain.value=0;
+  const lowpass=ctx.createBiquadFilter();lowpass.type='lowpass';lowpass.frequency.value=320;
+  motor.connect(lowpass);lowpass.connect(motorGain);motorGain.connect(master);motor.start();
+  const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+  const rolling=ctx.createBufferSource(),rollingFilter=ctx.createBiquadFilter(),rollingGain=ctx.createGain();
+  rolling.buffer=buffer;rolling.loop=true;rollingFilter.type='bandpass';rollingFilter.frequency.value=460;rollingFilter.Q.value=.45;rollingGain.gain.value=0;
+  rolling.connect(rollingFilter);rollingFilter.connect(rollingGain);rollingGain.connect(master);rolling.start();
+  metroAudio={ctx,master,motor,motorGain,rollingFilter,rollingGain};
+  ctx.resume().catch(()=>{});
+ }catch(e){console.warn('Metro audio unavailable',e)}
+}
+function updateMetroAudio(v,traction){
+ const a=metroAudio;if(!a)return;const t=a.ctx.currentTime,ratio=Math.min(1,v/90);
+ a.motor.frequency.setTargetAtTime(48+ratio*165+Math.max(0,traction)*18,t,.15);
+ a.motorGain.gain.setTargetAtTime(v>1?(.012+ratio*.055):0,t,.18);
+ a.rollingGain.gain.setTargetAtTime(v>2?(.018+ratio*.15):0,t,.2);
+ a.rollingFilter.frequency.setTargetAtTime(210+ratio*950,t,.25);
+}
+function metroChime(open){
+ const a=metroAudio;if(!a)return;const {ctx,master}=a;
+ const beep=(freq,at,duration,volume)=>{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=freq;
+  gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(volume,at+.015);
+  gain.gain.exponentialRampToValueAtTime(.0001,at+duration);
+  osc.connect(gain);gain.connect(master);osc.start(at);osc.stop(at+duration+.03);
+ };
+ const t=ctx.currentTime+.03;
+ beep(open?780:650,t,.17,.14);beep(open?960:790,t+.23,.19,.13);
+ // Sliding-door motor: short descending whirr.
+ const osc=ctx.createOscillator(),g=ctx.createGain();osc.type='triangle';
+ osc.frequency.setValueAtTime(open?220:290,t+.48);osc.frequency.exponentialRampToValueAtTime(open?115:145,t+1.65);
+ g.gain.setValueAtTime(.0001,t+.48);g.gain.linearRampToValueAtTime(.095,t+.55);g.gain.linearRampToValueAtTime(.055,t+1.45);g.gain.exponentialRampToValueAtTime(.0001,t+1.72);
+ osc.connect(g);g.connect(master);osc.start(t+.48);osc.stop(t+1.75);
+}
+
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
-function startRide(){playing=true;speak('Добро пожаловать, Александр Ерашов! Садись в вагон, тебя сейчас повезёт машинист Кузнецов Захар.')}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
+function startRide(){initMetroAudio();playing=true;speak('Добро пожаловать, Александр Ерашов! Садись в вагон, тебя сейчас повезёт машинист Кузнецов Захар.')}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
 const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');function setMaster(e){const r=masterTrack.getBoundingClientRect();const relative=(e.clientY-r.top)/r.height;lever=Math.max(-1,Math.min(1,(.5-relative)*2));masterHandle.style.top=(50-lever*43)+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
 document.querySelector('#doors')?.addEventListener('click',()=>{if(speed>1){status.textContent='Сначала останови поезд!';return}if(Math.abs(dist)>32){status.textContent='До платформы ещё далеко';return}if(!doors){doors=true;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';people+=15+Math.floor(Math.random()*25);status.textContent='Пассажиры входят';speak('Станция '+names[index%names.length]+'. Осторожно, двери открываются.')}else{doors=false;departureTimes[index%departureTimes.length]=Date.now();index++;dist=850;paintSign();status.textContent='Двери закрыты';speak('Осторожно, двери закрываются. Следующая станция '+names[index%names.length])}});
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
@@ -387,7 +431,7 @@ if(lever>0.015){
  // Neutral: coasting with small rolling resistance.
  speed=Math.max(0,speed-1.2*dt);
 }
-speed=Math.min(90,speed);const move=speed/3.6*dt*1.22;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
+speed=Math.min(90,speed);updateMetroAudio(speed,lever);const move=speed/3.6*dt*1.22;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
  for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance-8 || g.position.z<stationEntrance-160);}
