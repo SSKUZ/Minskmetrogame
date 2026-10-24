@@ -141,24 +141,28 @@ function setCabDoors(open){
 // Capture pointerdown before the camera drag handler consumes the gesture.
 // Slim raised instrument rail makes all three switches visible above the dashboard.
 // Buttons are mounted directly into the existing instrument deck: no extra rail.
+// Project the real 3D button faces to the touch screen on every tap.
+// Listen at document level so decorative HUD layers cannot swallow the tap.
 const buttonPickTargets=[{button:infoControl,type:'info'},{button:openControl,type:'open'},{button:closeControl,type:'close'}];
 const pickVector=new THREE.Vector3();
 function cabButtonAt(clientX,clientY){
+ scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
  const rect=renderer.domElement.getBoundingClientRect();
- let nearest=null,best=Infinity;
+ let best=Infinity,nearest=null;
  for(const item of buttonPickTargets){
-  scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
-  item.button.cap.getWorldPosition(pickVector);pickVector.project(camera);
-  if(pickVector.z>1||pickVector.z< -1)continue;
-  const px=rect.left+(pickVector.x+1)*rect.width/2;
-  const py=rect.top+(1-pickVector.y)*rect.height/2;
+  item.button.face.getWorldPosition(pickVector);
+  pickVector.project(camera);
+  if(pickVector.z<=-1||pickVector.z>=1)continue;
+  const px=rect.left+(pickVector.x+1)*rect.width*.5;
+  const py=rect.top+(1-pickVector.y)*rect.height*.5;
   const d=Math.hypot(clientX-px,clientY-py);
   if(d<best){best=d;nearest=item}
  }
- // At least a 42-pixel finger target; keep buttons individually selectable.
- return best<=52?nearest:null;
+ // Finger-sized targets, but prevent adjacent buttons from sharing clicks.
+ return best<=Math.max(34,Math.min(rect.width,rect.height)*.105)?nearest:null;
 }
-renderer.domElement.addEventListener('pointerdown',e=>{
+document.addEventListener('pointerdown',e=>{
+ if(e.target.closest?.('#masterTrack,#masterUnit,#start'))return;
  const item=cabButtonAt(e.clientX,e.clientY);if(!item)return;
  e.preventDefault();e.stopImmediatePropagation();
  if(item.type==='info')pressInfo();
