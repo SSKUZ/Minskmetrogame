@@ -365,49 +365,40 @@ updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
 
-// Lightweight procedural metro audio. WebAudio is unlocked by the user's first tap.
+// Recorded CC0 metro audio. No oscillators, noise synthesis or generated chimes.
+const metroRecordings={
+ running:'https://bigsoundbank.com/UPLOAD/mp3/3040.mp3', // Old Paris metro carriage, CC0
+ braking:'https://lasonotheque.org/UPLOAD/mp3/0092.mp3', // Real metro deceleration, CC0
+ doors:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Train_automatic_inner_door_opening_closing_02.ogg'
+};
 let metroAudio=null;
 function initMetroAudio(){
- if(metroAudio){metroAudio.ctx.resume().catch(()=>{});return}
- const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
- try{
-  const ctx=new AudioCtx(),master=ctx.createGain();master.gain.value=.42;master.connect(ctx.destination);
-  const motor=ctx.createOscillator(),motorGain=ctx.createGain();motor.type='sawtooth';motor.frequency.value=55;motorGain.gain.value=0;
-  const lowpass=ctx.createBiquadFilter();lowpass.type='lowpass';lowpass.frequency.value=320;
-  motor.connect(lowpass);lowpass.connect(motorGain);motorGain.connect(master);motor.start();
-  const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),data=buffer.getChannelData(0);
-  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
-  const rolling=ctx.createBufferSource(),rollingFilter=ctx.createBiquadFilter(),rollingGain=ctx.createGain();
-  rolling.buffer=buffer;rolling.loop=true;rollingFilter.type='bandpass';rollingFilter.frequency.value=460;rollingFilter.Q.value=.45;rollingGain.gain.value=0;
-  rolling.connect(rollingFilter);rollingFilter.connect(rollingGain);rollingGain.connect(master);rolling.start();
-  metroAudio={ctx,master,motor,motorGain,rollingFilter,rollingGain};
-  ctx.resume().catch(()=>{});
- }catch(e){console.warn('Metro audio unavailable',e)}
+ if(metroAudio){metroAudio.running.play().catch(()=>{});metroAudio.running.pause();return}
+ const make=(src,loop,volume)=>{const a=new Audio(src);a.preload='auto';a.loop=loop;a.volume=volume;a.crossOrigin='anonymous';return a};
+ const running=make(metroRecordings.running,true,0),braking=make(metroRecordings.braking,false,0),doorsSound=make(metroRecordings.doors,false,.7);
+ metroAudio={running,braking,doorsSound,wasBraking:false};
+ // Start during the actual tap, satisfying mobile autoplay rules.
+ running.play().then(()=>{if(speed<2)running.pause()}).catch(()=>{});
 }
 function updateMetroAudio(v,traction){
- const a=metroAudio;if(!a)return;const t=a.ctx.currentTime,ratio=Math.min(1,v/90);
- a.motor.frequency.setTargetAtTime(48+ratio*165+Math.max(0,traction)*18,t,.15);
- a.motorGain.gain.setTargetAtTime(v>1?(.012+ratio*.055):0,t,.18);
- a.rollingGain.gain.setTargetAtTime(v>2?(.018+ratio*.15):0,t,.2);
- a.rollingFilter.frequency.setTargetAtTime(210+ratio*950,t,.25);
+ const a=metroAudio;if(!a)return;
+ const ratio=Math.min(1,v/90),isBraking=traction<-.08&&v>4;
+ if(v>2){
+  if(a.running.paused)a.running.play().catch(()=>{});
+  a.running.volume=Math.min(.68,.13+ratio*.48);
+  a.running.playbackRate=Math.min(1.3,.84+ratio*.38);
+ }else{a.running.volume=0;if(!a.running.paused)a.running.pause()}
+ if(isBraking&&!a.wasBraking){a.braking.currentTime=0;a.braking.volume=.35;a.braking.play().catch(()=>{})}
+ if(!isBraking){a.braking.pause();a.braking.currentTime=0}
+ a.wasBraking=isBraking;
 }
 function metroChime(open){
- const a=metroAudio;if(!a)return;const {ctx,master}=a;
- const beep=(freq,at,duration,volume)=>{
-  const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=freq;
-  gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(volume,at+.015);
-  gain.gain.exponentialRampToValueAtTime(.0001,at+duration);
-  osc.connect(gain);gain.connect(master);osc.start(at);osc.stop(at+duration+.03);
- };
- const t=ctx.currentTime+.03;
- beep(open?780:650,t,.17,.14);beep(open?960:790,t+.23,.19,.13);
- // Sliding-door motor: short descending whirr.
- const osc=ctx.createOscillator(),g=ctx.createGain();osc.type='triangle';
- osc.frequency.setValueAtTime(open?220:290,t+.48);osc.frequency.exponentialRampToValueAtTime(open?115:145,t+1.65);
- g.gain.setValueAtTime(.0001,t+.48);g.gain.linearRampToValueAtTime(.095,t+.55);g.gain.linearRampToValueAtTime(.055,t+1.45);g.gain.exponentialRampToValueAtTime(.0001,t+1.72);
- osc.connect(g);g.connect(master);osc.start(t+.48);osc.stop(t+1.75);
+ if(!metroAudio)initMetroAudio();
+ if(!metroAudio)return;
+ const a=metroAudio.doorsSound;
+ a.pause();a.currentTime=open?0:Math.min(6,a.duration||6);
+ a.play().catch(()=>{});
 }
-
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){initMetroAudio();playing=true;speak('Добро пожаловать, Александр Ерашов! Садись в вагон, тебя сейчас повезёт машинист Кузнецов Захар.')}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
 const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');function setMaster(e){const r=masterTrack.getBoundingClientRect();const relative=(e.clientY-r.top)/r.height;lever=Math.max(-1,Math.min(1,(.5-relative)*2));masterHandle.style.top=(50-lever*43)+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
