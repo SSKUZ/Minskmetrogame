@@ -10,11 +10,43 @@ const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,met
 function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
 const chunks=[];function addChunk(z){const g=new THREE.Group();g.position.z=z;scene.add(g);box(g,12,.4,32,0,-.35,-16,dark);box(g,.4,7.5,32,-5.8,3.5,-16,concrete);box(g,.4,7.5,32,5.8,3.5,-16,concrete);box(g,12,.4,32,0,7.4,-16,concrete);for(let k=0;k<8;k++){const z=-k*4;box(g,.13,7,.14,-5.52,3.4,z,steel);box(g,.13,7,.14,5.52,3.4,z,steel);box(g,11,.12,.18,0,7.1,z,steel);box(g,.13,.13,32,-5.4,2.2,-16,dark);box(g,.13,.13,32,5.4,2.2,-16,dark)}for(const x of [-1.15,1.15])box(g,.12,.17,32,x,.08,-16,rail);for(let j=0;j<16;j++)box(g,4.1,.12,.28,0,-.02,-j*2,wood);
 for(let j=0;j<4;j++){let zz=-3-j*8;box(g,2.7,.08,1.4,0,7.13,zz,light);box(g,.2,1.3,.15,-5.48,4.3,zz,light);box(g,.2,1.3,.15,5.48,4.3,zz,light);box(g,.24,7,.24,-5.4,3.5,zz,concrete);box(g,.24,7,.24,5.4,3.5,zz,concrete)}chunks.push(g)}for(let i=0;i<8;i++)addChunk(-i*32);
-const platform=new THREE.Group();scene.add(platform);box(platform,3.2,.9,110,-4.5,.25,-55,tile);box(platform,.15,.08,110,-2.85,.74,-55,yellow);for(let j=0;j<11;j++){let z=-j*10;box(platform,.8,6,.8,-5.3,3.5,z,tile);box(platform,2,.7,.15,-5.3,5.6,z,blue);box(platform,2,.1,1.7,-4.4,7,z,light)}
-// Low-poly passengers waiting on the left platform.
-const coats=[mat(0x4c6c8c),mat(0x994f40),mat(0x4a7a65),mat(0x897b55),mat(0x55566b)];
-const skin=mat(0xd2a58b),hair=mat(0x302b2b);
-for(let i=0;i<26;i++){const p=new THREE.Group();p.position.set(-3.7-(i%3)*.55,0,-4-i*3.9);platform.add(p);const h=1.45+(i%4)*.09;box(p,.43,.68,.26,0,h-.48,0,coats[i%coats.length]);box(p,.16,.68,.16,-.12,h-1.15,0,dark);box(p,.16,.68,.16,.12,h-1.15,0,dark);box(p,.13,.62,.13,-.3,h-.5,0,coats[i%coats.length]);box(p,.13,.62,.13,.3,h-.5,0,coats[i%coats.length]);const head=new THREE.Mesh(new THREE.SphereGeometry(.17,9,7),skin);head.position.y=h; p.add(head);const cap=new THREE.Mesh(new THREE.SphereGeometry(.175,9,7,0,Math.PI*2,0,Math.PI*.45),hair);cap.position.y=h+.035;p.add(cap)}
+// Detailed island station: open view through marble columns to the opposite track.
+const platform=new THREE.Group();scene.add(platform);
+const marble=mat(0xc2bdb4),floorTile=mat(0x999b9a),trim=mat(0x716c68),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
+box(platform,3.25,.8,128,-4.3,.30,-57,floorTile);
+box(platform,.16,.07,128,-2.65,.74,-57,yellow);
+box(platform,3.2,.8,128,4.3,.30,-57,floorTile);
+box(platform,.16,.07,128,2.65,.74,-57,yellow);
+// Station hall: columns rather than a solid wall. Opposite side remains visible.
+for(let j=0;j<13;j++){const z=5-j*10;
+for(const x of [-5.55,5.55]){box(platform,.65,6.3,.72,x,3.9,z,marble);box(platform,.85,.25,.92,x,6.95,z,trim);box(platform,.85,.18,.92,x,.86,z,trim)}
+box(platform,11.5,.15,.28,0,7.04,z,marble);
+box(platform,2.8,.12,1.15,-4.2,6.98,z,light);box(platform,2.8,.12,1.15,4.2,6.98,z,light);
+}
+box(platform,3.1,.14,128,-4.25,7.15,-57,marble);
+box(platform,3.1,.14,128,4.25,7.15,-57,marble);
+// Opposite track and a blue-and-silver metro train visible beyond the platform.
+const otherTrack=mat(0x3b4147),trainBlue=mat(0x1a579a,.3),windowDark=mat(0x122938,.15),stripe=mat(0xe1e8ee,.25);
+box(platform,2.5,.18,125,8.0,-.15,-57,otherTrack);
+for(const x of [7.3,8.7])box(platform,.12,.12,125,x,.01,-57,rail);
+const oppositeTrain=new THREE.Group();oppositeTrain.position.set(8.2,.45,-56);platform.add(oppositeTrain);
+for(let car=0;car<5;car++){let z=car*22-44;box(oppositeTrain,2.5,3.15,21,0,1.85,z,stripe);box(oppositeTrain,2.55,1.1,21,0,2.0,z,trainBlue);box(oppositeTrain,2.54,.25,21,0,3.28,z,trainBlue);
+for(let k=0;k<5;k++){let zz=z-8+k*3.7;box(oppositeTrain,.045,1.03,1.7,-1.285,2.55,zz,windowDark);box(oppositeTrain,.045,1.03,1.7,1.285,2.55,zz,windowDark)}
+for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,zz,doorMat);box(oppositeTrain,.065,2.3,1.35,1.295,1.55,zz,doorMat)}}
+// Human figures: anatomically proportioned meshes, varied clothing and poses.
+const coats=[mat(0x394c63),mat(0x855648),mat(0x507064),mat(0x77716b),mat(0x46475b),mat(0x977e61)],skins=[mat(0xe1b69b),mat(0xc99576),mat(0xf0c5a8)],hairs=[mat(0x30231e),mat(0x6a4b32),mat(0x191b21),mat(0x9b7956)];
+function human(i,x,z){const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);const scale=.87+(i%6)*.055;p.scale.setScalar(scale);const coat=coats[i%coats.length],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(.24,.29,.78,9),coat);torso.position.y=1.18;p.add(torso);
+for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.105,.085,.74,8),dark);leg.position.set(side*.13,.39,0);leg.rotation.z=side*(i%3-1)*.07;p.add(leg);const shoe=new THREE.Mesh(new THREE.BoxGeometry(.19,.12,.31),dark);shoe.position.set(side*.13,.08,-.07);p.add(shoe);
+const arm=new THREE.Mesh(new THREE.CylinderGeometry(.09,.075,.65,8),coat);arm.position.set(side*.32,1.2,0);arm.rotation.z=side*(.18+(i%4)*.09);p.add(arm);
+const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,8,7),skin);hand.position.set(side*.38,.88,0);p.add(hand)}
+const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,8),skin);neck.position.y=1.68;p.add(neck);
+const face=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),skin);face.scale.set(1,.12/.19*1.4,.87);face.position.y=1.87;p.add(face);
+const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.196,12,9,0,Math.PI*2,0,Math.PI*.48),hair);hairTop.position.y=1.92;p.add(hairTop);
+for(const side of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.016,6,6),dark);eye.position.set(side*.077,1.89,-.16);p.add(eye)}
+p.rotation.y=(i%5-2)*.35;
+}
+for(let i=0;i<34;i++){const side=i%4===0?1:-1;human(i,side*(3.5+(i%3)*.52),5-i*3.55)}
 // Platform signage and benches.
 for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platform,.1,.8,.1,-5.45,.43,-8-i*18,steel);box(platform,.1,.8,.1,-4.3,.43,-8-i*18,steel)}
 const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
