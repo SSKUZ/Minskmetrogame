@@ -72,25 +72,46 @@ box(cab,1.0,.22,.83,-2.35,1.68,4.12,cabEdge);
 box(cab,.16,.6,.17,-2.35,2.02,4.12,cabMetal);
 box(cab,.4,.19,.24,-2.35,2.37,4.12,cabRubber);
 // Cab sidewalls, door frames, glazed side windows and forward windscreen.
-const windowFrame=mat(0x777e80,.65),sideInterior=mat(0x555b5d),seal=mat(0x20272a);
-const glassPane=new THREE.MeshPhysicalMaterial({color:0x9ac4d5,transparent:true,opacity:.025,roughness:.04,metalness:0,depthWrite:false,side:THREE.DoubleSide});
-for(const side of [-1,1]){
- const x=side*3.95;
- box(cab,.23,1.05,3.8,x,1.0,3.25,sideInterior);
- box(cab,.19,.22,3.8,x,1.63,3.25,windowFrame);
- box(cab,.19,.2,3.8,x,3.52,3.25,windowFrame);
- for(const z of [1.5,3.25,5.05])box(cab,.2,1.85,.18,x,2.58,z,windowFrame);
- box(cab,.045,1.58,3.45,x,2.57,3.27,glassPane);
- box(cab,.3,.23,3.8,x,1.78,3.25,seal);
- box(cab,.35,.35,.55,side*3.72,1.94,4.45,cabShell);
- box(cab,.11,.55,.9,side*3.70,2.05,4.48,cabMetal);
+// Soft moulded cabin glazing: curved rubber gaskets, rounded aluminium surrounds.
+const windowFrame=mat(0x626e76,.52),sideInterior=mat(0x414a51,.18),seal=mat(0x1c252b);
+const glassPane=new THREE.MeshPhysicalMaterial({color:0x9ac4d5,transparent:true,opacity:.018,roughness:.055,metalness:0,depthWrite:false,side:THREE.DoubleSide});
+const softTrim=mat(0x303b43,.25),brightTrim=mat(0x86949b,.55);
+function smoothRail(points,radius,material,segments=30){
+ const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
+ const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,segments,radius,8,false),material);
+ cab.add(mesh);return mesh;
 }
-// Windshield frame: the tunnel remains visible through the large front opening.
-box(cab,8.2,.14,.2,0,4.03,1.48,windowFrame);
-box(cab,8.2,.27,.2,0,1.67,1.48,windowFrame);
-for(const x of [-3.97,3.97])box(cab,.17,2.33,.22,x,2.83,1.48,windowFrame);
-box(cab,7.7,2.15,.025,0,2.85,1.49,glassPane);
-box(cab,8.1,.16,3.8,0,4.25,3.26,sideInterior);
+function roundPost(x,y,z,w,h,d,material,r=.10){
+ const shape=new THREE.Shape();const left=-w/2,right=w/2,bottom=-h/2,top=h/2;
+ shape.moveTo(left+r,bottom);shape.lineTo(right-r,bottom);shape.quadraticCurveTo(right,bottom,right,bottom+r);
+ shape.lineTo(right,top-r);shape.quadraticCurveTo(right,top,right-r,top);
+ shape.lineTo(left+r,top);shape.quadraticCurveTo(left,top,left,top-r);
+ shape.lineTo(left,bottom+r);shape.quadraticCurveTo(left,bottom,left+r,bottom);
+ const geo=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:true,bevelThickness:.035,bevelSize:.035,bevelSegments:3,steps:1,curveSegments:8});
+ const mesh=new THREE.Mesh(geo,material);mesh.position.set(x,y,z-d/2);cab.add(mesh);return mesh;
+}
+// Continuous, slightly curved front windshield, without square cross-bars.
+const windTop=[[-3.93,3.93,1.52],[-3.05,4.01,1.43],[0,4.08,1.38],[3.05,4.01,1.43],[3.93,3.93,1.52]];
+const windBottom=[[-3.93,1.79,1.58],[-3.05,1.73,1.50],[0,1.70,1.46],[3.05,1.73,1.50],[3.93,1.79,1.58]];
+smoothRail(windTop,.085,softTrim,48);smoothRail(windBottom,.115,softTrim,48);
+smoothRail(windTop.map(p=>[p[0],p[1]+.045,p[2]+.015]),.024,brightTrim,48);
+for(const side of [-1,1]){
+ smoothRail([[side*3.93,1.79,1.58],[side*3.99,2.15,1.52],[side*4.0,3.5,1.49],[side*3.93,3.93,1.52]],.11,softTrim);
+ smoothRail([[side*3.92,1.83,1.6],[side*3.92,1.84,2.35],[side*3.94,1.82,3.95],[side*3.93,1.85,5.18]],.09,softTrim);
+ smoothRail([[side*3.93,3.91,1.54],[side*3.94,3.83,2.8],[side*3.95,3.65,4.25],[side*3.93,3.54,5.18]],.09,softTrim);
+ // One slender swept divider rather than several heavy upright bars.
+ smoothRail([[side*3.94,1.84,3.85],[side*3.96,2.56,3.73],[side*3.95,3.63,3.53]],.065,windowFrame);
+ box(cab,.035,1.70,3.35,side*3.96,2.72,3.35,glassPane);
+ // Upholstered lower side wall with rounded moulded window sill.
+ box(cab,.23,.95,4.2,side*4.00,1.17,3.36,sideInterior);
+ smoothRail([[side*3.87,1.72,1.55],[side*3.88,1.72,3.25],[side*3.87,1.72,5.35]],.105,softTrim);
+ // Compact, rounded side console.
+ roundPost(side*3.66,1.80,4.26,.34,.58,.72,cabShell,.14);
+}
+// Clear windshield glazing: no thick bars blocking the driver's view.
+box(cab,7.75,2.13,.024,0,2.83,1.49,glassPane);
+// Curved upper headliner following the front glazing.
+smoothRail([[-3.95,4.08,1.63],[-2.7,4.18,1.58],[0,4.22,1.53],[2.7,4.18,1.58],[3.95,4.08,1.63]],.12,sideInterior,48);
 // More upright illuminated control cluster facing the driver.
 const rearPanel=new THREE.Group();rearPanel.position.set(0,2.05,2.47);rearPanel.rotation.x=-.20;cab.add(rearPanel);
 box(rearPanel,5.65,.78,.18,0,0,0,cabShell);
