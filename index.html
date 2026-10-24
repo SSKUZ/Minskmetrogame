@@ -95,16 +95,16 @@ function buttonLabel(text,color){
  return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,side:THREE.DoubleSide,depthWrite:false});
 }
 function deskButton(x,z,text,color,type){
- const g=new THREE.Group();g.position.set(x,2.79,2.53);cab.add(g);
+ const g=new THREE.Group();g.position.set(x,2.15,3.03);g.scale.setScalar(.77);cab.add(g);
  const rim=new THREE.Mesh(new THREE.CylinderGeometry(.235,.235,.055,32),cabMetal);rim.rotation.x=Math.PI/2;rim.position.z=.025;g.add(rim);
  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.198,.198,.10,32),new THREE.MeshStandardMaterial({color,metalness:.12,roughness:.35}));cap.rotation.x=Math.PI/2;cap.position.z=.22;g.add(cap);
  const face=new THREE.Mesh(new THREE.CircleGeometry(.183,32),buttonLabel(text,color));face.position.z=.273;g.add(face);
  cabHitTargets.push({mesh:cap,type},{mesh:face,type});return {cap,face,press:0,target:0};
 }
 // Control strip near the speedometer, with a cleared area for finger taps.
-const infoControl=deskButton(-1.30,.38,'Info','#1474a7','info');
-const openControl=deskButton(.45,.38,'ОТКР','#237a54','open');
-const closeControl=deskButton(1.08,.38,'ЗАКР','#9c4942','close');
+const infoControl=deskButton(-1.02,.38,'Info','#1474a7','info');
+const openControl=deskButton(.32,.38,'ОТКР','#237a54','open');
+const closeControl=deskButton(.84,.38,'ЗАКР','#9c4942','close');
 // Deep, spring-like travel with smooth movement every animation frame.
 const cabButtons=[infoControl,openControl,closeControl];
 function syncDoorButtons(){openControl.target=doors?1:0;closeControl.target=doors?0:1}
@@ -140,7 +140,7 @@ function setCabDoors(open){
 // Touch-first picking: use projected button centres, not tiny mesh ray hits.
 // Capture pointerdown before the camera drag handler consumes the gesture.
 // Slim raised instrument rail makes all three switches visible above the dashboard.
-box(cab,3.15,.52,.20,-.12,2.79,2.44,cabShell);
+box(cab,2.65,.24,.24,-.12,2.12,2.96,cabShell);
 const buttonPickTargets=[{button:infoControl,type:'info'},{button:openControl,type:'open'},{button:closeControl,type:'close'}];
 const pickVector=new THREE.Vector3();
 function cabButtonAt(clientX,clientY){
