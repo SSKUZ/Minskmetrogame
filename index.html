@@ -25,6 +25,36 @@ box(platform,2.8,.12,1.15,-4.2,6.98,z,light);box(platform,2.8,.12,1.15,4.2,6.98,
 }
 box(platform,3.1,.14,128,-4.25,7.15,-57,marble);
 box(platform,3.1,.14,128,4.25,7.15,-57,marble);
+// Spacious station concourse: tall ceiling, tiled floor and track bed, tunnel portal at far end.
+const hallRoof=mat(0xc7c5be),hallTrim=mat(0x696c71),portalBlack=new THREE.MeshBasicMaterial({color:0x060a0f});
+box(platform,13,.32,128,0,8.35,-57,hallRoof);
+for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,13,.09,.18,0,8.09,z,hallTrim);box(platform,2.8,.08,1.2,-3.9,8.05,z,light);box(platform,2.8,.08,1.2,3.9,8.05,z,light)}
+box(platform,5,.28,128,0,-.22,-57,otherTrackPlaceholder());
+function otherTrackPlaceholder(){return mat(0x313439)}
+for(const x of [-1.15,1.15])box(platform,.12,.16,128,x,.02,-57,rail);
+for(let j=0;j<65;j++)box(platform,4.1,.12,.3,0,-.08,5-j*2,wood);
+// Portal frame, tunnel mouth and receding track visible beyond station end.
+const portalZ=-118;
+box(platform,8.4,7.7,.38,0,4.2,portalZ,marble);
+box(platform,5.7,6.45,.42,0,3.35,portalZ+.28,portalBlack);
+for(const x of [-2.9,2.9])box(platform,.48,6.7,.6,x,3.45,portalZ+.6,hallTrim);
+box(platform,6.2,.45,.6,0,6.75,portalZ+.6,hallTrim);
+for(let j=0;j<8;j++){const z=portalZ-3-j*5;for(const x of [-1.15,1.15])box(platform,.1,.12,5,x,.04,z,rail);box(platform,5,.1,.22,0,-.12,z,wood)}
+// Real station clocks: Minsk local time and elapsed time since previous train departure.
+const clockCanvas=document.createElement('canvas');clockCanvas.width=1024;clockCanvas.height=240;
+const clockContext=clockCanvas.getContext('2d');const clockTexture=new THREE.CanvasTexture(clockCanvas);
+const clockBoard=new THREE.Mesh(new THREE.PlaneGeometry(6.1,1.43),new THREE.MeshBasicMaterial({map:clockTexture,side:THREE.DoubleSide,transparent:false}));
+clockBoard.position.set(0,7.35,-99);platform.add(clockBoard);
+const departureTimes=[Date.now()-92000,Date.now()-128000,Date.now()-105000,Date.now()-119000];let lastClockSecond=-1;
+function updateStationClock(){const now=Date.now(),second=Math.floor(now/1000);if(lastClockSecond===second)return;lastClockSecond=second;
+const c=clockContext;c.fillStyle='#101319';c.fillRect(0,0,1024,240);c.strokeStyle='#9da8af';c.lineWidth=8;c.strokeRect(5,5,1014,230);
+c.fillStyle='#c9d5dc';c.font='bold 28px Arial';c.textAlign='center';c.fillText('ТЕКУЩЕЕ ВРЕМЯ',256,42);c.fillText('ИНТЕРВАЛ',768,42);
+const clock=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Minsk',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(now));
+const elapsed=Math.max(0,Math.floor((now-departureTimes[index%departureTimes.length])/1000));
+const interval=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
+c.fillStyle='#ff3d37';c.font='bold 88px monospace';c.fillText(clock,256,151);c.fillText(interval,768,151);
+c.font='22px Arial';c.fillStyle='#b3bbc1';c.fillText('МИНСК',256,198);c.fillText('ПОСЛЕ ПРЕДЫДУЩЕГО ПОЕЗДА',768,198);clockTexture.needsUpdate=true}
+updateStationClock();
 // Opposite track and a blue-and-silver metro train visible beyond the platform.
 const otherTrack=mat(0x3b4147),trainBlue=mat(0x1a579a,.3),windowDark=mat(0x122938,.15),stripe=mat(0xe1e8ee,.25);
 box(platform,2.5,.18,125,8.0,-.15,-57,otherTrack);
@@ -55,11 +85,11 @@ function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyl
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){playing=true;speak('Добро пожаловать, машинист Кузнецов Захар!')}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
 const traction=document.querySelector('#traction'),brake=document.querySelector('#brake');function updateDrive(){document.querySelector('#tractionValue').textContent=traction.value+'%';document.querySelector('#brakeValue').textContent=brake.value+'%';lever=Number(traction.value)/100-Number(brake.value)/100}traction.addEventListener('input',updateDrive);brake.addEventListener('input',updateDrive);
-document.querySelector('#doors').onclick=()=>{if(speed>1){status.textContent='Сначала останови поезд!';return}if(Math.abs(dist)>32){status.textContent='До платформы ещё далеко';return}if(!doors){doors=true;traction.value=0;brake.value=0;updateDrive();people+=15+Math.floor(Math.random()*25);status.textContent='Пассажиры входят';speak('Станция '+names[index%names.length]+'. Осторожно, двери открываются.')}else{doors=false;index++;dist=850;paintSign();status.textContent='Двери закрыты';speak('Осторожно, двери закрываются. Следующая станция '+names[index%names.length])}};
+document.querySelector('#doors').onclick=()=>{if(speed>1){status.textContent='Сначала останови поезд!';return}if(Math.abs(dist)>32){status.textContent='До платформы ещё далеко';return}if(!doors){doors=true;traction.value=0;brake.value=0;updateDrive();people+=15+Math.floor(Math.random()*25);status.textContent='Пассажиры входят';speak('Станция '+names[index%names.length]+'. Осторожно, двери открываются.')}else{doors=false;departureTimes[index%departureTimes.length]=Date.now();index++;dist=850;paintSign();status.textContent='Двери закрыты';speak('Осторожно, двери закрываются. Следующая станция '+names[index%names.length])}};
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.45,Math.min(1.45,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.65,Math.min(.65,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}addEventListener('resize',resize);
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;if(playing&&!doors){speed=Math.max(0,Math.min(75,speed+(lever>0?lever*18:-3)*dt+(lever<0?lever*40:0)*dt));const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01;document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}window.metro3DReady=true;requestAnimationFrame(frame);
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;if(playing&&!doors){speed=Math.max(0,Math.min(75,speed+(lever>0?lever*18:-3)*dt+(lever<0?lever*40:0)*dt));const move=speed/3.6*dt;dist-=move;for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;for(const g of chunks)g.visible=dist>145;updateStationClock();if(dist< -80){speed=0;dist=850;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01;document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}window.metro3DReady=true;requestAnimationFrame(frame);
 </script><script>
 (function(){let active=false,speed=0,lever=0,dist=850,people=0,idx=0,doors=false,yaw=0,pitch=0,last=performance.now();const $=x=>document.getElementById(x),canvas=$('scene'),names=['Плошча Перамогі','Кастрычніцкая','Плошча Леніна','Інстытут культуры'];function start(){if(active||window.metro3DReady)return;active=true;$('status').textContent='Режим совместимости — управление включено';requestAnimationFrame(frame)}
 setTimeout(()=>{if(window.metro3DReady)return;const traction=$('traction'),brake=$('brake'),view=$('scene');function drive(){lever=Number(traction.value)/100-Number(brake.value)/100;$('tractionValue').textContent=traction.value+'%';$('brakeValue').textContent=brake.value+'%'}traction.addEventListener('input',drive);brake.addEventListener('input',drive);let pointer=null,x=0,y=0;view.addEventListener('pointerdown',e=>{pointer=e.pointerId;x=e.clientX;y=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(e.pointerId!==pointer)return;yaw=Math.max(-1.5,Math.min(1.5,yaw-(e.clientX-x)*.008));pitch=Math.max(-.8,Math.min(.8,pitch-(e.clientY-y)*.006));x=e.clientX;y=e.clientY});view.addEventListener('pointerup',e=>{if(e.pointerId===pointer)pointer=null});$('doors').onclick=()=>{if(speed>1){$('status').textContent='Сначала останови поезд';return}if(Math.abs(dist)>32){$('status').textContent='До платформы ещё далеко';return}doors=!doors;if(doors){people+=20;traction.value=0;brake.value=0;drive();$('status').textContent='Двери открыты'}else{idx++;dist=850;$('status').textContent='Двери закрыты'}};if(window.metroStarted)start();window.addEventListener('metro-start',start)},1000);
