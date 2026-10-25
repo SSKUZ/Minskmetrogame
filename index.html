@@ -626,10 +626,10 @@ const platform=new THREE.Group();scene.add(platform);
 box(platform,6.4,.3,48,0,-.30,29,approachRailBed);
 for(const x of [-1.15,1.15])box(platform,.12,.16,48,x,.05,29,rail);
 for(let j=0;j<24;j++)box(platform,3.3,.10,.24,0,-.06,6+j*2,wood);
-// Visible cab stopping marker: local z=-30 aligns with the cab at dist=0.
+// Visible cab stopping marker: local z=-112 aligns with the cab at dist=0, at the tunnel-side end.
 const stopMarkerMat=new THREE.MeshBasicMaterial({color:0xffdf35});
-box(platform,5.5,.06,.22,0,.12,-30,stopMarkerMat);
-for(const x of [-3.05,3.05]){box(platform,.18,3.1,.18,x,1.6,-30,stopMarkerMat);box(platform,.85,.55,.13,x,3.25,-30,stopMarkerMat);}
+box(platform,5.5,.06,.22,0,.12,-112,stopMarkerMat);
+for(const x of [-3.05,3.05]){box(platform,.18,3.1,.18,x,1.6,-112,stopMarkerMat);box(platform,.85,.55,.13,x,3.25,-112,stopMarkerMat);}
 const entranceGlow=new THREE.Mesh(new THREE.PlaneGeometry(5.8,5.4),new THREE.MeshBasicMaterial({color:0xb8d4e4,transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));
 entranceGlow.position.set(0,3.4,6.0);platform.add(entranceGlow);
 // Bright station lighting, independent of the train headlights.
@@ -704,15 +704,15 @@ return p;
 const platformPassengers=[];
 for(let i=0;i<44;i++){
  const side=i%2===0?-1:1;
- const z=-2-(Math.floor(i/2)%11)*2.1;
- const homeX=side*(3.55+(i%3)*.22);
+ const z=-6-(Math.floor(i/2)%22)*4.7;
+ const homeX=side*(3.5+(i%3)*.20);
  const person=human(i,homeX,z);
  const exiting=i%4===0||i%4===1;
  platformPassengers.push({person,side,homeX,homeZ:z,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
 }
 let passengerDoorTime=0,passengerExchangeStarted=false;
 function updatePlatformPassengers(dt){
- const atPlatform=Math.abs(dist)<70&&speed<1.5;
+ const atPlatform=Math.abs(dist)<32&&speed<1.5;
  if(atPlatform&&doors){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0}
   passengerDoorTime+=dt;
@@ -723,11 +723,11 @@ function updatePlatformPassengers(dt){
   const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
-  const doorX=p.side*1.9;
+  const doorX=p.side*2.65;
   const startX=p.exiting?doorX:p.homeX;
   const finishX=p.exiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
-  p.person.position.z=p.homeZ+(active?Math.sin(k*Math.PI)*.38:0);
+  p.person.position.z=p.homeZ+(active?Math.sin(k*Math.PI)*.6:0);
   p.person.visible=!(active&&!p.exiting&&k>=1);
   p.person.rotation.y=active?(p.exiting?(p.side<0?-Math.PI/2:Math.PI/2):(p.side<0?Math.PI/2:-Math.PI/2)):0;
   const walk=active&&k>0&&k<1;
@@ -743,7 +743,7 @@ for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platfo
 const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
-const interstationDistance=1250,platformExitDistance=-170,stopOverrunLimit=-24;
+const interstationDistance=1250,platformExitDistance=-195,stopOverrunLimit=-24;
 let stationServiced=false,overrunReported=false;
 updateStationClock();
 syncDoorButtons();
@@ -836,11 +836,11 @@ for(const g of chunks){
  if(g.position.z>32)g.position.z-=chunks.length*32;
  g.position.y=verticalShift-descentDepth;
 }
-platform.position.z=-dist+30;
+platform.position.z=-dist+112;
 platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
- for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance-8 || g.position.z<stationEntrance-160) && g.position.z<depot.position.z-350;}
+ for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance+3 || g.position.z<stationEntrance-145);}
  scene.fog.color.setHex(dist<155?0x10171c:(depot.position.z<270?0x9bc1df:0x030508));
  scene.fog.near=dist<155?28:18;scene.fog.far=dist<155?155:(depot.position.z<270?310:120);updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.11*(smoothstep01((depot.position.z-descentStart)/22)-smoothstep01((depot.position.z-descentEnd)/22));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);renderRearMirrors();updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<8&&speed<1&&!doors&&!stationServiced&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));requestAnimationFrame(frame);
 </script><script>
