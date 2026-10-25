@@ -1017,11 +1017,11 @@ function updatePlatformPassengers(dt){
   passengerDoorTime+=dt;
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
  for(const p of platformPassengers){
-  // Keep face/garment details close-up only to preserve mobile frame rate.
-  const viewCam=stationCameraActive?stationCamera:camera;
-  const worldPos=p.person.getWorldPosition(new THREE.Vector3());
-  const detailed=worldPos.distanceTo(viewCam.position)<24;
-  for(const detail of p.person.userData.fineDetails)detail.visible=detailed;
+  // Both cameras must show the SAME detailed characters. In particular,
+  // do not hide faces or clothing while driving into the station: the
+  // previous 24m camera-dependent LOD made the cab view look simplified.
+  // Detail meshes are lightweight and shared by both camera renders.
+  for(const detail of p.person.userData.fineDetails)detail.visible=true;
   const active=atPlatform&&doors;
   const actuallyExiting=index!==0&&p.exiting;
   // At terminal Malinauka the train is empty: boarding only.
