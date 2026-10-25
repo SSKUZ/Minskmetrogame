@@ -692,8 +692,14 @@ for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.Point
 const marble=mat(0xe5dfca),floorTile=mat(0xc9c8b9),trim=mat(0x77736e),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
 const greenBand=mat(0x24552b),blackGranite=mat(0x17191a),creamWall=mat(0xe8e5d6),warmGold=new THREE.MeshBasicMaterial({color:0xffc25d}),silverRail=mat(0xa7aaa5,.6);
 // Glossy cream terrazzo with dark granite strips beside both platform edges.
-box(platform,18.0,.045,128,-13.65,.725,-57,floorTile);
-for(const x of [-4.91,-22.39])box(platform,.55,.052,128,x,.754,-57,blackGranite);
+// Platform edge must meet the carriage threshold: train outer door face x=-2.43,
+// new island edge x=-2.55 -> 0.12 m clearance (previously >2 metres).
+box(platform,20.2,.045,128,-12.65,.725,-57,floorTile);
+for(const x of [-2.84,-22.39])box(platform,.35,.052,128,x,.754,-57,blackGranite);
+// Fine terrazzo tile joints and longitudinal seams on the original cream floor.
+const floorJoint=new THREE.MeshBasicMaterial({color:0xadae9f});
+for(let z=4;z>-119;z-=2.6)box(platform,19.9,.006,.025,-12.65,.754,z,floorJoint);
+for(const x of [-19.5,-16.5,-13.5,-10.5,-7.5,-4.5])box(platform,.024,.006,127,x,.754,-57,floorJoint);
 // Right-side station wall, across the player's track: pale ceramic panels, green band and black base.
 box(platform,.25,7.0,128,3.58,3.72,-57,creamWall);
 box(platform,.30,1.18,128,3.39,.79,-57,blackGranite);
@@ -778,8 +784,8 @@ for(const y of [1.675,3.795])box(platform,.05,.035,13.66,3.14,y,-55,routeFrame);
 for(const z of [-61.83,-48.17])box(platform,.05,2.16,.035,3.14,2.735,z,routeFrame);
 
 
-box(platform,18.0,.8,128,-13.65,.30,-57,floorTile);
-box(platform,.16,.07,128,-4.57,.74,-57,yellow);
+box(platform,20.2,.8,128,-12.65,.30,-57,floorTile);
+box(platform,.16,.07,128,-2.94,.78,-57,yellow);
 // Single central island platform: the player drives on the RIGHT-hand track.
 // The opposite track lies beyond the LEFT-hand row of columns.
 box(platform,.16,.07,128,-22.73,.74,-57,yellow);
@@ -895,7 +901,7 @@ function updatePlatformPassengers(dt){
   const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
-  const doorX=-2.65;
+  const doorX=-2.48;
   const startX=actuallyExiting?doorX:p.homeX;
   const finishX=actuallyExiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
