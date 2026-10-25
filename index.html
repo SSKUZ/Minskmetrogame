@@ -999,8 +999,10 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0xb6b9b4);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x77716b,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.06,100);
-carriageCamera.position.set(0,2.30,-6.2);
-let carriageYaw=0,carriagePitch=0,carriageLookSide=0;
+// Camera at a side-door vestibule: blue doors fill the right foreground,
+// while the aisle and passenger rows recede diagonally to the left.
+carriageCamera.position.set(-.45,2.36,-3.10);
+let carriageYaw=-.37,carriagePitch=-.055,carriageLookSide=0;
 function aimCarriageCamera(){
  const direction=new THREE.Vector3(Math.sin(carriageYaw)*Math.cos(carriagePitch),Math.sin(carriagePitch),-Math.cos(carriageYaw)*Math.cos(carriagePitch));
  carriageCamera.lookAt(carriageCamera.position.clone().add(direction));
@@ -1016,6 +1018,7 @@ const carTrim=new THREE.MeshStandardMaterial({color:0xc4c0b6,roughness:.48,metal
 const carRubber=new THREE.MeshStandardMaterial({color:0x343b3e,roughness:.88});
 const carSilver=new THREE.MeshStandardMaterial({color:0xcbd2d4,metalness:.85,roughness:.22});
 const carSeatStitch=new THREE.MeshStandardMaterial({color:0xa89588,roughness:.95});
+const carDoorBlue=new THREE.MeshStandardMaterial({color:0x2d669c,metalness:.23,roughness:.48});
 const carWallPanel=new THREE.MeshStandardMaterial({color:0xf2eee4,roughness:.42});
 const carWindowGlass=new THREE.MeshPhysicalMaterial({color:0xb8d5df,transparent:true,opacity:.12,roughness:.12,metalness:0,depthWrite:false,side:THREE.DoubleSide});
 box(carriage,4.18,.12,23,0,.90,-9,floorCar);
@@ -1075,10 +1078,10 @@ for(const side of [-1,1]){
   box(carriage,.055,.075,2.06,side*1.99,1.02,z,carSilver);
   for(const half of [-1,1]){
    const zz=z+half*.51;
-   box(carriage,.038,.66,.98,side*1.98,1.38,zz,carWallPanel);
-   box(carriage,.038,.48,.98,side*1.98,2.96,zz,carWallPanel);
-   box(carriage,.025,.80,.06,side*1.98,2.28,zz+half*.46,carSilver);
-   box(carriage,.014,.77,.83,side*1.98,2.28,zz,carWindowGlass);
+   box(carriage,.038,.66,.98,side*1.98,1.38,zz,carDoorBlue);
+   box(carriage,.038,.48,.98,side*1.98,2.96,zz,carDoorBlue);
+   box(carriage,.025,.80,.06,side*1.98,2.28,zz+half*.46,carDoorBlue);
+   box(carriage,.014,.77,.83,side*1.98,2.28,zz,new THREE.MeshBasicMaterial({color:0x253d4b,transparent:true,opacity:.68,side:THREE.DoubleSide}));
   }
  }
 }
@@ -1088,6 +1091,40 @@ for(let z=1.4;z>-20;z-=2.75){
  box(carriage,.20,.075,2.15,0,3.51,z-1.0,carLamp);
 }
 
+// Realistic curved stainless steel grab rails around the doorway.
+function carRail(points,radius=.023){
+ const curve=new THREE.CatmullRomCurve3(points.map(v=>new THREE.Vector3(...v)));
+ const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,24,radius,8,false),carSilver);
+ carriage.add(mesh);return mesh;
+}
+for(const side of [-1,1]){
+ for(const z of [-1.35,-7.0,-14.7]){
+  carRail([[side*1.19,1.06,z],[side*1.19,2.90,z],[side*1.22,3.20,z-.15],[side*1.52,3.37,z-.30]]);
+ }
+ carRail([[side*1.19,3.32,2],[side*1.19,3.32,-19]],.025);
+}
+for(let z=0;z>-20;z-=3.2){
+ box(carriage,.35,.045,.13,0,3.38,z,carTrim);
+}
+// Three-dimensional seat cushions with softened edges.
+for(const side of [-1,1])for(let j=0;j<8;j++){
+ const z=1.2-j*2.75;
+ for(let k=0;k<3;k++){
+  const cushion=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),brownCar);
+  cushion.scale.set(.29,.09,.26);cushion.position.set(side*1.60,1.46,z+(k-1)*.57);carriage.add(cushion);
+ }
+}
+// Side door state follows the actual driver's door control.
+const carSlidingDoorLeaves=[];
+for(const side of [-1,1])for(const dz of [-2.8,-12.8])for(const half of [-1,1]){
+ const leaf=new THREE.Group();carriage.add(leaf);
+ const leafZ=dz+half*.51;
+ box(leaf,.045,.64,.97,side*1.975,1.38,0,carDoorBlue);
+ box(leaf,.045,.49,.97,side*1.975,2.95,0,carDoorBlue);
+ box(leaf,.04,.91,.07,side*1.975,2.28,half*.45,carDoorBlue);
+ box(leaf,.015,.88,.83,side*1.975,2.28,0,new THREE.MeshBasicMaterial({color:0x182d3a,transparent:true,opacity:.82,side:THREE.DoubleSide}));
+ leaf.position.z=leafZ;carSlidingDoorLeaves.push({leaf,leafZ,half});
+}
 const carriagePassengers=[];
 const platformPassengers=[];
 const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
@@ -1119,7 +1156,7 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){carriageYaw=0;carriagePitch=0;aimCarriageCamera();}
+ if(carCameraActive){carriageYaw=-.37;carriagePitch=-.055;aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
@@ -1334,7 +1371,9 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  if(stationVisible>0){scene.fog.far=THREE.MathUtils.lerp(scene.fog.far,165,stationVisible);}
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
- updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);for(const d of stationDoorLeaves)d.leaf.position.z=d.doorZ+d.half*(.53+(doors?1.03:0));try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<8&&speed<1&&!doors&&!stationServiced&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+ updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);
+for(const d of carSlidingDoorLeaves)d.leaf.position.z=d.leafZ+(doors?d.half*.92:0);
+for(const d of stationDoorLeaves)d.leaf.position.z=d.doorZ+d.half*(.53+(doors?1.03:0));try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<8&&speed<1&&!doors&&!stationServiced&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=canUseStationCamera?'block':'none';
 if(!canUseStationCamera&&stationCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
 if(stationCameraActive){
