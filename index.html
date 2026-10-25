@@ -1399,9 +1399,14 @@ if(stationCameraActive){
  stationCamera.lookAt(target);
 }
 renderer.setRenderTarget(null);
+// Always reset the shared WebGL viewport when switching camera modes.
+renderer.setViewport(0,0,innerWidth,innerHeight);
+renderer.setScissorTest(false);
 if(carCameraActive){
  carriageCamera.aspect=renderer.domElement.clientWidth/Math.max(1,renderer.domElement.clientHeight);carriageCamera.updateProjectionMatrix();
- renderer.setViewport(0,0,renderer.domElement.width,renderer.domElement.height);
+ // Three.js setViewport expects CSS pixels; drawing-buffer dimensions
+ // are scaled by devicePixelRatio and cropped/zoomed the next cab view.
+ renderer.setViewport(0,0,innerWidth,innerHeight);
  renderer.setScissorTest(false);
  renderer.render(carriageScene,carriageCamera);
 }else renderer.render(scene,stationCameraActive?stationCamera:camera);
