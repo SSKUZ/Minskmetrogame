@@ -1076,13 +1076,7 @@ for(const side of [-1,1]){
   box(carriage,.045,2.16,.07,side*1.99,2.10,z+1.02,carSilver);
   box(carriage,.055,.075,2.06,side*1.99,3.20,z,carSilver);
   box(carriage,.055,.075,2.06,side*1.99,1.02,z,carSilver);
-  for(const half of [-1,1]){
-   const zz=z+half*.51;
-   box(carriage,.038,.66,.98,side*1.98,1.38,zz,carDoorBlue);
-   box(carriage,.038,.48,.98,side*1.98,2.96,zz,carDoorBlue);
-   box(carriage,.025,.80,.06,side*1.98,2.28,zz+half*.46,carDoorBlue);
-   box(carriage,.014,.77,.83,side*1.98,2.28,zz,new THREE.MeshBasicMaterial({color:0x253d4b,transparent:true,opacity:.68,side:THREE.DoubleSide}));
-  }
+  // Moving door panels are created separately below; no static duplicate.
  }
 }
 // Multiple ceiling ribs and luminaire housings add scale and parallax.
