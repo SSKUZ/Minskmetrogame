@@ -266,27 +266,89 @@ function animateCabButtons(dt){
  b.cap.material.emissive.setHex(b.press>.8?0x112c28:0x000000);
  }
 }
-function pressInfo(){
- infoControl.target=1;
- clearTimeout(pressInfo.timer);
- const announcement='Внимание! Следующая станция '+names[index%names.length]+'. Будьте внимательны при выходе из вагона.';
- if('speechSynthesis' in window){
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(announcement);u.lang='ru-RU';u.rate=.9;
-  u.onend=()=>{infoControl.target=0;clearTimeout(pressInfo.timer)};
-  u.onerror=()=>{infoControl.target=0;clearTimeout(pressInfo.timer)};
-  speechSynthesis.speak(u);
-  pressInfo.timer=setTimeout(()=>{infoControl.target=0},Math.max(3500,announcement.length*115));
- }else{infoControl.timer=setTimeout(()=>{infoControl.target=0},1800)}
-}
+// Departure announcements are triggered by the EXISTING INFO switch.
+const departureAudio=new Audio();
+departureAudio.preload='auto';
+let infoPlaying=false,infoCompleted=false,infoStarted=false,infoToken=0;
 let driverErrorCount=0;
+function reportDriverError(message){
+ driverErrorCount++;
+ const counter=document.querySelector('#errorCount');
+ if(counter)counter.textContent=driverErrorCount;
+ status.textContent='⚠ Ошибка машиниста: '+message;
+}
+function finishInfo(token){
+ if(token!==infoToken)return;
+ infoPlaying=false;infoCompleted=true;infoControl.target=0;
+ status.textContent='Объявление завершено — можно закрывать двери';
+}
+function pressInfo(){
+ if(infoPlaying)return;
+ if(!doors||speed>1||Math.abs(dist)>32){
+  status.textContent='INFO: сначала остановитесь у платформы и откройте двери';
+  return;
+ }
+ infoStarted=true;infoCompleted=false;infoPlaying=true;
+ const token=++infoToken;
+ infoControl.target=1;
+ const next=names[(index+1)%names.length];
+ const textAnnouncement=index===0
+  ?'Асцярожна, дзверы зачыняюцца. Наступная станцыя — Барысаўскі тракт. Barysawski Trakt Station. Mind the closing doors.'
+  :'Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+next+'. Mind the closing doors.';
+ status.textContent='INFO: '+textAnnouncement;
+ // Exact original clip can be supplied as /audio/uruchye_departure.mp3.
+ // Until that recording is verified, use clearly provisional speech synthesis.
+ const clip=index===0?'audio/uruchye_departure.mp3':null;
+ function fallback(){
+  if(token!==infoToken)return;
+  if('speechSynthesis' in window){
+   const parts=index===0?[
+    ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — Барысаўскі тракт.','be-BY'],
+    ['Barysawski Trakt Station. Mind the closing doors.','en-US']
+   ]:[[textAnnouncement,'be-BY']];
+   let i=0;
+   const nextPart=()=>{
+    if(token!==infoToken)return;
+    if(i>=parts.length){finishInfo(token);return}
+    const [txt,lang]=parts[i++];
+    const utterance=new SpeechSynthesisUtterance(txt);
+    utterance.lang=lang;utterance.rate=.88;
+    utterance.onend=nextPart;
+    utterance.onerror=nextPart;
+    speechSynthesis.speak(utterance);
+   };
+   nextPart();
+  }else{
+   setTimeout(()=>finishInfo(token),Math.max(7000,textAnnouncement.length*105));
+  }
+ }
+ if(clip){
+  departureAudio.pause();
+  departureAudio.src=clip;
+  departureAudio.currentTime=0;
+  departureAudio.onended=()=>finishInfo(token);
+  departureAudio.onerror=fallback;
+  departureAudio.play().catch(fallback);
+ }else fallback();
+}
 function setCabDoors(open){
- if(doors===open)return;initMetroAudio();metroChime(open);doors=open;syncDoorButtons();
- status.textContent=doors?'Двери открыты':'Двери закрыты';
- if(doors&&speed>1){driverErrorCount++;document.querySelector('#errorCount').textContent=driverErrorCount;status.textContent='⚠ Ошибка машиниста: открытие дверей на ходу!'}
+ if(doors===open)return;
+ initMetroAudio();metroChime(open);
+ if(!open&&Math.abs(dist)<32){
+  if(!infoStarted)reportDriverError('двери закрыты без объявления INFO');
+  else if(infoPlaying)reportDriverError('двери закрыты до окончания объявления');
+ }
+ doors=open;syncDoorButtons();
+ if(open){
+  infoToken++;infoPlaying=false;infoCompleted=false;infoStarted=false;
+  departureAudio.pause();if('speechSynthesis' in window)speechSynthesis.cancel();
+  infoControl.target=0;
+ }
+ if(!status.textContent.startsWith('⚠'))status.textContent=doors?'Двери открыты':'Двери закрыты';
+ if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
  if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=1100;paintSign()}}
  updateCabDisplay(speed);
- speak(doors?'Осторожно, двери открываются.':'Осторожно, двери закрываются.');
+ // Do not interrupt the active departure announcement with door TTS.
 }
 // Touch-first picking: use projected button centres, not tiny mesh ray hits.
 // Capture pointerdown before the camera drag handler consumes the gesture.
