@@ -656,7 +656,42 @@ fc.fillStyle='#554032';fc.font='bold 89px Georgia,serif';fc.textAlign='center';f
 for(let j=0;j<30;j++){const xx=(j*173+45)%1024,yy=(j*97+37)%220;fc.strokeStyle='#3c7448';fc.lineWidth=3;fc.beginPath();fc.moveTo(xx,yy+35);fc.quadraticCurveTo(xx+13,yy+8,xx+8,yy-18);fc.stroke();for(let k=0;k<3;k++){fc.fillStyle=k===0?'#447c52':'#7b9871';fc.beginPath();fc.ellipse(xx+(k-1)*11,yy+(k-1)*9,7,3.5,(k-1)*.7,0,Math.PI*2);fc.fill();}if(j%4===0){fc.fillStyle='#a85b64';fc.beginPath();fc.arc(xx+8,yy-19,5,0,Math.PI*2);fc.fill();}}
 const floralTexture=new THREE.CanvasTexture(floralCanvas);floralTexture.colorSpace=THREE.SRGBColorSpace;
 const floralMat=new THREE.MeshBasicMaterial({map:floralTexture,side:THREE.DoubleSide});
-for(const z of [-15,-57,-98]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(24,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
+for(const z of [-11,-103]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(21,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
+// High-resolution route diagram: yellow Malinauka, blue subsequent stops.
+const routeStops=[
+ ['МАЛІНАЎКА','110'],['ПЯТРОЎШЧЫНА','111'],['МІХАЛОВА','112'],['ГРУШАЎКА','113'],
+ ['ІНСТЫТУТ КУЛЬТУРЫ','114'],['ПЛОШЧА ЛЕНІНА','115'],['КАСТРЫЧНІЦКАЯ','116'],
+ ['ПЛОШЧА ПЕРАМОГІ','117'],['ПЛОШЧА ЯКУБА КОЛАСА','118'],['АКАДЭМІЯ НАВУК','119'],
+ ['ПАРК ЧАЛЮСКІНЦАЎ','120'],['МАСКОЎСКАЯ','121'],['УСХОД','122'],
+ ['БАРЫСАЎСКІ ТРАКТ','123'],['УРУЧЧА','124']
+];
+const routeCanvas=document.createElement('canvas');routeCanvas.width=3072;routeCanvas.height=640;
+const rc=routeCanvas.getContext('2d');rc.fillStyle='#e5e2d6';rc.fillRect(0,0,3072,640);
+const cellW=190,firstX=155,top=65;
+for(let i=0;i<routeStops.length;i++){
+ const x=firstX+i*cellW,selected=i===0;
+ rc.fillStyle=selected?'#e5b329':'#292653';
+ rc.beginPath();rc.moveTo(x-75,top+12);rc.lineTo(x+95,top+12);rc.lineTo(x+60,top+405);rc.lineTo(x-110,top+405);rc.closePath();rc.fill();
+ rc.save();rc.translate(x-45,top+290);rc.rotate(-Math.PI/3.15);
+ rc.textAlign='left';rc.textBaseline='middle';rc.fillStyle=selected?'#232046':'#ffffff';rc.font='bold 30px Arial';
+ const words=routeStops[i][0].split(' ');let lines=[],line='';
+ for(const word of words){const candidate=line?line+' '+word:word;if(rc.measureText(candidate).width>270&&line){lines.push(line);line=word}else line=candidate}
+ if(line)lines.push(line);
+ lines.slice(0,3).forEach((t,k)=>rc.fillText(t,0,(k-(lines.length-1)/2)*37));
+ rc.restore();
+ rc.fillStyle=selected?'#e5b329':'#292653';rc.beginPath();rc.arc(x,top+435,40,0,Math.PI*2);rc.fill();
+ rc.fillStyle=selected?'#292653':'#ffffff';rc.font='bold 31px Arial';rc.textAlign='center';rc.fillText(routeStops[i][1],x,top+446);
+}
+rc.strokeStyle='#f4f0e7';rc.lineWidth=12;rc.strokeRect(15,15,3040,605);
+rc.fillStyle='#292653';rc.font='bold 33px Arial';rc.textAlign='left';rc.fillText('МІНСКІ МЕТРАПАЛІТЭН • МАСКОЎСКАЯ ЛІНІЯ',115,602);
+const routeTexture=new THREE.CanvasTexture(routeCanvas);routeTexture.colorSpace=THREE.SRGBColorSpace;
+routeTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+const routePanel=new THREE.Mesh(new THREE.PlaneGeometry(34,5.3),new THREE.MeshBasicMaterial({map:routeTexture,side:THREE.DoubleSide}));
+routePanel.rotation.y=-Math.PI/2;routePanel.position.set(3.17,4.65,-55);platform.add(routePanel);
+const routeFrame=mat(0xd1d1c8,.35);
+for(const y of [1.98,7.32])box(platform,.10,.11,34.2,3.14,y,-55,routeFrame);
+for(const z of [-72.15,-37.85])box(platform,.10,5.4,.12,3.14,4.65,z,routeFrame);
+
 
 box(platform,18.0,.8,128,-13.65,.30,-57,floorTile);
 box(platform,.16,.07,128,-4.57,.74,-57,yellow);
