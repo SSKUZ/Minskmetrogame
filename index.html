@@ -282,58 +282,61 @@ function finishInfo(token){
  infoPlaying=false;infoCompleted=true;infoControl.target=0;
  status.textContent='Объявление завершено — можно закрывать двери';
 }
+// INFO has two announcements per station: arrival, then departure.
+let infoArrivalPlayed=false;
+function syntheticAnnouncement(parts,onDone){
+ const token=++infoToken;
+ infoPlaying=true;infoControl.target=1;
+ if(!('speechSynthesis' in window)){status.textContent='На устройстве недоступен синтез речи';finishInfo(token);return}
+ const synth=window.speechSynthesis;
+ synth.cancel();
+ let i=0;
+ function sayNext(){
+  if(token!==infoToken)return;
+  if(i>=parts.length){finishInfo(token);if(onDone)onDone();return}
+  const [words,language]=parts[i++];
+  const u=new SpeechSynthesisUtterance(words);
+  u.lang=language;u.rate=.88;u.volume=1;
+  const voices=synth.getVoices();
+  const voice=voices.find(v=>v.lang.toLowerCase()===language.toLowerCase())||
+   voices.find(v=>v.lang.toLowerCase().startsWith(language.slice(0,2).toLowerCase()))||
+   voices.find(v=>v.lang.toLowerCase().startsWith(language==='be-BY'?'ru':'en'));
+  if(voice)u.voice=voice;
+  u.onend=sayNext;
+  u.onerror=()=>{if(token===infoToken)sayNext()};
+  try{synth.speak(u)}catch(e){console.warn('INFO speech:',e);sayNext()}
+ }
+ sayNext();
+}
 function pressInfo(){
- // The physical switch must respond to every tap, even when announcement is unavailable.
  infoControl.target=1;
  clearTimeout(pressInfo.pressTimer);
- pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},320);
- if(infoPlaying){status.textContent='INFO: объявление уже воспроизводится';return}
- if(!doors||speed>1||Math.abs(dist)>32){
-  status.textContent='INFO нажата. Для объявления остановитесь у платформы и откройте двери';
+ pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},350);
+ if(infoPlaying){status.textContent='INFO: диктор ещё говорит';return}
+ // First press: station arrival announcement, available before doors open.
+ if(!infoArrivalPlayed){
+  infoArrivalPlayed=true;
+  const name=index===0?'Уручча':names[index%names.length];
+  status.textContent='INFO: Станцыя '+name;
+  syntheticAnnouncement([
+   ['Станцыя '+name+'.','be-BY'],
+   [index===0?'Uruchcha Station.':names[index%names.length]+' Station.','en-US']
+  ]);
   return;
  }
- infoStarted=true;infoCompleted=false;infoPlaying=true;
- const token=++infoToken;
- infoControl.target=1;
- const next=names[(index+1)%names.length];
- const textAnnouncement=index===0
-  ?'Асцярожна, дзверы зачыняюцца. Наступная станцыя — Барысаўскі тракт. Barysawski Trakt Station. Mind the closing doors.'
-  :'Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+next+'. Mind the closing doors.';
- status.textContent='INFO: '+textAnnouncement;
- // Exact original clip can be supplied as /audio/uruchye_departure.mp3.
- // Until that recording is verified, use clearly provisional speech synthesis.
- const clip=index===0?'audio/uruchye_departure.mp3':null;
- function fallback(){
-  if(token!==infoToken)return;
-  if('speechSynthesis' in window){
-   const parts=index===0?[
-    ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — Барысаўскі тракт.','be-BY'],
-    ['Barysawski Trakt Station. Mind the closing doors.','en-US']
-   ]:[[textAnnouncement,'be-BY']];
-   let i=0;
-   const nextPart=()=>{
-    if(token!==infoToken)return;
-    if(i>=parts.length){finishInfo(token);return}
-    const [txt,lang]=parts[i++];
-    const utterance=new SpeechSynthesisUtterance(txt);
-    utterance.lang=lang;utterance.rate=.88;
-    utterance.onend=nextPart;
-    utterance.onerror=nextPart;
-    speechSynthesis.speak(utterance);
-   };
-   nextPart();
-  }else{
-   setTimeout(()=>finishInfo(token),Math.max(7000,textAnnouncement.length*105));
-  }
+ // Second press: departure, after stopping and opening doors.
+ if(!doors||speed>1||Math.abs(dist)>32){
+  status.textContent='INFO: для объявления об отправлении остановитесь и откройте двери';
+  return;
  }
- if(clip){
-  departureAudio.pause();
-  departureAudio.src=clip;
-  departureAudio.currentTime=0;
-  departureAudio.onended=()=>finishInfo(token);
-  departureAudio.onerror=fallback;
-  departureAudio.play().catch(fallback);
- }else fallback();
+ infoStarted=true;infoCompleted=false;
+ const next=names[(index+1)%names.length];
+ const beNext=index===0?'Барысаўскі тракт':next;
+ status.textContent='INFO: Асцярожна, дзверы зачыняюцца. Наступны прыпынак — '+beNext;
+ syntheticAnnouncement([
+  ['Асцярожна, дзверы зачыняюцца. Наступны прыпынак — '+beNext+'.','be-BY'],
+  [index===0?'Barysawski Trakt Station. Mind the closing doors.':next+' Station. Mind the closing doors.','en-US']
+ ]);
 }
 function setCabDoors(open){
  if(doors===open)return;
@@ -344,13 +347,12 @@ function setCabDoors(open){
  }
  doors=open;syncDoorButtons();
  if(open){
-  infoToken++;infoPlaying=false;infoCompleted=false;infoStarted=false;
-  departureAudio.pause();if('speechSynthesis' in window)speechSynthesis.cancel();
-  infoControl.target=0;
+  infoStarted=false;infoCompleted=false;
+  // Opening doors must not cut off an announcement already playing.
  }
  if(!status.textContent.startsWith('⚠'))status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
- if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=1100;paintSign()}}
+ if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(Math.abs(dist)<32){index++;dist=1100;infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;paintSign()}}
  updateCabDisplay(speed);
  // Do not interrupt the active departure announcement with door TTS.
 }
