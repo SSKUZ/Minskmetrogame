@@ -360,7 +360,7 @@ function addChunk(z){
 for(let i=0;i<8;i++)addChunk(-i*32);
 // Open-air Minsk metro depot and industrial outskirts. World moves past the cab.
 const depot=new THREE.Group();scene.add(depot);
-const concrete=mat(0x777d82),asphalt=mat(0x50565c),steel=mat(0x596b78,.45),
+const depotConcreteMat=mat(0x777d82),asphalt=mat(0x50565c),depotSteelMat=mat(0x596b78,.45),
  orange=mat(0xff761b),vestStripe=new THREE.MeshBasicMaterial({color:0xf9ed92}),
  skinWorker=mat(0xd7a487),helmet=mat(0xf4cc35),glassCity=mat(0x708c9e,.2);
 box(depot,52,.28,290,0,-.43,-122,asphalt);
@@ -371,12 +371,12 @@ for(const side of [-1,1]){
  const x=side*13;
  for(const dx of [-1.1,1.1])box(depot,.12,.16,245,x+dx,-.01,-105,rail);
  for(let j=0;j<120;j++)box(depot,3.2,.12,.25,x,-.12,12-j*2,wood);
- box(depot,4,.25,205,side*21,-.12,-110,concrete);
+ box(depot,4,.25,205,side*21,-.12,-110,depotConcreteMat);
  for(let j=0;j<9;j++){
   const z=5-j*27;
-  box(depot,.34,9,.35,side*7.5,4.25,z,steel);
-  box(depot,15,.25,.35,0,8.6,z,steel);
-  box(depot,.10,.10,27,side*5,8.0,z-13,steel);
+  box(depot,.34,9,.35,side*7.5,4.25,z,depotSteelMat);
+  box(depot,15,.25,.35,0,8.6,z,depotSteelMat);
+  box(depot,.10,.10,27,side*5,8.0,z-13,depotSteelMat);
  }
 }
 // Workshop building to the left: the train starts OUTSIDE, not under a roof.
@@ -386,7 +386,7 @@ box(depot,18,.45,114,-23,7.05,-70,roof);
 for(let j=0;j<9;j++){
  const z=-15-j*12;
  box(depot,.08,3.2,5.2,-14.43,3.1,z,glassCity);
- box(depot,.12,.16,5.4,-14.32,4.5,z,steel);
+ box(depot,.12,.16,5.4,-14.32,4.5,z,depotSteelMat);
 }
 // Utility buildings, cranes, fences and distant city apartment towers.
 for(let i=0;i<18;i++){
@@ -401,8 +401,8 @@ for(let i=0;i<18;i++){
 for(const side of [-1,1]){
  for(let j=0;j<20;j++){
   const z=12-j*13;
-  box(depot,.1,2.2,.12,side*25,1,z,steel);
-  box(depot,.06,.06,260,side*25,1.7,-115,steel);
+  box(depot,.1,2.2,.12,side*25,1,z,depotSteelMat);
+  box(depot,.06,.06,260,side*25,1.7,-115,depotSteelMat);
  }
 }
 // High-visibility orange-vest maintenance workers inspecting the train.
@@ -426,7 +426,7 @@ function depotWorker(x,z,phase){
 depotWorker(-3.8,-7,0);depotWorker(4.1,-16,1.3);
 depotWorker(-4.4,-32,2.4);depotWorker(5,-53,3.6);
 depotWorker(-7.8,-84,4.8);
-// Ramp portal: rail descends visually toward a concrete cutting and tunnel mouth.
+// Ramp portal: rail descends visually toward a depotConcreteMat cutting and tunnel mouth.
 // World height changes smoothly, with a descending trench and enclosing retaining walls.
 const ramp=new THREE.Group();depot.add(ramp);
 const retaining=mat(0x85888a),portalDark=new THREE.MeshBasicMaterial({color:0x06090e});
