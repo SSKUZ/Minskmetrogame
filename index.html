@@ -89,10 +89,17 @@ for(const side of [-1,1]){
 }
 // Exterior side of the driver's train, seen in both mirrors looking backwards.
 const reflectedTrain=new THREE.Group();scene.add(reflectedTrain);
-const trainBodyMat=mat(0xc4cdd3,.45),trainBeltMat=mat(0x24558a,.28),trainGlassMat=mat(0x152e3b,.3);
+// Shared livery for exterior platform view and the driver's side mirrors.
+const metroBluePaint=0x4679b5;
+const trainBodyMat=new THREE.MeshStandardMaterial({color:metroBluePaint,metalness:.28,roughness:.46});
+const trainBeltMat=trainBodyMat,trainGlassMat=mat(0x152e3b,.3);
+const mirrorWhite=new THREE.MeshBasicMaterial({color:0xf4f5f0});
 for(const side of [-1,1]){
  box(reflectedTrain,.15,2.65,25,side*2.07,2.25,17,trainBodyMat);
  box(reflectedTrain,.17,.64,25,side*2.16,2.23,17,trainBeltMat);
+ // Match the long white stripe and lower body ribs of the exterior cars.
+ box(reflectedTrain,.035,.12,25,side*2.265,2.04,17,mirrorWhite);
+ for(const y of [1.34,1.52,1.70])box(reflectedTrain,.025,.02,25,side*2.268,y,17,mirrorWhite);
  for(let j=0;j<7;j++){
   const z=6+j*3.1;
   box(reflectedTrain,.185,.83,1.48,side*2.17,2.83,z,trainGlassMat);
@@ -101,7 +108,7 @@ for(const side of [-1,1]){
 }
 // Five-car exterior train, visible only from the elevated platform camera.
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
-const extSilver=mat(0xdce3e8,.42),extBlue=new THREE.MeshStandardMaterial({color:0x0647c6,metalness:.48,roughness:.29});
+const extSilver=mat(0xdce3e8,.42),extBlue=trainBodyMat;
 const extWhite=new THREE.MeshBasicMaterial({color:0xf4f5f0});
 const extLine=new THREE.MeshStandardMaterial({color:0xd5e8f3,metalness:.35,roughness:.4});
 const extGlass=new THREE.MeshBasicMaterial({color:0x122e3e});
