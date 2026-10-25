@@ -527,7 +527,11 @@ function cabButtonAt(clientX,clientY){
  return best<=Math.max(52,Math.min(rect.width,rect.height)*.14)?nearest:null;
 }
 document.addEventListener('pointerdown',e=>{
- if(e.target.closest?.('#masterTrack,#masterUnit,#start'))return;
+ // 3D desk buttons must ONLY intercept touches while the driver cab is
+ // actually on screen. The previous global capture handler also stole
+ // taps from the new camera switches and the carriage view.
+ if(!playing||stationCameraActive||carCameraActive)return;
+ if(e.target.closest?.('button,#masterTrack,#masterUnit,#start,#stationCameraToggle,#carCameraToggle'))return;
  const item=cabButtonAt(e.clientX,e.clientY);if(!item)return;
  e.preventDefault();e.stopImmediatePropagation();
  if(item.type==='info')pressInfo();
