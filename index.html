@@ -423,38 +423,69 @@ for(const side of [-1,1]){
 }
 // High-visibility orange-vest maintenance workers inspecting the train.
 const workers=[];
-function depotWorker(x,z,phase){
- const w=new THREE.Group();w.position.set(x,0,z);depot.add(w);
- const trousers=mat(0x293a48),boots=mat(0x1e252a);
- box(w,.5,.8,.3,0,.55,0,trousers);
+function depotWorker(x,z,phase,patrol=0){
+ const root=new THREE.Group();root.position.set(x,0,z);depot.add(root);
+ const trousers=mat(0x273343),boots=mat(0x20252b),jacket=mat(0x35485c);
+ const torso=new THREE.Group();root.add(torso);
+ box(torso,.62,.85,.34,0,1.30,0,orange);
+ box(torso,.65,.11,.38,0,1.13,.02,vestStripe);
+ for(const side of [-1,1])box(torso,.075,.74,.37,side*.17,1.32,.02,vestStripe);
+ const limbs=[];
  for(const side of [-1,1]){
-  box(w,.19,.68,.2,side*.16,.15,0,boots);
-  box(w,.17,.66,.19,side*.35,1.28,0,orange);
-  box(w,.07,.62,.205,side*.12,1.37,.162,vestStripe);
+  const leg=new THREE.Group();leg.position.set(side*.17,.88,0);root.add(leg);
+  box(leg,.21,.72,.23,0,-.36,0,trousers);box(leg,.24,.16,.34,0,-.73,-.055,boots);
+  const arm=new THREE.Group();arm.position.set(side*.42,1.66,0);root.add(arm);
+  box(arm,.18,.67,.21,0,-.32,0,jacket);
+  box(arm,.2,.12,.23,0,-.28,0,vestStripe);
+  limbs.push({leg,arm,side});
  }
- box(w,.72,.85,.38,0,1.32,0,orange);
- box(w,.62,.09,.4,0,1.15,.03,vestStripe);
- const head=new THREE.Mesh(new THREE.SphereGeometry(.23,10,8),skinWorker);head.position.y=2.02;w.add(head);
- box(w,.55,.14,.51,0,2.22,0,helmet);
- w.rotation.y=x>0?-Math.PI/2:Math.PI/2;
- w.userData.phase=phase;workers.push(w);
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(.095,.1,.17,9),skinWorker);neck.position.y=1.83;root.add(neck);
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.22,12,10),skinWorker);face.position.y=2.08;root.add(face);
+ box(root,.49,.15,.45,0,2.30,0,helmet);
+ const visor=box(root,.54,.055,.24,0,2.23,-.21,helmet);
+ const eyes=mat(0x282a2a);for(const side of [-1,1])box(root,.038,.035,.015,side*.085,2.1,-.205,eyes);
+ root.userData={originX:x,originZ:z,phase,patrol,limbs,torso};
+ workers.push(root);
 }
-depotWorker(-3.8,-7,0);depotWorker(4.1,-16,1.3);
-depotWorker(-4.4,-32,2.4);depotWorker(5,-53,3.6);
-depotWorker(-7.8,-84,4.8);
-// Ramp portal: rail descends visually toward a depotConcreteMat cutting and tunnel mouth.
-// World height changes smoothly, with a descending trench and enclosing retaining walls.
+depotWorker(-3.8,-7,0,5);depotWorker(4.1,-16,1.3,0);
+depotWorker(-4.4,-32,2.4,7);depotWorker(5,-53,3.6,0);
+depotWorker(-7.8,-84,4.8,9);
+function animateDepotWorkers(time){
+ for(let i=0;i<workers.length;i++){
+  const w=workers[i],u=w.userData,t=time*.001+u.phase;
+  const walking=u.patrol>0;
+  // Workers patrol along the train, pause at each end, and talk in pairs.
+  const cycle=t*.25,travel=walking?Math.sin(cycle):0;
+  w.position.z=u.originZ+travel*u.patrol;
+  w.position.x=u.originX+(walking?.16*Math.sin(cycle*.7):.04*Math.sin(t*.6));
+  const step=walking?Math.cos(cycle)*Math.min(1,Math.abs(Math.cos(cycle)))*.55:0;
+  w.rotation.y=walking?(Math.cos(cycle)>0?Math.PI:0):(i%2?Math.PI*.55:-Math.PI*.55);
+  u.torso.rotation.z=.025*Math.sin(t*1.4);
+  u.torso.rotation.x=walking?.04*Math.sin(t*2):.02*Math.sin(t);
+  for(const l of u.limbs){l.leg.rotation.x=l.side*step;l.arm.rotation.x=-l.side*step*.8+(walking?0:.12*Math.sin(t*1.7+l.side));}
+  w.position.y=walking?.025*Math.abs(Math.sin(cycle*4)):0;
+ }
+}
+// Smooth track grade: flat depot -> descending cutting -> level underground.
+const descentStart=135,descentEnd=270,descentDepth=11;
+function smoothstep01(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
+function trackDrop(distance){return descentDepth*smoothstep01((distance-descentStart)/(descentEnd-descentStart))}
 const ramp=new THREE.Group();depot.add(ramp);
 const retaining=mat(0x85888a),portalDark=new THREE.MeshBasicMaterial({color:0x06090e});
-for(let j=0;j<14;j++){
- const z=-155-j*7,depth=j*.28;
- box(ramp,7,.24,7,0,-.48-depth,z,asphalt);
- for(const x of [-1.15,1.15])box(ramp,.12,.14,7,x,-.24-depth,z,rail);
- for(const side of [-1,1])box(ramp,.42,2+depth,7,side*3.65,.65-depth/2,z,retaining);
+for(let j=0;j<36;j++){
+ const d=descentStart+j*4,drop=trackDrop(d);
+ const z=-d;
+ box(ramp,7,.22,4.1,0,-.42-drop,z,asphalt);
+ for(const x of [-1.15,1.15])box(ramp,.12,.14,4.1,x,-.19-drop,z,rail);
+ box(ramp,3.2,.11,.26,0,-.24-drop,z,wood);
+ for(const side of [-1,1]){
+  const height=2+drop;
+  box(ramp,.5,height,4.1,side*3.75,(-.15-drop)+height/2,z,retaining);
+ }
 }
-for(const x of [-3.7,3.7])box(ramp,.7,7,.9,x,2.9,-255,retaining);
-box(ramp,8,.65,1,0,6.4,-255,retaining);
-box(ramp,6.5,5.6,.14,0,3.1,-255,portalDark);
+for(const x of [-3.75,3.75])box(ramp,.8,8,.9,x,-7,-275,retaining);
+box(ramp,8,.7,1,0,-2.5,-275,retaining);
+// Portal opening: do not block the track with a solid dark plane.
 // Sunlit yard gradually gives way to the existing dark tunnel.
 const sun=new THREE.DirectionalLight(0xfff2d8,1.8);sun.position.set(-40,75,-70);depot.add(sun);
 const skyFill=new THREE.HemisphereLight(0xb9dbff,0x555c54,1.1);depot.add(skyFill);
@@ -639,12 +670,12 @@ if(lever>0.015){
  // Neutral: coasting with small rolling resistance.
  speed=Math.max(0,speed-1.2*dt);
 }
-speed=Math.min(90,speed);updateMetroAudio(speed,lever);const move=speed/3.6*dt*1.22;dist-=move;depot.position.z+=move;for(const worker of workers){worker.rotation.z=Math.sin(now*.0015+worker.userData.phase)*.045;}for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
+speed=Math.min(90,speed);updateMetroAudio(speed,lever);const move=speed/3.6*dt*1.22;dist-=move;depot.position.z+=move;animateDepotWorkers(now);for(const g of chunks){g.position.z+=move;if(g.position.z>32)g.position.z-=chunks.length*32}platform.position.z=-dist+30;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
- for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance-8 || g.position.z<stationEntrance-160) && (depot.position.z>=265 || g.position.z<-255+depot.position.z);}
- scene.fog.color.setHex(dist<155?0x10171c:(depot.position.z<265?0x9bc1df:0x030508));
- scene.fog.near=dist<155?28:18;scene.fog.far=dist<155?155:(depot.position.z<265?310:120);updateStationClock();if(dist< -80){speed=0;dist=1100;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);renderRearMirrors();updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));requestAnimationFrame(frame);
+ for(const g of chunks){const chunkFar=g.position.z-32;g.visible=(chunkFar>stationEntrance-8 || g.position.z<stationEntrance-160) && (depot.position.z>=280 || g.position.z<-275+depot.position.z);}
+ scene.fog.color.setHex(dist<155?0x10171c:(depot.position.z<280?0x9bc1df:0x030508));
+ scene.fog.near=dist<155?28:18;scene.fog.far=dist<155?155:(depot.position.z<280?310:120);updateStationClock();if(dist< -80){speed=0;dist=1100;status.textContent='Станция пропущена!'}}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch+(-Math.atan2(descentDepth*1.5,descentEnd-descentStart))*(smoothstep01((depot.position.z-descentStart)/20)-smoothstep01((depot.position.z-descentEnd)/20));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15-trackDrop(depot.position.z)+Math.sin(pitch)*.035;updatePlatformPassengers(dt);renderRearMirrors();updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<32&&speed<1&&!doors)status.textContent='Точная остановка! Открой двери';renderer.render(scene,camera)}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));requestAnimationFrame(frame);
 </script><script>
 (function(){let active=false,speed=0,lever=0,dist=850,people=0,idx=0,doors=false,yaw=0,pitch=0,last=performance.now();const $=x=>document.getElementById(x),canvas=$('scene'),names=['Уручье','Борисовский тракт','Восток','Московская'];function start(){if(active||window.metro3DReady)return;active=true;$('status').textContent='Режим совместимости — управление включено';requestAnimationFrame(frame)}
 setTimeout(()=>{if(window.metro3DReady)return;const masterTrack=$('masterTrack'),masterHandle=$('masterHandle'),masterValue=$('masterValue'),view=$('scene');function drive(e){const r=masterTrack.getBoundingClientRect();lever=Math.max(-1,Math.min(1,(.5-(e.clientY-r.top)/r.height)*2));masterHandle.style.top=50-lever*43+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{masterTrack.setPointerCapture(e.pointerId);drive(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))drive(e)});let pointer=null,x=0,y=0;view.addEventListener('pointerdown',e=>{pointer=e.pointerId;x=e.clientX;y=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(e.pointerId!==pointer)return;yaw=Math.max(-1.04,Math.min(1.04,yaw-(e.clientX-x)*.008));pitch=Math.max(-.42,Math.min(.54,pitch-(e.clientY-y)*.006));x=e.clientX;y=e.clientY});view.addEventListener('pointerup',e=>{if(e.pointerId===pointer)pointer=null});$('doors').onclick=()=>{if(speed>1){$('status').textContent='Сначала останови поезд';return}if(Math.abs(dist)>32){$('status').textContent='До платформы ещё далеко';return}doors=!doors;if(doors){people+=20;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';$('status').textContent='Двери открыты'}else{idx++;dist=850;$('status').textContent='Двери закрыты'}};if(window.metroStarted)start();window.addEventListener('metro-start',start)},1000);
