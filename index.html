@@ -685,7 +685,11 @@ function routeCircle(x,y,r,color,label,textColor='#ffffff'){
 for(let i=0;i<routeStops.length;i++){
  const x=firstX+(routeStops.length-1-i)*cellW,selected=i===0;
  rc.fillStyle=selected?'#e2aa17':'#292653';
- rc.beginPath();rc.moveTo(x-93,top+8);rc.lineTo(x+132,top+8);rc.lineTo(x+76,top+605);rc.lineTo(x-149,top+605);rc.closePath();rc.fill();
+ // Slanted trapezoid: BOTH top and bottom edges rise to the right,
+ // matching the diagonal station panels on the real wall diagram.
+ rc.beginPath();rc.moveTo(x-93,top+64);rc.lineTo(x+132,top+8);
+ rc.lineTo(x+76,top+605);rc.lineTo(x-149,top+661);rc.closePath();rc.fill();
+ rc.strokeStyle='#eee9d9';rc.lineWidth=7;rc.stroke();
  // Each station carries both Belarusian and Russian names, on separate lines.
  rc.save();rc.translate(x-65,top+435);rc.rotate(-Math.PI/3.1);
  rc.textAlign='left';rc.textBaseline='middle';rc.fillStyle=selected?'#24204b':'#ffffff';
