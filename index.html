@@ -1097,7 +1097,7 @@ function updatePlatformPassengers(dt){
   const doorX=-2.56;
   p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):waitingX;
   p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):waitingZ;
-  p.person.visible=!(active&&!actuallyExiting&&k>=.94);
+  p.person.visible=!(active&&!actuallyExiting&&k>=.94)&&!carriagePassengers[platformPassengers.indexOf(p)]?.settled;
   // As the same passenger disappears through the train doorway, their
   // identical model appears inside and walks from the door to their place.
   const cp=carriagePassengers[platformPassengers.indexOf(p)];
