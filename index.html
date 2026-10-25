@@ -669,7 +669,7 @@ const routeCanvas=document.createElement('canvas');routeCanvas.width=3072;routeC
 const rc=routeCanvas.getContext('2d');rc.fillStyle='#e5e2d6';rc.fillRect(0,0,3072,640);
 const cellW=190,firstX=155,top=65;
 for(let i=0;i<routeStops.length;i++){
- const x=firstX+i*cellW,selected=i===0;
+ const x=firstX+(routeStops.length-1-i)*cellW,selected=i===0;
  rc.fillStyle=selected?'#e5b329':'#292653';
  rc.beginPath();rc.moveTo(x-75,top+12);rc.lineTo(x+95,top+12);rc.lineTo(x+60,top+405);rc.lineTo(x-110,top+405);rc.closePath();rc.fill();
  rc.save();rc.translate(x-45,top+290);rc.rotate(-Math.PI/3.15);
@@ -686,11 +686,11 @@ rc.strokeStyle='#f4f0e7';rc.lineWidth=12;rc.strokeRect(15,15,3040,605);
 rc.fillStyle='#292653';rc.font='bold 33px Arial';rc.textAlign='left';rc.fillText('МІНСКІ МЕТРАПАЛІТЭН • МАСКОЎСКАЯ ЛІНІЯ',115,602);
 const routeTexture=new THREE.CanvasTexture(routeCanvas);routeTexture.colorSpace=THREE.SRGBColorSpace;
 routeTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
-const routePanel=new THREE.Mesh(new THREE.PlaneGeometry(34,5.3),new THREE.MeshBasicMaterial({map:routeTexture,side:THREE.DoubleSide}));
-routePanel.rotation.y=-Math.PI/2;routePanel.position.set(3.17,4.65,-55);platform.add(routePanel);
+const routePanel=new THREE.Mesh(new THREE.PlaneGeometry(6.8,1.06),new THREE.MeshBasicMaterial({map:routeTexture,side:THREE.DoubleSide}));
+routePanel.rotation.y=-Math.PI/2;routePanel.position.set(3.17,5.2,-55);platform.add(routePanel);
 const routeFrame=mat(0xd1d1c8,.35);
-for(const y of [1.98,7.32])box(platform,.10,.11,34.2,3.14,y,-55,routeFrame);
-for(const z of [-72.15,-37.85])box(platform,.10,5.4,.12,3.14,4.65,z,routeFrame);
+for(const y of [4.66,5.74])box(platform,.05,.035,6.86,3.14,y,-55,routeFrame);
+for(const z of [-58.44,-51.56])box(platform,.05,1.12,.035,3.14,5.2,z,routeFrame);
 
 
 box(platform,18.0,.8,128,-13.65,.30,-57,floorTile);
