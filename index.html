@@ -308,37 +308,32 @@ function syntheticAnnouncement(parts,onDone){
  }
  sayNext();
 }
+const metroBelarusian=['Малінаўка','Пятроўшчына','Міхалова','Грушаўка','Інстытут культуры','Плошча Леніна','Кастрычніцкая','Плошча Перамогі','Плошча Якуба Коласа','Акадэмія навук','Парк Чалюскінцаў','Маскоўская','Усход','Барысаўскі тракт','Уручча'];
+const metroEnglish=['Malinauka','Piatroushchyna','Mikhalova','Hrushauka','Instytut Kultury','Ploshcha Lenina','Kastrychnitskaya','Ploshcha Peramohi','Ploshcha Yakuba Kolasa','Akademiya Navuk','Park Chalyuskintsau','Maskouskaya','Uschod','Barysawski Trakt','Uruchcha'];
 function pressInfo(){
  infoControl.target=1;
  clearTimeout(pressInfo.pressTimer);
  pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},400);
  if(infoPlaying){status.textContent='INFO: объявление уже звучит';return}
- // Opening the doors establishes arrival at the platform. The distance
- // counter is only a visual guide and must not block the departure announcer.
  if(doors){
-  infoArrivalPlayed=true;
-  infoStarted=true;infoCompleted=false;
-  const next=names[(index+1)%names.length];
-  const beNext=index===0?'Барысаўскі тракт':next;
-  status.textContent='INFO: закрытие дверей, следующая — '+beNext;
+  if(index>=names.length-1){status.textContent='INFO: конечная станция Уручье';return}
+  infoArrivalPlayed=true;infoStarted=true;infoCompleted=false;
+  const next=(index+1)%names.length;
+  status.textContent='INFO: следующая станция — '+names[next];
   syntheticAnnouncement([
-   ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+beNext+'.','ru-RU'],
-   [index===0?'Barysawski Trakt Station. Mind the closing doors.':next+' Station. Mind the closing doors.','en-US']
+   ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+metroBelarusian[next]+'.','ru-RU'],
+   [(next===1?'Petrovshchina':metroEnglish[next])+' Station. Mind the closing doors.','en-US']
   ]);
   return;
  }
- // First press with doors closed announces the current station.
  if(!infoArrivalPlayed){
   infoArrivalPlayed=true;
-  const name=index===0?'Уручча':names[index%names.length];
-  status.textContent='INFO: Станцыя '+name;
+  status.textContent='INFO: станция '+names[index%names.length];
   syntheticAnnouncement([
-   ['Станцыя '+name+'.','ru-RU'],
-   [index===0?'Uruchcha Station.':name+' Station.','en-US']
+   ['Станцыя '+metroBelarusian[index%names.length]+'.','ru-RU'],
+   [metroEnglish[index%names.length]+' Station.','en-US']
   ]);
- }else{
-  status.textContent='INFO: откройте двери для объявления об отправлении';
- }
+ }else status.textContent='INFO: откройте двери для объявления об отправлении';
 }
 function setCabDoors(open){
  if(doors===open)return;
@@ -707,7 +702,7 @@ function updatePlatformPassengers(dt){
 // Platform signage and benches.
 for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platform,.1,.8,.1,-5.45,.43,-8-i*18,steel);box(platform,.1,.8,.1,-4.3,.43,-8-i*18,steel)}
 const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
-const names=['Уручье','Борисовский тракт','Восток','Московская'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
+const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
