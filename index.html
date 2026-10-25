@@ -919,12 +919,32 @@ for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,
 // Human figures: anatomically proportioned meshes, varied clothing and poses.
 const coats=[mat(0x394c63),mat(0x855648),mat(0x507064),mat(0x77716b),mat(0x46475b),mat(0x977e61)],skins=[mat(0xe1b69b),mat(0xc99576),mat(0xf0c5a8)],hairs=[mat(0x30231e),mat(0x6a4b32),mat(0x191b21),mat(0x9b7956)];
 
+// Six reusable wardrobe textures: subtle cloth weave, seams and pockets.
+const passengerFabricTextures=Array.from({length:6},(_,type)=>{
+ const c=document.createElement('canvas');c.width=256;c.height=256;
+ const ctx=c.getContext('2d');
+ const bases=['#42627c','#80634f','#506b55','#856879','#7b808a','#aa7952'];
+ ctx.fillStyle=bases[type];ctx.fillRect(0,0,256,256);
+ for(let y=0;y<256;y+=3){ctx.strokeStyle='rgba(255,255,255,.045)';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(256,y);ctx.stroke();}
+ for(let x=0;x<256;x+=4){ctx.strokeStyle='rgba(0,0,0,.045)';ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,256);ctx.stroke();}
+ ctx.strokeStyle='rgba(20,25,30,.42)';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(128,0);ctx.lineTo(128,255);ctx.stroke();
+ for(const px of [38,174]){ctx.strokeRect(px,147,43,37);ctx.beginPath();ctx.moveTo(px,155);ctx.lineTo(px+43,155);ctx.stroke();}
+ if(type%2===0){ctx.fillStyle='rgba(210,210,200,.8)';for(let y=32;y<240;y+=28)ctx.fillRect(125,y,5,5);}
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.anisotropy=2;return tex;
+});
+const passengerOutfits=passengerFabricTextures.map(map=>new THREE.MeshStandardMaterial({map,roughness:.94}));
+const passengerEyeWhite=new THREE.MeshStandardMaterial({color:0xe3dfd4,roughness:.8});
+const passengerIris=new THREE.MeshStandardMaterial({color:0x394b53,roughness:.42});
+const passengerLip=new THREE.MeshStandardMaterial({color:0x955b59,roughness:.85});
+const passengerSeam=new THREE.MeshStandardMaterial({color:0x333b44,roughness:.95});
+function personDetail(parent,geo,material,x,y,z){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);parent.add(m);return m;}
 function human(i,x,z){
  const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);
  const child=i%13===0||i%13===1,elder=i%11===0;
  const scale=child?.64:elder?.89:.91+(i%5)*.036;p.scale.setScalar(scale);
- const coat=coats[i%coats.length],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
- p.userData.walkLimbs=[];p.userData.gestureArms=[];
+ const archetype=i%6,coat=passengerOutfits[archetype],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
+ p.userData.walkLimbs=[];p.userData.gestureArms=[];p.userData.fineDetails=[];
  const torso=new THREE.Mesh(new THREE.CylinderGeometry(.22,.29,.76,16),coat);torso.position.y=1.16;p.add(torso);
  const jacket=new THREE.Mesh(new THREE.SphereGeometry(.245,12,10),coat);jacket.scale.set(1,.85,.69);jacket.position.y=1.39;p.add(jacket);
  for(const side of [-1,1]){
@@ -937,8 +957,34 @@ function human(i,x,z){
  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,10),skin);neck.position.y=1.67;p.add(neck);
  const face=new THREE.Mesh(new THREE.SphereGeometry(.195,18,14),skin);face.scale.set(1,1.15,.91);face.position.y=1.88;p.add(face);
  const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.198,18,12,0,Math.PI*2,0,Math.PI*.50),hair);hairTop.position.y=1.93;p.add(hairTop);
+ // Facial features use shallow 3D geometry, not floating black dots.
+ const nose=personDetail(p,new THREE.ConeGeometry(.036,.105,10),skin,0,1.858,-.190);nose.rotation.x=-.35;
+ const mouth=personDetail(p,new THREE.CapsuleGeometry(.008,.067,2,8),passengerLip,0,1.778,-.178);mouth.rotation.z=Math.PI/2;
+ p.userData.fineDetails.push(nose,mouth);
  for(const side of [-1,1]){
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.014,8,8),dark);eye.position.set(side*.077,1.90,-.17);p.add(eye);
+  const ear=personDetail(p,new THREE.SphereGeometry(.052,10,8),skin,side*.191,1.87,0);ear.scale.set(.5,1,.6);
+  const eye=personDetail(p,new THREE.SphereGeometry(.027,10,8),passengerEyeWhite,side*.079,1.907,-.169);eye.scale.set(1,.55,.30);
+  const iris=personDetail(p,new THREE.SphereGeometry(.011,8,8),passengerIris,side*.079,1.906,-.179);
+  const brow=personDetail(p,new THREE.BoxGeometry(.083,.012,.015),hair,side*.081,1.948,-.172);brow.rotation.z=-side*.13;
+  p.userData.fineDetails.push(ear,eye,iris,brow);
+ }
+ // Clothing seams, zipper, collars and stitched patch pockets.
+ const zipper=personDetail(p,new THREE.BoxGeometry(.012,.55,.012),passengerSeam,0,1.20,-.198);
+ const collarL=personDetail(p,new THREE.BoxGeometry(.10,.14,.023),passengerSeam,-.09,1.53,-.165);
+ const collarR=personDetail(p,new THREE.BoxGeometry(.10,.14,.023),passengerSeam,.09,1.53,-.165);
+ collarL.rotation.z=-.35;collarR.rotation.z=.35;
+ p.userData.fineDetails.push(zipper,collarL,collarR);
+ for(const side of [-1,1]){
+  const pocket=personDetail(p,new THREE.BoxGeometry(.12,.09,.014),passengerSeam,side*.14,1.02,-.233);
+  p.userData.fineDetails.push(pocket);
+ }
+ if(archetype===2||archetype===4){
+  const scarf=personDetail(p,new THREE.TorusGeometry(.12,.038,7,18),coats[(i+2)%coats.length],0,1.61,0);
+  scarf.rotation.x=Math.PI/2;p.userData.fineDetails.push(scarf);
+ }
+ if(archetype===3){
+  const glasses=personDetail(p,new THREE.TorusGeometry(.092,.009,6,18),passengerSeam,0,1.906,-.182);
+  glasses.scale.x=1.85;p.userData.fineDetails.push(glasses);
  }
  if(i%4===0){const bag=new THREE.Mesh(new THREE.BoxGeometry(.29,.40,.16),dark);bag.position.set(.37,.90,.05);p.add(bag);}
  if(i%4===1){const backpack=new THREE.Mesh(new THREE.BoxGeometry(.36,.54,.20),coats[(i+3)%coats.length]);backpack.position.set(0,1.19,.30);p.add(backpack);}
@@ -971,6 +1017,11 @@ function updatePlatformPassengers(dt){
   passengerDoorTime+=dt;
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
  for(const p of platformPassengers){
+  // Keep face/garment details close-up only to preserve mobile frame rate.
+  const viewCam=stationCameraActive?stationCamera:camera;
+  const worldPos=p.person.getWorldPosition(new THREE.Vector3());
+  const detailed=worldPos.distanceTo(viewCam.position)<24;
+  for(const detail of p.person.userData.fineDetails)detail.visible=detailed;
   const active=atPlatform&&doors;
   const actuallyExiting=index!==0&&p.exiting;
   // At terminal Malinauka the train is empty: boarding only.
