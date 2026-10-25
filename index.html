@@ -642,8 +642,8 @@ for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.Point
 const marble=mat(0xe5dfca),floorTile=mat(0xc9c8b9),trim=mat(0x77736e),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
 const greenBand=mat(0x24552b),blackGranite=mat(0x17191a),creamWall=mat(0xe8e5d6),warmGold=new THREE.MeshBasicMaterial({color:0xffc25d}),silverRail=mat(0xa7aaa5,.6);
 // Glossy cream terrazzo with dark granite strips beside both platform edges.
-box(platform,6.0,.045,128,-7.65,.725,-57,floorTile);
-for(const x of [-4.91,-10.39])box(platform,.55,.052,128,x,.754,-57,blackGranite);
+box(platform,18.0,.045,128,-13.65,.725,-57,floorTile);
+for(const x of [-4.91,-22.39])box(platform,.55,.052,128,x,.754,-57,blackGranite);
 // Right-side station wall, across the player's track: pale ceramic panels, green band and black base.
 box(platform,.25,7.0,128,3.58,3.72,-57,creamWall);
 box(platform,.30,1.18,128,3.39,.79,-57,blackGranite);
@@ -656,43 +656,48 @@ fc.fillStyle='#554032';fc.font='bold 89px Georgia,serif';fc.textAlign='center';f
 for(let j=0;j<30;j++){const xx=(j*173+45)%1024,yy=(j*97+37)%220;fc.strokeStyle='#3c7448';fc.lineWidth=3;fc.beginPath();fc.moveTo(xx,yy+35);fc.quadraticCurveTo(xx+13,yy+8,xx+8,yy-18);fc.stroke();for(let k=0;k<3;k++){fc.fillStyle=k===0?'#447c52':'#7b9871';fc.beginPath();fc.ellipse(xx+(k-1)*11,yy+(k-1)*9,7,3.5,(k-1)*.7,0,Math.PI*2);fc.fill();}if(j%4===0){fc.fillStyle='#a85b64';fc.beginPath();fc.arc(xx+8,yy-19,5,0,Math.PI*2);fc.fill();}}
 const floralTexture=new THREE.CanvasTexture(floralCanvas);floralTexture.colorSpace=THREE.SRGBColorSpace;
 const floralMat=new THREE.MeshBasicMaterial({map:floralTexture,side:THREE.DoubleSide});
-for(const z of [-15,-57,-98]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(24,4.1),floralMat);wallSign.rotation.y=Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
+for(const z of [-15,-57,-98]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(24,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
 
-box(platform,6.0,.8,128,-7.65,.30,-57,floorTile);
+box(platform,18.0,.8,128,-13.65,.30,-57,floorTile);
 box(platform,.16,.07,128,-4.57,.74,-57,yellow);
 // Single central island platform: the player drives on the RIGHT-hand track.
 // The opposite track lies beyond the LEFT-hand row of columns.
-box(platform,.16,.07,128,-10.73,.74,-57,yellow);
+box(platform,.16,.07,128,-22.73,.74,-57,yellow);
 // Yellow safety line exists only along the two actual island platform edges.
 // Station hall: columns rather than a solid wall. Opposite side remains visible.
 for(let j=0;j<13;j++){const z=5-j*10;
-for(const x of [-5.65,-9.65]){
- const column=new THREE.Mesh(new THREE.CylinderGeometry(.53,.56,6.15,18),marble);column.position.set(x,3.93,z);platform.add(column);
- const base=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.65,18),greenBand);base.position.set(x,1.13,z);platform.add(base);
+for(const x of [-5.65,-21.65]){
+ const column=new THREE.Mesh(new THREE.CylinderGeometry(.53,.56,6.15,48),marble);column.position.set(x,3.93,z);platform.add(column);
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.65,48),greenBand);base.position.set(x,1.13,z);platform.add(base);
  for(const yy of [.79,1.45]){const ring=new THREE.Mesh(new THREE.TorusGeometry(.65,.045,8,24),silverRail);ring.rotation.x=Math.PI/2;ring.position.set(x,yy,z);platform.add(ring);}
- const crown=new THREE.Mesh(new THREE.CylinderGeometry(.73,.62,.22,18),marble);crown.position.set(x,7.08,z);platform.add(crown);
+ const crown=new THREE.Mesh(new THREE.CylinderGeometry(.73,.62,.22,48),marble);crown.position.set(x,7.08,z);platform.add(crown);
  // Three decorated columns on the platform's track-facing row.
  if(x===-5.65 && j>=3 && j<=5){
   const relief=mat(0xd8c7a1);
-  for(let n=0;n<5;n++){const t=n*1.08;
-   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x+.50,2.0+t*.6,z-.12),new THREE.Vector3(x+.66,2.55+t*.65,z+.25),new THREE.Vector3(x+.51,3.25+t*.57,z-.16)]);
-   platform.add(new THREE.Mesh(new THREE.TubeGeometry(curve,16,.065,6,false),relief));
+  // Raised botanical relief wrapping the visible half of each decorated column.
+  for(let n=0;n<7;n++){
+   const y=1.85+n*.68, angle=n*.93;
+   const points=[];
+   for(let k=0;k<=18;k++){const a=-1.30+k*2.6/18+angle*.18;points.push(new THREE.Vector3(x+.565*Math.cos(a),y+.26*Math.sin(a*1.8),z+.565*Math.sin(a)));}
+   platform.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),30,.052,8,false),relief));
+   for(const a of [-.7,.5]){const leaf=new THREE.Mesh(new THREE.SphereGeometry(.15,12,8),relief);leaf.scale.set(.45,1.3,.35);leaf.position.set(x+.58*Math.cos(a),y+.22,z+.58*Math.sin(a));leaf.rotation.y=a;platform.add(leaf);}
   }
-  const halo=new THREE.Mesh(new THREE.TorusGeometry(.74,.095,10,28),warmGold);halo.rotation.x=Math.PI/2;halo.position.set(x,7.18,z);platform.add(halo);
-  const glow=new THREE.PointLight(0xffbd5b,12,5,2);glow.position.set(x,6.95,z);platform.add(glow);
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(.77,.11,12,48),warmGold);halo.rotation.x=Math.PI/2;halo.position.set(x,7.22,z);platform.add(halo);
+  const diffuser=new THREE.Mesh(new THREE.CylinderGeometry(.86,.86,.06,48),new THREE.MeshBasicMaterial({color:0xffd995}));diffuser.position.set(x,7.23,z);platform.add(diffuser);
+  const glow=new THREE.PointLight(0xffb344,26,8,2);glow.position.set(x,6.85,z);platform.add(glow);
  }
 }
-box(platform,7.3,.15,.28,-7.65,7.04,z,marble);
-box(platform,2.3,.12,1.15,-5.4,6.98,z,light);box(platform,2.3,.12,1.15,-9.9,6.98,z,light);
+box(platform,19.3,.15,.28,-13.65,7.04,z,marble);
+box(platform,2.3,.12,1.15,-5.4,6.98,z,light);box(platform,2.3,.12,1.15,-21.9,6.98,z,light);
 }
-box(platform,6.4,.14,128,-7.65,7.15,-57,marble);
+box(platform,18.4,.14,128,-13.65,7.15,-57,marble);
 // Spacious station concourse: tall ceiling, tiled floor and track bed, tunnel portal at far end.
 const hallRoof=mat(0xece9dd),hallTrim=mat(0x9d9990),portalBlack=new THREE.MeshBasicMaterial({color:0x060a0f});
-box(platform,19.5,.32,128,-6.0,8.35,-57,hallRoof);
+box(platform,31.5,.32,128,-12.0,8.35,-57,hallRoof);
 // Long luminous recessed ceiling above the central pedestrian concourse.
-box(platform,4.1,.025,127,-7.65,8.16,-57,new THREE.MeshBasicMaterial({color:0xfffdf2}));
-for(const x of [-5.55,-9.75])box(platform,.14,.16,127,x,8.04,-57,trim);
-for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,19.5,.035,.07,-6.0,8.09,z,hallTrim);box(platform,2.3,.08,1.2,-2.9,8.05,z,light)}
+box(platform,15.1,.025,127,-13.65,8.16,-57,new THREE.MeshBasicMaterial({color:0xfffdf2}));
+for(const x of [-5.55,-21.75])box(platform,.14,.16,127,x,8.04,-57,trim);
+for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,31.5,.035,.07,-12.0,8.09,z,hallTrim);box(platform,2.3,.08,1.2,-2.9,8.05,z,light)}
 box(platform,5,.28,128,0,-.22,-57,otherTrackPlaceholder());
 function otherTrackPlaceholder(){return mat(0x313439)}
 for(const x of [-1.15,1.15])box(platform,.12,.16,128,x,.02,-57,rail);
@@ -720,9 +725,9 @@ c.font='22px Arial';c.fillStyle='#b3bbc1';c.fillText('МИНСК',256,198);c.fil
 // Clock starts only after station index is initialized.
 // Opposite track and a blue-and-silver metro train visible beyond the platform.
 const otherTrack=mat(0x3b4147),trainBlue=mat(0x1a579a,.3),windowDark=mat(0x122938,.15),stripe=mat(0xe1e8ee,.25);
-box(platform,3.8,.18,125,-13.25,-.15,-57,otherTrack);
-for(const x of [-14.4,-12.1])box(platform,.12,.12,125,x,.01,-57,rail);
-const oppositeTrain=new THREE.Group();oppositeTrain.position.set(-13.25,.45,-56);platform.add(oppositeTrain);
+box(platform,3.8,.18,125,-25.25,-.15,-57,otherTrack);
+for(const x of [-26.4,-24.1])box(platform,.12,.12,125,x,.01,-57,rail);
+const oppositeTrain=new THREE.Group();oppositeTrain.position.set(-25.25,.45,-56);platform.add(oppositeTrain);
 for(let car=0;car<5;car++){let z=car*22-44;box(oppositeTrain,2.5,3.15,21,0,1.85,z,stripe);box(oppositeTrain,2.55,1.1,21,0,2.0,z,trainBlue);box(oppositeTrain,2.54,.25,21,0,3.28,z,trainBlue);
 for(let k=0;k<5;k++){let zz=z-8+k*3.7;box(oppositeTrain,.045,1.03,1.7,-1.285,2.55,zz,windowDark);box(oppositeTrain,.045,1.03,1.7,1.285,2.55,zz,windowDark)}
 for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,zz,doorMat);box(oppositeTrain,.065,2.3,1.35,1.295,1.55,zz,doorMat)}}
@@ -746,7 +751,7 @@ const platformPassengers=[];
 for(let i=0;i<44;i++){
  const side=-1;
  const z=-6-(i%44)*2.35;
- const homeX=-6.1-(i%5)*.73;
+ const homeX=-6.1-(i%9)*1.9;
  const person=human(i,homeX,z);
  const exiting=i%4===0||i%4===1;
  platformPassengers.push({person,side,homeX,homeZ:z,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
