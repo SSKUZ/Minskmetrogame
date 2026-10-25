@@ -1006,7 +1006,7 @@ for(let i=0;i<44;i++){
  const mode=i%6===0?'walk':i%6===1||i%6===2?'talk':'wait';
  platformPassengers.push({person,homeX,homeZ:z,doorwayZ,exiting,mode,
    offset:(i%11)*.65+Math.floor(i/11)*.55,phase:i*1.87,
-   walkingSpeed:.16+(i%4)*.07,conversation:i%6===1||i%6===2});
+   walkingSpeed:.16+(i%4)*.07,conversation:i%6===1||i%6===2,heading:((i*2.39996)%(Math.PI*2))-Math.PI});
 }
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 function updatePlatformPassengers(dt){
@@ -1042,7 +1042,16 @@ function updatePlatformPassengers(dt){
   p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):waitingX;
   p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):waitingZ;
   p.person.visible=!(active&&!actuallyExiting&&k>=1);
-  p.person.rotation.y=walking?Math.atan2((actuallyExiting?waitingX-doorX:doorX-waitingX),(actuallyExiting?waitingZ-p.doorwayZ:p.doorwayZ-waitingZ)):p.mode==='talk'?(p.phase%2<1?.5:-.5):-.16;
+  // Models face their local -Z (eyes and nose are on -Z).
+  // Turn their faces INTO the direction of travel, not towards the camera.
+  const dx=actuallyExiting?waitingX-doorX:doorX-waitingX;
+  const dz=actuallyExiting?waitingZ-p.doorwayZ:p.doorwayZ-waitingZ;
+  const targetHeading=walking?Math.atan2(-dx,-dz):
+    idleWalk?(Math.cos(platformLifeTime*p.walkingSpeed+p.phase)>=0?Math.PI:0):
+    p.mode==='talk'?p.heading+Math.sin(platformLifeTime*.7+p.phase)*.12:p.heading;
+  // Shortest-angle smooth turn: no snapping around or moonwalking.
+  const turn=Math.atan2(Math.sin(targetHeading-p.person.rotation.y),Math.cos(targetHeading-p.person.rotation.y));
+  p.person.rotation.y+=turn*Math.min(1,dt*(walking?5:1.9));
   const stride=walking?Math.sin(platformLifeTime*9+p.phase)*.33:idleWalk?Math.sin(platformLifeTime*3+p.phase)*.17:0;
   for(const limb of p.person.userData.walkLimbs){
    const gesture=p.conversation&&!walking&&limb.kind==='arm'?Math.sin(platformLifeTime*1.9+p.phase)*.16:0;
