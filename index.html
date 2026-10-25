@@ -308,6 +308,35 @@ function syntheticAnnouncement(parts,onDone){
  }
  sayNext();
 }
+// Original announcer recordings for the first station.
+// Keep the synthetic speech as fallback until MP3 assets are uploaded.
+const originalInfoAudio=new Audio();
+originalInfoAudio.preload='auto';
+function playInfoRecording(path,parts){
+ const token=infoToken+1;
+ const url=new URL(path,document.baseURI);
+ const probe=new Audio();
+ probe.preload='auto';
+ probe.src=url.href;
+ // A failed request must not silence the INFO switch.
+ let settled=false;
+ function fallback(){
+  if(settled)return;settled=true;
+  probe.pause();syntheticAnnouncement(parts);
+ }
+ probe.onerror=fallback;
+ probe.oncanplay=()=>{
+  if(settled)return;settled=true;
+  const current=++infoToken;
+  infoPlaying=true;infoControl.target=1;
+  originalInfoAudio.pause();
+  originalInfoAudio.src=url.href;
+  originalInfoAudio.onended=()=>finishInfo(current);
+  originalInfoAudio.onerror=()=>{if(current===infoToken)syntheticAnnouncement(parts)};
+  originalInfoAudio.play().catch(()=>{if(current===infoToken)syntheticAnnouncement(parts)});
+ };
+ probe.load();
+}
 const metroBelarusian=['Малінаўка','Пятроўшчына','Міхалова','Грушаўка','Інстытут культуры','Плошча Леніна','Кастрычніцкая','Плошча Перамогі','Плошча Якуба Коласа','Акадэмія навук','Парк Чалюскінцаў','Маскоўская','Усход','Барысаўскі тракт','Уручча'];
 const metroEnglish=['Malinauka','Piatroushchyna','Mikhalova','Hrushauka','Instytut Kultury','Ploshcha Lenina','Kastrychnitskaya','Ploshcha Peramohi','Ploshcha Yakuba Kolasa','Akademiya Navuk','Park Chalyuskintsau','Maskouskaya','Uschod','Barysawski Trakt','Uruchcha'];
 function pressInfo(){
@@ -320,19 +349,23 @@ function pressInfo(){
   infoArrivalPlayed=true;infoStarted=true;infoCompleted=false;
   const next=(index+1)%names.length;
   status.textContent='INFO: следующая станция — '+names[next];
-  syntheticAnnouncement([
+  const parts=[
    ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+metroBelarusian[next]+'.','ru-RU'],
    [(next===1?'Petrovshchina':metroEnglish[next])+' Station. Mind the closing doors.','en-US']
-  ]);
+  ];
+  if(index===0)playInfoRecording('audio/malinovka_departure_petrovshchina.mp3',parts);
+  else syntheticAnnouncement(parts);
   return;
  }
  if(!infoArrivalPlayed){
   infoArrivalPlayed=true;
   status.textContent='INFO: станция '+names[index%names.length];
-  syntheticAnnouncement([
+  const parts=[
    ['Станцыя '+metroBelarusian[index%names.length]+'.','ru-RU'],
    [metroEnglish[index%names.length]+' Station.','en-US']
-  ]);
+  ];
+  if(index===0)playInfoRecording('audio/malinovka_arrival.mp3',parts);
+  else syntheticAnnouncement(parts);
  }else status.textContent='INFO: откройте двери для объявления об отправлении';
 }
 function setCabDoors(open){
