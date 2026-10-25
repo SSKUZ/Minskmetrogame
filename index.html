@@ -686,11 +686,12 @@ rc.strokeStyle='#f4f0e7';rc.lineWidth=12;rc.strokeRect(15,15,3040,605);
 rc.fillStyle='#292653';rc.font='bold 33px Arial';rc.textAlign='left';rc.fillText('МІНСКІ МЕТРАПАЛІТЭН • МАСКОЎСКАЯ ЛІНІЯ',115,602);
 const routeTexture=new THREE.CanvasTexture(routeCanvas);routeTexture.colorSpace=THREE.SRGBColorSpace;
 routeTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
-const routePanel=new THREE.Mesh(new THREE.PlaneGeometry(6.8,1.06),new THREE.MeshBasicMaterial({map:routeTexture,side:THREE.DoubleSide}));
-routePanel.rotation.y=-Math.PI/2;routePanel.position.set(3.17,5.2,-55);platform.add(routePanel);
+const routePanel=new THREE.Mesh(new THREE.PlaneGeometry(13.6,2.12),new THREE.MeshBasicMaterial({map:routeTexture,side:THREE.DoubleSide}));
+routePanel.rotation.y=-Math.PI/2;routePanel.position.set(3.17,2.735,-55);platform.add(routePanel);
 const routeFrame=mat(0xd1d1c8,.35);
-for(const y of [4.66,5.74])box(platform,.05,.035,6.86,3.14,y,-55,routeFrame);
-for(const z of [-58.44,-51.56])box(platform,.05,1.12,.035,3.14,5.2,z,routeFrame);
+// Green strip top = 1.54 + .27/2 = 1.675; board bottom aligns with it.
+for(const y of [1.675,3.795])box(platform,.05,.035,13.66,3.14,y,-55,routeFrame);
+for(const z of [-61.83,-48.17])box(platform,.05,2.16,.035,3.14,2.735,z,routeFrame);
 
 
 box(platform,18.0,.8,128,-13.65,.30,-57,floorTile);
