@@ -105,13 +105,31 @@ const extSilver=mat(0xc5d0d7,.42),extBlue=mat(0x20578b,.24);
 const extGlass=new THREE.MeshBasicMaterial({color:0x122e3e});
 const extDark=new THREE.MeshBasicMaterial({color:0x101c27});
 const stationDoorLeaves=[];
+// Detailed leading cab face; the previous external model had no visible front.
+const trainNose=new THREE.Group();stationTrain.add(trainNose);trainNose.position.z=-.05;
+box(trainNose,4.36,3.1,.42,0,2.27,0,extBlue);
+box(trainNose,3.63,1.32,.46,0,2.76,-.27,extDark);
+box(trainNose,3.25,.12,.48,0,2.02,-.28,extSilver);
+box(trainNose,3.55,.33,.5,0,1.13,-.29,extBlue);
+for(const x of [-1.55,1.55]){const lamp=new THREE.Mesh(new THREE.SphereGeometry(.19,12,8),new THREE.MeshBasicMaterial({color:0xfff4c7}));lamp.position.set(x,1.46,-.55);trainNose.add(lamp)}
+const trainDestination=document.createElement('canvas');trainDestination.width=512;trainDestination.height=96;
+const td=trainDestination.getContext('2d');td.fillStyle='#121e29';td.fillRect(0,0,512,96);td.fillStyle='#ffe077';td.textAlign='center';td.font='bold 40px Arial';td.fillText('МАЛІНАЎКА',256,65);
+const trainDestinationTex=new THREE.CanvasTexture(trainDestination);
+const dest=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.52),new THREE.MeshBasicMaterial({map:trainDestinationTex}));dest.position.set(0,2.06,-.525);dest.rotation.y=Math.PI;trainNose.add(dest);
 for(let car=0;car<5;car++){
  const cz=12+car*21.5;
  box(stationTrain,4.35,.28,20.7,0,3.67,cz,extSilver);
  box(stationTrain,4.25,.25,20.7,0,.93,cz,extSilver);
  for(const side of [-1,1]){
-  box(stationTrain,.12,2.62,20.7,side*2.15,2.25,cz,extSilver);
-  box(stationTrain,.15,.74,20.7,side*2.24,2.18,cz,extBlue);
+  // Do not put an opaque wall across the door openings: split side into
+  // lower sill, upper lintel and short solid sections between doorways.
+  box(stationTrain,.12,.45,20.7,side*2.15,1.17,cz,extSilver);
+  box(stationTrain,.12,.48,20.7,side*2.15,3.32,cz,extSilver);
+  for(const segment of [[-9.3,-6.45],[-4.05,4.05],[6.45,9.3]]){
+   const mid=(segment[0]+segment[1])/2;
+   box(stationTrain,.12,1.73,segment[1]-segment[0],side*2.15,2.25,cz+mid,extSilver);
+   box(stationTrain,.15,.54,segment[1]-segment[0],side*2.24,1.95,cz+mid,extBlue);
+  }
   for(let j=0;j<4;j++){
    const wz=cz-8.2+j*5;
    box(stationTrain,.17,.87,2.05,side*2.26,2.88,wz,extGlass);
@@ -119,7 +137,8 @@ for(let car=0;car<5;car++){
   }
   for(const dz of [-5.25,5.25]){
    const doorZ=cz+dz;
-   box(stationTrain,.22,2.12,2.18,side*2.28,2.15,doorZ,extDark);
+   // Dark interior beyond the doorway, recessed inside the carriage.
+   box(stationTrain,.08,2.12,2.18,side*1.95,2.15,doorZ,extDark);
    for(const half of [-1,1]){
     const leaf=new THREE.Group();stationTrain.add(leaf);
     leaf.position.set(side*2.38,2.15,doorZ+half*.53);
@@ -906,7 +925,7 @@ const stationCanvas=document.querySelector('#scene');let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0045,-1.05,1.05);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.003,-.35,.30);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;stationCameraActive=!stationCameraActive;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;stationCameraActive=!stationCameraActive;stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -1033,10 +1052,15 @@ if(stationCameraActive){
  stationTrain.visible=true;
  // At the head of the train, looking down its side as in the photo.
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
- stationCamera.position.set(-8.0,5.5+stationViewPitch*3,platform.position.z-104);
- const baseAngle=Math.atan2(6.2,44);
- const angle=baseAngle+stationViewYaw;
- stationCamera.lookAt(stationCamera.position.x+Math.sin(angle)*44,2.4+stationViewPitch*10,stationCamera.position.z+Math.cos(angle)*44);
+ // A three-quarter front-side shot: nose in foreground, cars and platform
+ // receding into the distance. The camera stays below the original roof.
+ const noseZ=stationTrain.position.z;
+ stationCamera.position.set(-8.1,5.65, noseZ-11.5);
+ const target=new THREE.Vector3(-1.2,2.25,noseZ+23);
+ target.x+=Math.sin(stationViewYaw)*24;
+ target.z+=Math.cos(stationViewYaw)*8-8;
+ target.y+=stationViewPitch*11;
+ stationCamera.lookAt(target);
 }
 renderer.setRenderTarget(null);renderer.render(scene,stationCameraActive?stationCamera:camera);
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
