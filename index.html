@@ -640,22 +640,23 @@ entranceGlow.position.set(0,3.4,6.0);platform.add(entranceGlow);
 const stationFill=new THREE.AmbientLight(0xf1f4ff,.95);platform.add(stationFill);
 for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.PointLight(0xf4f6ff,18,16,2);lamp.position.set(x,7.5,z);platform.add(lamp)}}
 const marble=mat(0xc2bdb4),floorTile=mat(0x999b9a),trim=mat(0x716c68),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
-box(platform,3.25,.8,128,-4.3,.30,-57,floorTile);
-box(platform,.16,.07,128,-2.65,.74,-57,yellow);
-box(platform,3.2,.8,128,4.3,.30,-57,floorTile);
+box(platform,6.0,.8,128,-7.65,.30,-57,floorTile);
+box(platform,.16,.07,128,-4.57,.74,-57,yellow);
+// Single central island platform: the player drives on the RIGHT-hand track.
+// The opposite track lies beyond the LEFT-hand row of columns.
+box(platform,.16,.07,128,-10.73,.74,-57,yellow);
 box(platform,.16,.07,128,2.65,.74,-57,yellow);
 // Station hall: columns rather than a solid wall. Opposite side remains visible.
 for(let j=0;j<13;j++){const z=5-j*10;
-for(const x of [-5.55,5.55]){box(platform,.65,6.3,.72,x,3.9,z,marble);box(platform,.85,.25,.92,x,6.95,z,trim);box(platform,.85,.18,.92,x,.86,z,trim)}
-box(platform,11.5,.15,.28,0,7.04,z,marble);
-box(platform,2.8,.12,1.15,-4.2,6.98,z,light);box(platform,2.8,.12,1.15,4.2,6.98,z,light);
+for(const x of [-5.65,-9.65]){box(platform,1.02,6.3,1.02,x,3.9,z,marble);box(platform,1.28,.22,1.28,x,6.95,z,marble);box(platform,1.22,.46,1.22,x,.99,z,mat(0x1e512b));box(platform,1.28,.09,1.28,x,.79,z,trim)}
+box(platform,7.3,.15,.28,-7.65,7.04,z,marble);
+box(platform,2.3,.12,1.15,-5.4,6.98,z,light);box(platform,2.3,.12,1.15,-9.9,6.98,z,light);
 }
-box(platform,3.1,.14,128,-4.25,7.15,-57,marble);
-box(platform,3.1,.14,128,4.25,7.15,-57,marble);
+box(platform,6.4,.14,128,-7.65,7.15,-57,marble);
 // Spacious station concourse: tall ceiling, tiled floor and track bed, tunnel portal at far end.
 const hallRoof=mat(0xc7c5be),hallTrim=mat(0x696c71),portalBlack=new THREE.MeshBasicMaterial({color:0x060a0f});
-box(platform,13,.32,128,0,8.35,-57,hallRoof);
-for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,13,.09,.18,0,8.09,z,hallTrim);box(platform,2.8,.08,1.2,-3.9,8.05,z,light);box(platform,2.8,.08,1.2,3.9,8.05,z,light)}
+box(platform,19.5,.32,128,-6.0,8.35,-57,hallRoof);
+for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,19.5,.09,.18,-6.0,8.09,z,hallTrim);box(platform,3.1,.08,1.2,-7.65,8.05,z,light);box(platform,2.3,.08,1.2,-2.9,8.05,z,light)}
 box(platform,5,.28,128,0,-.22,-57,otherTrackPlaceholder());
 function otherTrackPlaceholder(){return mat(0x313439)}
 for(const x of [-1.15,1.15])box(platform,.12,.16,128,x,.02,-57,rail);
@@ -683,9 +684,9 @@ c.font='22px Arial';c.fillStyle='#b3bbc1';c.fillText('МИНСК',256,198);c.fil
 // Clock starts only after station index is initialized.
 // Opposite track and a blue-and-silver metro train visible beyond the platform.
 const otherTrack=mat(0x3b4147),trainBlue=mat(0x1a579a,.3),windowDark=mat(0x122938,.15),stripe=mat(0xe1e8ee,.25);
-box(platform,2.5,.18,125,8.0,-.15,-57,otherTrack);
-for(const x of [7.3,8.7])box(platform,.12,.12,125,x,.01,-57,rail);
-const oppositeTrain=new THREE.Group();oppositeTrain.position.set(8.2,.45,-56);platform.add(oppositeTrain);
+box(platform,3.8,.18,125,-13.25,-.15,-57,otherTrack);
+for(const x of [-14.4,-12.1])box(platform,.12,.12,125,x,.01,-57,rail);
+const oppositeTrain=new THREE.Group();oppositeTrain.position.set(-13.25,.45,-56);platform.add(oppositeTrain);
 for(let car=0;car<5;car++){let z=car*22-44;box(oppositeTrain,2.5,3.15,21,0,1.85,z,stripe);box(oppositeTrain,2.55,1.1,21,0,2.0,z,trainBlue);box(oppositeTrain,2.54,.25,21,0,3.28,z,trainBlue);
 for(let k=0;k<5;k++){let zz=z-8+k*3.7;box(oppositeTrain,.045,1.03,1.7,-1.285,2.55,zz,windowDark);box(oppositeTrain,.045,1.03,1.7,1.285,2.55,zz,windowDark)}
 for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,zz,doorMat);box(oppositeTrain,.065,2.3,1.35,1.295,1.55,zz,doorMat)}}
@@ -707,9 +708,9 @@ return p;
 // Characters are concentrated near the rear of the cab so side mirrors can see them.
 const platformPassengers=[];
 for(let i=0;i<44;i++){
- const side=i%2===0?-1:1;
- const z=-6-(Math.floor(i/2)%22)*4.7;
- const homeX=side*(3.5+(i%3)*.20);
+ const side=-1;
+ const z=-6-(i%44)*2.35;
+ const homeX=-6.1-(i%5)*.73;
  const person=human(i,homeX,z);
  const exiting=i%4===0||i%4===1;
  platformPassengers.push({person,side,homeX,homeZ:z,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
@@ -727,7 +728,7 @@ function updatePlatformPassengers(dt){
   const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
-  const doorX=p.side*2.65;
+  const doorX=-2.65;
   const startX=p.exiting?doorX:p.homeX;
   const finishX=p.exiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
