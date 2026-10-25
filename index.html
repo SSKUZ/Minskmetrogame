@@ -311,32 +311,34 @@ function syntheticAnnouncement(parts,onDone){
 function pressInfo(){
  infoControl.target=1;
  clearTimeout(pressInfo.pressTimer);
- pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},350);
- if(infoPlaying){status.textContent='INFO: диктор ещё говорит';return}
- // First press: station arrival announcement, available before doors open.
+ pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},400);
+ if(infoPlaying){status.textContent='INFO: объявление уже звучит';return}
+ // Opening the doors establishes arrival at the platform. The distance
+ // counter is only a visual guide and must not block the departure announcer.
+ if(doors){
+  infoArrivalPlayed=true;
+  infoStarted=true;infoCompleted=false;
+  const next=names[(index+1)%names.length];
+  const beNext=index===0?'Барысаўскі тракт':next;
+  status.textContent='INFO: закрытие дверей, следующая — '+beNext;
+  syntheticAnnouncement([
+   ['Асцярожна, дзверы зачыняюцца. Наступная станцыя — '+beNext+'.','ru-RU'],
+   [index===0?'Barysawski Trakt Station. Mind the closing doors.':next+' Station. Mind the closing doors.','en-US']
+  ]);
+  return;
+ }
+ // First press with doors closed announces the current station.
  if(!infoArrivalPlayed){
   infoArrivalPlayed=true;
   const name=index===0?'Уручча':names[index%names.length];
   status.textContent='INFO: Станцыя '+name;
   syntheticAnnouncement([
-   ['Станцыя '+name+'.','be-BY'],
-   [index===0?'Uruchcha Station.':names[index%names.length]+' Station.','en-US']
+   ['Станцыя '+name+'.','ru-RU'],
+   [index===0?'Uruchcha Station.':name+' Station.','en-US']
   ]);
-  return;
+ }else{
+  status.textContent='INFO: откройте двери для объявления об отправлении';
  }
- // Second press: departure, after stopping and opening doors.
- if(!doors||speed>1||Math.abs(dist)>32){
-  status.textContent='INFO: для объявления об отправлении остановитесь и откройте двери';
-  return;
- }
- infoStarted=true;infoCompleted=false;
- const next=names[(index+1)%names.length];
- const beNext=index===0?'Барысаўскі тракт':next;
- status.textContent='INFO: Асцярожна, дзверы зачыняюцца. Наступны прыпынак — '+beNext;
- syntheticAnnouncement([
-  ['Асцярожна, дзверы зачыняюцца. Наступны прыпынак — '+beNext+'.','be-BY'],
-  [index===0?'Barysawski Trakt Station. Mind the closing doors.':next+' Station. Mind the closing doors.','en-US']
- ]);
 }
 function setCabDoors(open){
  if(doors===open)return;
