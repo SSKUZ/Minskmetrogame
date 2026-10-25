@@ -999,30 +999,59 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0xb6b9b4);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x77716b,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(73,innerWidth/innerHeight,.1,80);
-carriageCamera.position.set(0,2.55,8.4);carriageCamera.lookAt(0,2.18,-9);
+carriageCamera.position.set(0,2.55,8.4);
+let carriageYaw=0,carriagePitch=0;
+function aimCarriageCamera(){
+ const direction=new THREE.Vector3(Math.sin(carriageYaw)*Math.cos(carriagePitch),Math.sin(carriagePitch),-Math.cos(carriageYaw)*Math.cos(carriagePitch));
+ carriageCamera.lookAt(carriageCamera.position.clone().add(direction));
+}
+aimCarriageCamera();
 const carriage=new THREE.Group();carriageScene.add(carriage);
 const creamCar=new THREE.MeshStandardMaterial({color:0xe9e5d9,roughness:.75});
 const brownCar=new THREE.MeshStandardMaterial({color:0x71544b,roughness:.87});
 const floorCar=new THREE.MeshStandardMaterial({color:0x7999b0,roughness:.93});
 const poleCar=new THREE.MeshStandardMaterial({color:0x9ca5aa,metalness:.75,roughness:.27});
 const carLamp=new THREE.MeshBasicMaterial({color:0xfffbed});
+const carTrim=new THREE.MeshStandardMaterial({color:0xc4c0b6,roughness:.48,metalness:.16});
+const carRubber=new THREE.MeshStandardMaterial({color:0x343b3e,roughness:.88});
+const carSilver=new THREE.MeshStandardMaterial({color:0xcbd2d4,metalness:.85,roughness:.22});
+const carSeatStitch=new THREE.MeshStandardMaterial({color:0xa89588,roughness:.95});
+const carWallPanel=new THREE.MeshStandardMaterial({color:0xf2eee4,roughness:.42});
+const carWindowGlass=new THREE.MeshPhysicalMaterial({color:0xb8d5df,transparent:true,opacity:.12,roughness:.12,metalness:0,depthWrite:false,side:THREE.DoubleSide});
 box(carriage,4.18,.12,23,0,.90,-9,floorCar);
 box(carriage,4.18,.16,23,0,3.65,-9,creamCar);
 for(const side of [-1,1]){
- box(carriage,.13,2.67,23,side*2.06,2.29,-9,creamCar);
+ // Real open window band: lower and upper wall instead of one opaque slab.
+ box(carriage,.13,.94,23,side*2.06,1.38,-9,carWallPanel);
+ box(carriage,.13,.52,23,side*2.06,3.38,-9,carWallPanel);
+ for(let wi=0;wi<8;wi++){
+  const wz=1.2-wi*2.75;
+  box(carriage,.025,.045,2.12,side*2.04,3.08,wz,carRubber);
+  box(carriage,.025,.045,2.12,side*2.04,1.96,wz,carRubber);
+  for(const edge of [-1,1])box(carriage,.025,1.1,.048,side*2.04,2.52,wz+edge*1.04,carRubber);
+  box(carriage,.009,1.04,1.99,side*2.035,2.52,wz,carWindowGlass);
+  box(carriage,.04,.07,2.03,side*2.01,2.52,wz,carSilver);
+ }
  box(carriage,.10,.30,23,side*1.98,1.06,-9,creamCar);
  for(let j=0;j<8;j++){
   const z=1.2-j*2.75;
   // Longitudinal brown bench cushions along both sides.
   box(carriage,.64,.13,1.85,side*1.61,1.35,z,brownCar);
+  // Individual seat cushions with piping and backrest seams.
+  for(let c=0;c<3;c++){
+   const seatZ=z+(c-1)*.56;
+   box(carriage,.60,.018,.48,side*1.61,1.424,seatZ,brownCar);
+   box(carriage,.035,.022,.48,side*1.28,1.433,seatZ,carSeatStitch);
+   box(carriage,.018,.53,.012,side*1.85,1.75,seatZ+.26,carSeatStitch);
+  }
   box(carriage,.13,.63,1.85,side*1.94,1.71,z,brownCar);
-  box(carriage,.065,2.45,.065,side*1.18,2.22,z,poleCar);
+  box(carriage,.065,2.45,.065,side*1.18,2.22,z,carSilver);
+  box(carriage,.12,.06,.65,side*1.18,3.33,z,carTrim);
  }
  box(carriage,.07,.07,22,side*1.17,3.27,-9,poleCar);
  for(let j=0;j<6;j++){
   const z=-.7-j*3.4;
-  // Blue-tinted glazing and a real opening-shaped black rubber outline.
-  box(carriage,.018,1.0,1.65,side*1.97,2.55,z,new THREE.MeshBasicMaterial({color:0x7897a6,transparent:true,opacity:.25,depthWrite:false}));
+  // Glazing and rubber surrounds are defined above; no opaque overlay.
  }
 }
 box(carriage,.08,.08,22,0,3.30,-9,poleCar);
@@ -1060,6 +1089,7 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
+ if(carCameraActive){carriageYaw=0;carriagePitch=0;aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
@@ -1145,7 +1175,19 @@ const interstationDistance=1250,platformExitDistance=-195,stopOverrunLimit=-24;
 let stationServiced=false,overrunReported=false;
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
-const stationCanvas=document.querySelector('#scene');let stationDrag=null;
+const stationCanvas=document.querySelector('#scene');let stationDrag=null,carDrag=null;
+stationCanvas.addEventListener('pointerdown',e=>{
+ if(!carCameraActive)return;
+ carDrag={id:e.pointerId,x:e.clientX,y:e.clientY};
+ stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();
+});
+stationCanvas.addEventListener('pointermove',e=>{
+ if(!carCameraActive||!carDrag||carDrag.id!==e.pointerId)return;
+ carriageYaw=THREE.MathUtils.clamp(carriageYaw+(carDrag.x-e.clientX)*.004,-Math.PI*.87,Math.PI*.87);
+ carriagePitch=THREE.MathUtils.clamp(carriagePitch+(e.clientY-carDrag.y)*.003,-.72,.72);
+ carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
+});
+for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
@@ -1192,7 +1234,7 @@ const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.q
 document.querySelector('#doors')?.addEventListener('click',()=>{if(speed>1){status.textContent='Сначала останови поезд!';return}if(Math.abs(dist)>32){status.textContent='До платформы ещё далеко';return}if(!doors){doors=true;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';people+=15+Math.floor(Math.random()*25);status.textContent='Пассажиры входят';speak('Станция '+names[index%names.length]+'. Осторожно, двери открываются.')}else{doors=false;departureTimes[index%departureTimes.length]=Date.now();index++;dist=850;paintSign();status.textContent='Двери закрыты';speak('Осторожно, двери закрываются. Следующая станция '+names[index%names.length])}});
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
-function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();stationCamera.aspect=camera.aspect;stationCamera.updateProjectionMatrix()}addEventListener('resize',resize);
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();stationCamera.aspect=camera.aspect;stationCamera.updateProjectionMatrix();carriageCamera.aspect=camera.aspect;carriageCamera.updateProjectionMatrix()}addEventListener('resize',resize);
 function frame(now){requestAnimationFrame(frame);try{const dt=Math.min(.05,(now-last)/1000);last=now;animateCabButtons(dt);if(playing){// Proportional master controller: 50% traction -> 60 km/h, 100% -> 90 km/h.
 // Positive lever selects a cruising speed; negative lever selects braking strength.
 if(lever>0.015){
@@ -1291,6 +1333,9 @@ if(stationCameraActive){
 }
 renderer.setRenderTarget(null);
 if(carCameraActive){
+ carriageCamera.aspect=stationCamera.aspect;carriageCamera.updateProjectionMatrix();
+ renderer.setViewport(0,0,innerWidth,innerHeight);
+ renderer.setScissorTest(false);
  renderer.render(carriageScene,carriageCamera);
 }else renderer.render(scene,stationCameraActive?stationCamera:camera);
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
