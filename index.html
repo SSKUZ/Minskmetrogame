@@ -1014,9 +1014,14 @@ if(!canUseStationCamera&&stationCameraActive){stationCameraActive=false;stationC
 if(stationCameraActive){
  cab.visible=false;
  // Elevated view from the platform corner, looking along the train and boarding area.
- stationTrain.position.set(0,platform.position.y,0);stationTrain.visible=true;
- stationCamera.position.set(-15.5,9.2,platform.position.z-53);
- stationCamera.lookAt(-2.8,1.9,platform.position.z-53);
+ // Previous camera was ABOVE the opaque station ceiling (y=8.35),
+ // so it showed only the bright roof instead of the train and passengers.
+ // Keep the camera below the ceiling, above the platform, and point it
+ // diagonally along the player's track. Train aligns with station hall.
+ stationTrain.position.set(0,platform.position.y,platform.position.z-100);
+ stationTrain.visible=true;
+ stationCamera.position.set(-9.2,6.25,platform.position.z-42);
+ stationCamera.lookAt(-1.0,2.0,platform.position.z-69);
 }
 renderer.setRenderTarget(null);renderer.render(scene,stationCameraActive?stationCamera:camera);
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
