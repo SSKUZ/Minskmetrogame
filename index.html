@@ -929,7 +929,7 @@ const stationCameraButton=document.getElementById('stationCameraToggle');let sta
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
 const stationCanvas=document.querySelector('#scene');let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
-stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0045,-1.05,1.05);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.003,-.35,.30);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
+stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
 stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;stationCameraActive=!stationCameraActive;stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
@@ -1061,11 +1061,11 @@ if(stationCameraActive){
  // A three-quarter front-side shot: nose in foreground, cars and platform
  // receding into the distance. The camera stays below the original roof.
  const noseZ=stationTrain.position.z;
- stationCamera.position.set(-8.1,5.65, noseZ-11.5);
- const target=new THREE.Vector3(-1.2,2.25,noseZ+23);
- target.x+=Math.sin(stationViewYaw)*24;
- target.z+=Math.cos(stationViewYaw)*8-8;
- target.y+=stationViewPitch*11;
+ stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
+ const target=new THREE.Vector3(-5.6,2.65,noseZ+44);
+ target.x+=Math.sin(stationViewYaw)*35;
+ 
+ target.y+=stationViewPitch*9;
  stationCamera.lookAt(target);
 }
 renderer.setRenderTarget(null);renderer.render(scene,stationCameraActive?stationCamera:camera);
