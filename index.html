@@ -114,12 +114,25 @@ const extLine=new THREE.MeshStandardMaterial({color:0xd5e8f3,metalness:.35,rough
 const extGlass=new THREE.MeshBasicMaterial({color:0x122e3e});
 const extDark=new THREE.MeshBasicMaterial({color:0x101c27});
 const stationDoorLeaves=[];
+// Rounded, nearly flush panels with smooth corners (mobile-friendly geometry).
+function roundedTrainPanel(parent,w,h,r,depth,x,y,z,material,rotationY=0){
+ const q=new THREE.Shape(),a=-w/2,b=-h/2;
+ r=Math.min(r,w*.49,h*.49);
+ q.moveTo(a+r,b);q.lineTo(a+w-r,b);q.quadraticCurveTo(a+w,b,a+w,b+r);
+ q.lineTo(a+w,b+h-r);q.quadraticCurveTo(a+w,b+h,a+w-r,b+h);
+ q.lineTo(a+r,b+h);q.quadraticCurveTo(a,b+h,a,b+h-r);
+ q.lineTo(a,b+r);q.quadraticCurveTo(a,b,a+r,b);
+ const geo=new THREE.ExtrudeGeometry(q,{depth,bevelEnabled:false,curveSegments:8,steps:1});
+ geo.translate(0,0,-depth/2);geo.computeVertexNormals();
+ const mesh=new THREE.Mesh(geo,material);mesh.position.set(x,y,z);mesh.rotation.y=rotationY;
+ parent.add(mesh);return mesh;
+}
 // Detailed leading cab face; the previous external model had no visible front.
 const trainNose=new THREE.Group();stationTrain.add(trainNose);trainNose.position.z=-.05;
-box(trainNose,4.36,3.1,.42,0,2.27,0,extBlue);
-box(trainNose,3.63,1.32,.46,0,2.76,-.27,extDark);
+roundedTrainPanel(trainNose,4.30,3.06,.38,.38,0,2.27,0,extBlue);
+roundedTrainPanel(trainNose,3.55,1.27,.26,.035,0,2.76,-.222,extDark);
 box(trainNose,3.25,.12,.48,0,2.02,-.28,extSilver);
-box(trainNose,3.55,.33,.5,0,1.13,-.29,extBlue);
+roundedTrainPanel(trainNose,3.55,.33,.14,.035,0,1.13,-.23,extBlue);
 for(const x of [-1.55,1.55]){const lamp=new THREE.Mesh(new THREE.SphereGeometry(.19,12,8),new THREE.MeshBasicMaterial({color:0xfff4c7}));lamp.position.set(x,1.46,-.55);trainNose.add(lamp)}
 const trainDestination=document.createElement('canvas');trainDestination.width=512;trainDestination.height=96;
 const td=trainDestination.getContext('2d');td.fillStyle='#121e29';td.fillRect(0,0,512,96);td.fillStyle='#ffe077';td.textAlign='center';td.font='bold 40px Arial';td.fillText('МАЛІНАЎКА',256,65);
@@ -127,7 +140,7 @@ const trainDestinationTex=new THREE.CanvasTexture(trainDestination);
 const dest=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.52),new THREE.MeshBasicMaterial({map:trainDestinationTex}));dest.position.set(0,2.06,-.525);dest.rotation.y=Math.PI;trainNose.add(dest);
 for(let car=0;car<5;car++){
  const cz=12+car*21.5;
- box(stationTrain,4.35,.28,20.7,0,3.67,cz,extBlue);
+ roundedTrainPanel(stationTrain,4.32,.44,.21,20.7,0,3.57,cz,extBlue);
  box(stationTrain,4.25,.25,20.7,0,.93,cz,extBlue);
  for(const side of [-1,1]){
   // Do not put an opaque wall across the door openings: split side into
@@ -144,8 +157,8 @@ for(let car=0;car<5;car++){
   }
   for(let j=0;j<4;j++){
    const wz=cz-8.2+j*5;
-   box(stationTrain,.17,.87,2.05,side*2.26,2.88,wz,extGlass);
-   box(stationTrain,.18,.065,2.12,side*2.27,3.34,wz,extSilver);
+   roundedTrainPanel(stationTrain,2.13,.96,.19,.018,side*2.217,2.87,wz,extDark,side*Math.PI/2);
+   roundedTrainPanel(stationTrain,1.98,.82,.15,.022,side*2.231,2.87,wz,extGlass,side*Math.PI/2);
   }
   for(const dz of [-5.25,5.25]){
    const doorZ=cz+dz;
@@ -160,8 +173,8 @@ for(let car=0;car<5;car++){
     const slash=box(leaf,.025,.13,1.33,side*.066,-.24,0,extWhite);
     slash.rotation.x=half*.92;
     box(leaf,.028,.11,.92,side*.067,-.03,0,extWhite);
-    box(leaf,.12,.67,.67,side*.07,.34,0,extGlass);
-    box(leaf,.14,.035,.72,side*.09,.72,0,extSilver);
+    roundedTrainPanel(leaf,.65,.73,.14,.012,side*.059,.34,0,extDark,side*Math.PI/2);
+    roundedTrainPanel(leaf,.57,.65,.12,.014,side*.069,.34,0,extGlass,side*Math.PI/2);
     stationDoorLeaves.push({leaf,half,doorZ});
    }
   }
