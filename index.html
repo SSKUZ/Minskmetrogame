@@ -111,7 +111,9 @@ const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visibl
 const extSilver=mat(0xdce3e8,.42),extBlue=trainBodyMat;
 const extWhite=new THREE.MeshBasicMaterial({color:0xf4f5f0});
 const extLine=new THREE.MeshStandardMaterial({color:0xd5e8f3,metalness:.35,roughness:.4});
-const extGlass=new THREE.MeshBasicMaterial({color:0x122e3e});
+const extGlass=new THREE.MeshPhysicalMaterial({color:0x9bc0cf,metalness:0,roughness:.12,transparent:true,opacity:.29,depthWrite:false,side:THREE.DoubleSide});
+const trainInterior= new THREE.MeshStandardMaterial({color:0xb7c6cf,roughness:.76});
+const trainSeat=new THREE.MeshStandardMaterial({color:0x486d8b,roughness:.85});
 const extDark=new THREE.MeshBasicMaterial({color:0x101c27});
 const stationDoorLeaves=[];
 // Rounded, nearly flush panels with smooth corners (mobile-friendly geometry).
@@ -142,6 +144,16 @@ for(let car=0;car<5;car++){
  const cz=12+car*21.5;
  roundedTrainPanel(stationTrain,4.32,.44,.21,20.7,0,3.57,cz,extBlue);
  box(stationTrain,4.25,.25,20.7,0,.93,cz,extBlue);
+ // Interior geometry seen through the glazing.
+ box(stationTrain,3.9,.11,20.0,0,1.08,cz,trainInterior);
+ box(stationTrain,3.8,.10,20.0,0,3.35,cz,trainInterior);
+ for(let seat=0;seat<7;seat++){
+  const sz=cz-8.2+seat*2.65;
+  for(const sideSeat of [-1,1]){
+   box(stationTrain,.65,.12,1.45,sideSeat*1.48,1.46,sz,trainSeat);
+   box(stationTrain,.15,.73,1.45,sideSeat*1.79,1.84,sz,trainSeat);
+  }
+ }
  for(const side of [-1,1]){
   // Do not put an opaque wall across the door openings: split side into
   // lower sill, upper lintel and short solid sections between doorways.
@@ -149,7 +161,11 @@ for(let car=0;car<5;car++){
   box(stationTrain,.12,.48,20.7,side*2.15,3.32,cz,extBlue);
   for(const segment of [[-9.3,-6.45],[-4.05,4.05],[6.45,9.3]]){
    const mid=(segment[0]+segment[1])/2;
-   box(stationTrain,.12,1.73,segment[1]-segment[0],side*2.15,2.25,cz+mid,extBlue);
+   // Window belt is open behind glazing; upper/lower solid panels and
+   // narrow vertical mullions retain the silhouette of the carriage.
+   box(stationTrain,.12,.88,segment[1]-segment[0],side*2.15,1.81,cz+mid,extBlue);
+   box(stationTrain,.12,.26,segment[1]-segment[0],side*2.15,3.23,cz+mid,extBlue);
+   for(let mz=segment[0];mz<=segment[1];mz+=2.35)box(stationTrain,.12,1.0,.12,side*2.15,2.78,cz+mz,extBlue);
    // The distinctive long white stripe crosses only solid side panels.
    box(stationTrain,.025,.115,segment[1]-segment[0],side*2.315,2.04,cz+mid,extWhite);
    for(const yy of [1.34,1.52,1.70])box(stationTrain,.018,.018,segment[1]-segment[0],side*2.32,yy,cz+mid,extLine);
@@ -166,15 +182,16 @@ for(let car=0;car<5;car++){
    box(stationTrain,.08,2.12,2.18,side*1.95,2.15,doorZ,extDark);
    for(const half of [-1,1]){
     const leaf=new THREE.Group();stationTrain.add(leaf);
-    leaf.position.set(side*2.38,2.15,doorZ+half*.53);
-    box(leaf,.10,2.06,1.04,0,0,0,extBlue);
+    leaf.position.set(side*2.19,2.15,doorZ+half*.53);
+    // Door shell with softly rounded perimeter and flush glass aperture.
+ roundedTrainPanel(leaf,1.035,2.055,.12,.055,0,0,0,extBlue,side*Math.PI/2);
     // Door-specific white diagonal motif: mounted ON the moving leaf,
     // so it slides out of the doorway when the doors are opened.
-    const slash=box(leaf,.025,.13,1.33,side*.066,-.24,0,extWhite);
+    const slash=box(leaf,.025,.13,1.33,side*.039,-.24,0,extWhite);
     slash.rotation.x=half*.92;
-    box(leaf,.028,.11,.92,side*.067,-.03,0,extWhite);
-    roundedTrainPanel(leaf,.65,.73,.14,.012,side*.059,.34,0,extDark,side*Math.PI/2);
-    roundedTrainPanel(leaf,.57,.65,.12,.014,side*.069,.34,0,extGlass,side*Math.PI/2);
+    box(leaf,.028,.11,.92,side*.040,-.03,0,extWhite);
+    roundedTrainPanel(leaf,.65,.73,.14,.012,side*.036,.34,0,extDark,side*Math.PI/2);
+    roundedTrainPanel(leaf,.57,.65,.12,.014,side*.040,.34,0,extGlass,side*Math.PI/2);
     stationDoorLeaves.push({leaf,half,doorZ});
    }
   }
@@ -931,7 +948,7 @@ function updatePlatformPassengers(dt){
   const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
-  const doorX=-2.65;
+  const doorX=-2.56;
   const startX=actuallyExiting?doorX:p.homeX;
   const finishX=actuallyExiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
@@ -1086,7 +1103,8 @@ if(stationCameraActive){
  // diagonally along the player's track. Train aligns with station hall.
  // Train is moved 0.20m toward the island platform; the doorway outer
  // surface is now nearly flush with the edge (clearance approx 0.1m).
- stationTrain.position.set(-.20,platform.position.y,platform.position.z-100);
+ // Door outer skin sits ~0.04 m from the platform edge.
+ stationTrain.position.set(-.31,platform.position.y,platform.position.z-100);
  stationTrain.visible=true;
  // At the head of the train, looking down its side as in the photo.
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
