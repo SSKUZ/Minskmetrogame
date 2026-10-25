@@ -918,61 +918,86 @@ for(let k=0;k<5;k++){let zz=z-8+k*3.7;box(oppositeTrain,.045,1.03,1.7,-1.285,2.5
 for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,zz,doorMat);box(oppositeTrain,.065,2.3,1.35,1.295,1.55,zz,doorMat)}}
 // Human figures: anatomically proportioned meshes, varied clothing and poses.
 const coats=[mat(0x394c63),mat(0x855648),mat(0x507064),mat(0x77716b),mat(0x46475b),mat(0x977e61)],skins=[mat(0xe1b69b),mat(0xc99576),mat(0xf0c5a8)],hairs=[mat(0x30231e),mat(0x6a4b32),mat(0x191b21),mat(0x9b7956)];
-function human(i,x,z){const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);const scale=.87+(i%6)*.055;p.scale.setScalar(scale);const coat=coats[i%coats.length],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
-p.userData.walkLimbs=[];const torso=new THREE.Mesh(new THREE.CylinderGeometry(.24,.29,.78,9),coat);torso.position.y=1.18;p.add(torso);
-for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.105,.085,.74,8),dark);leg.position.set(side*.13,.39,0);leg.rotation.z=side*(i%3-1)*.07;p.add(leg);p.userData.walkLimbs.push({mesh:leg,side,kind:'leg'});const shoe=new THREE.Mesh(new THREE.BoxGeometry(.19,.12,.31),dark);shoe.position.set(side*.13,.08,-.07);p.add(shoe);
-const arm=new THREE.Mesh(new THREE.CylinderGeometry(.09,.075,.65,8),coat);arm.position.set(side*.32,1.2,0);arm.rotation.z=side*(.18+(i%4)*.09);p.add(arm);p.userData.walkLimbs.push({mesh:arm,side,kind:'arm'});
-const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,8,7),skin);hand.position.set(side*.38,.88,0);p.add(hand)}
-const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,8),skin);neck.position.y=1.68;p.add(neck);
-const face=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),skin);face.scale.set(1,.12/.19*1.4,.87);face.position.y=1.87;p.add(face);
-const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.196,12,9,0,Math.PI*2,0,Math.PI*.48),hair);hairTop.position.y=1.92;p.add(hairTop);
-for(const side of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.016,6,6),dark);eye.position.set(side*.077,1.89,-.16);p.add(eye)}
-p.rotation.y=(i%5-2)*.35;
-return p;
+
+function human(i,x,z){
+ const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);
+ const child=i%13===0||i%13===1,elder=i%11===0;
+ const scale=child?.64:elder?.89:.91+(i%5)*.036;p.scale.setScalar(scale);
+ const coat=coats[i%coats.length],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
+ p.userData.walkLimbs=[];p.userData.gestureArms=[];
+ const torso=new THREE.Mesh(new THREE.CylinderGeometry(.22,.29,.76,16),coat);torso.position.y=1.16;p.add(torso);
+ const jacket=new THREE.Mesh(new THREE.SphereGeometry(.245,12,10),coat);jacket.scale.set(1,.85,.69);jacket.position.y=1.39;p.add(jacket);
+ for(const side of [-1,1]){
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.093,.081,.73,12),dark);leg.position.set(side*.13,.40,0);p.add(leg);p.userData.walkLimbs.push({mesh:leg,side,kind:'leg'});
+  const shoe=new THREE.Mesh(new THREE.CapsuleGeometry(.088,.14,3,8),dark);shoe.rotation.x=Math.PI/2;shoe.position.set(side*.13,.09,-.08);p.add(shoe);
+  const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.077,.46,4,10),coat);arm.position.set(side*.31,1.18,0);arm.rotation.z=side*.16;p.add(arm);
+  p.userData.walkLimbs.push({mesh:arm,side,kind:'arm'});p.userData.gestureArms.push(arm);
+  const hand=new THREE.Mesh(new THREE.SphereGeometry(.075,10,8),skin);hand.position.set(side*.34,.86,0);p.add(hand);
+ }
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,10),skin);neck.position.y=1.67;p.add(neck);
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.195,18,14),skin);face.scale.set(1,1.15,.91);face.position.y=1.88;p.add(face);
+ const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.198,18,12,0,Math.PI*2,0,Math.PI*.50),hair);hairTop.position.y=1.93;p.add(hairTop);
+ for(const side of [-1,1]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.014,8,8),dark);eye.position.set(side*.077,1.90,-.17);p.add(eye);
+ }
+ if(i%4===0){const bag=new THREE.Mesh(new THREE.BoxGeometry(.29,.40,.16),dark);bag.position.set(.37,.90,.05);p.add(bag);}
+ if(i%4===1){const backpack=new THREE.Mesh(new THREE.BoxGeometry(.36,.54,.20),coats[(i+3)%coats.length]);backpack.position.set(0,1.19,.30);p.add(backpack);}
+ if(elder){const cane=new THREE.Mesh(new THREE.CylinderGeometry(.017,.017,.98,8),dark);cane.position.set(.43,.48,-.17);p.add(cane);}
+ p.userData.child=child;p.userData.elder=elder;p.rotation.y=(i%5-2)*.35;
+ return p;
 }
-// Passenger exchange: staggered boarding and alighting at both platforms.
-// Characters are concentrated near the rear of the cab so side mirrors can see them.
+// One shared set of 3D passengers for the cab and external camera.
+// Nobody is duplicated between views. All waiting positions are on OUR
+// boarding side, between the platform edge and its first row of columns.
 const platformPassengers=[];
+const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
 for(let i=0;i<44;i++){
- const side=-1;
- const z=-6-(i%44)*2.35;
- const homeX=-6.1-(i%9)*1.9;
+ const z=-8-(i%44)*2.25;
+ const homeX=-3.35-(i%7)*.36; // edge=-2.55, first columns=-5.65
  const person=human(i,homeX,z);
- const exiting=i%4===0||i%4===1;
- const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
  const doorwayZ=doorPositions.reduce((best,d)=>Math.abs(d-z)<Math.abs(best-z)?d:best,doorPositions[0]);
- platformPassengers.push({person,side,homeX,homeZ:z,doorwayZ,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
+ const exiting=i%4===0||i%4===1;
+ const mode=i%6===0?'walk':i%6===1||i%6===2?'talk':'wait';
+ platformPassengers.push({person,homeX,homeZ:z,doorwayZ,exiting,mode,
+   offset:(i%11)*.65+Math.floor(i/11)*.55,phase:i*1.87,
+   walkingSpeed:.16+(i%4)*.07,conversation:i%6===1||i%6===2});
 }
-let passengerDoorTime=0,passengerExchangeStarted=false;
+let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 function updatePlatformPassengers(dt){
+ platformLifeTime+=dt;
  const atPlatform=Math.abs(dist)<32&&speed<1.5;
  if(atPlatform&&doors){
-  if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0}
+  if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
   passengerDoorTime+=dt;
- }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0}
+ }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
  for(const p of platformPassengers){
   const active=atPlatform&&doors;
   const actuallyExiting=index!==0&&p.exiting;
-  // On terminal Malinauka the arriving train is empty: boarding only.
-  // On other stations alighting completes before boarding starts.
-  const startDelay=actuallyExiting?0:(index===0?0:5.5);
-  const t=Math.max(0,passengerDoorTime-startDelay-p.offset);
-  const k=active?Math.min(1,t/5.4):0;
+  // At terminal Malinauka the train is empty: boarding only.
+  // Else alighting precedes boarding by several seconds.
+  const startDelay=actuallyExiting?0:(index===0?0:7.5);
+  const elapsed=passengerDoorTime-startDelay-p.offset;
+  const walkDuration=4.5+(p.phase%3)*1.1;
+  const k=active?Math.max(0,Math.min(1,elapsed/walkDuration)):0;
   const smooth=k*k*(3-2*k);
-  // Exiting: doorway -> platform; boarding: platform -> doorway.
+  const boarding=active&&!actuallyExiting&&k>0&&k<1;
+  const alighting=active&&actuallyExiting&&k>0&&k<1;
+  const walking=boarding||alighting;
+  const idleWalk=p.mode==='walk'&&!walking&&!(active&&k>=1);
+  const stroll=Math.sin(platformLifeTime*p.walkingSpeed+p.phase)*1.0;
+  const waitingX=p.homeX+(idleWalk?Math.sin(platformLifeTime*.28+p.phase)*.22:0);
+  const waitingZ=p.homeZ+(idleWalk?stroll:0);
   const doorX=-2.56;
-  const startX=actuallyExiting?doorX:p.homeX;
-  const finishX=actuallyExiting?p.homeX:doorX;
-  p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
-  p.person.position.z=active?(actuallyExiting?p.doorwayZ+(p.homeZ-p.doorwayZ)*smooth:p.homeZ+(p.doorwayZ-p.homeZ)*smooth):p.homeZ;
+  p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):waitingX;
+  p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):waitingZ;
   p.person.visible=!(active&&!actuallyExiting&&k>=1);
-  p.person.rotation.y=active?(actuallyExiting?-Math.PI/2:Math.PI/2):0;
-  const walk=active&&k>0&&k<1;
-  const stride=walk?Math.sin(t*10)*.38:0;
+  p.person.rotation.y=walking?Math.atan2((actuallyExiting?waitingX-doorX:doorX-waitingX),(actuallyExiting?waitingZ-p.doorwayZ:p.doorwayZ-waitingZ)):p.mode==='talk'?(p.phase%2<1?.5:-.5):-.16;
+  const stride=walking?Math.sin(platformLifeTime*9+p.phase)*.33:idleWalk?Math.sin(platformLifeTime*3+p.phase)*.17:0;
   for(const limb of p.person.userData.walkLimbs){
-   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*stride;
+   const gesture=p.conversation&&!walking&&limb.kind==='arm'?Math.sin(platformLifeTime*1.9+p.phase)*.16:0;
+   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*stride+gesture;
   }
-  p.person.rotation.z=walk?Math.sin(t*10)*.025:0;
+  p.person.rotation.z=walking?Math.sin(platformLifeTime*9+p.phase)*.017:Math.sin(platformLifeTime*.9+p.phase)*.008;
  }
 }
 // Platform signage and benches.
