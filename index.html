@@ -283,9 +283,13 @@ function finishInfo(token){
  status.textContent='Объявление завершено — можно закрывать двери';
 }
 function pressInfo(){
- if(infoPlaying)return;
+ // The physical switch must respond to every tap, even when announcement is unavailable.
+ infoControl.target=1;
+ clearTimeout(pressInfo.pressTimer);
+ pressInfo.pressTimer=setTimeout(()=>{if(!infoPlaying)infoControl.target=0},320);
+ if(infoPlaying){status.textContent='INFO: объявление уже воспроизводится';return}
  if(!doors||speed>1||Math.abs(dist)>32){
-  status.textContent='INFO: сначала остановитесь у платформы и откройте двери';
+  status.textContent='INFO нажата. Для объявления остановитесь у платформы и откройте двери';
   return;
  }
  infoStarted=true;infoCompleted=false;infoPlaying=true;
@@ -371,8 +375,9 @@ function cabButtonAt(clientX,clientY){
   const d=Math.hypot(clientX-px,clientY-py);
   if(d<best){best=d;nearest=item}
  }
- // Finger-sized targets, but prevent adjacent buttons from sharing clicks.
- return best<=Math.max(34,Math.min(rect.width,rect.height)*.105)?nearest:null;
+ // The buttons are small 3D circles; use a comfortable independent touch area.
+ // A larger target is important on Android and when the cab is viewed obliquely.
+ return best<=Math.max(52,Math.min(rect.width,rect.height)*.14)?nearest:null;
 }
 document.addEventListener('pointerdown',e=>{
  if(e.target.closest?.('#masterTrack,#masterUnit,#start'))return;
