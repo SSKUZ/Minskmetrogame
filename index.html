@@ -855,7 +855,9 @@ for(let i=0;i<44;i++){
  const homeX=-6.1-(i%9)*1.9;
  const person=human(i,homeX,z);
  const exiting=i%4===0||i%4===1;
- platformPassengers.push({person,side,homeX,homeZ:z,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
+ const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
+ const doorwayZ=doorPositions.reduce((best,d)=>Math.abs(d-z)<Math.abs(best-z)?d:best,doorPositions[0]);
+ platformPassengers.push({person,side,homeX,homeZ:z,doorwayZ,exiting,offset:(i%11)*.32+Math.floor(i/11)*.35});
 }
 let passengerDoorTime=0,passengerExchangeStarted=false;
 function updatePlatformPassengers(dt){
@@ -866,17 +868,21 @@ function updatePlatformPassengers(dt){
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0}
  for(const p of platformPassengers){
   const active=atPlatform&&doors;
-  const t=Math.max(0,passengerDoorTime-p.offset);
+  const actuallyExiting=index!==0&&p.exiting;
+  // On terminal Malinauka the arriving train is empty: boarding only.
+  // On other stations alighting completes before boarding starts.
+  const startDelay=actuallyExiting?0:(index===0?0:5.5);
+  const t=Math.max(0,passengerDoorTime-startDelay-p.offset);
   const k=active?Math.min(1,t/5.4):0;
   const smooth=k*k*(3-2*k);
   // Exiting: doorway -> platform; boarding: platform -> doorway.
   const doorX=-2.65;
-  const startX=p.exiting?doorX:p.homeX;
-  const finishX=p.exiting?p.homeX:doorX;
+  const startX=actuallyExiting?doorX:p.homeX;
+  const finishX=actuallyExiting?p.homeX:doorX;
   p.person.position.x=active?startX+(finishX-startX)*smooth:p.homeX;
-  p.person.position.z=p.homeZ+(active?Math.sin(k*Math.PI)*.6:0);
-  p.person.visible=!(active&&!p.exiting&&k>=1);
-  p.person.rotation.y=active?(p.exiting?(p.side<0?-Math.PI/2:Math.PI/2):(p.side<0?Math.PI/2:-Math.PI/2)):0;
+  p.person.position.z=active?(actuallyExiting?p.doorwayZ+(p.homeZ-p.doorwayZ)*smooth:p.homeZ+(p.doorwayZ-p.homeZ)*smooth):p.homeZ;
+  p.person.visible=!(active&&!actuallyExiting&&k>=1);
+  p.person.rotation.y=active?(actuallyExiting?-Math.PI/2:Math.PI/2):0;
   const walk=active&&k>0&&k<1;
   const stride=walk?Math.sin(t*10)*.38:0;
   for(const limb of p.person.userData.walkLimbs){
@@ -894,7 +900,12 @@ const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
 const interstationDistance=1250,platformExitDistance=-195,stopOverrunLimit=-24;
 let stationServiced=false,overrunReported=false;
-const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false;
+const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
+// Drag directly on the 3D picture to pan the external camera; touch and mouse.
+const stationCanvas=document.querySelector('#scene');let stationDrag=null;
+stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
+stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0045,-1.05,1.05);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.003,-.35,.30);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
+for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
 stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;stationCameraActive=!stationCameraActive;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
@@ -1020,8 +1031,12 @@ if(stationCameraActive){
  // diagonally along the player's track. Train aligns with station hall.
  stationTrain.position.set(0,platform.position.y,platform.position.z-100);
  stationTrain.visible=true;
- stationCamera.position.set(-9.2,6.25,platform.position.z-42);
- stationCamera.lookAt(-1.0,2.0,platform.position.z-69);
+ // At the head of the train, looking down its side as in the photo.
+ // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
+ stationCamera.position.set(-8.0,5.5+stationViewPitch*3,platform.position.z-104);
+ const baseAngle=Math.atan2(6.2,44);
+ const angle=baseAngle+stationViewYaw;
+ stationCamera.lookAt(stationCamera.position.x+Math.sin(angle)*44,2.4+stationViewPitch*10,stationCamera.position.z+Math.cos(angle)*44);
 }
 renderer.setRenderTarget(null);renderer.render(scene,stationCameraActive?stationCamera:camera);
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
