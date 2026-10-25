@@ -998,9 +998,9 @@ function human(i,x,z){
 // Independent carriage scene: remains visible even while the world/tunnel moves.
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0xb6b9b4);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x77716b,2.4));
-const carriageCamera=new THREE.PerspectiveCamera(73,innerWidth/innerHeight,.1,80);
-carriageCamera.position.set(0,2.55,8.4);
-let carriageYaw=0,carriagePitch=0;
+const carriageCamera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.06,100);
+carriageCamera.position.set(0,2.30,-6.2);
+let carriageYaw=0,carriagePitch=0,carriageLookSide=0;
 function aimCarriageCamera(){
  const direction=new THREE.Vector3(Math.sin(carriageYaw)*Math.cos(carriagePitch),Math.sin(carriagePitch),-Math.cos(carriageYaw)*Math.cos(carriagePitch));
  carriageCamera.lookAt(carriageCamera.position.clone().add(direction));
@@ -1058,6 +1058,36 @@ box(carriage,.08,.08,22,0,3.30,-9,poleCar);
 box(carriage,4.05,.06,1.0,0,3.53,-9,carLamp);
 for(let j=0;j<5;j++)box(carriage,.7,.025,2.2,0,3.53,-1-j*4.1,carLamp);
 box(carriage,4.0,2.8,.14,0,2.26,-20.42,creamCar);
+// End bulkheads, passage doors and the vestibule make the room read as 3D
+// from all viewing angles instead of an isolated flat-looking corridor.
+box(carriage,4.0,.43,.12,0,3.40,2.38,carWallPanel);
+for(const side of [-1,1]){
+ box(carriage,.72,2.42,.12,side*1.65,2.16,2.38,carWallPanel);
+ box(carriage,.06,2.34,.07,side*1.22,2.15,2.31,carSilver);
+}
+box(carriage,2.2,.19,.12,0,1.08,2.38,carTrim);
+for(const side of [-1,1]){
+ // Door bays are inset into the side wall, with sliding leaves and windows.
+ for(const z of [-2.8,-12.8]){
+  box(carriage,.045,2.16,.07,side*1.99,2.10,z-1.02,carSilver);
+  box(carriage,.045,2.16,.07,side*1.99,2.10,z+1.02,carSilver);
+  box(carriage,.055,.075,2.06,side*1.99,3.20,z,carSilver);
+  box(carriage,.055,.075,2.06,side*1.99,1.02,z,carSilver);
+  for(const half of [-1,1]){
+   const zz=z+half*.51;
+   box(carriage,.038,.66,.98,side*1.98,1.38,zz,carWallPanel);
+   box(carriage,.038,.48,.98,side*1.98,2.96,zz,carWallPanel);
+   box(carriage,.025,.80,.06,side*1.98,2.28,zz+half*.46,carSilver);
+   box(carriage,.014,.77,.83,side*1.98,2.28,zz,carWindowGlass);
+  }
+ }
+}
+// Multiple ceiling ribs and luminaire housings add scale and parallax.
+for(let z=1.4;z>-20;z-=2.75){
+ box(carriage,4.05,.055,.10,0,3.54,z,carTrim);
+ box(carriage,.20,.075,2.15,0,3.51,z-1.0,carLamp);
+}
+
 const carriagePassengers=[];
 const platformPassengers=[];
 const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
@@ -1183,8 +1213,8 @@ stationCanvas.addEventListener('pointerdown',e=>{
 });
 stationCanvas.addEventListener('pointermove',e=>{
  if(!carCameraActive||!carDrag||carDrag.id!==e.pointerId)return;
- carriageYaw=THREE.MathUtils.clamp(carriageYaw+(carDrag.x-e.clientX)*.004,-Math.PI*.87,Math.PI*.87);
- carriagePitch=THREE.MathUtils.clamp(carriagePitch+(e.clientY-carDrag.y)*.003,-.72,.72);
+ carriageYaw=THREE.MathUtils.clamp(carriageYaw+(carDrag.x-e.clientX)*.007,-Math.PI,Math.PI);
+ carriagePitch=THREE.MathUtils.clamp(carriagePitch+(e.clientY-carDrag.y)*.005,-1.12,1.12);
  carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
 });
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
@@ -1333,8 +1363,8 @@ if(stationCameraActive){
 }
 renderer.setRenderTarget(null);
 if(carCameraActive){
- carriageCamera.aspect=stationCamera.aspect;carriageCamera.updateProjectionMatrix();
- renderer.setViewport(0,0,innerWidth,innerHeight);
+ carriageCamera.aspect=renderer.domElement.clientWidth/Math.max(1,renderer.domElement.clientHeight);carriageCamera.updateProjectionMatrix();
+ renderer.setViewport(0,0,renderer.domElement.width,renderer.domElement.height);
  renderer.setScissorTest(false);
  renderer.render(carriageScene,carriageCamera);
 }else renderer.render(scene,stationCameraActive?stationCamera:camera);
