@@ -1,0 +1,54 @@
+name: Publish modular preview to /test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: modular-preview-publish
+  cancel-in-progress: false
+
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out published main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 0
+          path: site
+      - name: Check out modular preview
+        uses: actions/checkout@v4
+        with:
+          ref: refactor/modular-foundation-20261025
+          path: preview
+      - name: Copy preview into isolated /test directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf site/test
+          mkdir -p site/test
+          cp -a preview/. site/test/
+          rm -rf site/test/.git site/test/.github site/test/tests
+          rm -f site/test/package.json site/test/package-lock.json
+          test -f site/test/index.html
+          test -f site/test/js/main.js
+      - name: Commit preview only, keeping root site intact
+        working-directory: site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- test
+          if git diff --cached --quiet; then
+            echo "Preview already up to date"
+            exit 0
+          fi
+          git commit -m "Publish modular preview under /test"
+          git pull --rebase origin main
+          git push origin HEAD:main
