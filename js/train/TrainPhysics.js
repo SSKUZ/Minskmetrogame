@@ -20,8 +20,8 @@ export function stepTrainMotion(speed, lever, dt) {
       -Math.min(.16, (v - target) / seconds);
   } else if (u < -.015) {
     const brake = -u;
-    // Progressive service braking, ~0.17–0.85 m/s².
-    rate = -(0.60 + 2.45 * brake);
+    // Progressive service braking, 30% stronger: ~0.22–1.10 m/s².
+    rate = -1.30 * (0.60 + 2.45 * brake);
   } else {
     // Coast for a long distance, especially at lower speeds.
     rate = -(0.045 + 0.000016 * v * v);
