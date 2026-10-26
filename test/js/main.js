@@ -1,4 +1,4 @@
-import {createCarriageCameraController} from './cameras/CarriageCamera.js';
+import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-camera-corner-v31';
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
