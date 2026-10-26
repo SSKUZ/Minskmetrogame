@@ -1,15 +1,8 @@
+import {createCarriageMaterials} from './CarriageMaterials.js';
 // Passenger carriage geometry. All meshes belong to the supplied carriage group.
 // Kept identical to the accepted v35 geometry; appearance changes come later.
 export function buildCarriageInterior({THREE,carriage,box,getStationName}){
-const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
-const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
-const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
-const carSeat=new THREE.MeshStandardMaterial({color:0x302c31,roughness:.83});
-const carSteel=new THREE.MeshStandardMaterial({color:0xb4bdc2,metalness:.78,roughness:.22});
-const carBlack=new THREE.MeshStandardMaterial({color:0x222c34,roughness:.86});
-const carDoor=new THREE.MeshStandardMaterial({color:0xe0e2e2,roughness:.5});
-const carGlass=new THREE.MeshPhysicalMaterial({color:0x5088ad,transparent:true,opacity:.16,roughness:.10,depthWrite:false,side:THREE.DoubleSide});
-const carLight=new THREE.MeshBasicMaterial({color:0xfffdf1});
+const {carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}=createCarriageMaterials(THREE);
 function carriageRail(points,r=.025){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));carriage.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,r,8,false),carSteel))}
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
 box(carriage,4.15,.12,23,0,3.65,-9,carCream);
