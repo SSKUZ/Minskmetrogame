@@ -477,8 +477,9 @@ function setCabDoors(open){
  }
  initMetroAudio();metroChime(open);
  if(!open&&Math.abs(dist)<32){
+  // Departure warning begins with «Асцярожна, дзверы зачыняюцца».
+  // Closing during the announcement is now correct; only skipping INFO is an error.
   if(!infoStarted)reportDriverError('двери закрыты без объявления INFO');
-  else if(infoPlaying)reportDriverError('двери закрыты до окончания объявления');
  }
  doors=open;syncDoorButtons();syncScreenDoorToggle();
  if(open){
