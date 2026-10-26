@@ -28,6 +28,11 @@ jobs:
           test -f js/cameras/CarriageCamera.js
           test -f js/train/TrainPhysics.js
           test -f js/passengers/PassengerMotion.js
+          test -f js/passengers/PassengerModels.js
+          test -f js/passengers/PassengerMovement.js
+          test -f js/passengers/PassengerBoarding.js
+          test -f js/passengers/PassengerCount.js
+          test -f js/platforms/PlatformGeometry.js
           test -f js/graphics/Geometry.js
           test -f js/graphics/Materials.js
           test -f js/world/TrackProfile.js
@@ -59,4 +64,20 @@ jobs:
           assert.equal(b.press,1);
           assert.equal(b.cap.position.y,.07);
           assert.equal(b.cap.material.emissive.value,0x112c28);
+          // Extracted passenger and platform module smoke tests.
+          const {recordBoarding}=await import('./js/passengers/PassengerCount.js');
+          const {easePassengerMotion}=await import('./js/passengers/PassengerBoarding.js');
+          const {buildPlatformApproach}=await import('./js/platforms/PlatformGeometry.js');
+          const {buildCarriageWindows}=await import('./js/carriage/CarriageWindows.js');
+          const recorded=new Set(), cp={settled:false};let people=0;
+          assert.equal(recordBoarding(recorded,4,cp,()=>people++),true);
+          assert.equal(recordBoarding(recorded,4,cp,()=>people++),false);
+          assert.equal(people,1);assert.equal(cp.settled,true);
+          assert.equal(easePassengerMotion(.5),.5);
+          const objects=[];const box=(...args)=>objects.push(args);
+          buildPlatformApproach({platform:{},box,approachRailBed:1,rail:2,wood:3});
+          assert.ok(objects.length>20);
+          const before=objects.length;
+          buildCarriageWindows({carriage:{},box,side:-1,z:-3,carBlack:4,carGlass:5});
+          assert.equal(objects.length-before,5);
           JS
