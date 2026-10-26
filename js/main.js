@@ -1101,65 +1101,64 @@ function updatePlatformPassengers(dt){
  const atPlatform=!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5;
  if(atPlatform&&doors){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
-  // Passenger timing uses actual elapsed seconds, not the rendering step capped at 50ms.
   passengerDoorTime+=dt;
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
+ const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v);};
  for(let i=0;i<platformPassengers.length;i++){
   const p=platformPassengers[i],cp=carriagePassengers[i];
   const active=atPlatform&&doors;
   const exiting=index!==0&&p.exiting;
-  const startDelay=exiting?0:(index===0?0:7.5);
-  const elapsed=passengerDoorTime-startDelay-p.offset;
-  const duration=5.8+(i%4)*.65;
+  const elapsed=passengerDoorTime-(exiting?0:index===0?0:7.5)-p.offset;
+  const duration=5.5+(i%5)*.7;
   const t=active?Math.max(0,Math.min(1,elapsed/duration)):0;
-  // 0-65%: approach the actual doorway; 65-100%: cross the threshold.
-  const approach=Math.min(1,t/.65),cross=Math.max(0,Math.min(1,(t-.65)/.35));
-  const ease=v=>v*v*(3-2*v);
-  const a=ease(approach),c=ease(cross);
-  const homeX=p.homeX,homeZ=p.homeZ,doorX=-2.56;
-  const insideX=-1.86;
-  const walking=active&&t>0&&t<1;
-  if(!exiting){
-   p.person.position.x=t<=.65?homeX+(doorX-homeX)*a:doorX+(insideX-doorX)*c;
-   p.person.position.z=homeZ+(p.doorwayZ-homeZ)*a;
-  }else{
-   p.person.position.x=t<=.65?insideX+(doorX-insideX)*a:doorX+(homeX-doorX)*c;
-   p.person.position.z=p.doorwayZ+(homeZ-p.doorwayZ)*c;
-  }
-  // Count precisely once when the passenger crosses into the train, not at animation end.
-  const crossed=active&&!exiting&&t>=.82;
+  // Approach along the platform, align with the nearest door, then walk
+  // across the gap. No teleport at the threshold.
+  const align=ease(t/.53),approach=ease((t-.12)/.57),cross=ease((t-.69)/.31);
+  const doorX=-2.56,insideX=-1.72;
+  const homeX=p.homeX,homeZ=p.homeZ;
+  const crossed=active&&!exiting&&t>=.79;
   if(crossed&&!passengerBoardingRecorded.has(i)){
    passengerBoardingRecorded.add(i);
    cp.settled=true;
-   people++;
-   const counter=document.querySelector('#people');
-   if(counter)counter.textContent='Пассажиры: '+people;
+   people+=1;
   }
-  // Platform mesh stays visible throughout the doorway crossing.
-  p.person.visible=!(passengerBoardingRecorded.has(i))&&!(active&&exiting&&t>=1);
+  const walking=active&&t>0&&t<1;
+  if(!exiting){
+   p.person.position.x=homeX+(doorX-homeX)*approach+(insideX-doorX)*cross;
+   p.person.position.z=homeZ+(p.doorwayZ-homeZ)*align;
+  }else{
+   p.person.position.x=insideX+(doorX-insideX)*ease(t/.32)+(homeX-doorX)*ease((t-.32)/.68);
+   p.person.position.z=p.doorwayZ+(homeZ-p.doorwayZ)*ease((t-.32)/.68);
+  }
+  // The platform avatar remains in the doorway until fully inside, while
+  // the carriage camera renders its matching interior avatar.
+  p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
   cp.person.visible=cp.settled;
   if(cp.settled){
-   const insideProgress=Math.max(0,Math.min(1,(elapsed-duration*.82)/4.5));
-   const e=ease(insideProgress);
+   const insideProgress=ease((elapsed-duration*.79)/4.8);
    const entryZ=cp.z< -9?-14:-5;
    const endX=cp.side*(cp.slot%4<2?1.49:.70);
-   cp.person.position.set(cp.side*(-1.97+e*1.1),.93,entryZ+(cp.z-entryZ)*e);
+   cp.person.position.set(cp.side*(-1.97+insideProgress*1.1),.93,entryZ+(cp.z-entryZ)*insideProgress);
    if(insideProgress>=1){
     cp.person.position.set(endX,cp.slot%3===0?.49:.93,cp.z);
     cp.person.rotation.x=cp.slot%3===0?-.12:0;
    }
    cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
   }
-  // Face along the actual walking vector; add gait, slight head/body bob and arm swing.
+  // Derive facing and walking speed from the actual path, so figures turn
+  // toward their own doorway instead of sliding sideways like mannequins.
   const dx=exiting?homeX-insideX:insideX-homeX;
   const dz=exiting?homeZ-p.doorwayZ:p.doorwayZ-homeZ;
-  const heading=walking?facingDirection(dx,dz):p.heading+Math.sin(platformLifeTime*.5+p.phase)*.12;
-  p.person.rotation.y+=shortestTurn(p.person.rotation.y,heading)*Math.min(1,dt*4);
-  const gait=walking?Math.sin(platformLifeTime*10.5+p.phase):0;
-  p.person.position.y=.78+(walking?Math.abs(gait)*.035:Math.sin(platformLifeTime*1.2+p.phase)*.006);
-  p.person.rotation.z=walking?Math.sin(platformLifeTime*5+p.phase)*.018:0;
+  const heading=walking?facingDirection(dx,dz):p.heading+Math.sin(platformLifeTime*.45+p.phase)*.1;
+  p.person.rotation.y+=shortestTurn(p.person.rotation.y,heading)*Math.min(1,dt*(walking?5:2));
+  const phase=platformLifeTime*(8.2+(i%4)*.65)+p.phase;
+  const gait=walking?Math.sin(phase):0;
+  const stepBlend=walking?Math.min(1,t*13,(1-t)*13):0;
+  p.person.position.y=.78+Math.abs(gait)*.038*stepBlend+Math.sin(platformLifeTime*1.2+p.phase)*.004;
+  p.person.rotation.z=Math.sin(phase*.5)*.015*stepBlend;
   for(const limb of p.person.userData.walkLimbs){
-   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*gait*(walking?.37:.018);
+   const swing=limb.kind==='leg'?.38:.29;
+   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*gait*swing*stepBlend;
   }
  }
 }
