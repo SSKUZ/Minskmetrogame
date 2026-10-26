@@ -1197,9 +1197,9 @@ function markStationSkipped(){
  }
  showStopWarning('ГРУБАЯ ОШИБКА МАШИНИСТА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
 }
-const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0;
+const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0,stationCameraTrainZ=0;
 const screenDoorToggle=document.getElementById('screenDoorToggle');
-function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.querySelector('span').textContent=doors?'ОТКРЫТО':'ЗАКРЫТО';screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
+function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
 screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
@@ -1219,7 +1219,7 @@ for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(ev
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive)stationCameraAnchorZ=platform.position.z-100;stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -1347,13 +1347,16 @@ if(stationCameraActive){
  // Train is moved 0.20m toward the island platform; the doorway outer
  // surface is now nearly flush with the edge (clearance approx 0.1m).
  // Door outer skin sits ~0.04 m from the platform edge.
- stationTrain.position.set(-.31,platform.position.y,platform.position.z-100);
+ // The world moves past the stationary cab. Keep the platform camera attached
+ // to the moving platform geometry, but hold the train model at its initial
+ // world position: relative to the platform it now drives out of view.
+ stationTrain.position.set(-.31,platform.position.y,stationCameraTrainZ);
  stationTrain.visible=true;
  // At the head of the train, looking down its side as in the photo.
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
  // A three-quarter front-side shot: nose in foreground, cars and platform
  // receding into the distance. The camera stays below the original roof.
- const noseZ=stationCameraAnchorZ;
+ const noseZ=platform.position.z-100;
  stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
  const target=new THREE.Vector3(-5.6,2.65,noseZ+44);
  target.x+=Math.sin(stationViewYaw)*35;
