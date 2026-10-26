@@ -469,6 +469,10 @@ function pressInfo(){
 }
 function setCabDoors(open){
  if(doors===open)return;
+ if(open){
+  if(speed>=.5){reportDriverError('открытие дверей до полной остановки');return;}
+  if(Math.abs(dist)>3){reportDriverError('неточная остановка: до знака '+Math.abs(dist).toFixed(1)+' м (допуск ±3 м)');return;}
+ }
  initMetroAudio();metroChime(open);
  if(!open&&Math.abs(dist)<32){
   if(!infoStarted)reportDriverError('двери закрыты без объявления INFO');
@@ -481,7 +485,7 @@ function setCabDoors(open){
  }
  if(!status.textContent.startsWith('⚠'))status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
- if(doors&&Math.abs(dist)<32&&speed<1){stationServiced=true;overrunReported=false;}
+ if(doors&&Math.abs(dist)<=3&&speed<.5){stationServiced=true;overrunReported=false;}
  if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(stationServiced)status.textContent='Двери закрыты — отправляйтесь в тоннель';}
  updateCabDisplay(speed);
  // Do not interrupt the active departure announcement with door TTS.
@@ -1230,6 +1234,7 @@ let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene')
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight)}addEventListener('resize',resize);
 function frame(now){requestAnimationFrame(frame);try{const elapsed=Math.max(0,Math.min(.25,(now-last)/1000));const dt=Math.min(.05,elapsed);last=now;animateCabButtons(dt);if(playing){// Keep physics on real elapsed time even when phone renders below 20 FPS.
+if(doors&&lever>.015){lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';reportDriverError('попытка отправления с открытыми дверями');}
 for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.05,remaining);speed=stepTrainMotion(speed,lever,step);remaining-=step;}
 let move=speed/3.6*elapsed*1.22;
 // The stop marker is at dist=0. Before passenger service, the cab may
