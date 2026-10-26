@@ -1005,8 +1005,7 @@ const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
 carriageCamera.position.set(-1.42,3.12,1.72);
-let carriageYaw=0,carriagePitch=0;
-function aimCarriageCamera(){const carriage=new THREE.Group();carriageScene.add(carriage);
+const carriage=new THREE.Group();carriageScene.add(carriage);
 const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
 const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
 const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
