@@ -28,3 +28,35 @@ jobs:
           test -f js/cameras/CarriageCamera.js
           test -f js/train/TrainPhysics.js
           test -f js/passengers/PassengerMotion.js
+          test -f js/graphics/Geometry.js
+          test -f js/graphics/Materials.js
+          test -f js/world/TrackProfile.js
+          test -f js/cab/CabButtons.js
+          test -f js/cab/CabDisplay.js
+          test -f js/carriage/CarriageInterior.js
+          test -f js/carriage/CarriageMaterials.js
+          test -f js/carriage/CarriageShell.js
+          test -f js/carriage/CarriageWindows.js
+          test -f js/carriage/CarriageSeats.js
+          test -f js/carriage/CarriageRails.js
+          test -f js/carriage/CarriageLighting.js
+          test -f js/carriage/CarriageInformation.js
+          test -f js/carriage/CarriageDoors.js
+      - name: Unit test isolated modules
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {smoothstep01,trackDrop} from './js/world/TrackProfile.js';
+          import {animateCabButtons} from './js/cab/CabButtons.js';
+          assert.equal(smoothstep01(-2),0);
+          assert.equal(smoothstep01(0),0);
+          assert.equal(smoothstep01(.5),.5);
+          assert.equal(smoothstep01(1),1);
+          assert.equal(smoothstep01(2),1);
+          assert.equal(trackDrop(50,8,0,100),4);
+          const b={press:0,target:1,cap:{position:{}},face:{position:{}},material:{emissive:{setHex(x){this.value=x}}}};
+          animateCabButtons([b],1);
+          assert.equal(b.press,1);
+          assert.equal(b.cap.position.y,.07);
+          assert.equal(b.material.emissive.value,0x112c28);
+          JS
