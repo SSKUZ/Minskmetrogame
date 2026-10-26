@@ -32,6 +32,7 @@ jobs:
           test -f js/graphics/Materials.js
           test -f js/world/TrackProfile.js
           test -f js/cab/CabButtons.js
+          test -f js/cab/CabDisplay.js
       - name: Unit test isolated modules
         run: |
           node --input-type=module <<'JS'
