@@ -471,7 +471,7 @@ function pressInfo(){
 function setCabDoors(open){
  if(doors===open)return;
  if(open){
-  if(stationSkipped||dist < -stopTolerance){markStationSkipped();showStopWarning('ГРУБАЯ ОШИБКА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ',true);return;}
+  if(stationSkipped||dist < -stopTolerance){markStationSkipped();if(stopWarning.style.display!=='none')showStopWarning('ГРУБАЯ ОШИБКА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ',true);return;}
   if(speed>=.5){showStopWarning('ОШИБКА МАШИНИСТА: поезд ещё движется — двери заблокированы');return;}
   if(dist>stopTolerance){reportDriverError('попытка открыть двери до знака остановки');showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
  }
@@ -1172,20 +1172,21 @@ const names=['Малиновка','Петровщина','Михалово','Г�
 const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
 const interstationDistance=1250,platformExitDistance=-195,stopTolerance=3;
-let stationServiced=false,overrunReported=false,stationSkipped=false;
+let stationServiced=false,overrunReported=false,stationSkipped=false,skipDepartureSeconds=0;
 const stopWarning=document.createElement('div');
 stopWarning.id='stationStopWarning';
 const warningStyle=document.createElement('style');warningStyle.textContent='@keyframes metroStopErrorBlink{0%,48%{opacity:1}49%,80%{opacity:.25}81%,100%{opacity:1}} #stationStopWarning{animation:metroStopErrorBlink .8s infinite}';document.head.appendChild(warningStyle);
 Object.assign(stopWarning.style,{position:'fixed',top:'12%',left:'50%',transform:'translateX(-50%)',zIndex:'10000',maxWidth:'92vw',padding:'12px 18px',border:'3px solid #ff3030',borderRadius:'10px',background:'rgba(55,0,0,.94)',color:'#fff',font:'bold 19px Arial,sans-serif',textAlign:'center',boxShadow:'0 0 22px #f00',pointerEvents:'none',display:'none'});
 document.body.appendChild(stopWarning);
 function showStopWarning(message,permanent=false){
+ clearTimeout(showStopWarning.timer);
  stopWarning.textContent='⛔ '+message;
  stopWarning.style.display='block';
- if(!permanent){clearTimeout(showStopWarning.timer);showStopWarning.timer=setTimeout(()=>{if(!stationSkipped)stopWarning.style.display='none';},4500);}
+ if(!permanent)showStopWarning.timer=setTimeout(()=>{stopWarning.style.display='none';},4500);
 }
 function markStationSkipped(){
  if(stationSkipped||stationServiced)return;
- stationSkipped=true;overrunReported=true;
+ stationSkipped=true;overrunReported=true;skipDepartureSeconds=0;
  reportDriverError('грубое нарушение: проезд знака остановки более чем на 3 метра, станция пропущена',true);
  showStopWarning('ГРУБАЯ ОШИБКА МАШИНИСТА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
 }
@@ -1266,12 +1267,18 @@ let move=speed/3.6*elapsed*1.22;
 // Passing more than 1 m beyond the marker permanently skips this station.
 // Do not stop the train artificially: the driver must continue to the next station.
 if(!stationServiced&&!stationSkipped&&dist-move < -stopTolerance)markStationSkipped();
-updateMetroAudio(speed,lever);dist-=move;
+// Keep the serious-error warning visible until the driver resumes moving;
+ // after two seconds of actual forward travel, remove the overlay only.
+ if(stationSkipped&&stopWarning.style.display!=='none'&&speed>1&&move>0){
+  skipDepartureSeconds+=elapsed;
+  if(skipDepartureSeconds>=2)stopWarning.style.display='none';
+ }
+ updateMetroAudio(speed,lever);dist-=move;
 if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.length-1){
  // No camera/train teleport: only the NEXT platform is repositioned
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
- stationServiced=false;overrunReported=false;stationSkipped=false;stopWarning.style.display='none';
+ stationServiced=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;stopWarning.style.display='none';
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();
  status.textContent='Следующая станция — '+names[index];
