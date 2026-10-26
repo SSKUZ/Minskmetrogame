@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {stepTrainMotion} from '../js/train/TrainPhysics.js';
+const simulate=(speed,lever,seconds)=>{let v=speed;for(let t=0;t<seconds;t+=.05)v=stepTrainMotion(v,lever,.05);return v};
 test('neutral cannot accelerate a train',()=>assert.ok(stepTrainMotion(50,0,.05)<50));
-test('traction accelerates from rest',()=>assert.ok(stepTrainMotion(0,1,.05)>0));
+test('traction accelerates slowly from rest',()=>{const v=simulate(0,1,10);assert.ok(v>15&&v<25)});
+test('full braking takes meaningful time',()=>{const v=simulate(60,-1,10);assert.ok(v>20&&v<40)});
+test('neutral coasts for at least one minute at useful speed',()=>assert.ok(simulate(60,0,60)>55));
 test('braking reduces speed without reversing',()=>assert.equal(stepTrainMotion(.01,-1,.05),0));
 test('speed stays within bounds',()=>assert.ok(stepTrainMotion(90,1,.05)<=90));
-test('half controller targets approximately 60 km/h',()=>{let v=0;for(let i=0;i<4000;i++)v=stepTrainMotion(v,.5,.05);assert.ok(Math.abs(v-60)<.1)});
+test('half controller targets approximately 60 km/h',()=>assert.ok(Math.abs(simulate(0,.5,300)-60)<.1));
