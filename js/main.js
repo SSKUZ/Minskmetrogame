@@ -1,3 +1,5 @@
+import {smoothstep01,trackDrop as calculateTrackDrop} from './world/TrackProfile.js';
+import {animateCabButtons as animateButtons} from './cab/CabButtons.js';
 import {box as createBox} from './graphics/Geometry.js';
 import {createMaterial} from './graphics/Materials.js';
 import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-lookat-world-v35';
@@ -358,15 +360,7 @@ const closeControl=deskButton(1.23,.39,'ЗАКР','#9c4942','close');
 // Deep, spring-like travel with smooth movement every animation frame.
 const cabButtons=[infoControl,openControl,closeControl];
 function syncDoorButtons(){openControl.target=doors?1:0;closeControl.target=doors?0:1}
-function animateCabButtons(dt){
- for(const b of cabButtons){
- b.press+=(b.target-b.press)*Math.min(1,dt*15);
- // Raised 0.23 above the mounting plate; depressed nearly flush.
- b.cap.position.y=.20-b.press*.13;
- b.face.position.y=.253-b.press*.13;
- b.cap.material.emissive.setHex(b.press>.8?0x112c28:0x000000);
- }
-}
+const animateCabButtons=(dt)=>animateButtons(cabButtons,dt);
 // Departure announcements are triggered by the EXISTING INFO switch.
 const departureAudio=new Audio();
 departureAudio.preload='auto';
@@ -692,8 +686,7 @@ function animateDepotWorkers(time){
 // Smooth track grade: flat depot -> descending cutting -> level underground.
 const descentStart=135,descentEnd=270,descentDepth=11;
 // The depot-to-tunnel transition must never be hidden by near-black fog.
-function smoothstep01(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
-function trackDrop(distance){return descentDepth*smoothstep01((distance-descentStart)/(descentEnd-descentStart))}
+const trackDrop=(distance)=>calculateTrackDrop(distance,descentDepth,descentStart,descentEnd);
 const ramp=new THREE.Group();depot.add(ramp);
 const retaining=mat(0x85888a),portalDark=new THREE.MeshBasicMaterial({color:0x06090e});
 for(let j=0;j<35;j++){
