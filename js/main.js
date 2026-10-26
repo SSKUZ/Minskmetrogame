@@ -1004,7 +1004,7 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
-carriageCamera.position.set(-1.42,3.12,1.72);
+carriageCamera.position.set(1.52,2.93,1.75);
 const carriage=new THREE.Group();
 // The carriage is now part of the actual station/track scene. The camera is
 // parented to it, so the existing local camera controls remain unchanged.
@@ -1018,7 +1018,7 @@ const carSeat=new THREE.MeshStandardMaterial({color:0x302c31,roughness:.83});
 const carSteel=new THREE.MeshStandardMaterial({color:0xb4bdc2,metalness:.78,roughness:.22});
 const carBlack=new THREE.MeshStandardMaterial({color:0x222c34,roughness:.86});
 const carDoor=new THREE.MeshStandardMaterial({color:0xe0e2e2,roughness:.5});
-const carGlass=new THREE.MeshPhysicalMaterial({color:0x5088ad,transparent:true,opacity:.30,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
+const carGlass=new THREE.MeshPhysicalMaterial({color:0x5088ad,transparent:true,opacity:.16,roughness:.10,depthWrite:false,side:THREE.DoubleSide});
 const carLight=new THREE.MeshBasicMaterial({color:0xfffdf1});
 function carriageRail(points,r=.025){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));carriage.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,r,8,false),carSteel))}
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
