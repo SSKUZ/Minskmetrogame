@@ -1089,7 +1089,8 @@ for(const side of [-1,1])for(let j=0;j<7;j++){
  ad.position.set(side*1.995,3.20,1-j*3.05);ad.rotation.y=side>0?-Math.PI/2:Math.PI/2;carriage.add(ad);
 }
 const carSlidingDoorLeaves=[];
-for(const side of [-1,1])for(const dz of [-3.2,-13]){
+// Boarding doors are on the platform side (-X) only for this route.
+for(const side of [-1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
  box(carriage,.06,.075,2.10,side*2.01,3.21,dz,carSteel);
  for(const half of [-1,1]){
