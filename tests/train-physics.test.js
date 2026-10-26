@@ -9,3 +9,6 @@ test('neutral coasts for at least one minute at useful speed',()=>assert.ok(simu
 test('braking reduces speed without reversing',()=>assert.equal(stepTrainMotion(.01,-1,.05),0));
 test('speed stays within bounds',()=>assert.ok(stepTrainMotion(90,1,.05)<=90));
 test('half controller targets approximately 60 km/h',()=>assert.ok(Math.abs(simulate(0,.5,300)-60)<.1));
+
+test('85% lever reaches 90 km/h',()=>assert.ok(simulate(0,.85,120)>89.9));
+test('full traction reaches 90 km/h',()=>assert.equal(simulate(0,1,120),90));
