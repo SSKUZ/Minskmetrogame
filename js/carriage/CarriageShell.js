@@ -1,9 +1,6 @@
 export function buildCarriageShell({carriage,box,carFloor,carCream,carWhite,carSteel,carGlass}){
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
 box(carriage,4.15,.12,23,0,3.65,-9,carCream);
-// Continuous illuminated ceiling panels, as in the reference metro car.
-for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
-
 for(const side of [-1,1]){
  const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
  for(const [front,back] of wallRanges){
