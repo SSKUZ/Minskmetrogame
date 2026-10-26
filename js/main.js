@@ -1132,7 +1132,7 @@ function updatePlatformPassengers(dt){
   }
   // The platform avatar remains in the doorway until fully inside, while
   // the carriage camera renders its matching interior avatar.
-  p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
+  p.person.visible=!(active&&!exiting&&t>=.98)&&!(active&&exiting&&t>=1)&&!(passengerBoardingRecorded.has(i)&&!active);
   cp.person.visible=cp.settled;
   if(cp.settled){
    const insideProgress=ease((elapsed-duration*.79)/4.8);
