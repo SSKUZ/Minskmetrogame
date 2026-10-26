@@ -1,4 +1,4 @@
-import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-camera-corner-v31';
+import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-front-bulkhead-v32';
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
@@ -1004,7 +1004,7 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
-carriageCamera.position.set(1.52,2.93,1.75);
+carriageCamera.position.set(1.77,2.85,2.24);
 const carriage=new THREE.Group();
 // The carriage is now part of the actual station/track scene. The camera is
 // parented to it, so the existing local camera controls remain unchanged.
