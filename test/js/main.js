@@ -1173,6 +1173,8 @@ const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
 const interstationDistance=1250,platformExitDistance=-195,stopTolerance=3;
 let stationServiced=false,overrunReported=false,stationSkipped=false,skipDepartureSeconds=0;
+// Deduplicate only within one station; every new station can generate a new serious error.
+const stationsWithRecordedOverrun=new Set();
 const stopWarning=document.createElement('div');
 stopWarning.id='stationStopWarning';
 const warningStyle=document.createElement('style');warningStyle.textContent='@keyframes metroStopErrorBlink{0%,48%{opacity:1}49%,80%{opacity:.25}81%,100%{opacity:1}} #stationStopWarning{animation:metroStopErrorBlink .8s infinite}';document.head.appendChild(warningStyle);
@@ -1187,7 +1189,10 @@ function showStopWarning(message,permanent=false){
 function markStationSkipped(){
  if(stationSkipped||stationServiced)return;
  stationSkipped=true;overrunReported=true;skipDepartureSeconds=0;
- reportDriverError('грубое нарушение: проезд знака остановки более чем на 3 метра, станция пропущена',true);
+ if(!stationsWithRecordedOverrun.has(index)){
+  stationsWithRecordedOverrun.add(index);
+  reportDriverError('грубое нарушение на станции '+names[index]+': проезд знака остановки более чем на 3 метра, станция пропущена',true);
+ }
  showStopWarning('ГРУБАЯ ОШИБКА МАШИНИСТА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
 }
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
