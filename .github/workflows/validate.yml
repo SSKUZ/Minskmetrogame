@@ -33,6 +33,8 @@ jobs:
           test -f js/world/TrackProfile.js
           test -f js/cab/CabButtons.js
           test -f js/cab/CabDisplay.js
+          test -f js/carriage/CarriageInterior.js
+          test -f js/carriage/CarriageMaterials.js
       - name: Unit test isolated modules
         run: |
           node --input-type=module <<'JS'
