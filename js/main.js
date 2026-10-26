@@ -1003,23 +1003,25 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
-carriageCamera.position.set(0,2.15,2.10);
-let carriageYaw=0,carriagePitch=0;
+carriageCamera.position.set(0,2.35,2.10);
+let carriageYaw=0,carriagePitch=0,carriageWalkZ=2.10,carriageWalkX=0,carriageMoveKeys=new Set();
 function aimCarriageCamera(){const d=new THREE.Vector3(Math.sin(carriageYaw)*Math.cos(carriagePitch),Math.sin(carriagePitch),-Math.cos(carriageYaw)*Math.cos(carriagePitch));carriageCamera.lookAt(carriageCamera.position.clone().add(d))}
 aimCarriageCamera();
 const carriage=new THREE.Group();carriageScene.add(carriage);
-const carCream=new THREE.MeshStandardMaterial({color:0xeceae3,roughness:.65});
-const carWhite=new THREE.MeshStandardMaterial({color:0xf8f4e9,roughness:.5});
-const carFloor=new THREE.MeshStandardMaterial({color:0x92999b,roughness:.95});
-const carSeat=new THREE.MeshStandardMaterial({color:0x2b3b74,roughness:.83});
+const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
+const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
+const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
+const carSeat=new THREE.MeshStandardMaterial({color:0x302c31,roughness:.83});
 const carSteel=new THREE.MeshStandardMaterial({color:0xb4bdc2,metalness:.78,roughness:.22});
 const carBlack=new THREE.MeshStandardMaterial({color:0x222c34,roughness:.86});
-const carDoor=new THREE.MeshStandardMaterial({color:0x3d719c,roughness:.5});
-const carGlass=new THREE.MeshPhysicalMaterial({color:0x7894a5,transparent:true,opacity:.23,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
+const carDoor=new THREE.MeshStandardMaterial({color:0xe0e2e2,roughness:.5});
+const carGlass=new THREE.MeshPhysicalMaterial({color:0x7c9caa,transparent:true,opacity:.13,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
 const carLight=new THREE.MeshBasicMaterial({color:0xfffdf1});
 function carriageRail(points,r=.025){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));carriage.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,r,8,false),carSteel))}
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
 box(carriage,4.15,.12,23,0,3.65,-9,carCream);
+// Continuous illuminated ceiling panels, as in the reference metro car.
+for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
 for(const side of [-1,1]){
  box(carriage,.12,.88,23,side*2.07,1.40,-9,carWhite);
  box(carriage,.12,.55,23,side*2.07,3.39,-9,carWhite);
@@ -1035,12 +1037,15 @@ for(const side of [-1,1]){
   for(let k=0;k<4;k++){
    const zz=z+(k-1.5)*.54;
    box(carriage,.63,.13,.49,side*1.57,1.46,zz,carSeat);
+   box(carriage,.60,.014,.46,side*1.57,1.535,zz,new THREE.MeshStandardMaterial({color:0x343036,roughness:.88}));
    box(carriage,.13,.62,.49,side*1.94,1.79,zz,carSeat);
   }
   carriageRail([[side*1.18,1.03,z+1.18],[side*1.18,2.90,z+1.18],[side*1.27,3.22,z+.94],[side*1.52,3.40,z+.75]]);
   for(const edge of [-1,1])carriageRail([[side*1.16,1.34,z+edge*1.13],[side*1.16,1.75,z+edge*1.13],[side*1.65,1.82,z+edge*1.13]],.020);
  }
  carriageRail([[side*1.45,3.36,2.1],[side*1.45,3.36,-20.3]],.032);
+ // Reference-style horizontal grab bar above the windows.
+ carriageRail([[side*1.95,3.08,2.1],[side*1.95,3.08,-20.3]],.027);
  box(carriage,.24,.34,23,side*1.92,3.35,-9,carCream);
  box(carriage,.21,.05,21.9,side*1.52,3.54,-9,carSteel);
  box(carriage,.14,.025,21.6,side*1.52,3.51,-9,carLight);
@@ -1053,6 +1058,12 @@ box(carriage,1.03,2.13,.15,0,2.20,-20.23,carCream);
 box(carriage,.49,.95,.018,0,2.48,-20.14,carGlass);
 box(carriage,1.93,.31,.17,0,3.10,-9,carWhite);
 box(carriage,1.75,.18,.019,0,3.11,-8.90,new THREE.MeshBasicMaterial({color:0x24412a}));
+// Warm lighting and repeated overhead information strips.
+for(let z=.4;z>-20;z-=4.6){
+ const panel=new THREE.MeshBasicMaterial({color:0x263348});
+ box(carriage,.022,.24,1.85,-2.005,3.32,z,panel);
+ box(carriage,.022,.24,1.85,2.005,3.32,z,panel);
+}
 const carSlidingDoorLeaves=[];
 for(const side of [-1,1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
@@ -1109,7 +1120,7 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){carriageYaw=0;carriagePitch=0;aimCarriageCamera();}
+ if(carCameraActive){carriageYaw=0;carriagePitch=0;carriageWalkZ=2.10;carriageWalkX=0;carriageCamera.position.set(0,2.35,carriageWalkZ);aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
@@ -1253,6 +1264,10 @@ stationCanvas.addEventListener('pointermove',e=>{
  carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
 });
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
+// Walk the aisle with W/S or arrow keys; touch drag still looks freely around.
+addEventListener('keydown',e=>{if(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)&&carCameraActive){carriageMoveKeys.add(e.code);e.preventDefault();}});
+addEventListener('keyup',e=>carriageMoveKeys.delete(e.code));
+
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
@@ -1368,6 +1383,13 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
  updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
+if(carCameraActive){
+ const advance=(carriageMoveKeys.has('KeyW')||carriageMoveKeys.has('ArrowUp')?1:0)-(carriageMoveKeys.has('KeyS')||carriageMoveKeys.has('ArrowDown')?1:0);
+ const strafe=(carriageMoveKeys.has('KeyD')||carriageMoveKeys.has('ArrowRight')?1:0)-(carriageMoveKeys.has('KeyA')||carriageMoveKeys.has('ArrowLeft')?1:0);
+ carriageWalkZ=Math.max(-19.0,Math.min(2.3,carriageWalkZ-advance*elapsed*2.1));
+ carriageWalkX=Math.max(-.52,Math.min(.52,carriageWalkX+strafe*elapsed*1.3));
+ carriageCamera.position.set(carriageWalkX,2.35,carriageWalkZ);aimCarriageCamera();
+}
 animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
