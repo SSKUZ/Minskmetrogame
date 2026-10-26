@@ -1,4 +1,4 @@
-import {stepTrainMotion} from './train/TrainPhysics.js';
+import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
 import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js';
