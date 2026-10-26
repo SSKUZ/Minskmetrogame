@@ -1,0 +1,58 @@
+name: Publish isolated production and testing sites
+
+on:
+  push:
+    branches: [testing]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: metro-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout stable production
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          persist-credentials: false
+      - name: Checkout testing build
+        uses: actions/checkout@v4
+        with:
+          ref: testing
+          path: candidate
+          persist-credentials: false
+      - name: Validate testing JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          find candidate/js -name '*.js' -type f -print0 | while IFS= read -r -d '' file; do
+            node --check "$file"
+          done
+      - name: Assemble two independent sites
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public/preview
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='test/' production/ public/
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='test/' candidate/ public/preview/
+          touch public/.nojekyll
+          test -f public/index.html
+          test -f public/preview/index.html
+          test -f public/preview/js/main.js
+          echo "Production: /"
+          echo "Testing: /preview/"
+      - name: Publish snapshot to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./public
+          force_orphan: true
+          commit_message: 'Publish production main and independent testing preview'
