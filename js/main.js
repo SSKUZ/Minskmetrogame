@@ -1,3 +1,4 @@
+import {stepTrainMotion} from './train/TrainPhysics.js';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
 import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js';
@@ -1228,23 +1229,8 @@ document.querySelector('#doors')?.addEventListener('click',()=>{if(speed>1){stat
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight)}addEventListener('resize',resize);
-function frame(now){requestAnimationFrame(frame);try{const dt=Math.min(.05,(now-last)/1000);last=now;animateCabButtons(dt);if(playing){// Proportional master controller: 50% traction -> 60 km/h, 100% -> 90 km/h.
-// Positive lever selects a cruising speed; negative lever selects braking strength.
-if(lever>0.015){
- const targetSpeed=90*Math.pow(lever,Math.log(2/3)/Math.log(.5));
- const acceleration=24*lever; // km/h per second, full traction
- if(speed<targetSpeed)speed=Math.min(targetSpeed,speed+acceleration*dt);
- else speed=Math.max(targetSpeed,speed-17*dt);
-}else if(lever<-.015){
- const brake=-lever;
- // 0.1 brake: gentle deceleration; 1.0: near-emergency braking.
- const deceleration=3+brake*65; // km/h per second
- speed=Math.max(0,speed-deceleration*dt);
-}else{
- // Neutral: coasting with small rolling resistance.
- speed=Math.max(0,speed-1.2*dt);
-}
-speed=Math.min(90,speed);
+function frame(now){requestAnimationFrame(frame);try{const dt=Math.min(.05,(now-last)/1000);last=now;animateCabButtons(dt);if(playing){// Longitudinal dynamics are isolated and unit-tested.
+speed=stepTrainMotion(speed,lever,dt);
 let move=speed/3.6*dt*1.22;
 // The stop marker is at dist=0. Before passenger service, the cab may
 // overshoot by 24 m; the safety limiter then stops the train and records
