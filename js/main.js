@@ -1,3 +1,6 @@
+import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
+import {updatePassengerMovement} from './passengers/PassengerMovement.js';
+import {createPassengerModelFactory} from './passengers/PassengerModels.js';
 import {buildCarriageDoors} from './carriage/CarriageDoors.js';
 import {buildCarriageInterior} from './carriage/CarriageInterior.js';
 import {createCabDisplayUpdater} from './cab/CabDisplay.js';
@@ -714,9 +717,7 @@ addSignal(chunks[2],-17,true);addSignal(chunks[5],-19,false);addSignal(chunks[7]
 // Continuous rail approach fills the seam between the arched tunnel and the station hall.
 const approachRailBed=mat(0x292d30);
 const platform=new THREE.Group();scene.add(platform);
-box(platform,6.4,.3,48,0,-.30,29,approachRailBed);
-for(const x of [-1.15,1.15])box(platform,.12,.16,48,x,.05,29,rail);
-for(let j=0;j<24;j++)box(platform,3.3,.10,.24,0,-.06,6+j*2,wood);
+buildPlatformApproach({platform,box,approachRailBed,rail,wood});
 // Visible cab stopping marker: local z=-112 aligns with the cab at dist=0, at the tunnel-side end.
 const stopMarkerMat=new THREE.MeshBasicMaterial({color:0xffdf35});
 box(platform,5.5,.06,.22,0,.12,-112,stopMarkerMat);
@@ -916,59 +917,7 @@ const passengerIris=new THREE.MeshStandardMaterial({color:0x394b53,roughness:.42
 const passengerLip=new THREE.MeshStandardMaterial({color:0x955b59,roughness:.85});
 const passengerSeam=new THREE.MeshStandardMaterial({color:0x333b44,roughness:.95});
 function personDetail(parent,geo,material,x,y,z){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);parent.add(m);return m;}
-function human(i,x,z){
- const p=new THREE.Group();p.position.set(x,.78,z);platform.add(p);
- const child=i%13===0||i%13===1,elder=i%11===0;
- const scale=child?.64:elder?.89:.91+(i%5)*.036;p.scale.setScalar(scale);
- const archetype=i%6,coat=passengerOutfits[archetype],skin=skins[i%skins.length],hair=hairs[i%hairs.length];
- p.userData.walkLimbs=[];p.userData.gestureArms=[];p.userData.fineDetails=[];
- const torso=new THREE.Mesh(new THREE.CylinderGeometry(.22,.29,.76,16),coat);torso.position.y=1.16;p.add(torso);
- const jacket=new THREE.Mesh(new THREE.SphereGeometry(.245,12,10),coat);jacket.scale.set(1,.85,.69);jacket.position.y=1.39;p.add(jacket);
- for(const side of [-1,1]){
-  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.093,.081,.73,12),dark);leg.position.set(side*.13,.40,0);p.add(leg);p.userData.walkLimbs.push({mesh:leg,side,kind:'leg'});
-  const shoe=new THREE.Mesh(new THREE.CapsuleGeometry(.088,.14,3,8),dark);shoe.rotation.x=Math.PI/2;shoe.position.set(side*.13,.09,-.08);p.add(shoe);
-  const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.077,.46,4,10),coat);arm.position.set(side*.31,1.18,0);arm.rotation.z=side*.16;p.add(arm);
-  p.userData.walkLimbs.push({mesh:arm,side,kind:'arm'});p.userData.gestureArms.push(arm);
-  const hand=new THREE.Mesh(new THREE.SphereGeometry(.075,10,8),skin);hand.position.set(side*.34,.86,0);p.add(hand);
- }
- const neck=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.15,10),skin);neck.position.y=1.67;p.add(neck);
- const face=new THREE.Mesh(new THREE.SphereGeometry(.195,18,14),skin);face.scale.set(1,1.15,.91);face.position.y=1.88;p.add(face);
- const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.198,18,12,0,Math.PI*2,0,Math.PI*.50),hair);hairTop.position.y=1.93;p.add(hairTop);
- // Facial features use shallow 3D geometry, not floating black dots.
- const nose=personDetail(p,new THREE.ConeGeometry(.036,.105,10),skin,0,1.858,-.190);nose.rotation.x=-.35;
- const mouth=personDetail(p,new THREE.CapsuleGeometry(.008,.067,2,8),passengerLip,0,1.778,-.178);mouth.rotation.z=Math.PI/2;
- p.userData.fineDetails.push(nose,mouth);
- for(const side of [-1,1]){
-  const ear=personDetail(p,new THREE.SphereGeometry(.052,10,8),skin,side*.191,1.87,0);ear.scale.set(.5,1,.6);
-  const eye=personDetail(p,new THREE.SphereGeometry(.027,10,8),passengerEyeWhite,side*.079,1.907,-.169);eye.scale.set(1,.55,.30);
-  const iris=personDetail(p,new THREE.SphereGeometry(.011,8,8),passengerIris,side*.079,1.906,-.179);
-  const brow=personDetail(p,new THREE.BoxGeometry(.083,.012,.015),hair,side*.081,1.948,-.172);brow.rotation.z=-side*.13;
-  p.userData.fineDetails.push(ear,eye,iris,brow);
- }
- // Clothing seams, zipper, collars and stitched patch pockets.
- const zipper=personDetail(p,new THREE.BoxGeometry(.012,.55,.012),passengerSeam,0,1.20,-.198);
- const collarL=personDetail(p,new THREE.BoxGeometry(.10,.14,.023),passengerSeam,-.09,1.53,-.165);
- const collarR=personDetail(p,new THREE.BoxGeometry(.10,.14,.023),passengerSeam,.09,1.53,-.165);
- collarL.rotation.z=-.35;collarR.rotation.z=.35;
- p.userData.fineDetails.push(zipper,collarL,collarR);
- for(const side of [-1,1]){
-  const pocket=personDetail(p,new THREE.BoxGeometry(.12,.09,.014),passengerSeam,side*.14,1.02,-.233);
-  p.userData.fineDetails.push(pocket);
- }
- if(archetype===2||archetype===4){
-  const scarf=personDetail(p,new THREE.TorusGeometry(.12,.038,7,18),coats[(i+2)%coats.length],0,1.61,0);
-  scarf.rotation.x=Math.PI/2;p.userData.fineDetails.push(scarf);
- }
- if(archetype===3){
-  const glasses=personDetail(p,new THREE.TorusGeometry(.092,.009,6,18),passengerSeam,0,1.906,-.182);
-  glasses.scale.x=1.85;p.userData.fineDetails.push(glasses);
- }
- if(i%4===0){const bag=new THREE.Mesh(new THREE.BoxGeometry(.29,.40,.16),dark);bag.position.set(.37,.90,.05);p.add(bag);}
- if(i%4===1){const backpack=new THREE.Mesh(new THREE.BoxGeometry(.36,.54,.20),coats[(i+3)%coats.length]);backpack.position.set(0,1.19,.30);p.add(backpack);}
- if(elder){const cane=new THREE.Mesh(new THREE.CylinderGeometry(.017,.017,.98,8),dark);cane.position.set(.43,.48,-.17);p.add(cane);}
- p.userData.child=child;p.userData.elder=elder;p.rotation.y=(i%5-2)*.35;
- return p;
-}
+const human=createPassengerModelFactory({THREE,platform,passengerOutfits,skins,hairs,dark,personDetail,passengerLip,passengerEyeWhite,passengerIris,passengerSeam,coats});
 // One shared set of 3D passengers for the cab and external camera.
 // Nobody is duplicated between views. All waiting positions are on OUR
 // boarding side, between the platform edge and its first row of columns.
@@ -1093,100 +1042,10 @@ const carriageCameraController=createCarriageCameraController(THREE,carriageCame
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
- platformLifeTime+=dt;
- const atPlatform=!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5;
- if(atPlatform&&doors&&!stationDoorCycleCompleted){
-  if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
-  passengerDoorTime+=dt;
- } // Boarding time never resets when doors close or reopen at this station.
- const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v);};
- for(let i=0;i<platformPassengers.length;i++){
-  const p=platformPassengers[i],cp=carriagePassengers[i];
-  const active=atPlatform&&doors&&!stationDoorCycleCompleted;
-  const exiting=index!==0&&p.exiting;
-  const elapsed=passengerDoorTime-(exiting?0:index===0?0:2.5)-p.offset;
-  const duration=5.2+(p.queueRank*.45)+(i%3)*.22;
-  const t=active?Math.max(0,Math.min(1,elapsed/duration)):0;
-  // Approach along the platform, align with the nearest door, then walk
-  // across the gap. No teleport at the threshold.
-  const align=ease(t/.53),approach=ease((t-.12)/.57),cross=ease((t-.69)/.31);
-  // Walk from platform (-X) through the same physical door at X=-2.01.
-  const doorX=-2.10,insideX=-1.72;
-  const homeX=p.homeX,homeZ=p.homeZ;
-  const crossed=active&&!exiting&&t>=.79;
-  if(crossed&&!passengerBoardingRecorded.has(i)){
-   passengerBoardingRecorded.add(i);
-   cp.settled=true;
-   people+=1;
-  }
-  const walking=active&&t>0&&t<1;
-  if(!exiting){
-   p.person.position.x=homeX+(doorX-homeX)*approach+(insideX-doorX)*cross;
-   p.person.position.z=homeZ+(p.doorwayZ-homeZ)*align;
-  }else{
-   p.person.position.x=insideX+(doorX-insideX)*ease(t/.32)+(homeX-doorX)*ease((t-.32)/.68);
-   p.person.position.z=p.doorwayZ+(homeZ-p.doorwayZ)*ease((t-.32)/.68);
-  }
-  // The platform avatar remains in the doorway until fully inside, while
-  // the carriage camera renders its matching interior avatar.
-  p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
-  cp.person.visible=cp.settled;
-  const carriageOutside=carriagePlatformAvatars[i];
-  carriageOutside.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
-  carriageOutside.rotation.copy(p.person.rotation);
-  carriageOutside.visible=false;
-  // The exterior copy disappears as its interior counterpart becomes visible.
-  if(cp.settled)carriageOutside.visible=false;
-  if(cp.settled){
-   // First step through the carriage door, then turn into the aisle and
-   // walk down to the assigned seat. Each passenger has a different pace.
-   const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
-   // Malinovka's platform is on the negative-X side of the train.
-   const sideEntry=-2.02;
-   const entryZ=i%2===0?-3.2:-13;
-   const aisleX=cp.side*.36;
-   const seatX=cp.side*(cp.slot%3===0?1.49:.70);
-   const doorPhase=ease(progress/.25);
-   const aislePhase=ease((progress-.25)/.5);
-   const seatPhase=ease((progress-.75)/.25);
-   cp.person.position.x=sideEntry+(aisleX-sideEntry)*doorPhase+(seatX-aisleX)*seatPhase;
-   cp.person.position.z=entryZ+(cp.z-entryZ)*aislePhase;
-   const moving=progress>0&&progress<1;
-   // Model faces local -Z; a passenger moving from left entrance to aisle
-   // should face right (+X), not toward the camera or backward.
-   const heading=progress<.25?-Math.PI/2:
-      progress<.75?(cp.z>entryZ?Math.PI:0):
-      (cp.side>0?-Math.PI/2:Math.PI/2);
-   cp.person.rotation.y+=shortestTurn(cp.person.rotation.y,heading)*Math.min(1,dt*5);
-   const walkingGait=moving?Math.sin(platformLifeTime*(8.6+(i%3)) +i*1.3):0;
-   cp.person.position.y=.78+(moving?Math.abs(walkingGait)*.03:0);
-   cp.person.rotation.z=moving?Math.sin(platformLifeTime*4+i)*.015:0;
-   if(progress>=1){
-    cp.person.position.set(seatX,cp.slot%3===0?.43:.78,cp.z);
-    cp.person.rotation.x=cp.slot%3===0?-.12:0;
-    cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
-   }
-  }
-  // Derive facing and walking speed from the actual path, so figures turn
-  // toward their own doorway instead of sliding sideways like mannequins.
-  const dx=exiting?homeX-insideX:insideX-homeX;
-  const dz=exiting?homeZ-p.doorwayZ:p.doorwayZ-homeZ;
-  const heading=walking?facingDirection(dx,dz):p.heading+Math.sin(platformLifeTime*.45+p.phase)*.1;
-  p.person.rotation.y+=shortestTurn(p.person.rotation.y,heading)*Math.min(1,dt*(walking?5:2));
-  const phase=platformLifeTime*(8.2+(i%4)*.65)+p.phase;
-  const gait=walking?Math.sin(phase):0;
-  const stepBlend=walking?Math.min(1,t*13,(1-t)*13):0;
-  p.person.position.y=.78+Math.abs(gait)*.038*stepBlend+Math.sin(platformLifeTime*1.2+p.phase)*.004;
-  p.person.rotation.z=Math.sin(phase*.5)*.015*stepBlend;
-  for(const limb of p.person.userData.walkLimbs){
-   const swing=limb.kind==='leg'?.38:.29;
-   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*gait*swing*stepBlend;
-  }
- }
+ const next=updatePassengerMovement(dt,{platformLifeTime,passengerDoorTime,passengerExchangeStarted,stationSkipped,dist,stopTolerance,speed,doors,stationDoorCycleCompleted,platformPassengers,carriagePassengers,index,passengerBoardingRecorded,carriagePlatformAvatars,people,shortestTurn,facingDirection});
+ platformLifeTime=next.platformLifeTime;passengerDoorTime=next.passengerDoorTime;passengerExchangeStarted=next.passengerExchangeStarted;people=next.people;
 }
-// Platform signage and benches.
-for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platform,.1,.8,.1,-5.45,.43,-8-i*18,steel);box(platform,.1,.8,.1,-4.3,.43,-8-i*18,steel)}
-const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
+const {signCanvas,sc,texture,sign}=buildPlatformFurniture({THREE,platform,box,wood,steel});
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
