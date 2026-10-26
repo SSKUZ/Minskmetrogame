@@ -1005,7 +1005,12 @@ const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
 carriageCamera.position.set(-1.42,3.12,1.72);
-const carriage=new THREE.Group();carriageScene.add(carriage);
+const carriage=new THREE.Group();
+// The carriage is now part of the actual station/track scene. The camera is
+// parented to it, so the existing local camera controls remain unchanged.
+scene.add(carriage);
+carriage.add(carriageCamera);
+carriage.position.set(0,0,22.2);
 const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
 const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
 const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
@@ -1022,7 +1027,7 @@ box(carriage,4.15,.12,23,0,3.65,-9,carCream);
 for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
 for(const side of [-1,1]){
  // Segment the platform-side wall so doors are genuine openings, not panels sliding over a solid wall.
- const wallRanges=side===1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
+ const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
  for(const [front,back] of wallRanges){
   const length=front-back,center=(front+back)/2;
   box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
@@ -1033,7 +1038,7 @@ for(const side of [-1,1]){
  for(let j=0;j<8;j++){
   const z=1.1-j*2.75;
   // Do not place a solid window, glazing or seating across the door openings.
-  if(side===1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
+  if(side===-1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
   box(carriage,.026,.06,2.22,side*2.01,3.04,z,carBlack);
   box(carriage,.026,.06,2.22,side*2.01,1.99,z,carBlack);
   for(const edge of [-1,1])box(carriage,.027,1.08,.065,side*2.01,2.52,z+edge*1.08,carBlack);
@@ -1097,6 +1102,7 @@ const carSlidingDoorLeaves=[];
 // Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
 // Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
 const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
+// Legacy mock-up is intentionally NOT rendered: real platform geometry in scene is authoritative.
 // The exterior platform shares the train's station-distance coordinate.
 const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
 const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
@@ -1138,7 +1144,7 @@ for(let z=2;z>-120;z-=8){
  box(carriagePlatform,3.2,.035,.19,4.1,4.05,z,carLight);
 }
 // Boarding doors are on the platform side (-X) only for this route.
-for(const side of [1])for(const dz of [-3.2,-13]){
+for(const side of [-1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
  box(carriage,.06,.075,2.10,side*2.01,3.21,dz,carSteel);
  for(const half of [-1,1]){
@@ -1259,7 +1265,7 @@ function updatePlatformPassengers(dt){
   const carriageOutside=carriagePlatformAvatars[i];
   carriageOutside.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
   carriageOutside.rotation.copy(p.person.rotation);
-  carriageOutside.visible=p.person.visible;
+  carriageOutside.visible=false;
   // The exterior copy disappears as its interior counterpart becomes visible.
   if(cp.settled)carriageOutside.visible=false;
   if(cp.settled){
@@ -1267,7 +1273,7 @@ function updatePlatformPassengers(dt){
    // walk down to the assigned seat. Each passenger has a different pace.
    const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
    // Malinovka's platform is on the negative-X side of the train.
-   const sideEntry=2.02;
+   const sideEntry=-2.02;
    const entryZ=i%2===0?-3.2:-13;
    const aisleX=cp.side*.36;
    const seatX=cp.side*(cp.slot%3===0?1.49:.70);
@@ -1279,7 +1285,7 @@ function updatePlatformPassengers(dt){
    const moving=progress>0&&progress<1;
    // Model faces local -Z; a passenger moving from left entrance to aisle
    // should face right (+X), not toward the camera or backward.
-   const heading=progress<.25?Math.PI/2:
+   const heading=progress<.25?-Math.PI/2:
       progress<.75?(cp.z>entryZ?Math.PI:0):
       (cp.side>0?-Math.PI/2:Math.PI/2);
    cp.person.rotation.y+=shortestTurn(cp.person.rotation.y,heading)*Math.min(1,dt*5);
@@ -1452,7 +1458,7 @@ platform.position.z=-dist+112;
 // At the stop marker the local platform is aligned; on approach/departure it moves past the windows.
 // Positive local Z is behind the forward-facing carriage camera. As the train
 // advances, station geometry must slide toward +Z (left in this camera view).
-carriagePlatform.position.z=dist;
+// The independent mock-up is unused; actual station is platform in scene.
 platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
@@ -1512,7 +1518,12 @@ if(carCameraActive){
  // are scaled by devicePixelRatio and cropped/zoomed the next cab view.
  renderer.setViewport(0,0,innerWidth,innerHeight);
  renderer.setScissorTest(false);
- renderer.render(carriageScene,carriageCamera);
+ // The same THREE.Scene is rendered by cab, platform and carriage cameras.
+ // Keep the driver's cab out of the carriage view; all station objects remain.
+ cab.visible=false;
+ stationTrain.visible=false;
+ renderer.render(scene,carriageCamera);
+ cab.visible=true;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
 window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
