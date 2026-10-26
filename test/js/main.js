@@ -1,4 +1,4 @@
-import {stepTrainMotion} from './train/TrainPhysics.js';
+import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
 import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js';
@@ -1229,9 +1229,9 @@ document.querySelector('#doors')?.addEventListener('click',()=>{if(speed>1){stat
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight)}addEventListener('resize',resize);
-function frame(now){requestAnimationFrame(frame);try{const dt=Math.min(.05,(now-last)/1000);last=now;animateCabButtons(dt);if(playing){// Longitudinal dynamics are isolated and unit-tested.
-speed=stepTrainMotion(speed,lever,dt);
-let move=speed/3.6*dt*1.22;
+function frame(now){requestAnimationFrame(frame);try{const elapsed=Math.max(0,Math.min(.25,(now-last)/1000));const dt=Math.min(.05,elapsed);last=now;animateCabButtons(dt);if(playing){// Keep physics on real elapsed time even when phone renders below 20 FPS.
+for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.05,remaining);speed=stepTrainMotion(speed,lever,step);remaining-=step;}
+let move=speed/3.6*elapsed*1.22;
 // The stop marker is at dist=0. Before passenger service, the cab may
 // overshoot by 24 m; the safety limiter then stops the train and records
 // exactly one driver error. After servicing, the train may depart freely.
