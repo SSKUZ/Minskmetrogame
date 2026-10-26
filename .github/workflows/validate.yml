@@ -35,6 +35,13 @@ jobs:
           test -f js/cab/CabDisplay.js
           test -f js/carriage/CarriageInterior.js
           test -f js/carriage/CarriageMaterials.js
+          test -f js/carriage/CarriageShell.js
+          test -f js/carriage/CarriageWindows.js
+          test -f js/carriage/CarriageSeats.js
+          test -f js/carriage/CarriageRails.js
+          test -f js/carriage/CarriageLighting.js
+          test -f js/carriage/CarriageInformation.js
+          test -f js/carriage/CarriageDoors.js
       - name: Unit test isolated modules
         run: |
           node --input-type=module <<'JS'
