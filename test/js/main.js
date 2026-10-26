@@ -1084,7 +1084,7 @@ for(let i=0;i<platformPassengers.length;i++){
  copy.position.set(side*(slot%4<2?1.49:.70),.93,z);
  copy.rotation.y=side>0?-Math.PI/2:Math.PI/2;
  copy.visible=false;carriage.add(copy);
- carriagePassengers.push({person:copy,platform:p,slot,z,side,settled:false});
+ carriagePassengers.push({person:copy,platform:p,slot,z,side,settled:false,walkingIn:false});
 }
 let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
@@ -1136,15 +1136,31 @@ function updatePlatformPassengers(dt){
   p.person.visible=!(active&&!exiting&&t>=.98)&&!(active&&exiting&&t>=1)&&!(passengerBoardingRecorded.has(i)&&!active);
   cp.person.visible=cp.settled;
   if(cp.settled){
-   const insideProgress=ease((elapsed-duration*.79)/4.8);
-   const entryZ=cp.z< -9?-14:-5;
-   const endX=cp.side*(cp.slot%4<2?1.49:.70);
-   cp.person.position.set(cp.side*(-1.97+insideProgress*1.1),.93,entryZ+(cp.z-entryZ)*insideProgress);
-   if(insideProgress>=1){
-    cp.person.position.set(endX,cp.slot%3===0?.49:.93,cp.z);
+   // First step through the carriage door, then turn into the aisle and
+   // walk down to the assigned seat. Each passenger has a different pace.
+   const progress=Math.max(0,(elapsed-duration*.79)/(5.4+(i%5)*.6));
+   const sideEntry=cp.side>0?1.94:-1.94;
+   const entryZ=cp.z< -9?-13:-3.2;
+   const aisleX=cp.side*.36;
+   const seatX=cp.side*(cp.slot%4<2?1.49:.70);
+   const doorPhase=ease(progress/.25);
+   const aislePhase=ease((progress-.25)/.5);
+   const seatPhase=ease((progress-.75)/.25);
+   cp.person.position.x=sideEntry+(aisleX-sideEntry)*doorPhase+(seatX-aisleX)*seatPhase;
+   cp.person.position.z=entryZ+(cp.z-entryZ)*aislePhase;
+   const moving=progress>0&&progress<1;
+   const heading=progress<.25?(cp.side>0?Math.PI/2:-Math.PI/2):
+      progress<.75?(cp.z>entryZ?0:Math.PI):
+      (cp.side>0?-Math.PI/2:Math.PI/2);
+   cp.person.rotation.y+=shortestTurn(cp.person.rotation.y,heading)*Math.min(1,dt*5);
+   const walkingGait=moving?Math.sin(platformLifeTime*(8.6+(i%3)) +i*1.3):0;
+   cp.person.position.y=.93+(moving?Math.abs(walkingGait)*.03:0);
+   cp.person.rotation.z=moving?Math.sin(platformLifeTime*4+i)*.015:0;
+   if(progress>=1){
+    cp.person.position.set(seatX,cp.slot%3===0?.49:.93,cp.z);
     cp.person.rotation.x=cp.slot%3===0?-.12:0;
+    cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
    }
-   cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
   }
   // Derive facing and walking speed from the actual path, so figures turn
   // toward their own doorway instead of sliding sideways like mannequins.
