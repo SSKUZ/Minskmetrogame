@@ -1123,8 +1123,23 @@ carCameraButton.addEventListener('click',()=>{
  if(carCameraActive){carriageYaw=0;carriagePitch=0;carriageWalkZ=2.10;carriageWalkX=0;carriageCamera.position.set(0,2.35,carriageWalkZ);aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
+ carriageWalkPad.style.display=carCameraActive?'flex':'none';
+ if(!carCameraActive)carriageMoveKeys.clear();
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
+// Mobile walking controls for the independent 3D passenger camera.
+const carriageWalkPad=document.createElement('div');
+carriageWalkPad.id='carriageWalkPad';
+Object.assign(carriageWalkPad.style,{position:'fixed',left:'12px',bottom:'115px',zIndex:'100',display:'none',gap:'8px',alignItems:'center',pointerEvents:'auto'});
+for(const [label,code] of [['◀','KeyA'],['▲','KeyW'],['▼','KeyS'],['▶','KeyD']]){
+ const button=document.createElement('button');button.textContent=label;
+ Object.assign(button.style,{width:'46px',height:'48px',borderRadius:'11px',border:'1px solid #d4dfe7',background:'#203240db',color:'white',fontSize:'22px',touchAction:'none'});
+ const release=()=>carriageMoveKeys.delete(code);
+ button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();carriageMoveKeys.add(code);button.setPointerCapture(e.pointerId)});
+ button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);
+ carriageWalkPad.appendChild(button);
+}
+document.body.appendChild(carriageWalkPad);
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
