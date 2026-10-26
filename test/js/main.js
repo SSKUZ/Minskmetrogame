@@ -1125,18 +1125,18 @@ for(const x of [7.8,10.6])box(oppositeTrack,.11,.15,128,x,.76,-57,railBright);
 for(let z=5;z>-120;z-=1.8)box(oppositeTrack,3.7,.10,.20,9.2,.66,z,platformTiles);
 // The train on the other track is static relative to the station and will
 // pass the carriage windows in the same direction as the platform.
-const oppositeTrain=new THREE.Group();carriagePlatform.add(oppositeTrain);
+const carriageOppositeTrain=new THREE.Group();carriagePlatform.add(carriageOppositeTrain);
 const otherBody=new THREE.MeshStandardMaterial({color:0xc8d1d6,metalness:.38,roughness:.48});
 const otherWindows=new THREE.MeshPhysicalMaterial({color:0x2b607c,roughness:.16,transparent:true,opacity:.80});
-box(oppositeTrain,.24,2.85,67,7.18,2.22,-53,otherBody);
-box(oppositeTrain,.24,.55,67,7.17,3.37,-53,new THREE.MeshStandardMaterial({color:0x35576e,roughness:.5}));
+box(carriageOppositeTrain,.24,2.85,67,7.18,2.22,-53,otherBody);
+box(carriageOppositeTrain,.24,.55,67,7.17,3.37,-53,new THREE.MeshStandardMaterial({color:0x35576e,roughness:.5}));
 for(let z=-23;z>-86;z-=2.65){
- box(oppositeTrain,.025,1.03,1.55,7.02,2.55,z,otherWindows);
- box(oppositeTrain,.034,1.10,.035,7.00,2.55,z-.79,railBright);
+ box(carriageOppositeTrain,.025,1.03,1.55,7.02,2.55,z,otherWindows);
+ box(carriageOppositeTrain,.034,1.10,.035,7.00,2.55,z-.79,railBright);
 }
 for(let z=-19;z>-88;z-=13.4){
- box(oppositeTrain,.05,2.65,.09,7.00,2.24,z,railBright);
- box(oppositeTrain,.05,.17,2.0,7.00,1.13,z,new THREE.MeshStandardMaterial({color:0x356b83}));
+ box(carriageOppositeTrain,.05,2.65,.09,7.00,2.24,z,railBright);
+ box(carriageOppositeTrain,.05,.17,2.0,7.00,1.13,z,new THREE.MeshStandardMaterial({color:0x356b83}));
 }
 // Ceiling beams and light strips emphasize the station's depth.
 for(let z=2;z>-120;z-=8){
