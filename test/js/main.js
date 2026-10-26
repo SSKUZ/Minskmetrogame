@@ -368,8 +368,9 @@ function animateCabButtons(dt){
 const departureAudio=new Audio();
 departureAudio.preload='auto';
 let infoPlaying=false,infoCompleted=false,infoStarted=false,infoToken=0;
-let driverErrorCount=0;
-function reportDriverError(message){
+let driverErrorCount=0,seriousErrorCount=0;
+function reportDriverError(message,serious=false){
+ if(serious){seriousErrorCount++;const severe=document.querySelector('#seriousErrorCount');if(severe)severe.textContent=seriousErrorCount;}
  driverErrorCount++;
  const counter=document.querySelector('#errorCount');
  if(counter)counter.textContent=driverErrorCount;
@@ -470,9 +471,9 @@ function pressInfo(){
 function setCabDoors(open){
  if(doors===open)return;
  if(open){
-  if(stationSkipped||dist < -stopTolerance){markStationSkipped();showStopWarning('СТАНЦИЯ ПРОПУЩЕНА — открытие дверей запрещено',true);return;}
-  if(speed>=.5){showStopWarning('ОШИБКА: поезд ещё движется — двери заблокированы');return;}
-  if(dist>stopTolerance){showStopWarning('НЕ ДОЕХАЛИ ДО ЗНАКА: '+dist.toFixed(1)+' м. Подъедьте ближе (допуск ±1 м)');return;}
+  if(stationSkipped||dist < -stopTolerance){markStationSkipped();showStopWarning('ГРУБАЯ ОШИБКА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ',true);return;}
+  if(speed>=.5){showStopWarning('ОШИБКА МАШИНИСТА: поезд ещё движется — двери заблокированы');return;}
+  if(dist>stopTolerance){reportDriverError('попытка открыть двери до знака остановки');showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
  }
  initMetroAudio();metroChime(open);
  if(!open&&Math.abs(dist)<32){
@@ -1170,10 +1171,11 @@ const names=['Малиновка','Петровщина','Михалово','Г�
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
-const interstationDistance=1250,platformExitDistance=-195,stopTolerance=1;
+const interstationDistance=1250,platformExitDistance=-195,stopTolerance=3;
 let stationServiced=false,overrunReported=false,stationSkipped=false;
 const stopWarning=document.createElement('div');
 stopWarning.id='stationStopWarning';
+const warningStyle=document.createElement('style');warningStyle.textContent='@keyframes metroStopErrorBlink{0%,48%{opacity:1}49%,80%{opacity:.25}81%,100%{opacity:1}} #stationStopWarning{animation:metroStopErrorBlink .8s infinite}';document.head.appendChild(warningStyle);
 Object.assign(stopWarning.style,{position:'fixed',top:'12%',left:'50%',transform:'translateX(-50%)',zIndex:'10000',maxWidth:'92vw',padding:'12px 18px',border:'3px solid #ff3030',borderRadius:'10px',background:'rgba(55,0,0,.94)',color:'#fff',font:'bold 19px Arial,sans-serif',textAlign:'center',boxShadow:'0 0 22px #f00',pointerEvents:'none',display:'none'});
 document.body.appendChild(stopWarning);
 function showStopWarning(message,permanent=false){
@@ -1184,8 +1186,8 @@ function showStopWarning(message,permanent=false){
 function markStationSkipped(){
  if(stationSkipped||stationServiced)return;
  stationSkipped=true;overrunReported=true;
- reportDriverError('грубое нарушение: проезд знака остановки более чем на 1 метр, станция пропущена');
- showStopWarning('ГРУБАЯ ОШИБКА! СТАНЦИЯ ПРОПУЩЕНА. ДВЕРИ ЗАБЛОКИРОВАНЫ. СЛЕДУЙТЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
+ reportDriverError('грубое нарушение: проезд знака остановки более чем на 3 метра, станция пропущена',true);
+ showStopWarning('ГРУБАЯ ОШИБКА МАШИНИСТА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
 }
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
