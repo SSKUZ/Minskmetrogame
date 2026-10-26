@@ -1,7 +1,7 @@
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
-import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js';
+import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js?v=20261026-smooth-v16';
 import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passengers/PassengerMotion.js';
 
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
