@@ -916,10 +916,8 @@ const passengerEyeWhite=new THREE.MeshStandardMaterial({color:0xe3dfd4,roughness
 const passengerIris=new THREE.MeshStandardMaterial({color:0x394b53,roughness:.42});
 const passengerLip=new THREE.MeshStandardMaterial({color:0x955b59,roughness:.85});
 const passengerSeam=new THREE.MeshStandardMaterial({color:0x333b44,roughness:.95});
-function personDetail(parent,geo,material,x,y,z){const mconst human=createPassengerModelFactory({THREE,platform,passengerOutfits,skins,hairs,dark,personDetail,passengerLip,passengerEyeWhite,passengerIris,passengerSeam,coats});
-ta.child=child;p.userData.elder=elder;p.rotation.y=(i%5-2)*.35;
- return p;
-}
+function personDetail(parent,geo,material,x,y,z){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);parent.add(m);return m;}
+const human=createPassengerModelFactory({THREE,platform,passengerOutfits,skins,hairs,dark,personDetail,passengerLip,passengerEyeWhite,passengerIris,passengerSeam,coats});
 // One shared set of 3D passengers for the cab and external camera.
 // Nobody is duplicated between views. All waiting positions are on OUR
 // boarding side, between the platform edge and its first row of columns.
