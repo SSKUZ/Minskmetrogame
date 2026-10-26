@@ -1013,7 +1013,7 @@ const carSeat=new THREE.MeshStandardMaterial({color:0x302c31,roughness:.83});
 const carSteel=new THREE.MeshStandardMaterial({color:0xb4bdc2,metalness:.78,roughness:.22});
 const carBlack=new THREE.MeshStandardMaterial({color:0x222c34,roughness:.86});
 const carDoor=new THREE.MeshStandardMaterial({color:0xe0e2e2,roughness:.5});
-const carGlass=new THREE.MeshPhysicalMaterial({color:0x7c9caa,transparent:true,opacity:.13,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
+const carGlass=new THREE.MeshPhysicalMaterial({color:0x5088ad,transparent:true,opacity:.30,roughness:.14,depthWrite:false,side:THREE.DoubleSide});
 const carLight=new THREE.MeshBasicMaterial({color:0xfffdf1});
 function carriageRail(points,r=.025){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));carriage.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,r,8,false),carSteel))}
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
@@ -1022,7 +1022,7 @@ box(carriage,4.15,.12,23,0,3.65,-9,carCream);
 for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
 for(const side of [-1,1]){
  // Segment the platform-side wall so doors are genuine openings, not panels sliding over a solid wall.
- const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
+ const wallRanges=side===1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
  for(const [front,back] of wallRanges){
   const length=front-back,center=(front+back)/2;
   box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
@@ -1033,7 +1033,7 @@ for(const side of [-1,1]){
  for(let j=0;j<8;j++){
   const z=1.1-j*2.75;
   // Do not place a solid window, glazing or seating across the door openings.
-  if(side===-1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
+  if(side===1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
   box(carriage,.026,.06,2.22,side*2.01,3.04,z,carBlack);
   box(carriage,.026,.06,2.22,side*2.01,1.99,z,carBlack);
   for(const edge of [-1,1])box(carriage,.027,1.08,.065,side*2.01,2.52,z+edge*1.08,carBlack);
@@ -1097,21 +1097,22 @@ const carSlidingDoorLeaves=[];
 // Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
 // Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
 const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
+const carriagePlatformFixedZ=0;
 const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
 const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
 const platformTiles=new THREE.MeshStandardMaterial({color:0xc2c3ba,roughness:.91});
-box(carriagePlatform,3.7,.22,23,-4.16,.84,-9,platformConcrete);
-box(carriagePlatform,.13,.018,23,-2.23,.965,-9,platformYellow);
-for(let z=1.9;z>-20.5;z-=1.25)box(carriagePlatform,3.48,.012,.025,-4.22,.96,z,carSteel);
+box(carriagePlatform,3.7,.22,23,4.16,.84,-9,platformConcrete);
+box(carriagePlatform,.13,.018,23,2.23,.965,-9,platformYellow);
+for(let z=1.9;z>-20.5;z-=1.25)box(carriagePlatform,3.48,.012,.025,4.22,.96,z,carSteel);
 for(let z=-1;z>-20;z-=5.0){
- box(carriagePlatform,.36,3.1,.40,-5.45,2.43,z,platformTiles);
- box(carriagePlatform,.48,.10,.50,-5.45,4.01,z,carCream);
+ box(carriagePlatform,.36,3.1,.40,5.45,2.43,z,platformTiles);
+ box(carriagePlatform,.48,.10,.50,5.45,4.01,z,carCream);
 }
 const platformWall=new THREE.MeshStandardMaterial({color:0xd9dfd8,roughness:.86});
-box(carriagePlatform,.10,3.0,23,-6.07,2.47,-9,platformWall);
-box(carriagePlatform,.12,.20,23,-6.00,1.33,-9,new THREE.MeshBasicMaterial({color:0x448a63}));
+box(carriagePlatform,.10,3.0,23,6.07,2.47,-9,platformWall);
+box(carriagePlatform,.12,.20,23,6.00,1.33,-9,new THREE.MeshBasicMaterial({color:0x448a63}));
 // Boarding doors are on the platform side (-X) only for this route.
-for(const side of [-1])for(const dz of [-3.2,-13]){
+for(const side of [1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
  box(carriage,.06,.075,2.10,side*2.01,3.21,dz,carSteel);
  for(const half of [-1,1]){
@@ -1163,7 +1164,7 @@ for(let i=0;i<platformPassengers.length;i++){
  // path as the platform avatar; no duplicate passenger is counted.
  const outsideCopy=p.person.clone(true);
  outsideCopy.userData.walkLimbs=[];outsideCopy.userData.fineDetails=[];
- outsideCopy.position.copy(p.person.position);
+ outsideCopy.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
  outsideCopy.visible=true;
  carriagePlatform.add(outsideCopy);
  carriagePlatformAvatars.push(outsideCopy);
@@ -1230,7 +1231,7 @@ function updatePlatformPassengers(dt){
   p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
   cp.person.visible=cp.settled;
   const carriageOutside=carriagePlatformAvatars[i];
-  carriageOutside.position.copy(p.person.position);
+  carriageOutside.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
   carriageOutside.rotation.copy(p.person.rotation);
   carriageOutside.visible=p.person.visible;
   // The exterior copy disappears as its interior counterpart becomes visible.
@@ -1240,8 +1241,8 @@ function updatePlatformPassengers(dt){
    // walk down to the assigned seat. Each passenger has a different pace.
    const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
    // Malinovka's platform is on the negative-X side of the train.
-   const sideEntry=-2.02;
-   const entryZ=cp.z< -9?-13:-3.2;
+   const sideEntry=2.02;
+   const entryZ=i%2===0?-3.2:-13;
    const aisleX=cp.side*.36;
    const seatX=cp.side*(cp.slot%3===0?1.49:.70);
    const doorPhase=ease(progress/.25);
@@ -1252,7 +1253,7 @@ function updatePlatformPassengers(dt){
    const moving=progress>0&&progress<1;
    // Model faces local -Z; a passenger moving from left entrance to aisle
    // should face right (+X), not toward the camera or backward.
-   const heading=progress<.25?-Math.PI/2:
+   const heading=progress<.25?Math.PI/2:
       progress<.75?(cp.z>entryZ?Math.PI:0):
       (cp.side>0?-Math.PI/2:Math.PI/2);
    cp.person.rotation.y+=shortestTurn(cp.person.rotation.y,heading)*Math.min(1,dt*5);
@@ -1421,6 +1422,9 @@ for(const g of chunks){
  g.position.y=verticalShift-descentDepth;
 }
 platform.position.z=-dist+112;
+// The carriage window environment follows the exact same station-distance coordinate.
+// At the stop marker the local platform is aligned; on approach/departure it moves past the windows.
+carriagePlatform.position.z=-dist;
 platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
