@@ -1,8 +1,8 @@
 // Independent carriage camera: behind driver cabin, tunnel-wall corner, swipe to look around.
 export function createCarriageCameraController(THREE,camera,canvas,isActive){
  let yaw=0,pitch=0,drag=null;
- const origin=new THREE.Vector3(1.52,2.93,1.75);
- const forward=new THREE.Vector3(-2.30,-0.38,-10.8).normalize();
+ const origin=new THREE.Vector3(1.77,2.85,2.24);
+ const forward=new THREE.Vector3(-3.40,-0.35,-14.0).normalize();
  function aim(){camera.position.copy(origin);const direction=forward.clone().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);const right=new THREE.Vector3().crossVectors(direction,new THREE.Vector3(0,1,0)).normalize();direction.applyAxisAngle(right,pitch);camera.lookAt(origin.clone().add(direction));}
  function reset(){yaw=0;pitch=0;aim()}
  canvas.addEventListener('pointerdown',e=>{if(!isActive())return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);e.preventDefault()});
