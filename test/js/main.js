@@ -1095,74 +1095,72 @@ carCameraButton.addEventListener('click',()=>{
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
+const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
  platformLifeTime+=dt;
  const atPlatform=!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5;
  if(atPlatform&&doors){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
+  // Passenger timing uses actual elapsed seconds, not the rendering step capped at 50ms.
   passengerDoorTime+=dt;
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
- for(let passengerIndex=0;passengerIndex<platformPassengers.length;passengerIndex++){
-  const p=platformPassengers[passengerIndex];
-  // Both cameras must show the SAME detailed characters. In particular,
-  // do not hide faces or clothing while driving into the station: the
-  // previous 24m camera-dependent LOD made the cab view look simplified.
-  // Detail meshes are lightweight and shared by both camera renders.
-  for(const detail of p.person.userData.fineDetails)detail.visible=true;
+ for(let i=0;i<platformPassengers.length;i++){
+  const p=platformPassengers[i],cp=carriagePassengers[i];
   const active=atPlatform&&doors;
-  const actuallyExiting=index!==0&&p.exiting;
-  // At terminal Malinauka the train is empty: boarding only.
-  // Else alighting precedes boarding by several seconds.
-  const startDelay=actuallyExiting?0:(index===0?0:7.5);
+  const exiting=index!==0&&p.exiting;
+  const startDelay=exiting?0:(index===0?0:7.5);
   const elapsed=passengerDoorTime-startDelay-p.offset;
-  const walkDuration=4.5+(p.phase%3)*1.1;
-  const k=active?Math.max(0,Math.min(1,elapsed/walkDuration)):0;
-  const smooth=smoothProgress(elapsed,walkDuration);
-  const boarding=active&&!actuallyExiting&&k>0&&k<1;
-  const alighting=active&&actuallyExiting&&k>0&&k<1;
-  const walking=boarding||alighting;
-  const idleWalk=p.mode==='walk'&&!walking&&!(active&&k>=1);
-  const stroll=Math.sin(platformLifeTime*p.walkingSpeed+p.phase)*1.0;
-  const waitingX=p.homeX+(idleWalk?Math.sin(platformLifeTime*.28+p.phase)*.22:0);
-  const waitingZ=p.homeZ+(idleWalk?stroll:0);
-  const doorX=-2.56;
-  p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):active&&!actuallyExiting&&k>=1?doorX:waitingX;
-  p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):active&&!actuallyExiting&&k>=1?p.doorwayZ:waitingZ;
-  p.person.visible=!(active&&!actuallyExiting&&k>=.94)&&!carriagePassengers[passengerIndex]?.settled;
-  // As the same passenger disappears through the train doorway, their
-  // identical model appears inside and walks from the door to their place.
-  const cp=carriagePassengers[passengerIndex];
-  if(cp){
-   const boarded=active&&!actuallyExiting&&k>=.94;
-   if(boarded&&!cp.settled){cp.settled=true;people++;}
-   const progress=cp.settled?Math.min(1,Math.max(0,(elapsed-walkDuration*.94)/3.6)):0;
-   cp.person.visible=cp.settled;
+  const duration=5.8+(i%4)*.65;
+  const t=active?Math.max(0,Math.min(1,elapsed/duration)):0;
+  // 0-65%: approach the actual doorway; 65-100%: cross the threshold.
+  const approach=Math.min(1,t/.65),cross=Math.max(0,Math.min(1,(t-.65)/.35));
+  const ease=v=>v*v*(3-2*v);
+  const a=ease(approach),c=ease(cross);
+  const homeX=p.homeX,homeZ=p.homeZ,doorX=-2.56;
+  const insideX=-1.86;
+  const walking=active&&t>0&&t<1;
+  if(!exiting){
+   p.person.position.x=t<=.65?homeX+(doorX-homeX)*a:doorX+(insideX-doorX)*c;
+   p.person.position.z=homeZ+(p.doorwayZ-homeZ)*a;
+  }else{
+   p.person.position.x=t<=.65?insideX+(doorX-insideX)*a:doorX+(homeX-doorX)*c;
+   p.person.position.z=p.doorwayZ+(homeZ-p.doorwayZ)*c;
+  }
+  // Count precisely once when the passenger crosses into the train, not at animation end.
+  const crossed=active&&!exiting&&t>=.82;
+  if(crossed&&!passengerBoardingRecorded.has(i)){
+   passengerBoardingRecorded.add(i);
+   cp.settled=true;
+   people++;
+   const counter=document.querySelector('#people');
+   if(counter)counter.textContent='Пассажиры: '+people;
+  }
+  // Platform mesh stays visible throughout the doorway crossing.
+  p.person.visible=!(passengerBoardingRecorded.has(i))&&!(active&&exiting&&t>=1);
+  cp.person.visible=cp.settled;
+  if(cp.settled){
+   const insideProgress=Math.max(0,Math.min(1,(elapsed-duration*.82)/4.5));
+   const e=ease(insideProgress);
    const entryZ=cp.z< -9?-14:-5;
-   cp.person.position.set(cp.side*(-1.97+(progress*1.1)),.93,entryZ+(cp.z-entryZ)*progress);
-   if(progress>=1){
-    cp.person.position.set(cp.side*(cp.slot%4<2?1.49:.70),.93,cp.z);
-    // Some sit on the longitudinal benches; others stand by the poles.
-    if(cp.slot%3===0){cp.person.position.y=.49;cp.person.rotation.x=-.12;}
-    else cp.person.position.y=.93;
-    cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
-   }else cp.person.rotation.y=cp.side>0?Math.PI/2:-Math.PI/2;
+   const endX=cp.side*(cp.slot%4<2?1.49:.70);
+   cp.person.position.set(cp.side*(-1.97+e*1.1),.93,entryZ+(cp.z-entryZ)*e);
+   if(insideProgress>=1){
+    cp.person.position.set(endX,cp.slot%3===0?.49:.93,cp.z);
+    cp.person.rotation.x=cp.slot%3===0?-.12:0;
+   }
+   cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
   }
-  // Models face their local -Z (eyes and nose are on -Z).
-  // Turn their faces INTO the direction of travel, not towards the camera.
-  const dx=actuallyExiting?waitingX-doorX:doorX-waitingX;
-  const dz=actuallyExiting?waitingZ-p.doorwayZ:p.doorwayZ-waitingZ;
-  const targetHeading=walking?facingDirection(dx,dz):
-    idleWalk?(Math.cos(platformLifeTime*p.walkingSpeed+p.phase)>=0?Math.PI:0):
-    p.mode==='talk'?p.heading+Math.sin(platformLifeTime*.7+p.phase)*.12:p.heading;
-  // Shortest-angle smooth turn: no snapping around or moonwalking.
-  const turn=shortestTurn(p.person.rotation.y,targetHeading);
-  p.person.rotation.y+=turn*Math.min(1,dt*(walking?5:1.9));
-  const stride=walking?Math.sin(platformLifeTime*9+p.phase)*.33:idleWalk?Math.sin(platformLifeTime*3+p.phase)*.17:0;
+  // Face along the actual walking vector; add gait, slight head/body bob and arm swing.
+  const dx=exiting?homeX-insideX:insideX-homeX;
+  const dz=exiting?homeZ-p.doorwayZ:p.doorwayZ-homeZ;
+  const heading=walking?facingDirection(dx,dz):p.heading+Math.sin(platformLifeTime*.5+p.phase)*.12;
+  p.person.rotation.y+=shortestTurn(p.person.rotation.y,heading)*Math.min(1,dt*4);
+  const gait=walking?Math.sin(platformLifeTime*10.5+p.phase):0;
+  p.person.position.y=.78+(walking?Math.abs(gait)*.035:Math.sin(platformLifeTime*1.2+p.phase)*.006);
+  p.person.rotation.z=walking?Math.sin(platformLifeTime*5+p.phase)*.018:0;
   for(const limb of p.person.userData.walkLimbs){
-   const gesture=p.conversation&&!walking&&limb.kind==='arm'?Math.sin(platformLifeTime*1.9+p.phase)*.16:0;
-   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*stride+gesture;
+   limb.mesh.rotation.x=(limb.kind==='leg'?1:-1)*limb.side*gait*(walking?.37:.018);
   }
-  p.person.rotation.z=walking?Math.sin(platformLifeTime*9+p.phase)*.017:Math.sin(platformLifeTime*.9+p.phase)*.008;
  }
 }
 // Platform signage and benches.
@@ -1290,6 +1288,7 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
  stationServiced=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
+ passengerBoardingRecorded.clear();for(const cp of carriagePassengers){cp.settled=false;cp.person.visible=false;}
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();
  status.textContent='Следующая станция — '+names[index];
@@ -1327,7 +1326,7 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  if(stationVisible>0){scene.fog.far=THREE.MathUtils.lerp(scene.fog.far,165,stationVisible);}
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
- updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);
+ updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
 animateCarriageDoors(carSlidingDoorLeaves,doors);
 animateDoorLeaves(stationDoorLeaves,doors);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=canUseStationCamera?'block':'none';
