@@ -1003,7 +1003,7 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
-carriageCamera.position.set(1.45,3.16,1.75);
+carriageCamera.position.set(-1.42,3.12,1.72);
 let carriageYaw=0,carriagePitch=0;
 function aimCarriageCamera(){carriageCamera.position.set(1.45,3.16,1.75);carriageCamera.lookAt(new THREE.Vector3(-.25,1.65,-10.5))}
 aimCarriageCamera();
@@ -1144,7 +1144,7 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){aimCarriageCamera();}
+ if(carCameraActive){carriageYaw=0;carriagePitch=0;aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
@@ -1193,6 +1193,7 @@ function updatePlatformPassengers(dt){
    // First step through the carriage door, then turn into the aisle and
    // walk down to the assigned seat. Each passenger has a different pace.
    const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
+   // Malinovka's platform is on the negative-X side of the train.
    const sideEntry=-1.94;
    const entryZ=cp.z< -9?-13:-3.2;
    const aisleX=cp.side*.36;
@@ -1285,7 +1286,9 @@ stationCanvas.addEventListener('pointerdown',e=>{
 });
 stationCanvas.addEventListener('pointermove',e=>{
  if(!carCameraActive||!carDrag||carDrag.id!==e.pointerId)return;
- carDrag.x=e.clientX;carDrag.y=e.clientY;e.preventDefault();
+ carriageYaw=THREE.MathUtils.clamp(carriageYaw+(carDrag.x-e.clientX)*.004,-1.35,1.35);
+ carriagePitch=THREE.MathUtils.clamp(carriagePitch+(e.clientY-carDrag.y)*.003,-.72,.55);
+ carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
 });
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
