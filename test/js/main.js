@@ -470,8 +470,9 @@ function pressInfo(){
 function setCabDoors(open){
  if(doors===open)return;
  if(open){
-  if(speed>=.5){reportDriverError('открытие дверей до полной остановки');return;}
-  if(Math.abs(dist)>3){reportDriverError('неточная остановка: до знака '+Math.abs(dist).toFixed(1)+' м (допуск ±3 м)');return;}
+  if(stationSkipped||dist < -stopTolerance){markStationSkipped();showStopWarning('СТАНЦИЯ ПРОПУЩЕНА — открытие дверей запрещено',true);return;}
+  if(speed>=.5){showStopWarning('ОШИБКА: поезд ещё движется — двери заблокированы');return;}
+  if(dist>stopTolerance){showStopWarning('НЕ ДОЕХАЛИ ДО ЗНАКА: '+dist.toFixed(1)+' м. Подъедьте ближе (допуск ±1 м)');return;}
  }
  initMetroAudio();metroChime(open);
  if(!open&&Math.abs(dist)<32){
@@ -485,7 +486,7 @@ function setCabDoors(open){
  }
  if(!status.textContent.startsWith('⚠'))status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
- if(doors&&Math.abs(dist)<=3&&speed<.5){stationServiced=true;overrunReported=false;}
+ if(doors&&!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5){stationServiced=true;overrunReported=false;stopWarning.style.display='none';}
  if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(stationServiced)status.textContent='Двери закрыты — отправляйтесь в тоннель';}
  updateCabDisplay(speed);
  // Do not interrupt the active departure announcement with door TTS.
@@ -1095,7 +1096,7 @@ carCameraButton.addEventListener('click',()=>{
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 function updatePlatformPassengers(dt){
  platformLifeTime+=dt;
- const atPlatform=Math.abs(dist)<32&&speed<1.5;
+ const atPlatform=!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5;
  if(atPlatform&&doors){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
   passengerDoorTime+=dt;
@@ -1169,8 +1170,23 @@ const names=['Малиновка','Петровщина','Михалово','Г�
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
-const interstationDistance=1250,platformExitDistance=-195,stopOverrunLimit=-24;
-let stationServiced=false,overrunReported=false;
+const interstationDistance=1250,platformExitDistance=-195,stopTolerance=1;
+let stationServiced=false,overrunReported=false,stationSkipped=false;
+const stopWarning=document.createElement('div');
+stopWarning.id='stationStopWarning';
+Object.assign(stopWarning.style,{position:'fixed',top:'12%',left:'50%',transform:'translateX(-50%)',zIndex:'10000',maxWidth:'92vw',padding:'12px 18px',border:'3px solid #ff3030',borderRadius:'10px',background:'rgba(55,0,0,.94)',color:'#fff',font:'bold 19px Arial,sans-serif',textAlign:'center',boxShadow:'0 0 22px #f00',pointerEvents:'none',display:'none'});
+document.body.appendChild(stopWarning);
+function showStopWarning(message,permanent=false){
+ stopWarning.textContent='⛔ '+message;
+ stopWarning.style.display='block';
+ if(!permanent){clearTimeout(showStopWarning.timer);showStopWarning.timer=setTimeout(()=>{if(!stationSkipped)stopWarning.style.display='none';},4500);}
+}
+function markStationSkipped(){
+ if(stationSkipped||stationServiced)return;
+ stationSkipped=true;overrunReported=true;
+ reportDriverError('грубое нарушение: проезд знака остановки более чем на 1 метр, станция пропущена');
+ showStopWarning('ГРУБАЯ ОШИБКА! СТАНЦИЯ ПРОПУЩЕНА. ДВЕРИ ЗАБЛОКИРОВАНЫ. СЛЕДУЙТЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
+}
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
 const stationCanvas=document.querySelector('#scene');let stationDrag=null,carDrag=null;
@@ -1229,28 +1245,31 @@ function metroChime(open){/* No synthesized door noise. Add a real door file lat
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){playing=true;try{initMetroAudio()}catch(e){console.warn('Metro audio unavailable:',e)}}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
 const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');function setMaster(e){const r=masterTrack.getBoundingClientRect();const relative=(e.clientY-r.top)/r.height;lever=Math.max(-1,Math.min(1,(.5-relative)*2));masterHandle.style.top=(50-lever*43)+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
-document.querySelector('#doors')?.addEventListener('click',()=>{if(speed>1){status.textContent='Сначала останови поезд!';return}if(Math.abs(dist)>32){status.textContent='До платформы ещё далеко';return}if(!doors){doors=true;lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';people+=15+Math.floor(Math.random()*25);status.textContent='Пассажиры входят';speak('Станция '+names[index%names.length]+'. Осторожно, двери открываются.')}else{doors=false;departureTimes[index%departureTimes.length]=Date.now();index++;dist=850;paintSign();status.textContent='Двери закрыты';speak('Осторожно, двери закрываются. Следующая станция '+names[index%names.length])}});
+// HUD door button uses the same validation, animation and passenger logic as cab buttons.
+document.querySelector('#doors')?.addEventListener('click',()=>setCabDoors(!doors));
 let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
 function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight)}addEventListener('resize',resize);
 function frame(now){requestAnimationFrame(frame);try{const elapsed=Math.max(0,Math.min(.25,(now-last)/1000));const dt=Math.min(.05,elapsed);last=now;animateCabButtons(dt);if(playing){// Keep physics on real elapsed time even when phone renders below 20 FPS.
-if(doors&&lever>.015){lever=0;masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';reportDriverError('попытка отправления с открытыми дверями');}
+if(doors){
+ if(lever>.015){reportDriverError('попытка отправления с открытыми дверями');}
+ lever=0;speed=0;
+ masterHandle.style.top='50%';masterValue.textContent='НЕЙТРАЛЬ · 0%';
+}
 for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.05,remaining);speed=stepTrainMotion(speed,lever,step);remaining-=step;}
 let move=speed/3.6*elapsed*1.22;
 // The stop marker is at dist=0. Before passenger service, the cab may
 // overshoot by 24 m; the safety limiter then stops the train and records
 // exactly one driver error. After servicing, the train may depart freely.
-if(!stationServiced&&dist-move<stopOverrunLimit){
- move=Math.max(0,dist-stopOverrunLimit);
- speed=0;lever=0;
- if(!overrunReported){overrunReported=true;reportDriverError('проезд ограничителя остановки на станции '+names[index]);}
-}
+// Passing more than 1 m beyond the marker permanently skips this station.
+// Do not stop the train artificially: the driver must continue to the next station.
+if(!stationServiced&&!stationSkipped&&dist-move < -stopTolerance)markStationSkipped();
 updateMetroAudio(speed,lever);dist-=move;
-if(stationServiced&&dist<platformExitDistance&&index<names.length-1){
+if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.length-1){
  // No camera/train teleport: only the NEXT platform is repositioned
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
- stationServiced=false;overrunReported=false;
+ stationServiced=false;overrunReported=false;stationSkipped=false;stopWarning.style.display='none';
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();
  status.textContent='Следующая станция — '+names[index];
@@ -1290,7 +1309,7 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
  updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(dt);
 animateCarriageDoors(carSlidingDoorLeaves,doors);
-animateDoorLeaves(stationDoorLeaves,doors);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<8&&speed<1&&!doors&&!stationServiced&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+animateDoorLeaves(stationDoorLeaves,doors);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=canUseStationCamera?'block':'none';
 if(!canUseStationCamera&&stationCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
 if(stationCameraActive){
