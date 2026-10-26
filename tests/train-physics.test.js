@@ -6,17 +6,17 @@ const simulate=(speed,lever,seconds)=>{
   for(let t=0;t<seconds-1e-9;t+=.05)v=stepTrainMotion(v,lever,Math.min(.05,seconds-t));
   return v;
 };
-test('full traction accelerates twice as fast as previous tune',()=>{
-  assert.ok(Math.abs(simulate(0,1,10)-45)<.001);
-  assert.equal(simulate(0,1,20),90);
+test('full traction reaches 90 km/h in about 13 seconds',()=>{
+  assert.ok(simulate(0,1,12.5)<90);
+  assert.ok(Math.abs(simulate(0,1,13)-90)<.001);
 });
-test('full brake stops 90 km/h in about 10 seconds',()=>{
-  assert.ok(simulate(90,-1,9.5)>0);
-  assert.ok(simulate(90,-1,10)<.001);
+test('full brake stops 90 km/h in about 8.33 seconds',()=>{
+  assert.ok(simulate(90,-1,8.3)>0);
+  assert.ok(simulate(90,-1,8.35)<.001);
 });
-test('full brake stops 60 km/h proportionally in about 6.67 seconds',()=>{
-  assert.ok(simulate(60,-1,6.5)>0);
-  assert.ok(simulate(60,-1,6.7)<.001);
+test('full brake stops 60 km/h proportionally in about 5.56 seconds',()=>{
+  assert.ok(simulate(60,-1,5.5)>0);
+  assert.ok(simulate(60,-1,5.6)<.001);
 });
 test('partial brake is weaker than full brake',()=>assert.ok(simulate(60,-.5,5)>simulate(60,-1,5)));
 test('neutral coasts for at least one minute',()=>assert.ok(simulate(60,0,60)>55));
