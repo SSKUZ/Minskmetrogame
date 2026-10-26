@@ -473,7 +473,7 @@ function setCabDoors(open){
  if(open){
   if(stationSkipped||dist < -stopTolerance){markStationSkipped();if(stopWarning.style.display!=='none')showStopWarning('ГРУБАЯ ОШИБКА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ',true);return;}
   if(speed>=.5){showStopWarning('ОШИБКА МАШИНИСТА: поезд ещё движется — двери заблокированы');return;}
-  if(dist>stopTolerance){reportDriverError('попытка открыть двери до знака остановки');showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
+  if(dist>stopTolerance){if(!shortStopErrorRecorded){shortStopErrorRecorded=true;reportDriverError('попытка открыть двери до знака остановки');}showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
  }
  initMetroAudio();metroChime(open);
  if(!open&&Math.abs(dist)<32){
@@ -1173,6 +1173,9 @@ const previewMode=new URLSearchParams(location.search).get('preview');
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
 const interstationDistance=1250,platformExitDistance=-195,stopTolerance=3;
 let stationServiced=false,overrunReported=false,stationSkipped=false,skipDepartureSeconds=0;
+// A short-stop door violation is counted once per stationary episode.
+// Moving forward starts a new episode, even at the same station.
+let shortStopErrorRecorded=false;
 // Deduplicate only within one station; every new station can generate a new serious error.
 const stationsWithRecordedOverrun=new Set();
 const stopWarning=document.createElement('div');
@@ -1266,6 +1269,8 @@ if(doors){
 }
 for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.05,remaining);speed=stepTrainMotion(speed,lever,step);remaining-=step;}
 let move=speed/3.6*elapsed*1.22;
+ // Reset only after the train actually moves; repeated button presses while stopped do not count.
+ if(move>0.001&&speed>.5)shortStopErrorRecorded=false;
 // The stop marker is at dist=0. Before passenger service, the cab may
 // overshoot by 24 m; the safety limiter then stops the train and records
 // exactly one driver error. After servicing, the train may depart freely.
@@ -1283,7 +1288,7 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  // No camera/train teleport: only the NEXT platform is repositioned
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
- stationServiced=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;stopWarning.style.display='none';
+ stationServiced=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;stopWarning.style.display='none';
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();
  status.textContent='Следующая станция — '+names[index];
