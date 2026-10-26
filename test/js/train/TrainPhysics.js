@@ -1,6 +1,6 @@
 // Frame-rate-independent longitudinal train physics (speed in km/h, dt in seconds).
-// Full traction: 4.5 km/h/s (twice the previous 2.25).
-// Full service brake: 9 km/h/s (90 km/h to zero in 10 seconds).
+// Full traction: 90/13 km/h/s (0 to 90 in about 13 seconds).
+// Full service brake: 10.8 km/h/s (20% stronger; 90 to zero in about 8.33 seconds).
 // Neutral retains the existing long, gentle coast.
 export function stepTrainMotion(speed, lever, dt) {
   const v = Math.max(0, Math.min(90, Number(speed) || 0));
@@ -14,11 +14,11 @@ export function stepTrainMotion(speed, lever, dt) {
       u > .5 ? 60 + (u - .5) / .35 * 30 :
       120 * u;
     // Double traction; never overshoot the selected speed.
-    rate = v < target ? Math.min(4.5 * u, (target - v) / seconds) :
+    rate = v < target ? Math.min((90 / 13) * u, (target - v) / seconds) :
       -Math.min(.16, (v - target) / seconds);
   } else if (u < -.015) {
-    // Brake force proportional to handle position; full brake = 9 km/h/s.
-    rate = -9 * (-u);
+    // Brake force proportional to handle position; full brake = 10.8 km/h/s.
+    rate = -10.8 * (-u);
   } else {
     rate = -(0.045 + 0.000016 * v * v);
   }
