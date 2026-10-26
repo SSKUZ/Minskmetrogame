@@ -1,3 +1,4 @@
+import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
 import {createPassengerModelFactory} from './passengers/PassengerModels.js';
 import {buildCarriageDoors} from './carriage/CarriageDoors.js';
@@ -716,9 +717,7 @@ addSignal(chunks[2],-17,true);addSignal(chunks[5],-19,false);addSignal(chunks[7]
 // Continuous rail approach fills the seam between the arched tunnel and the station hall.
 const approachRailBed=mat(0x292d30);
 const platform=new THREE.Group();scene.add(platform);
-box(platform,6.4,.3,48,0,-.30,29,approachRailBed);
-for(const x of [-1.15,1.15])box(platform,.12,.16,48,x,.05,29,rail);
-for(let j=0;j<24;j++)box(platform,3.3,.10,.24,0,-.06,6+j*2,wood);
+buildPlatformApproach({platform,box,approachRailBed,rail,wood});
 // Visible cab stopping marker: local z=-112 aligns with the cab at dist=0, at the tunnel-side end.
 const stopMarkerMat=new THREE.MeshBasicMaterial({color:0xffdf35});
 box(platform,5.5,.06,.22,0,.12,-112,stopMarkerMat);
@@ -1046,9 +1045,7 @@ function updatePlatformPassengers(dt){
  const next=updatePassengerMovement(dt,{platformLifeTime,passengerDoorTime,passengerExchangeStarted,stationSkipped,dist,stopTolerance,speed,doors,stationDoorCycleCompleted,platformPassengers,carriagePassengers,index,passengerBoardingRecorded,carriagePlatformAvatars,people,shortestTurn,facingDirection});
  platformLifeTime=next.platformLifeTime;passengerDoorTime=next.passengerDoorTime;passengerExchangeStarted=next.passengerExchangeStarted;people=next.people;
 }
-// Platform signage and benches.
-for(let i=0;i<6;i++){box(platform,1.6,.12,.55,-4.85,.85,-8-i*18,wood);box(platform,.1,.8,.1,-5.45,.43,-8-i*18,steel);box(platform,.1,.8,.1,-4.3,.43,-8-i*18,steel)}
-const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=128;const sc=signCanvas.getContext('2d');const texture=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.75),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));sign.rotation.y=Math.PI/2;sign.position.set(-4.7,5.5,-15);platform.add(sign);
+const {signCanvas,sc,texture,sign}=buildPlatformFurniture({THREE,platform,box,wood,steel});
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
