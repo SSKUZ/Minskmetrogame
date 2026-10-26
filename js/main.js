@@ -1102,7 +1102,8 @@ function updatePlatformPassengers(dt){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
   passengerDoorTime+=dt;
  }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
- for(const p of platformPassengers){
+ for(let passengerIndex=0;passengerIndex<platformPassengers.length;passengerIndex++){
+  const p=platformPassengers[passengerIndex];
   // Both cameras must show the SAME detailed characters. In particular,
   // do not hide faces or clothing while driving into the station: the
   // previous 24m camera-dependent LOD made the cab view look simplified.
@@ -1125,15 +1126,15 @@ function updatePlatformPassengers(dt){
   const waitingX=p.homeX+(idleWalk?Math.sin(platformLifeTime*.28+p.phase)*.22:0);
   const waitingZ=p.homeZ+(idleWalk?stroll:0);
   const doorX=-2.56;
-  p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):waitingX;
-  p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):waitingZ;
-  p.person.visible=!(active&&!actuallyExiting&&k>=.94)&&!carriagePassengers[platformPassengers.indexOf(p)]?.settled;
+  p.person.position.x=walking?(actuallyExiting?doorX+(waitingX-doorX)*smooth:waitingX+(doorX-waitingX)*smooth):active&&!actuallyExiting&&k>=1?doorX:waitingX;
+  p.person.position.z=walking?(actuallyExiting?p.doorwayZ+(waitingZ-p.doorwayZ)*smooth:waitingZ+(p.doorwayZ-waitingZ)*smooth):active&&!actuallyExiting&&k>=1?p.doorwayZ:waitingZ;
+  p.person.visible=!(active&&!actuallyExiting&&k>=.94)&&!carriagePassengers[passengerIndex]?.settled;
   // As the same passenger disappears through the train doorway, their
   // identical model appears inside and walks from the door to their place.
-  const cp=carriagePassengers[platformPassengers.indexOf(p)];
+  const cp=carriagePassengers[passengerIndex];
   if(cp){
    const boarded=active&&!actuallyExiting&&k>=.94;
-   if(boarded)cp.settled=true;
+   if(boarded&&!cp.settled){cp.settled=true;people++;}
    const progress=cp.settled?Math.min(1,Math.max(0,(elapsed-walkDuration*.94)/3.6)):0;
    cp.person.visible=cp.settled;
    const entryZ=cp.z< -9?-14:-5;
