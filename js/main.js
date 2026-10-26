@@ -1,3 +1,10 @@
+import {buildCarriageDoors} from './carriage/CarriageDoors.js';
+import {buildCarriageInterior} from './carriage/CarriageInterior.js';
+import {createCabDisplayUpdater} from './cab/CabDisplay.js';
+import {smoothstep01,trackDrop as calculateTrackDrop} from './world/TrackProfile.js';
+import {animateCabButtons as animateButtons} from './cab/CabButtons.js';
+import {box as createBox} from './graphics/Geometry.js';
+import {createMaterial} from './graphics/Materials.js';
 import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-lookat-world-v35';
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
@@ -8,8 +15,8 @@ import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passeng
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:false,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x11161a);scene.fog=new THREE.Fog(0x11161a,45,190);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);const stationCamera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.16));const headlights=[];for(const side of [-1,1]){const beam=new THREE.SpotLight(0xf0f6ff,185,88,Math.PI/9,.34,1.4);beam.position.set(side*1.02,1.48,1.0);beam.target.position.set(side*1.55,1.65,-37);scene.add(beam,beam.target);headlights.push(beam)}const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
-const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:metal}),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
-function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
+const mat=(c,metal=0)=>createMaterial(THREE,c,metal),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
+const box=(...args)=>createBox(THREE,...args);
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
 const cab=new THREE.Group();cab.scale.set(.73,.95,.88);cab.position.z=-.20;scene.add(cab);
@@ -233,33 +240,8 @@ const displayCtx=displayCanvas.getContext('2d');const displayTexture=new THREE.C
 const speedPlate=new THREE.Mesh(new THREE.PlaneGeometry(1.18,.58),new THREE.MeshBasicMaterial({map:displayTexture,side:THREE.DoubleSide}));
 speedPlate.position.set(0,.115,0);speedPlate.rotation.x=-Math.PI/2;midCabScreen.add(speedPlate);
 // Integrated speed and schematic train-door monitor on the same LCD.
-let lastCabSpeed=-1,lastCabDoors=null;
-function updateCabDisplay(v){
- const n=Math.round(v),open=typeof doors!=='undefined'&&doors;
- if(n===lastCabSpeed&&open===lastCabDoors)return;
- lastCabSpeed=n;lastCabDoors=open;
- const c=displayCtx;c.fillStyle='#091e30';c.fillRect(0,0,512,256);
- c.fillStyle='#81d9e9';c.textAlign='center';c.font='bold 106px monospace';c.fillText(String(n),135,130);
- c.font='bold 27px Arial';c.fillText('км/ч',135,172);
- // Train diagram: two cars with four visible side doors.
- c.strokeStyle='#8aa6b5';c.lineWidth=5;c.beginPath();c.roundRect(269,44,224,112,16);c.stroke();
- c.fillStyle='#243f53';c.fillRect(282,54,198,89);
- for(let i=0;i<4;i++){
-  const x=291+i*47;
-  c.fillStyle=open?'#e7a84a':'#31d48c';
-  if(open){
-   c.fillRect(x,82,13,54);c.fillRect(x+24,82,13,54);
-   c.strokeStyle='#f8d09a';c.lineWidth=3;c.strokeRect(x+13,82,11,54);
-  }else{
-   c.fillRect(x+8,82,24,54);c.strokeStyle='#174f45';c.lineWidth=2;
-   c.beginPath();c.moveTo(x+20,83);c.lineTo(x+20,135);c.stroke();
-  }
- }
- c.fillStyle=open?'#ffb44e':'#56e3a5';c.font='bold 24px Arial';c.fillText(open?'ДВЕРИ ОТКРЫТЫ':'ДВЕРИ ЗАКРЫТЫ',375,195);
- c.fillStyle=open?'#a75327':'#15553c';c.fillRect(265,214,230,24);
- c.fillStyle='#ffffff';c.font='bold 17px Arial';c.fillText(open?'ВНИМАНИЕ':'НОРМА',380,232);
- displayTexture.needsUpdate=true;
-}
+const renderCabDisplay=createCabDisplayUpdater(displayCtx,displayTexture);
+function updateCabDisplay(v){renderCabDisplay(v,typeof doors!=='undefined'&&doors)}
 // Hundreds of distinct switches, lamps and keypads in banks.
 for(let row=0;row<4;row++)for(let col=0;col<12;col++){const x=-2.62+col*.46,z=.38+row*.19;
 if(row<3 && ((x>.35&&x<1.65)||(x>-1.55&&x<-.7)))continue;
@@ -356,15 +338,7 @@ const closeControl=deskButton(1.23,.39,'ЗАКР','#9c4942','close');
 // Deep, spring-like travel with smooth movement every animation frame.
 const cabButtons=[infoControl,openControl,closeControl];
 function syncDoorButtons(){openControl.target=doors?1:0;closeControl.target=doors?0:1}
-function animateCabButtons(dt){
- for(const b of cabButtons){
- b.press+=(b.target-b.press)*Math.min(1,dt*15);
- // Raised 0.23 above the mounting plate; depressed nearly flush.
- b.cap.position.y=.20-b.press*.13;
- b.face.position.y=.253-b.press*.13;
- b.cap.material.emissive.setHex(b.press>.8?0x112c28:0x000000);
- }
-}
+const animateCabButtons=(dt)=>animateButtons(cabButtons,dt);
 // Departure announcements are triggered by the EXISTING INFO switch.
 const departureAudio=new Audio();
 departureAudio.preload='auto';
@@ -690,8 +664,7 @@ function animateDepotWorkers(time){
 // Smooth track grade: flat depot -> descending cutting -> level underground.
 const descentStart=135,descentEnd=270,descentDepth=11;
 // The depot-to-tunnel transition must never be hidden by near-black fog.
-function smoothstep01(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
-function trackDrop(distance){return descentDepth*smoothstep01((distance-descentStart)/(descentEnd-descentStart))}
+const trackDrop=(distance)=>calculateTrackDrop(distance,descentDepth,descentStart,descentEnd);
 const ramp=new THREE.Group();depot.add(ramp);
 const retaining=mat(0x85888a),portalDark=new THREE.MeshBasicMaterial({color:0x06090e});
 for(let j=0;j<35;j++){
@@ -1011,93 +984,7 @@ const carriage=new THREE.Group();
 scene.add(carriage);
 carriage.add(carriageCamera);
 carriage.position.set(0,0,22.2);
-const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
-const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
-const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
-const carSeat=new THREE.MeshStandardMaterial({color:0x302c31,roughness:.83});
-const carSteel=new THREE.MeshStandardMaterial({color:0xb4bdc2,metalness:.78,roughness:.22});
-const carBlack=new THREE.MeshStandardMaterial({color:0x222c34,roughness:.86});
-const carDoor=new THREE.MeshStandardMaterial({color:0xe0e2e2,roughness:.5});
-const carGlass=new THREE.MeshPhysicalMaterial({color:0x5088ad,transparent:true,opacity:.16,roughness:.10,depthWrite:false,side:THREE.DoubleSide});
-const carLight=new THREE.MeshBasicMaterial({color:0xfffdf1});
-function carriageRail(points,r=.025){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));carriage.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,r,8,false),carSteel))}
-box(carriage,4.14,.12,23,0,.88,-9,carFloor);
-box(carriage,4.15,.12,23,0,3.65,-9,carCream);
-// Continuous illuminated ceiling panels, as in the reference metro car.
-for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
-for(const side of [-1,1]){
- // Segment the platform-side wall so doors are genuine openings, not panels sliding over a solid wall.
- const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
- for(const [front,back] of wallRanges){
-  const length=front-back,center=(front+back)/2;
-  box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
-  box(carriage,.12,.55,length,side*2.07,3.39,center,carWhite);
-  box(carriage,.12,.09,length,side*2.07,1.94,center,carCream);
-  box(carriage,.12,.09,length,side*2.07,3.08,center,carCream);
- }
- for(let j=0;j<8;j++){
-  const z=1.1-j*2.75;
-  // Do not place a solid window, glazing or seating across the door openings.
-  if(side===-1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
-  box(carriage,.026,.06,2.22,side*2.01,3.04,z,carBlack);
-  box(carriage,.026,.06,2.22,side*2.01,1.99,z,carBlack);
-  for(const edge of [-1,1])box(carriage,.027,1.08,.065,side*2.01,2.52,z+edge*1.08,carBlack);
-  box(carriage,.012,1.0,2.08,side*2.00,2.52,z,carGlass);
-  box(carriage,.76,.16,2.32,side*1.58,1.34,z,carWhite);
-  for(let k=0;k<4;k++){
-   const zz=z+(k-1.5)*.54;
-   box(carriage,.63,.13,.49,side*1.57,1.46,zz,carSeat);
-   box(carriage,.60,.014,.46,side*1.57,1.535,zz,new THREE.MeshStandardMaterial({color:0x343036,roughness:.88}));
-   box(carriage,.13,.62,.49,side*1.94,1.79,zz,carSeat);
-  }
-  carriageRail([[side*1.18,1.03,z+1.18],[side*1.18,2.90,z+1.18],[side*1.27,3.22,z+.94],[side*1.52,3.40,z+.75]]);
-  for(const edge of [-1,1])carriageRail([[side*1.16,1.34,z+edge*1.13],[side*1.16,1.75,z+edge*1.13],[side*1.65,1.82,z+edge*1.13]],.020);
- }
- carriageRail([[side*1.45,3.36,2.1],[side*1.45,3.36,-20.3]],.032);
- // Reference-style horizontal grab bar above the windows.
- carriageRail([[side*1.95,3.08,2.1],[side*1.95,3.08,-20.3]],.027);
- box(carriage,.24,.34,23,side*1.92,3.35,-9,carCream);
- box(carriage,.21,.05,21.9,side*1.52,3.54,-9,carSteel);
- box(carriage,.14,.025,21.6,side*1.52,3.51,-9,carLight);
-}
-for(let z=2;z>-20;z-=.33)box(carriage,2.35,.007,.014,0,3.58,z,carSteel);
-for(let z=1.4;z>-20;z-=2.75)box(carriage,4.02,.045,.06,0,3.54,z,carCream);
-box(carriage,4.04,2.70,.13,0,2.26,-20.43,carWhite);
-box(carriage,1.17,2.25,.14,0,2.22,-20.32,carSteel);
-box(carriage,1.03,2.13,.15,0,2.20,-20.23,carCream);
-box(carriage,.49,.95,.018,0,2.48,-20.14,carGlass);
-box(carriage,1.93,.31,.17,0,3.10,-9,carWhite);
-box(carriage,1.75,.18,.019,0,3.11,-8.90,new THREE.MeshBasicMaterial({color:0x24412a}));
-// Warm lighting and repeated overhead information strips.
-for(let z=.4;z>-20;z-=4.6){
- const panel=new THREE.MeshBasicMaterial({color:0x263348});
- box(carriage,.022,.24,1.85,-2.005,3.32,z,panel);
- box(carriage,.022,.24,1.85,2.005,3.32,z,panel);
-}
-// Station display and advertising cards are real geometry, not HUD overlays.
-const stationDisplayCanvas=document.createElement('canvas');stationDisplayCanvas.width=1024;stationDisplayCanvas.height=256;
-const stationDisplayCtx=stationDisplayCanvas.getContext('2d');
-const stationDisplayTexture=new THREE.CanvasTexture(stationDisplayCanvas);
-const stationDisplayMat=new THREE.MeshBasicMaterial({map:stationDisplayTexture,side:THREE.DoubleSide});
-function updateCarriageStationDisplay(){
- const ctx=stationDisplayCtx;ctx.fillStyle='#122433';ctx.fillRect(0,0,1024,256);
- ctx.fillStyle='#39b6e5';ctx.fillRect(0,0,1024,12);
- ctx.font='bold 54px Arial';ctx.fillStyle='#fff';ctx.fillText('СТАНЦИЯ / СТАНЦЫЯ',45,83);
- ctx.font='bold 76px Arial';ctx.fillStyle='#fff';ctx.fillText(names[index%names.length]||'Малиновка',45,187);
- stationDisplayTexture.needsUpdate=true;
-}
-const stationScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.86,.47),stationDisplayMat);
-stationScreen.position.set(0,3.24,-9);stationScreen.rotation.x=-.36;carriage.add(stationScreen);
-const advertColors=['#e4f1f3','#f4e8dc','#e7edff','#ecf4e4'];
-for(const side of [-1,1])for(let j=0;j<7;j++){
- const cv=document.createElement('canvas');cv.width=512;cv.height=256;const ctx=cv.getContext('2d');
- ctx.fillStyle=advertColors[(j+(side+1)/2)%advertColors.length];ctx.fillRect(0,0,512,256);
- ctx.fillStyle='#183e57';ctx.font='bold 44px Arial';ctx.fillText(['МИНСК','ГОРОД РЯДОМ','МЕТРО','ДОБРОГО ПУТИ'][j%4],25,100);
- ctx.font='29px Arial';ctx.fillText('Информация для пассажиров',25,162);
- const tex=new THREE.CanvasTexture(cv);const mat=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
- const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.62),mat);
- ad.position.set(side*1.995,3.20,1-j*3.05);ad.rotation.y=side>0?-Math.PI/2:Math.PI/2;carriage.add(ad);
-}
+const {updateCarriageStationDisplay,materials:{carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}}=buildCarriageInterior({THREE,carriage,box,getStationName:()=>names[index%names.length]});
 const carSlidingDoorLeaves=[];
 // Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
 // Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
@@ -1143,25 +1030,7 @@ for(let z=2;z>-120;z-=8){
  box(carriagePlatform,5.0,.16,.27,4.4,4.16,z,carCream);
  box(carriagePlatform,3.2,.035,.19,4.1,4.05,z,carLight);
 }
-// Boarding doors are on the platform side (-X) only for this route.
-for(const side of [-1])for(const dz of [-3.2,-13]){
- for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
- box(carriage,.06,.075,2.10,side*2.01,3.21,dz,carSteel);
- for(const half of [-1,1]){
-  const leaf=new THREE.Group();carriage.add(leaf);
-  box(leaf,.07,.66,.97,side*2.01,1.37,0,carDoor);
-  // Aluminium edging and inset lower-panel relief on each sliding leaf.
-  box(leaf,.014,.55,.80,side*1.96,1.39,0,carCream);
-  for(const edgeZ of [-.46,.46])box(leaf,.085,2.13,.028,side*2.01,2.11,edgeZ,carSteel);
-  box(leaf,.07,.49,.97,side*2.01,2.96,0,carDoor);
-  box(leaf,.07,.90,.075,side*2.01,2.28,half*.45,carDoor);
-  box(leaf,.018,.84,.83,side*2.00,2.28,0,carGlass);
-  for(const y of [1.86,2.70])box(leaf,.024,.025,.85,side*1.975,y,0,carSteel);
-  for(const z of [-.41,.41])box(leaf,.024,.83,.026,side*1.975,2.28,z,carSteel);
-  box(leaf,.022,.13,.13,side*1.96,1.71,half*.32,carSteel);
-  const leafZ=dz+half*.51;leaf.position.z=leafZ;carSlidingDoorLeaves.push({leaf,leafZ,half});
- }
-}
+const carSlidingDoorLeaves=buildCarriageDoors({THREE,carriage,box,carSteel,carDoor,carCream,carGlass});
 const carriagePassengers=[];
 const platformPassengers=[];
 const carriagePlatformAvatars=[];
