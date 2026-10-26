@@ -1162,7 +1162,8 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
  stationServiced=false;stationDoorCycleCompleted=false;stationDoorReopenPenalty=false;passengerExchangeStarted=false;passengerDoorTime=0;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
- passengerBoardingRecorded.clear();for(const cp of carriagePassengers){cp.settled=false;cp.person.visible=false;}
+ // Keep onboard passengers visible between stations; reset only station-specific boarding state.
+ passengerBoardingRecorded.clear();for(const cp of carriagePassengers){cp.person.visible=cp.settled;}
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();updateCarriageStationDisplay();
  status.textContent='Следующая станция — '+names[index];
