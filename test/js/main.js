@@ -1,7 +1,7 @@
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
-import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js';
+import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js?v=20261026-smooth-v16';
 import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passengers/PassengerMotion.js';
 
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
@@ -468,6 +468,7 @@ function pressInfo(){
   else syntheticAnnouncement(parts);
  }else status.textContent='INFO: откройте двери для объявления об отправлении';
 }
+let stationDoorCycleCompleted=false,stationDoorReopenPenalty=false;
 function setCabDoors(open){
  if(doors===open)return;
  if(open){
@@ -475,12 +476,18 @@ function setCabDoors(open){
   if(speed>=.5){showStopWarning('ОШИБКА МАШИНИСТА: поезд ещё движется — двери заблокированы');return;}
   if(dist>stopTolerance){if(!shortStopErrorRecorded){shortStopErrorRecorded=true;shortStopErrorPosition=dist;reportDriverError('попытка открыть двери до знака остановки');}showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
  }
+ const reopening=open&&stationDoorCycleCompleted&&Math.abs(dist)<=stopTolerance&&speed<.5;
+ if(reopening){
+  if(!stationDoorReopenPenalty){stationDoorReopenPenalty=true;reportDriverError('повторное открытие дверей после объявления об отправлении');}
+  showStopWarning('ОСТОРОЖНО! ДВЕРИ ПОВТОРНО ОТКРЫТЫ. ДВИЖЕНИЕ ЗАПРЕЩЕНО',true);
+ }
  initMetroAudio();metroChime(open);
- if(!open&&Math.abs(dist)<32){
+ if(!open&&Math.abs(dist)<32&&!stationDoorCycleCompleted){
   // Departure warning begins with «Асцярожна, дзверы зачыняюцца».
   // Closing during the announcement is now correct; only skipping INFO is an error.
   if(!infoStarted)reportDriverError('двери закрыты без объявления INFO');
  }
+ if(!open&&stationServiced&&Math.abs(dist)<32)stationDoorCycleCompleted=true;
  doors=open;syncDoorButtons();syncScreenDoorToggle();
  if(open){
   infoStarted=false;infoCompleted=false;
@@ -488,8 +495,8 @@ function setCabDoors(open){
  }
  if(!status.textContent.startsWith('⚠'))status.textContent=doors?'Двери открыты':'Двери закрыты';
  if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
- if(doors&&!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5){stationServiced=true;overrunReported=false;stopWarning.style.display='none';}
- if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(stationServiced)status.textContent='Двери закрыты — отправляйтесь в тоннель';}
+ if(doors&&!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5){stationServiced=true;overrunReported=false;if(!reopening)stopWarning.style.display='none';}
+ if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(stationServiced)status.textContent='Двери закрыты — отправляйтесь в тоннель';if(stationDoorReopenPenalty)stopWarning.style.display='none';}
  updateCabDisplay(speed);
  // Do not interrupt the active departure announcement with door TTS.
 }
@@ -1101,14 +1108,14 @@ const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
  platformLifeTime+=dt;
  const atPlatform=!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5;
- if(atPlatform&&doors){
+ if(atPlatform&&doors&&!stationDoorCycleCompleted){
   if(!passengerExchangeStarted){passengerExchangeStarted=true;passengerDoorTime=0;}
   passengerDoorTime+=dt;
- }else if(!doors){passengerExchangeStarted=false;passengerDoorTime=0;}
+ } // Boarding time never resets when doors close or reopen at this station.
  const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v);};
  for(let i=0;i<platformPassengers.length;i++){
   const p=platformPassengers[i],cp=carriagePassengers[i];
-  const active=atPlatform&&doors;
+  const active=atPlatform&&doors&&!stationDoorCycleCompleted;
   const exiting=index!==0&&p.exiting;
   const elapsed=passengerDoorTime-(exiting?0:index===0?0:7.5)-p.offset;
   const duration=6.0+(i%5)*.7;
@@ -1134,7 +1141,7 @@ function updatePlatformPassengers(dt){
   }
   // The platform avatar remains in the doorway until fully inside, while
   // the carriage camera renders its matching interior avatar.
-  p.person.visible=!(active&&!exiting&&t>=.98)&&!(active&&exiting&&t>=1)&&!(passengerBoardingRecorded.has(i)&&!active);
+  p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
   cp.person.visible=cp.settled;
   if(cp.settled){
    // First step through the carriage door, then turn into the aisle and
@@ -1310,7 +1317,7 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  // No camera/train teleport: only the NEXT platform is repositioned
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
- stationServiced=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
+ stationServiced=false;stationDoorCycleCompleted=false;stationDoorReopenPenalty=false;passengerExchangeStarted=false;passengerDoorTime=0;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
  passengerBoardingRecorded.clear();for(const cp of carriagePassengers){cp.settled=false;cp.person.visible=false;}
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();
@@ -1350,8 +1357,8 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
  updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
-animateCarriageDoors(carSlidingDoorLeaves,doors);
-animateDoorLeaves(stationDoorLeaves,doors);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
+animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
 // Return to the cab only when the whole ~108m train has cleared the shot.
