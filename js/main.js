@@ -480,7 +480,7 @@ function setCabDoors(open){
   if(!infoStarted)reportDriverError('двери закрыты без объявления INFO');
   else if(infoPlaying)reportDriverError('двери закрыты до окончания объявления');
  }
- doors=open;syncDoorButtons();
+ doors=open;syncDoorButtons();syncScreenDoorToggle();
  if(open){
   infoStarted=false;infoCompleted=false;
   // Opening doors must not cut off an announcement already playing.
@@ -1197,7 +1197,11 @@ function markStationSkipped(){
  }
  showStopWarning('ГРУБАЯ ОШИБКА МАШИНИСТА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ К СЛЕДУЮЩЕЙ СТАНЦИИ',true);
 }
-const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0;
+const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0;
+const screenDoorToggle=document.getElementById('screenDoorToggle');
+function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.querySelector('span').textContent=doors?'ОТКРЫТО':'ЗАКРЫТО';screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
+screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
+
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
 const stationCanvas=document.querySelector('#scene');let stationDrag=null,carDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{
@@ -1215,7 +1219,7 @@ for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(ev
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive)stationCameraAnchorZ=platform.position.z-100;stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -1329,8 +1333,10 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
 animateCarriageDoors(carSlidingDoorLeaves,doors);
 animateDoorLeaves(stationDoorLeaves,doors);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
-stationCameraButton.style.display=canUseStationCamera?'block':'none';
-if(!canUseStationCamera&&stationCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
+stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
+// Keep the platform camera stationary while the departing train drives away.
+// Return to the cab only when the whole ~108m train has cleared the shot.
+if(stationCameraActive&&dist< -145){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
 if(stationCameraActive){
  cab.visible=false;
  // Elevated view from the platform corner, looking along the train and boarding area.
@@ -1347,7 +1353,7 @@ if(stationCameraActive){
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
  // A three-quarter front-side shot: nose in foreground, cars and platform
  // receding into the distance. The camera stays below the original roof.
- const noseZ=stationTrain.position.z;
+ const noseZ=stationCameraAnchorZ;
  stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
  const target=new THREE.Vector3(-5.6,2.65,noseZ+44);
  target.x+=Math.sin(stationViewYaw)*35;
