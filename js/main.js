@@ -1069,16 +1069,27 @@ for(const side of [-1,1])for(const dz of [-3.2,-13]){
 const carriagePassengers=[];
 const platformPassengers=[];
 const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
-for(let i=0;i<18;i++){
- const z=-8-i*5.2;
- const homeX=-3.35-(i%7)*.36; // edge=-2.55, first columns=-5.65
- const person=human(i,homeX,z);
- const doorwayZ=nearestDoor(z,doorPositions);
+// Distribute passengers across all ten train doors. Every doorway starts
+// boarding at the same time; only people sharing a doorway form a short queue.
+const boardingQueueByDoor=new Map();
+for(let i=0;i<30;i++){
+ const doorIndex=i%doorPositions.length;
+ const doorwayZ=doorPositions[doorIndex];
+ const queueRank=boardingQueueByDoor.get(doorIndex)||0;
+ boardingQueueByDoor.set(doorIndex,queueRank+1);
+ const homeZ=doorwayZ+(queueRank-1)*1.35+(i%2)*.24;
+ const homeX=-3.48-queueRank*.54-(i%2)*.12;
+ const person=human(i,homeX,homeZ);
  const exiting=i%4===0||i%4===1;
  const mode=i%6===0?'walk':i%6===1||i%6===2?'talk':'wait';
- platformPassengers.push({person,homeX,homeZ:z,doorwayZ,exiting,mode,
-   offset:i*2.0,phase:i*1.87,
-   walkingSpeed:.16+(i%4)*.07,conversation:i%6===1||i%6===2,heading:((i*2.39996)%(Math.PI*2))-Math.PI});
+ platformPassengers.push({person,homeX,homeZ,doorwayZ,exiting,mode,
+  doorIndex,queueRank,
+  // No train-wide sequential queue: the first person at each door moves
+  // immediately, and the next follows a moment later.
+  offset:queueRank*1.55+(doorIndex%3)*.13,
+  phase:i*1.87,walkingSpeed:.16+(i%4)*.07,
+  conversation:i%6===1||i%6===2,
+  heading:((i*2.39996)%(Math.PI*2))-Math.PI});
 }
 // Clone each existing detailed person into the car; the clone keeps the
 // exact same face, outfit and accessories. Visibility transfers on boarding.
@@ -1117,8 +1128,8 @@ function updatePlatformPassengers(dt){
   const p=platformPassengers[i],cp=carriagePassengers[i];
   const active=atPlatform&&doors&&!stationDoorCycleCompleted;
   const exiting=index!==0&&p.exiting;
-  const elapsed=passengerDoorTime-(exiting?0:index===0?0:7.5)-p.offset;
-  const duration=6.0+(i%5)*.7;
+  const elapsed=passengerDoorTime-(exiting?0:index===0?0:2.5)-p.offset;
+  const duration=5.2+(p.queueRank*.45)+(i%3)*.22;
   const t=active?Math.max(0,Math.min(1,elapsed/duration)):0;
   // Approach along the platform, align with the nearest door, then walk
   // across the gap. No teleport at the threshold.
