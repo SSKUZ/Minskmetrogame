@@ -1149,7 +1149,6 @@ carCameraButton.addEventListener('click',()=>{
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
-updateCarriageStationDisplay();
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
@@ -1242,6 +1241,8 @@ const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanva
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
+// Initialize station display only after station names and index exist.
+updateCarriageStationDisplay();
 // Continuous travel: station changes only AFTER the entire platform is behind the cab.
 const interstationDistance=1250,platformExitDistance=-195,stopTolerance=3;
 let stationServiced=false,overrunReported=false,stationSkipped=false,skipDepartureSeconds=0;
