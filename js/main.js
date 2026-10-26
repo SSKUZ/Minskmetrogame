@@ -1062,15 +1062,15 @@ for(const side of [-1,1])for(const dz of [-3.2,-13]){
 const carriagePassengers=[];
 const platformPassengers=[];
 const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
-for(let i=0;i<44;i++){
- const z=-8-(i%44)*2.25;
+for(let i=0;i<18;i++){
+ const z=-8-i*5.2;
  const homeX=-3.35-(i%7)*.36; // edge=-2.55, first columns=-5.65
  const person=human(i,homeX,z);
  const doorwayZ=nearestDoor(z,doorPositions);
  const exiting=i%4===0||i%4===1;
  const mode=i%6===0?'walk':i%6===1||i%6===2?'talk':'wait';
  platformPassengers.push({person,homeX,homeZ:z,doorwayZ,exiting,mode,
-   offset:(i%11)*.65+Math.floor(i/11)*.55,phase:i*1.87,
+   offset:i*2.0,phase:i*1.87,
    walkingSpeed:.16+(i%4)*.07,conversation:i%6===1||i%6===2,heading:((i*2.39996)%(Math.PI*2))-Math.PI});
 }
 // Clone each existing detailed person into the car; the clone keeps the
@@ -1079,9 +1079,10 @@ for(let i=0;i<platformPassengers.length;i++){
  const p=platformPassengers[i],copy=p.person.clone(true);
  copy.userData.walkLimbs=[];copy.userData.fineDetails=[];
  // Clone preserves visual geometry and materials, not animation references.
- const slot=i%22,row=Math.floor(slot/2),side=slot%2?-1:1;
- const z=1.3-row*1.83;
- copy.position.set(side*(slot%4<2?1.49:.70),.93,z);
+ const slot=i,row=Math.floor(slot/2),side=slot%2?-1:1;
+ const z=1.3-row*2.18;
+ copy.scale.multiplyScalar(1.22);
+ copy.position.set(side*(slot%4<2?1.49:.70),.78,z);
  copy.rotation.y=side>0?-Math.PI/2:Math.PI/2;
  copy.visible=false;carriage.add(copy);
  carriagePassengers.push({person:copy,platform:p,slot,z,side,settled:false,walkingIn:false});
@@ -1110,7 +1111,7 @@ function updatePlatformPassengers(dt){
   const active=atPlatform&&doors;
   const exiting=index!==0&&p.exiting;
   const elapsed=passengerDoorTime-(exiting?0:index===0?0:7.5)-p.offset;
-  const duration=5.5+(i%5)*.7;
+  const duration=6.0+(i%5)*.7;
   const t=active?Math.max(0,Math.min(1,elapsed/duration)):0;
   // Approach along the platform, align with the nearest door, then walk
   // across the gap. No teleport at the threshold.
@@ -1138,26 +1139,28 @@ function updatePlatformPassengers(dt){
   if(cp.settled){
    // First step through the carriage door, then turn into the aisle and
    // walk down to the assigned seat. Each passenger has a different pace.
-   const progress=Math.max(0,(elapsed-duration*.79)/(5.4+(i%5)*.6));
-   const sideEntry=cp.side>0?1.94:-1.94;
+   const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
+   const sideEntry=-1.94;
    const entryZ=cp.z< -9?-13:-3.2;
    const aisleX=cp.side*.36;
-   const seatX=cp.side*(cp.slot%4<2?1.49:.70);
+   const seatX=cp.side*(cp.slot%3===0?1.49:.70);
    const doorPhase=ease(progress/.25);
    const aislePhase=ease((progress-.25)/.5);
    const seatPhase=ease((progress-.75)/.25);
    cp.person.position.x=sideEntry+(aisleX-sideEntry)*doorPhase+(seatX-aisleX)*seatPhase;
    cp.person.position.z=entryZ+(cp.z-entryZ)*aislePhase;
    const moving=progress>0&&progress<1;
-   const heading=progress<.25?(cp.side>0?Math.PI/2:-Math.PI/2):
-      progress<.75?(cp.z>entryZ?0:Math.PI):
+   // Model faces local -Z; a passenger moving from left entrance to aisle
+   // should face right (+X), not toward the camera or backward.
+   const heading=progress<.25?-Math.PI/2:
+      progress<.75?(cp.z>entryZ?Math.PI:0):
       (cp.side>0?-Math.PI/2:Math.PI/2);
    cp.person.rotation.y+=shortestTurn(cp.person.rotation.y,heading)*Math.min(1,dt*5);
    const walkingGait=moving?Math.sin(platformLifeTime*(8.6+(i%3)) +i*1.3):0;
-   cp.person.position.y=.93+(moving?Math.abs(walkingGait)*.03:0);
+   cp.person.position.y=.78+(moving?Math.abs(walkingGait)*.03:0);
    cp.person.rotation.z=moving?Math.sin(platformLifeTime*4+i)*.015:0;
    if(progress>=1){
-    cp.person.position.set(seatX,cp.slot%3===0?.49:.93,cp.z);
+    cp.person.position.set(seatX,cp.slot%3===0?.43:.78,cp.z);
     cp.person.rotation.x=cp.slot%3===0?-.12:0;
     cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
    }
