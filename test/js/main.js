@@ -1097,7 +1097,7 @@ const carSlidingDoorLeaves=[];
 // Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
 // Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
 const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
-const carriagePlatformFixedZ=0;
+// The exterior platform shares the train's station-distance coordinate.
 const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
 const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
 const platformTiles=new THREE.MeshStandardMaterial({color:0xc2c3ba,roughness:.91});
@@ -1109,8 +1109,34 @@ for(let z=-1;z>-120;z-=5.0){
  box(carriagePlatform,.48,.10,.50,5.45,4.01,z,carCream);
 }
 const platformWall=new THREE.MeshStandardMaterial({color:0xd9dfd8,roughness:.86});
-box(carriagePlatform,.10,3.0,128,6.07,2.47,-57,platformWall);
-box(carriagePlatform,.12,.20,128,6.00,1.33,-57,new THREE.MeshBasicMaterial({color:0x448a63}));
+// Open island platform: columns, opposite track and distant train are visible
+// through the tinted windows instead of being blocked by a solid side wall.
+const oppositeTrack=new THREE.Group();carriagePlatform.add(oppositeTrack);
+const trackDark=new THREE.MeshStandardMaterial({color:0x303438,roughness:.96});
+const railBright=new THREE.MeshStandardMaterial({color:0x9ba6ac,metalness:.72,roughness:.3});
+box(oppositeTrack,4.8,.12,128,9.2,.62,-57,trackDark);
+for(const x of [7.8,10.6])box(oppositeTrack,.11,.15,128,x,.76,-57,railBright);
+for(let z=5;z>-120;z-=1.8)box(oppositeTrack,3.7,.10,.20,9.2,.66,z,platformTiles);
+// The train on the other track is static relative to the station and will
+// pass the carriage windows in the same direction as the platform.
+const oppositeTrain=new THREE.Group();carriagePlatform.add(oppositeTrain);
+const otherBody=new THREE.MeshStandardMaterial({color:0xc8d1d6,metalness:.38,roughness:.48});
+const otherWindows=new THREE.MeshPhysicalMaterial({color:0x2b607c,roughness:.16,transparent:true,opacity:.80});
+box(oppositeTrain,.24,2.85,67,7.18,2.22,-53,otherBody);
+box(oppositeTrain,.24,.55,67,7.17,3.37,-53,new THREE.MeshStandardMaterial({color:0x35576e,roughness:.5}));
+for(let z=-23;z>-86;z-=2.65){
+ box(oppositeTrain,.025,1.03,1.55,7.02,2.55,z,otherWindows);
+ box(oppositeTrain,.034,1.10,.035,7.00,2.55,z-.79,railBright);
+}
+for(let z=-19;z>-88;z-=13.4){
+ box(oppositeTrain,.05,2.65,.09,7.00,2.24,z,railBright);
+ box(oppositeTrain,.05,.17,2.0,7.00,1.13,z,new THREE.MeshStandardMaterial({color:0x356b83}));
+}
+// Ceiling beams and light strips emphasize the station's depth.
+for(let z=2;z>-120;z-=8){
+ box(carriagePlatform,5.0,.16,.27,4.4,4.16,z,carCream);
+ box(carriagePlatform,3.2,.035,.19,4.1,4.05,z,carLight);
+}
 // Boarding doors are on the platform side (-X) only for this route.
 for(const side of [1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
@@ -1424,7 +1450,9 @@ for(const g of chunks){
 platform.position.z=-dist+112;
 // The carriage window environment follows the exact same station-distance coordinate.
 // At the stop marker the local platform is aligned; on approach/departure it moves past the windows.
-carriagePlatform.position.z=-dist;
+// Positive local Z is behind the forward-facing carriage camera. As the train
+// advances, station geometry must slide toward +Z (left in this camera view).
+carriagePlatform.position.z=dist;
 platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
