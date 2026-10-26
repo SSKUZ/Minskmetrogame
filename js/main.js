@@ -1,3 +1,5 @@
+import {box as createBox} from './graphics/Geometry.js';
+import {createMaterial} from './graphics/Materials.js';
 import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-lookat-world-v35';
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
@@ -8,8 +10,8 @@ import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passeng
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:false,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x11161a);scene.fog=new THREE.Fog(0x11161a,45,190);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);const stationCamera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.16));const headlights=[];for(const side of [-1,1]){const beam=new THREE.SpotLight(0xf0f6ff,185,88,Math.PI/9,.34,1.4);beam.position.set(side*1.02,1.48,1.0);beam.target.position.set(side*1.55,1.65,-37);scene.add(beam,beam.target);headlights.push(beam)}const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
-const mat=(c,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:metal}),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
-function box(g,w,h,d,x,y,z,m){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a}
+const mat=(c,metal=0)=>createMaterial(THREE,c,metal),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
+const box=(...args)=>createBox(THREE,...args);
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
 const cab=new THREE.Group();cab.scale.set(.73,.95,.88);cab.position.z=-.20;scene.add(cab);
