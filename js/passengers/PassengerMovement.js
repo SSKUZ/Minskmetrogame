@@ -45,7 +45,16 @@ export function updatePassengerMovement(dt,ctx){
   carriageOutside.visible=false;
   // The exterior copy disappears as its interior counterpart becomes visible.
   if(cp.settled)carriageOutside.visible=false;
-  if(cp.settled){
+  // Once the train departs, lock boarded passengers into their seats.
+  // Otherwise the next station resets passengerDoorTime and rewinds their
+  // coordinates to the doorway, making them disappear from the camera.
+  if(cp.settled&&!active&&!cp.seated){
+   cp.seated=true;
+   const seatX=cp.side*(cp.slot%3===0?1.49:.70);
+   cp.person.position.set(seatX,cp.slot%3===0?.43:.78,cp.z);
+   cp.person.rotation.set(cp.slot%3===0?-.12:0,cp.side>0?-Math.PI/2:Math.PI/2,0);
+  }
+  if(cp.settled&&!cp.seated){
    // First step through the carriage door, then turn into the aisle and
    // walk down to the assigned seat. Each passenger has a different pace.
    const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
@@ -70,6 +79,7 @@ export function updatePassengerMovement(dt,ctx){
    cp.person.position.y=.78+(moving?Math.abs(walkingGait)*.03:0);
    cp.person.rotation.z=moving?Math.sin(platformLifeTime*4+i)*.015:0;
    if(progress>=1){
+    cp.seated=true;
     cp.person.position.set(seatX,cp.slot%3===0?.43:.78,cp.z);
     cp.person.rotation.x=cp.slot%3===0?-.12:0;
     cp.person.rotation.y=cp.side>0?-Math.PI/2:Math.PI/2;
