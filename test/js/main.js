@@ -1,3 +1,4 @@
+import {createCarriageCameraController} from './cameras/CarriageCamera.js';
 import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fix';
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
@@ -1005,9 +1006,7 @@ carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
 carriageCamera.position.set(-1.42,3.12,1.72);
 let carriageYaw=0,carriagePitch=0;
-function aimCarriageCamera(){carriageCamera.position.set(1.45,3.16,1.75);carriageCamera.lookAt(new THREE.Vector3(-.25,1.65,-10.5))}
-aimCarriageCamera();
-const carriage=new THREE.Group();carriageScene.add(carriage);
+function aimCarriageCamera(){const carriage=new THREE.Group();carriageScene.add(carriage);
 const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
 const carWhite=new THREE.MeshStandardMaterial({color:0xf8f8f5,roughness:.5});
 const carFloor=new THREE.MeshStandardMaterial({color:0x71767c,roughness:.95});
@@ -1145,11 +1144,12 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){carriageYaw=0;carriagePitch=0;aimCarriageCamera();}
+ if(carCameraActive){carriageCameraController.reset();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
+const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
@@ -1280,18 +1280,6 @@ screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
 const stationCanvas=document.querySelector('#scene');let stationDrag=null,carDrag=null;
-stationCanvas.addEventListener('pointerdown',e=>{
- if(!carCameraActive)return;
- carDrag={id:e.pointerId,x:e.clientX,y:e.clientY};
- stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();
-});
-stationCanvas.addEventListener('pointermove',e=>{
- if(!carCameraActive||!carDrag||carDrag.id!==e.pointerId)return;
- carriageYaw=THREE.MathUtils.clamp(carriageYaw+(carDrag.x-e.clientX)*.004,-1.35,1.35);
- carriagePitch=THREE.MathUtils.clamp(carriagePitch+(e.clientY-carDrag.y)*.003,-.72,.55);
- carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
-});
-for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
