@@ -1021,12 +1021,19 @@ box(carriage,4.15,.12,23,0,3.65,-9,carCream);
 // Continuous illuminated ceiling panels, as in the reference metro car.
 for(let z=1.2;z>-20;z-=2.0){box(carriage,.86,.026,1.75,0,3.565,z,carLight);box(carriage,.94,.028,1.8,0,3.584,z,carSteel)}
 for(const side of [-1,1]){
- box(carriage,.12,.88,23,side*2.07,1.40,-9,carWhite);
- box(carriage,.12,.55,23,side*2.07,3.39,-9,carWhite);
- box(carriage,.12,.09,23,side*2.07,1.94,-9,carCream);
- box(carriage,.12,.09,23,side*2.07,3.08,-9,carCream);
+ // Segment the platform-side wall so doors are genuine openings, not panels sliding over a solid wall.
+ const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
+ for(const [front,back] of wallRanges){
+  const length=front-back,center=(front+back)/2;
+  box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
+  box(carriage,.12,.55,length,side*2.07,3.39,center,carWhite);
+  box(carriage,.12,.09,length,side*2.07,1.94,center,carCream);
+  box(carriage,.12,.09,length,side*2.07,3.08,center,carCream);
+ }
  for(let j=0;j<8;j++){
   const z=1.1-j*2.75;
+  // Do not place a solid window, glazing or seating across the door openings.
+  if(side===-1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
   box(carriage,.026,.06,2.22,side*2.01,3.04,z,carBlack);
   box(carriage,.026,.06,2.22,side*2.01,1.99,z,carBlack);
   for(const edge of [-1,1])box(carriage,.027,1.08,.065,side*2.01,2.52,z+edge*1.08,carBlack);
@@ -1087,6 +1094,22 @@ for(const side of [-1,1])for(let j=0;j<7;j++){
  ad.position.set(side*1.995,3.20,1-j*3.05);ad.rotation.y=side>0?-Math.PI/2:Math.PI/2;carriage.add(ad);
 }
 const carSlidingDoorLeaves=[];
+// Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
+// Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
+const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
+const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
+const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
+const platformTiles=new THREE.MeshStandardMaterial({color:0xc2c3ba,roughness:.91});
+box(carriagePlatform,3.7,.22,23,-4.16,.84,-9,platformConcrete);
+box(carriagePlatform,.13,.018,23,-2.23,.965,-9,platformYellow);
+for(let z=1.9;z>-20.5;z-=1.25)box(carriagePlatform,3.48,.012,.025,-4.22,.96,z,carSteel);
+for(let z=-1;z>-20;z-=5.0){
+ box(carriagePlatform,.36,3.1,.40,-5.45,2.43,z,platformTiles);
+ box(carriagePlatform,.48,.10,.50,-5.45,4.01,z,carCream);
+}
+const platformWall=new THREE.MeshStandardMaterial({color:0xd9dfd8,roughness:.86});
+box(carriagePlatform,.10,3.0,23,-6.07,2.47,-9,platformWall);
+box(carriagePlatform,.12,.20,23,-6.00,1.33,-9,new THREE.MeshBasicMaterial({color:0x448a63}));
 // Boarding doors are on the platform side (-X) only for this route.
 for(const side of [-1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
@@ -1094,9 +1117,15 @@ for(const side of [-1])for(const dz of [-3.2,-13]){
  for(const half of [-1,1]){
   const leaf=new THREE.Group();carriage.add(leaf);
   box(leaf,.07,.66,.97,side*2.01,1.37,0,carDoor);
+  // Aluminium edging and inset lower-panel relief on each sliding leaf.
+  box(leaf,.014,.55,.80,side*1.96,1.39,0,carCream);
+  for(const edgeZ of [-.46,.46])box(leaf,.085,2.13,.028,side*2.01,2.11,edgeZ,carSteel);
   box(leaf,.07,.49,.97,side*2.01,2.96,0,carDoor);
   box(leaf,.07,.90,.075,side*2.01,2.28,half*.45,carDoor);
   box(leaf,.018,.84,.83,side*2.00,2.28,0,carGlass);
+  for(const y of [1.86,2.70])box(leaf,.024,.025,.85,side*1.975,y,0,carSteel);
+  for(const z of [-.41,.41])box(leaf,.024,.83,.026,side*1.975,2.28,z,carSteel);
+  box(leaf,.022,.13,.13,side*1.96,1.71,half*.32,carSteel);
   const leafZ=dz+half*.51;leaf.position.z=leafZ;carSlidingDoorLeaves.push({leaf,leafZ,half});
  }
 }
@@ -1170,7 +1199,8 @@ function updatePlatformPassengers(dt){
   // Approach along the platform, align with the nearest door, then walk
   // across the gap. No teleport at the threshold.
   const align=ease(t/.53),approach=ease((t-.12)/.57),cross=ease((t-.69)/.31);
-  const doorX=-2.56,insideX=-1.72;
+  // Walk from platform (-X) through the same physical door at X=-2.01.
+  const doorX=-2.10,insideX=-1.72;
   const homeX=p.homeX,homeZ=p.homeZ;
   const crossed=active&&!exiting&&t>=.79;
   if(crossed&&!passengerBoardingRecorded.has(i)){
@@ -1195,7 +1225,7 @@ function updatePlatformPassengers(dt){
    // walk down to the assigned seat. Each passenger has a different pace.
    const progress=Math.max(0,(elapsed-duration*.79)/(7.0+(i%5)*.8));
    // Malinovka's platform is on the negative-X side of the train.
-   const sideEntry=-1.94;
+   const sideEntry=-2.02;
    const entryZ=cp.z< -9?-13:-3.2;
    const aisleX=cp.side*.36;
    const seatX=cp.side*(cp.slot%3===0?1.49:.70);
