@@ -985,7 +985,7 @@ scene.add(carriage);
 carriage.add(carriageCamera);
 carriage.position.set(0,0,22.2);
 const {updateCarriageStationDisplay,materials:{carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}}=buildCarriageInterior({THREE,carriage,box,getStationName:()=>names[index%names.length]});
-const carSlidingDoorLeaves=[];
+
 // Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
 // Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
 const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
