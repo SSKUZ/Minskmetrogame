@@ -9,7 +9,11 @@ export function stepTrainMotion(speed, lever, dt) {
   if (!seconds) return v;
   let rate; // km/h per second
   if (u > .015) {
-    const target = 90 * Math.pow(u, Math.log(2 / 3) / Math.log(.5));
+    // Keep 50% traction at 60 km/h; reach 90 km/h at >=85% lever travel.
+    // This also accommodates the on-screen controller's touch margins.
+    const target = u >= .85 ? 90 :
+      u > .5 ? 60 + (u - .5) / .35 * 30 :
+      60 * Math.pow(u / .5, 1.0);
     // Train power fades gently toward the controller's selected speed.
     // Avoid automatic sharp braking when the lever is reduced.
     rate = v < target ? Math.min(2.25 * u, (target - v) / seconds) :
