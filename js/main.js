@@ -1131,6 +1131,7 @@ for(const side of [-1])for(const dz of [-3.2,-13]){
 }
 const carriagePassengers=[];
 const platformPassengers=[];
+const carriagePlatformAvatars=[];
 const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
 // Distribute passengers across all ten train doors. Every doorway starts
 // boarding at the same time; only people sharing a doorway form a short queue.
@@ -1158,6 +1159,14 @@ for(let i=0;i<30;i++){
 // exact same face, outfit and accessories. Visibility transfers on boarding.
 for(let i=0;i<platformPassengers.length;i++){
  const p=platformPassengers[i],copy=p.person.clone(true);
+ // A visual copy in the independent carriage scene follows the same boarding
+ // path as the platform avatar; no duplicate passenger is counted.
+ const outsideCopy=p.person.clone(true);
+ outsideCopy.userData.walkLimbs=[];outsideCopy.userData.fineDetails=[];
+ outsideCopy.position.copy(p.person.position);
+ outsideCopy.visible=true;
+ carriagePlatform.add(outsideCopy);
+ carriagePlatformAvatars.push(outsideCopy);
  copy.userData.walkLimbs=[];copy.userData.fineDetails=[];
  // Clone preserves visual geometry and materials, not animation references.
  const slot=i,row=Math.floor(slot/2),side=slot%2?-1:1;
@@ -1220,6 +1229,12 @@ function updatePlatformPassengers(dt){
   // the carriage camera renders its matching interior avatar.
   p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
   cp.person.visible=cp.settled;
+  const carriageOutside=carriagePlatformAvatars[i];
+  carriageOutside.position.copy(p.person.position);
+  carriageOutside.rotation.copy(p.person.rotation);
+  carriageOutside.visible=p.person.visible;
+  // The exterior copy disappears as its interior counterpart becomes visible.
+  if(cp.settled)carriageOutside.visible=false;
   if(cp.settled){
    // First step through the carriage door, then turn into the aisle and
    // walk down to the assigned seat. Each passenger has a different pace.
