@@ -1101,16 +1101,16 @@ const carriagePlatformFixedZ=0;
 const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
 const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
 const platformTiles=new THREE.MeshStandardMaterial({color:0xc2c3ba,roughness:.91});
-box(carriagePlatform,3.7,.22,23,4.16,.84,-9,platformConcrete);
-box(carriagePlatform,.13,.018,23,2.23,.965,-9,platformYellow);
-for(let z=1.9;z>-20.5;z-=1.25)box(carriagePlatform,3.48,.012,.025,4.22,.96,z,carSteel);
-for(let z=-1;z>-20;z-=5.0){
+box(carriagePlatform,3.7,.22,128,4.16,.84,-57,platformConcrete);
+box(carriagePlatform,.13,.018,128,2.23,.965,-57,platformYellow);
+for(let z=5;z>-120;z-=1.25)box(carriagePlatform,3.48,.012,.025,4.22,.96,z,carSteel);
+for(let z=-1;z>-120;z-=5.0){
  box(carriagePlatform,.36,3.1,.40,5.45,2.43,z,platformTiles);
  box(carriagePlatform,.48,.10,.50,5.45,4.01,z,carCream);
 }
 const platformWall=new THREE.MeshStandardMaterial({color:0xd9dfd8,roughness:.86});
-box(carriagePlatform,.10,3.0,23,6.07,2.47,-9,platformWall);
-box(carriagePlatform,.12,.20,23,6.00,1.33,-9,new THREE.MeshBasicMaterial({color:0x448a63}));
+box(carriagePlatform,.10,3.0,128,6.07,2.47,-57,platformWall);
+box(carriagePlatform,.12,.20,128,6.00,1.33,-57,new THREE.MeshBasicMaterial({color:0x448a63}));
 // Boarding doors are on the platform side (-X) only for this route.
 for(const side of [1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
