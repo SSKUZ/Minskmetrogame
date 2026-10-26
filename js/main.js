@@ -1452,7 +1452,7 @@ platform.position.z=-dist+112;
 // At the stop marker the local platform is aligned; on approach/departure it moves past the windows.
 // Positive local Z is behind the forward-facing carriage camera. As the train
 // advances, station geometry must slide toward +Z (left in this camera view).
-carriagePlatform.position.z=dist+112;
+carriagePlatform.position.z=dist;
 platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.position.z+6;
  // The station hall must replace tunnel walls, not be enclosed by them.
  // Tunnel chunks ahead of the station portal remain visible; chunks inside the hall are hidden.
