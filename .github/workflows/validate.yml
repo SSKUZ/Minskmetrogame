@@ -80,4 +80,9 @@ jobs:
           const before=objects.length;
           buildCarriageWindows({carriage:{},box,side:-1,z:-3,carBlack:4,carGlass:5});
           assert.equal(objects.length-before,5);
+          // Regression: advancing stations must not clear settled passengers.
+          const fs=await import('node:fs');
+          const mainSource=fs.readFileSync('./js/main.js','utf8');
+          assert.ok(mainSource.includes('cp.person.visible=cp.settled'));
+          assert.ok(!mainSource.includes('cp.settled=false;cp.person.visible=false'));
           JS

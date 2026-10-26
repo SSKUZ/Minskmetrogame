@@ -37,6 +37,7 @@ export function updatePassengerMovement(dt,ctx){
   // The platform avatar remains in the doorway until fully inside, while
   // the carriage camera renders its matching interior avatar.
   p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
+  // Once aboard, the passenger remains in the carriage while travelling.
   cp.person.visible=cp.settled;
   const carriageOutside=carriagePlatformAvatars[i];
   carriageOutside.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
