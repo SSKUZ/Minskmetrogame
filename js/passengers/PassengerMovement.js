@@ -22,7 +22,7 @@ export function updatePassengerMovement(dt,ctx){
   // Walk from platform (-X) through the same physical door at X=-2.01.
   const doorX=-2.10,insideX=-1.72;
   const homeX=p.homeX,homeZ=p.homeZ;
-  const crossed=active&&!exiting&&t>=.79;
+  const crossed=active&&!exiting&&!cp.settled&&t>=.79;
   if(crossed&&!passengerBoardingRecorded.has(i)){
    recordBoarding(passengerBoardingRecorded,i,cp,()=>{people+=1});
   }
@@ -36,7 +36,7 @@ export function updatePassengerMovement(dt,ctx){
   }
   // The platform avatar remains in the doorway until fully inside, while
   // the carriage camera renders its matching interior avatar.
-  p.person.visible=!passengerBoardingRecorded.has(i)&&!(active&&exiting&&t>=1);
+  p.person.visible=!cp.settled&&!(active&&exiting&&t>=1);
   // Once aboard, the passenger remains in the carriage while travelling.
   cp.person.visible=cp.settled;
   const carriageOutside=carriagePlatformAvatars[i];
