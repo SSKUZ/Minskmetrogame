@@ -1148,6 +1148,7 @@ carCameraButton.addEventListener('click',()=>{
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
+const stationCanvas=document.querySelector('#scene');
 const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
@@ -1278,7 +1279,7 @@ function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.cla
 screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
-const stationCanvas=document.querySelector('#scene');let stationDrag=null,carDrag=null;
+let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
