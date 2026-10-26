@@ -85,4 +85,7 @@ jobs:
           const mainSource=fs.readFileSync('./js/main.js','utf8');
           assert.ok(mainSource.includes('cp.person.visible=cp.settled'));
           assert.ok(!mainSource.includes('cp.settled=false;cp.person.visible=false'));
+          const movementSource=fs.readFileSync('./js/passengers/PassengerMovement.js','utf8');
+          assert.ok(movementSource.includes('cp.settled&&!active&&!cp.seated'));
+          assert.ok(movementSource.includes('if(cp.settled&&!cp.seated)'));
           JS
