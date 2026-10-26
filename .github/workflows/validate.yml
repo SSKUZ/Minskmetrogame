@@ -28,6 +28,11 @@ jobs:
           test -f js/cameras/CarriageCamera.js
           test -f js/train/TrainPhysics.js
           test -f js/passengers/PassengerMotion.js
+          test -f js/passengers/PassengerModels.js
+          test -f js/passengers/PassengerMovement.js
+          test -f js/passengers/PassengerBoarding.js
+          test -f js/passengers/PassengerCount.js
+          test -f js/platforms/PlatformGeometry.js
           test -f js/graphics/Geometry.js
           test -f js/graphics/Materials.js
           test -f js/world/TrackProfile.js
