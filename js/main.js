@@ -1003,9 +1003,9 @@ function human(i,x,z){
 const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
 carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
-carriageCamera.position.set(0,2.35,2.10);
-let carriageYaw=0,carriagePitch=0,carriageWalkZ=2.10,carriageWalkX=0,carriageMoveKeys=new Set();
-function aimCarriageCamera(){const d=new THREE.Vector3(Math.sin(carriageYaw)*Math.cos(carriagePitch),Math.sin(carriagePitch),-Math.cos(carriageYaw)*Math.cos(carriagePitch));carriageCamera.lookAt(carriageCamera.position.clone().add(d))}
+carriageCamera.position.set(1.45,3.16,1.75);
+let carriageYaw=0,carriagePitch=0;
+function aimCarriageCamera(){carriageCamera.position.set(1.45,3.16,1.75);carriageCamera.lookAt(new THREE.Vector3(-.25,1.65,-10.5))}
 aimCarriageCamera();
 const carriage=new THREE.Group();carriageScene.add(carriage);
 const carCream=new THREE.MeshStandardMaterial({color:0xe1e4e3,roughness:.65});
@@ -1064,6 +1064,30 @@ for(let z=.4;z>-20;z-=4.6){
  box(carriage,.022,.24,1.85,-2.005,3.32,z,panel);
  box(carriage,.022,.24,1.85,2.005,3.32,z,panel);
 }
+// Station display and advertising cards are real geometry, not HUD overlays.
+const stationDisplayCanvas=document.createElement('canvas');stationDisplayCanvas.width=1024;stationDisplayCanvas.height=256;
+const stationDisplayCtx=stationDisplayCanvas.getContext('2d');
+const stationDisplayTexture=new THREE.CanvasTexture(stationDisplayCanvas);
+const stationDisplayMat=new THREE.MeshBasicMaterial({map:stationDisplayTexture,side:THREE.DoubleSide});
+function updateCarriageStationDisplay(){
+ const ctx=stationDisplayCtx;ctx.fillStyle='#122433';ctx.fillRect(0,0,1024,256);
+ ctx.fillStyle='#39b6e5';ctx.fillRect(0,0,1024,12);
+ ctx.font='bold 54px Arial';ctx.fillStyle='#fff';ctx.fillText('СТАНЦИЯ / СТАНЦЫЯ',45,83);
+ ctx.font='bold 76px Arial';ctx.fillStyle='#fff';ctx.fillText(names[index%names.length]||'Малиновка',45,187);
+ stationDisplayTexture.needsUpdate=true;
+}
+const stationScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.86,.47),stationDisplayMat);
+stationScreen.position.set(0,3.24,-9);stationScreen.rotation.x=-.36;carriage.add(stationScreen);
+const advertColors=['#e4f1f3','#f4e8dc','#e7edff','#ecf4e4'];
+for(const side of [-1,1])for(let j=0;j<7;j++){
+ const cv=document.createElement('canvas');cv.width=512;cv.height=256;const ctx=cv.getContext('2d');
+ ctx.fillStyle=advertColors[(j+(side+1)/2)%advertColors.length];ctx.fillRect(0,0,512,256);
+ ctx.fillStyle='#183e57';ctx.font='bold 44px Arial';ctx.fillText(['МИНСК','ГОРОД РЯДОМ','МЕТРО','ДОБРОГО ПУТИ'][j%4],25,100);
+ ctx.font='29px Arial';ctx.fillText('Информация для пассажиров',25,162);
+ const tex=new THREE.CanvasTexture(cv);const mat=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
+ const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.62),mat);
+ ad.position.set(side*1.995,3.20,1-j*3.05);ad.rotation.y=side>0?-Math.PI/2:Math.PI/2;carriage.add(ad);
+}
 const carSlidingDoorLeaves=[];
 for(const side of [-1,1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
@@ -1120,26 +1144,12 @@ let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){carriageYaw=0;carriagePitch=0;carriageWalkZ=2.10;carriageWalkX=0;carriageCamera.position.set(0,2.35,carriageWalkZ);aimCarriageCamera();}
+ if(carCameraActive){aimCarriageCamera();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
- carriageWalkPad.style.display=carCameraActive?'flex':'none';
- if(!carCameraActive)carriageMoveKeys.clear();
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
-// Mobile walking controls for the independent 3D passenger camera.
-const carriageWalkPad=document.createElement('div');
-carriageWalkPad.id='carriageWalkPad';
-Object.assign(carriageWalkPad.style,{position:'fixed',left:'12px',bottom:'115px',zIndex:'100',display:'none',gap:'8px',alignItems:'center',pointerEvents:'auto'});
-for(const [label,code] of [['◀','KeyA'],['▲','KeyW'],['▼','KeyS'],['▶','KeyD']]){
- const button=document.createElement('button');button.textContent=label;
- Object.assign(button.style,{width:'46px',height:'48px',borderRadius:'11px',border:'1px solid #d4dfe7',background:'#203240db',color:'white',fontSize:'22px',touchAction:'none'});
- const release=()=>carriageMoveKeys.delete(code);
- button.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();carriageMoveKeys.add(code);button.setPointerCapture(e.pointerId)});
- button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);
- carriageWalkPad.appendChild(button);
-}
-document.body.appendChild(carriageWalkPad);
+updateCarriageStationDisplay();
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
@@ -1274,15 +1284,9 @@ stationCanvas.addEventListener('pointerdown',e=>{
 });
 stationCanvas.addEventListener('pointermove',e=>{
  if(!carCameraActive||!carDrag||carDrag.id!==e.pointerId)return;
- carriageYaw=clampView(carriageYaw,(carDrag.x-e.clientX)*.0035);
- carriagePitch=clampView(carriagePitch,(e.clientY-carDrag.y)*.0035);
- carDrag.x=e.clientX;carDrag.y=e.clientY;aimCarriageCamera();e.preventDefault();
+ carDrag.x=e.clientX;carDrag.y=e.clientY;e.preventDefault();
 });
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(carDrag?.id===e.pointerId)carDrag=null;});
-// Walk the aisle with W/S or arrow keys; touch drag still looks freely around.
-addEventListener('keydown',e=>{if(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)&&carCameraActive){carriageMoveKeys.add(e.code);e.preventDefault();}});
-addEventListener('keyup',e=>carriageMoveKeys.delete(e.code));
-
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
@@ -1361,7 +1365,7 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  stationServiced=false;stationDoorCycleCompleted=false;stationDoorReopenPenalty=false;passengerExchangeStarted=false;passengerDoorTime=0;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
  passengerBoardingRecorded.clear();for(const cp of carriagePassengers){cp.settled=false;cp.person.visible=false;}
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
- paintSign();
+ paintSign();updateCarriageStationDisplay();
  status.textContent='Следующая станция — '+names[index];
 }
 depot.position.z+=move;
@@ -1398,13 +1402,6 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
  updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
-if(carCameraActive){
- const advance=(carriageMoveKeys.has('KeyW')||carriageMoveKeys.has('ArrowUp')?1:0)-(carriageMoveKeys.has('KeyS')||carriageMoveKeys.has('ArrowDown')?1:0);
- const strafe=(carriageMoveKeys.has('KeyD')||carriageMoveKeys.has('ArrowRight')?1:0)-(carriageMoveKeys.has('KeyA')||carriageMoveKeys.has('ArrowLeft')?1:0);
- carriageWalkZ=Math.max(-19.0,Math.min(2.3,carriageWalkZ-advance*elapsed*2.1));
- carriageWalkX=Math.max(-.52,Math.min(.52,carriageWalkX+strafe*elapsed*1.3));
- carriageCamera.position.set(carriageWalkX,2.35,carriageWalkZ);aimCarriageCamera();
-}
 animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
