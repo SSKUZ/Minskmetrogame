@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v76</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v76: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v77</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v77: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v76';
+window.wagonSideBodyVersion='smooth-v77';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -521,7 +521,7 @@ for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
  box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack);
 }
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v76 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v77 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -618,6 +618,19 @@ box(.81,1.91,.065,.40,F+.955,cabRear-.072,mat(0x9caaa8));
 box(.57,.71,.018,.40,F+1.47,cabRear-.115,new T.MeshStandardMaterial({color:0x47606b,transparent:true,opacity:.55,side:T.DoubleSide,depthWrite:false}));
 box(.60,.027,.045,.40,F+1.83,cabRear-.133,metal);
 box(.055,.13,.075,.72,F+.93,cabRear-.157,metal);
+// Layered central cab partition: door jambs, lintel and inset hardware.
+// All geometry remains INSIDE the cab, well behind the front glazing.
+const cabPartitionTrim=mat(0x596a6e,.42);
+for(const x of [-.015,.815])box(.036,1.96,.09,x,F+.98,cabRear-.135,cabPartitionTrim);
+box(.87,.045,.095,.40,F+1.97,cabRear-.137,cabPartitionTrim);
+box(.67,.055,.015,.40,F+.39,cabRear-.128,cabPartitionTrim);
+box(.48,.028,.020,.40,F+1.08,cabRear-.133,cabPartitionTrim);
+box(.19,.10,.020,.38,F+.77,cabRear-.138,mat(0x697879));
+box(.085,.018,.034,.38,F+.77,cabRear-.153,metal);
+// Central ceiling equipment and recessed control indicator strips.
+const cabCeilingDark=mat(0x2a343a,.6);
+box(1.04,.095,.34,0,top-.49,cabRear-.68,cabCeilingDark);
+for(let i=0;i<5;i++)box(.09,.014,.025,-.34+i*.17,top-.55,cabRear-.865,metal);
 // Rear-wall equipment locker, circuit-breaker cabinets and shallow panels.
 const cabEquipment=mat(0x7b898b,.28),cabInset=mat(0x303d43),cabLabel=mat(0xd5d2bc);
 box(.65,1.40,.20,-.87,F+1.22,cabRear-.18,cabEquipment);
