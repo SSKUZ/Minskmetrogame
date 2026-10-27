@@ -11,6 +11,9 @@ const baseline=process.env.WAGON_BASELINE_DIR||'test-results/wagon-baseline';
 const target=process.env.WAGON_TARGET_URL||'http://127.0.0.1:8765/preview/wagon.html';
 await mkdir(output,{recursive:true});
 const reference=JSON.parse(await readFile('tests/reference/uruchcha-81-717.json','utf8'));
+const sourceHtml=await readFile('preview/wagon.html','utf8');
+const expectedModule=sourceHtml.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
+const moduleHash=text=>createHash('sha256').update(text).digest('hex');
 const photo=await readFile(`tests/reference/${reference.image}`);
 assert.equal(createHash('sha256').update(photo).digest('hex'),reference.sha256,'Reference photo changed without new annotations');
 const launch={headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage','--no-sandbox']};
@@ -19,6 +22,11 @@ if(process.env.HTTPS_PROXY&&process.env.WAGON_USE_PROXY==='1')launch.proxy={serv
 const browser=await chromium.launch(launch);
 const page=await browser.newPage({viewport:{width:1536,height:934},deviceScaleFactor:1,reducedMotion:'reduce',locale:'ru-RU',timezoneId:'UTC'});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
+// Node's request context can use the runtime's trusted proxy CA when the
+// local Chromium certificate store lacks it. HTTPS verification stays enabled.
+if(process.env.WAGON_FETCH_HTML==='1')await page.route('https://**/wagon.html*',async route=>{
+ const response=await route.fetch();await route.fulfill({response});
+});
 // Optional fixtures for restricted local runtimes. CI uses its HTTP server.
 if(process.env.WAGON_LOCAL_ROOT)await page.route('http://127.0.0.1:8765/**',async route=>{
  const file=path.resolve(process.env.WAGON_LOCAL_ROOT,'.'+new URL(route.request().url()).pathname);
@@ -32,18 +40,27 @@ if(process.env.WAGON_ASSET_DIR)await page.route('https://cdn.jsdelivr.net/npm/th
 let previous=null;
 try{previous=JSON.parse(await readFile(path.join(baseline,'report.json'),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
 const report={result:'running',commit:process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),runUrl:process.env.GITHUB_RUN_ID?`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`:null,target,referenceSha256:reference.sha256,baselineCommit:previous?.commit||null,captureProfile:{width:1536,height:934,deviceScaleFactor:1,mode:'fixed-camera-no-ui-v1'},views:[],comparisons:[],errors};
+report.sourceModuleSha256=moduleHash(expectedModule);
+report.workingTreeDirty=!process.env.GITHUB_ACTIONS&&!!execFileSync('git',['status','--porcelain','--untracked-files=no'],{encoding:'utf8'}).trim();
 try{
  const url=new URL(target);url.searchParams.set('qa','1');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
+ report.renderedModuleSha256=moduleHash(await page.locator('script[type="module"]').textContent());
+ assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');
  await page.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
  for(const mode of ['reference','front','side','outside','driver','salon']){
   await page.evaluate(m=>window.wagonSetCamera(m),mode);
   const start=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
   await page.waitForFunction(frame=>window.wagonDiagnostics().renderedFrames>=frame+3,start,{timeout:30000});
   const data=await page.evaluate(()=>window.wagonDiagnostics());
+  if(process.env.WAGON_EXPECT_VERSION)assert.equal(data.modelVersion,Number(process.env.WAGON_EXPECT_VERSION),'Published model version is stale');
   assert.equal(data.cameraMode,mode);assert.ok(data.meshCount>100);assert.equal(data.renderWidth,1536);assert.equal(data.renderHeight,934);
   assert.deepEqual(data.frontFeatures,{upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'});
   assert.ok(data.features.fascia&&data.features['window-center']);
+  if(mode==='reference')for(const [name,bounds] of Object.entries(data.features)){
+   for(const key of ['x','y','width','height'])assert.ok(Number.isFinite(bounds[key]),name+' has invalid projected geometry');
+   assert.ok(bounds.width>0&&bounds.height>0,name+' has empty projected geometry');
+  }
   for(const [prefix,count] of [['headlamp-',6],['marker-',2],['window-',3]])assert.equal(Object.keys(data.features).filter(k=>k.startsWith(prefix)).length,count,'Actual registered front meshes: '+prefix);
   const screenshot=path.join(output,`${mode}.png`);
   await page.screenshot({path:screenshot,timeout:90000,animations:'disabled'});

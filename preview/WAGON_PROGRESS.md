@@ -32,3 +32,24 @@ After each stage: syntax, visual capture, inspect images and photo diagnostics,
 commit testing, wait for actual publish and visual Actions, inspect the live
 page, then continue. Preserve side panels, passenger doors, and game files.
 Do not claim 100% likeness or infer publication from a successful commit.
+
+## v82: geometry pass
+
+Closed the cab roof and removed the separate tube over the brow. Corrected
+fascia height, three glazing proportions, upper marker pockets, winged emblem,
+six lamp diameters/spacing, raised bumper, rounded lower apron with a real
+coupling notch, and yellow mirror housings/outriggers. Side body and passenger
+door geometry were preserved.
+
+Inspected real reference/front/side screenshots, photo-bound overlays, and
+previous-version diffs. All six camera checks passed; repeated capture has
+zero changed pixels. Only the coupling head remains outside the coarse photo
+diagnostic band; this does not establish detailed contour or material accuracy.
+The blue is still too grey/matte, lamps are flat, cab arrangement is wrong,
+and the coupler remains too blocky. These are the next pass priorities.
+
+v81 publication was fetched and rendered in Chromium with version 81 checked.
+Its Actions visual run 40571552011 passed and uploaded 12 evidence files.
+The restricted local browser uses the trusted request context to fetch HTML;
+TLS verification is retained. The next test revision also verifies the served
+module SHA-256 against local source so stale publishing cannot pass as current.

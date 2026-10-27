@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v81</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v81: фиксированные камеры и автоматическое визуальное сравнение.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v82</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v82: цельная крыша кабины, пропорции окон и маски, фары и зеркала по эталону.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -231,32 +231,32 @@ const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.
 const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,L/2);
 for(let i=0;i<profile.length-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2)}
 const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();group.add(new T.Mesh(geo,roof));
-// Uruchcha cab roof: a smoothly curved blue shell that follows the
-// underlying roof profile instead of creating a dark, floating top slab.
-// Cross-section interpolation is continuous and blends into the old roof.
+// Continuous closed cab roof: curved shell plus a blue structural front cap.
+// The cap meets the shell at exactly the same cross-section; no floating slab.
 {
  const stations=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
- const curve=new T.SplineCurve(stations.map(p=>new T.Vector2(p[0],p[1])));
- const sections=40,rows=24,vs=[],fs=[];
- const z0=-L/2-.035,z1=z0+1.45;
+ const curve=new T.SplineCurve(stations.map(p=>new T.Vector2(...p)));
+ const sections=64,rows=24,vs=[],fs=[],z0=-L/2-.11,z1=-L/2+1.45;
+ const frontPoints=[];
  for(let j=0;j<=rows;j++){
-  const t=j/rows,z=z0+(z1-z0)*t;
-  const lift=.145*Math.pow(1-t,2);
+  const t=j/rows;
   for(let i=0;i<=sections;i++){
-   const p=curve.getPoint(i/sections);
-   const crown=Math.max(0,1-Math.pow(Math.abs(p.x)/half,4));
-   vs.push(p.x,p.y+lift*crown,z);
+   const p=curve.getPoint(i/sections),crown=Math.max(0,1-Math.pow(Math.abs(p.x)/half,4));
+   const y=p.y+.105*Math.pow(1-t,2)*crown+.07*(1-t)*(1-crown);
+   vs.push(p.x,y,z0+(z1-z0)*t);
+   if(j===0)frontPoints.push(new T.Vector2(p.x,y));
   }
  }
  for(let j=0;j<rows;j++)for(let i=0;i<sections;i++){
-  const k=j*(sections+1)+i,n=k+sections+1;
-  fs.push(k,k+1,n,k+1,n+1,n);
+  const k=j*(sections+1)+i,n=k+sections+1;fs.push(k,k+1,n,k+1,n+1,n);
  }
- const g=new T.BufferGeometry();
- g.setAttribute('position',new T.Float32BufferAttribute(vs,3));
- g.setIndex(fs);g.computeVertexNormals();
- const cap=new T.Mesh(g,new T.MeshStandardMaterial({color:0x235273,metalness:.20,roughness:.42,side:T.DoubleSide}));
- group.add(cap);feature('roof',cap);
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(fs);geometry.computeVertexNormals();
+ group.add(new T.Mesh(geometry,roof));
+ const frontShape=new T.Shape();frontShape.moveTo(-half,top-.26);
+ for(const p of frontPoints)frontShape.lineTo(p.x,p.y);
+ frontShape.lineTo(half,top-.26);frontShape.closePath();
+ const cap=new T.Mesh(new T.ExtrudeGeometry(frontShape,{depth:.055,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:3,curveSegments:24}),roof);
+ cap.position.z=z0;group.add(cap);feature('roof',cap);
 }
 // Longitudinal benches between doors, with an unobstructed central aisle.
 const sections=[[-9.30,-7.75],[-6.05,-3.15],[-1.45,1.45],[3.15,6.05],[7.75,9.30]];
@@ -338,11 +338,18 @@ function faceCircle(x,y,z,r,m){
  o.position.set(x,y,z);group.add(o);return o;
 }
 // Solid blue lower apron and curved-looking upper rim.
-box(W-.09,.71,.16,0,F+.355,cabFront,wall);
-// Rounded front brow below the raised roof shell: no rectangular slab.
+// Rounded blue apron with a true open-bottom coupling cutout.
 {
- const brow=new T.Mesh(new T.ShapeGeometry(roundedShape(W-.13,.31,.13),20),wall);
- brow.position.set(0,top-.19,cabFront-.015);group.add(brow);
+ const l=-half+.008,r=half-.008,low=F-.11,high=F+.74;
+ const outline=new T.Shape();outline.moveTo(l+.20,low);outline.lineTo(-.80,low);
+ outline.lineTo(-.80,F+.17);outline.quadraticCurveTo(-.80,F+.25,-.72,F+.25);
+ outline.lineTo(.72,F+.25);outline.quadraticCurveTo(.80,F+.25,.80,F+.17);
+ outline.lineTo(.80,low);outline.lineTo(r-.20,low);outline.quadraticCurveTo(r,low,r,low+.20);
+ outline.lineTo(r,high-.08);outline.quadraticCurveTo(r,high,r-.08,high);
+ outline.lineTo(l+.08,high);outline.quadraticCurveTo(l,high,l,high-.08);
+ outline.lineTo(l,low+.20);outline.quadraticCurveTo(l,low,l+.20,low);outline.closePath();
+ const apron=new T.Mesh(new T.ExtrudeGeometry(outline,{depth:.19,bevelEnabled:true,bevelSize:.014,bevelThickness:.014,bevelSegments:4}),wall);
+ apron.position.z=faceZ+.045;group.add(apron);
 }
 for(const xx of [-1.245,1.245])
  box(.17,1.60,.16,xx,F+1.55,cabFront,wall);
@@ -403,139 +410,124 @@ for(const sign of [-1,1])cabShoulder(sign,F+.34,top-.23);
 // making every windshield appear like an opaque black panel.
 // Reference proportions: two narrow side panes, a substantially wider
 // central windshield, all recessed within the continuous black face mask.
-const frontBays=[[-.925,.455],[0,1.245],[.925,.455]];
+const frontBays=[[-.895,.535],[0,1.15],[.895,.535]];
 // The new Uruchcha photograph has a broad, tall black fascia with
 // substantially rounded outer corners and a visible continuous border.
-const fasciaShape=roundedShape(2.48,2.10,.245);
+const fasciaShape=roundedShape(2.40,1.86,.21);
 for(const [cx,ww] of frontBays){
- const outline=roundedShape(ww-.015,1.315,.115).getPoints(24);
+ const outline=roundedShape(ww-.015,1.13,.10).getPoints(24);
  const hole=new T.Path();
  for(let i=outline.length-1;i>=0;i--){
   const p=outline[i];
-  if(i===outline.length-1)hole.moveTo(cx+p.x,p.y+.02);
-  else hole.lineTo(cx+p.x,p.y+.02);
+  if(i===outline.length-1)hole.moveTo(cx+p.x,p.y+.10);
+  else hole.lineTo(cx+p.x,p.y+.10);
  }
  hole.closePath();fasciaShape.holes.push(hole);
 }
 // Recessed surround behind the main black fascia; the thin metal lip
 // sits outside the mask rather than crossing the transparent openings.
 const fasciaBacking=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),gasket);
-fasciaBacking.position.set(0,F+1.58,faceZ+.034);group.add(fasciaBacking);
+fasciaBacking.position.set(0,F+1.50,faceZ+.034);group.add(fasciaBacking);
 const fasciaMesh=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),mask);
-fasciaMesh.position.set(0,F+1.58,faceZ+.015);group.add(fasciaMesh);feature('fascia',fasciaMesh);
-faceBorder(2.48,2.10,.245,0,F+1.58,faceZ+.007,frame,.012);
+fasciaMesh.position.set(0,F+1.50,faceZ+.015);group.add(fasciaMesh);feature('fascia',fasciaMesh);
+faceBorder(2.40,1.86,.21,0,F+1.50,faceZ+.007,frame,.012);
 // All three glazing sections are real transparent openings, not dark
 // backing plates. Rubber perimeter seals sit in front of the glazing.
 for(const [xx,ww] of frontBays){
- faceBorder(ww,1.33,.12,xx,F+1.60,faceZ-.010,gasket,.019);
- feature(`window-${xx===0?'center':xx>0?'left':'right'}`,facePanel(ww-.038,1.29,.10,xx,F+1.60,faceZ-.018,frontGlass));
- faceBorder(ww,1.33,.12,xx,F+1.60,faceZ-.027,frame,.010);
+ faceBorder(ww,1.15,.10,xx,F+1.60,faceZ-.010,gasket,.019);
+ feature(`window-${xx===0?'center':xx>0?'left':'right'}`,facePanel(ww-.038,1.11,.09,xx,F+1.60,faceZ-.018,frontGlass));
+ faceBorder(ww,1.15,.10,xx,F+1.60,faceZ-.027,frame,.010);
 }
 // Subtle windshield reflections and inset rubber seals.
 const windshieldReflection=new T.MeshBasicMaterial({color:0x9fb9c0,transparent:true,opacity:.055,depthWrite:false,side:T.DoubleSide});
 const glassShade=new T.MeshBasicMaterial({color:0x071015,transparent:true,opacity:.12,depthWrite:false,side:T.DoubleSide});
-for(const [cx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
+for(const [cx,ww] of [[-.895,.535],[0,1.15],[.895,.535]]){
  const glint=new T.Shape();
- glint.moveTo(cx-ww*.30,F+2.20);
- glint.lineTo(cx-ww*.18,F+2.20);
+ glint.moveTo(cx-ww*.30,F+2.11);
+ glint.lineTo(cx-ww*.18,F+2.11);
  glint.lineTo(cx+ww*.03,F+1.42);
  glint.lineTo(cx-ww*.10,F+1.42);
  glint.closePath();
  const pane=new T.Mesh(new T.ShapeGeometry(glint),windshieldReflection);
  pane.position.z=faceZ-.079;group.add(pane);
- box(ww-.055,.018,.008,cx,F+.956,faceZ-.082,gasket);
- box(ww-.070,.055,.008,cx,F+2.21,faceZ-.079,glassShade);
+ box(ww-.055,.018,.008,cx,F+1.04,faceZ-.082,gasket);
+ box(ww-.070,.055,.008,cx,F+2.13,faceZ-.079,glassShade);
 }
 // Narrow windshield mullions and curved top seam, based on the three-bay
 // front arrangement in the photographic reference.
 const sealTrim=mat(0x1b252b);
-for(const x of [-.645,.645]){
- box(.036,1.25,.024,x,F+1.61,faceZ-.105,sealTrim);
- box(.018,.18,.026,x,F+2.28,faceZ-.10,frame);
+for(const x of [-.601,.601]){
+ box(.036,1.10,.024,x,F+1.60,faceZ-.105,sealTrim);
+ box(.018,.18,.026,x,F+2.16,faceZ-.10,frame);
 }
 // Glazing lower sill: three separate metal caps, not a single bright stripe.
-for(const [cx,w] of [[-.92,.48],[0,1.20],[.92,.48]]){
- box(w-.035,.026,.030,cx,F+.932,faceZ-.105,frame);
+for(const [cx,w] of [[-.895,.535],[0,1.15],[.895,.535]]){
+ box(w-.035,.026,.030,cx,F+1.025,faceZ-.105,frame);
 }
 // The route indicator is a single recessed assembly, not two overlapping
 // black plates. The dark lens sits within the thin frame below.
 // Three separate upper recesses: elongated marker-light pockets on
 // either side of the broad emblem recess, matching the front photograph.
 for(const sign of [-1,1]){
- const xx=sign*.93;
- facePanel(.49,.27,.115,xx,F+2.43,faceZ-.014,gasket);
- faceBorder(.49,.27,.115,xx,F+2.43,faceZ-.024,frame,.009);
- // In the new reference each pocket contains one red lamp towards the
- // OUTER shoulder and a smaller unlit circular fitting towards the logo.
- const redX=xx+sign*.085,darkX=xx-sign*.105;
- feature(`marker-${sign>0?'left':'right'}`,faceCircle(redX,F+2.43,faceZ-.076,.083,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide})));
- faceCircle(redX-.018,F+2.455,faceZ-.080,.021,mat(0xff6b66));
- faceCircle(darkX,F+2.43,faceZ-.070,.043,gasket);
- faceCircle(darkX,F+2.43,faceZ-.079,.027,lensDark);
+ const xx=sign*.895,yy=F+2.29;
+ facePanel(.535,.215,.10,xx,yy,faceZ-.014,gasket);
+ faceBorder(.535,.215,.10,xx,yy,faceZ-.024,frame,.009);
+ feature(`marker-${sign>0?'left':'right'}`,faceCircle(xx,yy,faceZ-.076,.066,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide})));
+ faceCircle(xx-.014,yy+.020,faceZ-.080,.014,mat(0xff6b66));
+ for(const offset of [-.16,.16]){
+  faceCircle(xx+offset,yy,faceZ-.070,.037,gasket);
+  faceCircle(xx+offset,yy,faceZ-.079,.026,lensDark);
+ }
 }
-facePanel(1.00,.27,.105,0,F+2.43,faceZ-.014,gasket);
-faceBorder(1.00,.27,.105,0,F+2.43,faceZ-.024,frame,.009);
-// Stylized metro emblem: two angular wings and a raised central M.
-for(const sign of [-1,1]){
- const wing=new T.Shape();
- wing.moveTo(0,F+2.405);
- wing.lineTo(sign*.40,F+2.485);
- wing.lineTo(sign*.245,F+2.395);
- wing.lineTo(sign*.075,F+2.365);
- wing.closePath();
- const mesh=new T.Mesh(new T.ShapeGeometry(wing),badgeSilver);
- mesh.position.z=faceZ-.039;group.add(mesh);
+facePanel(1.15,.215,.09,0,F+2.29,faceZ-.014,gasket);
+faceBorder(1.15,.215,.09,0,F+2.29,faceZ-.024,frame,.009);
+// One continuous winged M silhouette, sized from the supplied photograph.
+{
+ const points=[[-.255,.018],[-.09,.018],[-.09,.075],[0,.022],[.09,.075],[.09,.018],[.255,.018],[.048,-.078],[.048,-.025],[0,-.052],[-.048,-.025],[-.048,-.078]];
+ const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,F+2.29+y):shape.moveTo(x,F+2.29+y));shape.closePath();
+ const emblem=new T.Mesh(new T.ShapeGeometry(shape),badgeSilver);emblem.position.z=faceZ-.041;group.add(emblem);
 }
-const emblemM=new T.Shape();
-emblemM.moveTo(-.075,F+2.38);emblemM.lineTo(-.075,F+2.515);
-emblemM.lineTo(0,F+2.455);emblemM.lineTo(.075,F+2.515);
-emblemM.lineTo(.075,F+2.38);emblemM.lineTo(.035,F+2.38);
-emblemM.lineTo(.035,F+2.445);emblemM.lineTo(0,F+2.415);
-emblemM.lineTo(-.035,F+2.445);emblemM.lineTo(-.035,F+2.38);
-emblemM.closePath();
-const emblemMesh=new T.Mesh(new T.ShapeGeometry(emblemM),badgeSilver);
-emblemMesh.position.z=faceZ-.041;group.add(emblemMesh);
 // Blank destination display. The route will be selected later.
-facePanel(.84,.21,.025,0,F+1.115,faceZ-.043,gasket);
-facePanel(.785,.155,.017,0,F+1.115,faceZ-.055,new T.MeshStandardMaterial({color:0x17232a,metalness:.08,roughness:.24}));
-faceBorder(.84,.21,.025,0,F+1.115,faceZ-.063,frame,.008);
+facePanel(.99,.185,.025,0,F+1.255,faceZ-.043,gasket);
+facePanel(.94,.145,.017,0,F+1.255,faceZ-.055,new T.MeshStandardMaterial({color:0x17232a,metalness:.08,roughness:.24}));
+faceBorder(.99,.185,.025,0,F+1.255,faceZ-.063,frame,.008);
 // Three flush lamp cassettes: outer pair with one illuminated and one
 // unlit lens, central cassette with THREE closely spaced lit lenses.
 // Keep the entire lamp cassette within the black fascia; previously the
 // lower half projected into the blue apron, unlike the reference.
 // NEW photographic reference: one outer lamp per side and FOUR central
 // silver-reflector headlights; no dark auxiliary circles in lower pockets.
-const lampY=F+.76,lampZ=faceZ-.030;
+const lampY=F+.785,lampZ=faceZ-.030;
 const frontFeatures={upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'};
 const lampReflector=mat(0xb8c4c6,.16),lampBezel=mat(0x56636a,.42);
 const lampGlass=new T.MeshPhysicalMaterial({color:0xe9f0e9,metalness:.12,roughness:.14,transparent:true,opacity:.78,clearcoat:1,clearcoatRoughness:.10,side:T.DoubleSide});
 const lampInner=mat(0x697b83,.34);
 let lowerLampIndex=0;
 function lampCassette(cx,w,lamps){
- facePanel(w,.39,.105,cx,lampY,lampZ,gasket);
- faceBorder(w,.39,.105,cx,lampY,lampZ-.008,frame,.012);
+ facePanel(w,.40,.105,cx,lampY,lampZ,gasket);
+ faceBorder(w,.40,.105,cx,lampY,lampZ-.008,frame,.012);
  for(const offset of lamps){
-  const x=cx+offset;
+  const x=cx+offset,radius=Math.abs(cx)>.8?.105:.096;
   // Layered concentric reflector and protective lens; subtle off-axis
   // glints give depth without adding protrusions to the car body.
-  feature(`headlamp-${lowerLampIndex++}`,faceCircle(x,lampY,lampZ-.019,.119,lampBezel));
-  faceCircle(x,lampY,lampZ-.027,.108,lampReflector);
-  faceCircle(x,lampY,lampZ-.034,.091,lampInner);
-  faceCircle(x,lampY,lampZ-.044,.079,warmLens);
-  faceCircle(x,lampY,lampZ-.052,.072,lampGlass);
+  feature(`headlamp-${lowerLampIndex++}`,faceCircle(x,lampY,lampZ-.019,radius,lampBezel));
+  faceCircle(x,lampY,lampZ-.027,radius*.91,lampReflector);
+  faceCircle(x,lampY,lampZ-.034,radius*.77,lampInner);
+  faceCircle(x,lampY,lampZ-.044,radius*.67,warmLens);
+  faceCircle(x,lampY,lampZ-.052,radius*.61,lampGlass);
   faceCircle(x-.024,lampY+.034,lampZ-.061,.018,light);
   faceCircle(x+.031,lampY-.030,lampZ-.059,.009,lampReflector);
  }
 }
-lampCassette(-.99,.46,[0]);
-lampCassette(0,1.28,[-.435,-.145,.145,.435]);
-lampCassette(.99,.46,[0]);
+lampCassette(-.995,.535,[0]);
+lampCassette(0,1.15,[-.385,-.128,.128,.385]);
+lampCassette(.995,.535,[0]);
 // Reference has a broad three-section BLACK crash/bumper band below
 // the lamps, not a stack of narrow blue and silver decorative rails.
 const bumperBlack=mat(0x101316,.82);
 const bumperParts=[];
 for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
- bumperParts.push(box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack));
+ bumperParts.push(box(w-.012,.225,.09,cx,F+.405,faceZ-.092,bumperBlack));
 }
 qaObjects.set('bumper',bumperParts);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
@@ -550,10 +542,7 @@ function frontCylinder(x,y,z,r,depth,material){
  const obj=new T.Mesh(new T.CylinderGeometry(r,r,depth,32),material);
  obj.rotation.x=Math.PI/2;obj.position.set(x,y,z);group.add(obj);return obj;
 }
-// Blue roof eyebrow follows the rounded top of the cab, not a square box.
-frontLine([[-1.22,top-.10,faceZ+.06],[-1.18,top-.02,faceZ+.045],[-.98,top+.065,faceZ+.025],
- [-.50,top+.125,faceZ+.015],[0,top+.13,faceZ+.012],[.50,top+.125,faceZ+.015],
- [.98,top+.065,faceZ+.025],[1.18,top-.02,faceZ+.045],[1.22,top-.10,faceZ+.06]],.038,blueEdge);
+// Roof brow is part of the closed shell; no separate ornamental tube.
 // Restrained blue body seam BELOW the black bumper, as in the photograph.
 frontLine([[-1.21,F+.15,faceZ+.02],[0,F+.145,faceZ+.01],
  [1.21,F+.15,faceZ+.02]],.007,blueEdge);
@@ -561,15 +550,15 @@ frontLine([[-1.21,F+.15,faceZ+.02],[0,F+.145,faceZ+.01],
 // darker rubber seals. Wiper pivots and arms sit in front of glass.
 // Mullion centres must lie in the actual gap between the three panes.
 // The old +/-0.64 bars intruded into the central windshield.
-for(const x of [-.66,.66]){
- box(.028,1.29,.012,x,F+1.60,faceZ-.071,rubberFace);
+for(const x of [-.601,.601]){
+ box(.028,1.11,.012,x,F+1.60,faceZ-.071,rubberFace);
 }
 for(const x of [-.89,.89]){
  frontCylinder(x,F+1.04,faceZ-.09,.045,.024,rubberFace);
 }
 // Small white marker highlights and raised metal rings around all six lamps.
-for(const x of [-.99,-.435,-.145,.145,.435,.99]){
- const circle=new T.Mesh(new T.TorusGeometry(.108,.011,8,40),rim);
+for(const x of [-.995,-.385,-.128,.128,.385,.995]){
+ const circle=new T.Mesh(new T.TorusGeometry(Math.abs(x)>.8?.095:.087,.008,8,40),rim);
  circle.position.set(x,lampY,lampZ-.041);group.add(circle);
 }
 // Recessed dark coupling pocket with a narrow metal lip. The actual
@@ -612,12 +601,14 @@ frontCylinder(0,F+.07,faceZ-.84,.042,.045,pinSteel);
 const mirrorGlass=new T.MeshStandardMaterial({color:0x8babb7,metalness:.62,roughness:.16,side:T.DoubleSide});
 const mirrorYellow=mat(0xe0b52c,.38);
 for(const sign of [-1,1]){
- const x=sign*1.29;
- frontLine([[sign*1.12,F+1.78,faceZ+.12],
-  [sign*1.24,F+1.83,faceZ+.09],
-  [x,F+1.89,faceZ+.09]],.014,rim);
- feature(`mirror-${sign>0?'left':'right'}`,box(.16,.29,.076,x,F+1.98,faceZ+.09,mirrorYellow));
- box(.11,.235,.008,x-sign*.084,F+1.98,faceZ+.09,mirrorGlass);
+ // The photo shows a longer outrigger on the right side of the image.
+ const x=sign*(sign>0?1.31:1.47),yy=F+1.73;
+ const housing=new T.Mesh(new T.ExtrudeGeometry(roundedShape(.15,.31,.023),{depth:.045,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:3}),mirrorYellow);
+ housing.position.set(x,yy,faceZ+.035);group.add(housing);feature(`mirror-${sign>0?'left':'right'}`,housing);
+ for(const delta of [0,-.055])frontLine([[sign*1.24,F+1.48+delta,faceZ+.10],[x,F+1.48+delta,faceZ+.10],[x,yy-.055,faceZ+.07]],.010,mirrorYellow);
+ box(.022,.13,.016,x,yy,faceZ+.018,mirrorYellow);
+ // Reflective face is on the rear of the housing, towards the driver.
+ facePanel(.128,.28,.02,x,yy,faceZ+.087,mirrorGlass);
 }
 // Two articulated windshield wipers parked low across the front glass.
 // Thin metal arms and rubber blades remain visibly separate from the panes.
@@ -804,7 +795,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=81,lightingPreset='inspection-v1';
+const modelVersion=82,lightingPreset='inspection-v1';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},

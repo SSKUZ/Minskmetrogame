@@ -45,3 +45,8 @@ The optional `WAGON_CHROMIUM_EXECUTABLE`, `WAGON_LOCAL_ROOT`, and
 `WAGON_ASSET_DIR` variables support restricted local environments. They are
 unset in Actions. `WAGON_TARGET_URL` can target the actual published page;
 `WAGON_BASELINE_DIR` and `WAGON_RESULTS_DIR` select evidence directories.
+`WAGON_FETCH_HTML=1` uses the trusted Playwright request context for HTML in
+local environments whose Chromium trust store lacks the proxy CA; it retains
+HTTPS verification. `WAGON_EXPECT_VERSION` rejects stale live versions.
+Every run records a source-module hash and verifies the served module matches
+it. Local uncommitted captures are marked with `workingTreeDirty`.
