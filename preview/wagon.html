@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v66</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v66: сглажены передние углы и плечи синего кузова; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v67</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v67: доработаны ниша автосцепки, сцепная головка и пневморукава; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v66';
+window.wagonSideBodyVersion='smooth-v67';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -481,7 +481,7 @@ lampCassette(.98,.43,[.105],[-.105]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v66 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v67 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -514,13 +514,25 @@ for(const x of [-1.085,-.305,0,.305,1.085]){
  const circle=new T.Mesh(new T.TorusGeometry(.108,.011,8,40),rim);
  circle.position.set(x,lampY,lampZ-.041);group.add(circle);
 }
-// Realistic black coupler block, circular knuckle and pipe connections.
-box(.49,.29,.34,0,F-.035,faceZ-.32,rubberFace);
-frontCylinder(0,F-.03,faceZ-.535,.155,.13,metal);
-frontCylinder(0,F-.03,faceZ-.617,.072,.15,rubberFace);
-for(const x of [-.34,.34]){
- box(.10,.18,.29,x,F-.10,faceZ-.30,dark);
- frontCylinder(x,F-.11,faceZ-.46,.065,.065,metal);
+// Recessed dark coupling pocket with a narrow metal lip. The actual
+// coupling head sits proud of the pocket, below the painted blue apron.
+const couplerPocket=mat(0x10171a,.22),couplerSteel=mat(0x69777b,.72);
+box(.86,.31,.035,0,F-.045,faceZ-.115,couplerPocket);
+box(.91,.035,.07,0,F+.125,faceZ-.145,rim);
+for(const side of [-1,1]){
+ box(.035,.26,.065,side*.445,F-.045,faceZ-.143,rim);
+}
+// Central drawbar, cast coupling head and visible knuckle.
+box(.23,.19,.52,0,F-.055,faceZ-.34,couplerSteel);
+box(.48,.245,.20,0,F-.048,faceZ-.64,couplerSteel);
+frontCylinder(0,F-.048,faceZ-.767,.123,.11,rubberFace);
+frontCylinder(0,F-.048,faceZ-.823,.061,.09,couplerSteel);
+for(const side of [-1,1]){
+ box(.085,.16,.27,side*.34,F-.10,faceZ-.36,dark);
+ frontCylinder(side*.34,F-.10,faceZ-.52,.062,.052,couplerSteel);
+ // Compact air-line coupling and curved rubber hose.
+ frontLine([[side*.34,F-.12,faceZ-.52],
+ [side*.39,F-.23,faceZ-.57],[side*.28,F-.31,faceZ-.60]],.026,rubberFace);
 }
 for(const x of [-1.14,1.14]){
  // Side-mounted mirror stems and rectangular mirror housings.
