@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v56</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v56: исправлено повторное объявление материала кресла, блокировавшее загрузку 3D; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v57</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v57: четырёхприборная панель перенесена вертикально на левую стену кабины; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -455,7 +455,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v56 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v57 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -615,20 +615,21 @@ for(const z of [-6.95,-3.10,0,3.10,6.95]){
 for(const x of [-.76,.76]){
  rodBetween([x,F+2.26,-7.40],[x,F+2.26,8.90],.019,steel);
 }
-// Driver's console: instrument binnacle, circular dials and switches.
-box(1.05,.29,.09,-.45,F+1.39,-8.99,instrument);
+// Four-dial instrument module relocated from in front of the chair to the
+// LEFT cab side wall, upright beside the shallow equipment block.
+// The panel is mounted in the YZ plane and projects only 6 cm into the cab.
+const wallDialPanel=mat(0x252e34,.4);
+box(.065,.79,.31,-1.195,F+1.39,-8.09,wallDialPanel);
+box(.014,.73,.255,-1.153,F+1.39,-8.09,metal);
 for(let i=0;i<4;i++){
- const dial=new T.Mesh(new T.CylinderGeometry(.065,.065,.013,20),black);
- dial.rotation.x=Math.PI/2;dial.position.set(-.86+i*.26,F+1.43,-9.047);group.add(dial);
- const needle=box(.009,.047,.007,-.86+i*.26,F+1.44,-9.061,light);
- needle.rotation.z=.35;
+ const dial=new T.Mesh(new T.CylinderGeometry(.065,.065,.014,24),black);
+ dial.rotation.z=Math.PI/2;
+ dial.position.set(-1.141,F+1.12+i*.18,-8.09);
+ group.add(dial);
+ const indicator=box(.012,.038,.008,-1.129,F+1.12+i*.18,-8.09,light);
+ indicator.rotation.x=.35;
 }
-for(let i=0;i<5;i++){
- const sw=new T.Mesh(new T.CylinderGeometry(.024,.024,.045,10),steel);
- sw.position.set(-.88+i*.18,F+1.32,-8.74);group.add(sw);
-}
-rodBetween([-.04,F+1.29,-8.62],[.03,F+1.49,-8.75],.027,steel);
-box(.48,.14,.07,.63,F+.91,-8.73,seat); // seat back
+// The driver's footwell and forward view remain unobstructed.
 // Front wiper arms follow the outer face of the front glass.
 for(const x of [-.55,.55]){
  rodBetween([x-.26,F+1.15,cabFront-.192],[x+.20,F+1.61,cabFront-.192],.014,rubber);
