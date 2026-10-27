@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v54</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v54: добавлено полноценное поворотное кресло машиниста с подлокотниками и пятилучевой опорой; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v55</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v55: исправлено повторное объявление материала кресла, блокировавшее загрузку 3D; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -455,7 +455,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v54 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v55 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -556,7 +556,7 @@ box(1.15,.07,.48,-.45,F+1.28,-8.84,metal);
 const chair=new T.Group();
 chair.position.set(.50,F,-8.48);
 group.add(chair);
-const upholstery=mat(0x353c42),cushion=mat(0x48535c),edge=mat(0x181d21),chrome=mat(0x879397,.66);
+const chairUpholstery=mat(0x353c42),cushion=mat(0x48535c),edge=mat(0x181d21),chrome=mat(0x879397,.66);
 function chairBox(w,h,d,x,y,z,m){
  const mesh=new T.Mesh(new T.BoxGeometry(w,h,d),m);
  mesh.position.set(x,y,z);chair.add(mesh);return mesh;
@@ -568,18 +568,18 @@ function chairCylinder(rt,rb,h,x,y,z,m,segments=20){
 // Seat height ~0.55m, front edge toward negative z.
 chairBox(.57,.11,.57,0,.54,-.02,edge);
 chairBox(.52,.095,.53,0,.615,-.035,cushion);
-chairBox(.43,.035,.36,0,.674,-.065,upholstery);
+chairBox(.43,.035,.36,0,.674,-.065,chairUpholstery);
 // Tall, slightly reclined back, behind the driver (positive z).
 const back=chairBox(.54,.76,.105,0,1.05,.255,edge);
 back.rotation.x=-.09;
 const backPad=chairBox(.49,.69,.065,0,1.05,.182,cushion);
 backPad.rotation.x=-.09;
-chairBox(.36,.15,.10,0,1.48,.275,upholstery);
+chairBox(.36,.15,.10,0,1.48,.275,chairUpholstery);
 // Side armrests with supports and soft upper pads.
 for(const side of [-1,1]){
  chairBox(.045,.27,.045,side*.29,.74,.05,chrome);
  chairBox(.11,.065,.39,side*.29,.89,-.015,edge);
- chairBox(.095,.033,.34,side*.29,.937,-.025,upholstery);
+ chairBox(.095,.033,.34,side*.29,.937,-.025,chairUpholstery);
 }
 // Adjustable column, under-seat mechanism and star-shaped foot.
 chairBox(.38,.095,.35,0,.43,.02,edge);
