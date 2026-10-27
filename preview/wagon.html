@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v5 — двери без ручек</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v5: закруглённые верхние углы дверей, без ручек; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v6</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v6: головной вагон с кабиной, лобовыми окнами и тележками. Часть деталей пока по фото.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
-const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,14);
+const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);
 const renderer=new T.WebGLRenderer({antialias:true});document.getElementById('status').textContent='3D загружено';renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);
 scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
@@ -41,7 +41,7 @@ const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
 box(W-.12,.12,L-.08,0,F-.06,0,floor);
 for(const x of [-1,1]){box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);box(.08,.53,L-.08,x*(half-.04),F+.265,0,wall);box(.08,.30,L-.08,x*(half-.04),top-.15,0,wall)}
 // Four identical openings per side. Door modules and window bays occupy disjoint intervals.
-const doors=[-6.9,-2.3,2.3,6.9],ends=[-L/2,...doors.flatMap(z=>[z-doorWidth/2,z+doorWidth/2]),L/2].sort((a,b)=>a-b);
+const doors=[-6.65,-2.2,2.2,6.65],ends=[-L/2,...doors.flatMap(z=>[z-doorWidth/2,z+doorWidth/2]),L/2].sort((a,b)=>a-b);
 // Side body is continuous sheet metal with rectangular cut-outs for windows and doors.
 // Each window bay has opaque piers, lower waist panel, upper header and a framed opening.
 for(const side of [-1,1]){
@@ -51,7 +51,7 @@ for(const side of [-1,1]){
   if(len<.1)continue;
   // Door apertures are not filled with glass or wall.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
-  const windowWidth=Math.min(1.67,Math.max(0,len-.38));
+  const windowWidth=Math.min(mid < -7.5 ? .68 : 1.67,Math.max(0,len-.38));
   const pier=(len-windowWidth)/2;
   const sill=F+1.04,header=F+2.00;
   // Solid sidewall from the under-window waist to the roof, uninterrupted at joints.
@@ -98,9 +98,47 @@ for(const side of [-1,1])for(const [a,b] of sections){
 }
 for(const side of [-1,1])box(.035,.035,L-.30,side*.78,top-.38,0,metal);
 for(let z=-8.3;z<=8.3;z+=2.1)box(.60,.025,1.4,0,top+.015,z,mat(0xfff7d9));
-for(const z of [-L/2+.055,L/2-.055]){box(W-.08,2.2,.09,0,F+1.1,z,wall);box(.72,1.83,.10,0,F+.93,z,metal)}
+// HEAD CAR: front cab at negative Z, distinct from intermediate carriage.
+const cabFront=-L/2+.07;
+box(W-.10,.76,.12,0,F+.38,cabFront,wall);
+box(W-.10,.44,.12,0,top-.54,cabFront,wall);
+for(const xx of [-1.13,1.13])box(.24,1.42,.12,xx,F+1.47,cabFront,wall);
+// Three glazed windscreen apertures: one broad central and two narrower lateral lights.
+const frontGlass=new T.MeshStandardMaterial({color:0x486e7e,transparent:true,opacity:.62,metalness:.12,roughness:.22,side:T.DoubleSide});
+for(const [xx,ww] of [[0,1.30],[-.88,.38],[.88,.38]]){
+ const p=new T.Mesh(new T.ShapeGeometry(roundedShape(ww,1.12,.12),12),frontGlass);
+ p.position.set(xx,F+1.72,cabFront-.073);group.add(p);
+ for(const yy of [F+1.16,F+2.28])box(ww+.03,.035,.025,xx,yy,cabFront-.092,metal);
+}
+const dark=mat(0x28323a),red=mat(0xa73731);
+for(const xx of [-.96,.96]){
+ box(.30,.17,.055,xx,F+.63,cabFront-.13,dark);
+ box(.20,.11,.06,xx,F+.63,cabFront-.17,red);
+}
+box(.80,.11,.10,0,F+.45,cabFront-.14,dark); // head-car coupler base
+box(.24,.19,.32,0,F+.28,cabFront-.33,metal);
+// Cab bulkhead and control console, behind the front windscreen.
+const cabRear=-7.68;
+box(W-.18,1.98,.09,0,F+.99,cabRear,wall);
+box(.82,1.82,.055,.36,F+.92,cabRear-.058,metal);
+box(1.30,.70,.65,-.45,F+.87,-8.84,dark);
+box(1.15,.07,.48,-.45,F+1.28,-8.84,metal);
+box(.48,.15,.43,.63,F+.48,-8.66,seat);
+box(.14,.65,.14,.63,F+.19,-8.66,metal);
+// Opposite end is the inter-car bulkhead.
+box(W-.08,2.2,.09,0,F+1.1,L/2-.055,wall);
+box(.72,1.83,.10,0,F+.93,L/2-.12,metal);
+// Underframe and simplified bogies at measured-looking locations (not yet factory verified).
+box(1.78,.18,L-1.0,0,F-.27,0,dark);
+for(const z of [-6.50,6.50]){
+ box(1.94,.18,2.22,0,F-.53,z,metal);
+ for(const zz of [z-.85,z+.85])for(const xx of [-.90,.90]){
+  const wheel=new T.Mesh(new T.CylinderGeometry(.39,.39,.12,20),dark);
+  wheel.rotation.z=Math.PI/2;wheel.position.set(xx,F-.78,zz);group.add(wheel);
+ }
+}
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
-let inside=false;document.getElementById('view').onclick=()=>{inside=!inside;camera.position.set(inside?0:8,inside?2.5:5,inside?0:14);ctl.target.set(0,inside?2:1.8,inside?-5:0);document.getElementById('view').textContent=inside?'Снаружи вагона':'Внутри вагона'};
+let inside=false;document.getElementById('view').onclick=()=>{inside=!inside;camera.position.set(inside?0:8,inside?2.5:5,inside?0:-14);ctl.target.set(0,inside?2:1.8,inside?-5:0);document.getElementById('view').textContent=inside?'Снаружи вагона':'Внутри вагона'};
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
