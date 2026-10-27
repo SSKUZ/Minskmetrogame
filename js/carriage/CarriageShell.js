@@ -1,18 +1,25 @@
 export function buildCarriageShell({THREE,carriage,box,carFloor,carCream,carWhite,carSteel,carGlass}){
-box(carriage,4.14,.12,23,0,.88,-9,carFloor);
+// Metric target: 81-717/714 external body 19.206 m long and 2.670 m wide.
+// This shell uses an independent, dimensioned body envelope. Legacy interior
+// furniture/door/camera coordinates still require a coordinated migration.
+const BODY_LENGTH=19.206;
+const BODY_WIDTH=2.670;
+const BODY_CENTER_Z=-9;
+const FLOOR_Y=.88;
+box(carriage,BODY_WIDTH-.12,.12,BODY_LENGTH-.20,0,FLOOR_Y,BODY_CENTER_Z,carFloor);
 // Floor edge strips and service access panels.
-for(const side of [-1,1])box(carriage,.065,.012,22.65,side*1.97,.953,-9,carSteel);
+for(const side of [-1,1])box(carriage,.065,.012,BODY_LENGTH-.35,side*1.25,.953,BODY_CENTER_Z,carSteel);
 for(let z=-.2;z>-19;z-=3.7){box(carriage,.72,.008,.85,0,.946,z,carCream);box(carriage,.74,.009,.022,0,.952,z+.43,carSteel);}
 
 // Profiled side coves replace the former flat, box-like ceiling silhouette.
-box(carriage,2.70,.10,23,0,3.65,-9,carCream);
+box(carriage,1.68,.10,BODY_LENGTH-.20,0,3.65,BODY_CENTER_Z,carCream);
 if(THREE){
- const profile=[[1.33,3.69],[1.52,3.66],[1.77,3.54],[1.97,3.32],[2.08,3.13]];
+ const profile=[[.82,3.69],[.96,3.66],[1.12,3.54],[1.26,3.32],[1.335,3.13]];
  for(const side of [-1,1]){
   const vertices=[],indices=[];
   for(let i=0;i<profile.length;i++){
    const [x,y]=profile[i];
-   vertices.push(side*x,y,2.5,side*x,y,-20.5);
+   vertices.push(side*x,y,BODY_CENTER_Z+BODY_LENGTH/2-.1,side*x,y,BODY_CENTER_Z-BODY_LENGTH/2+.1);
    if(i){const k=i*2;indices.push(k-2,k-1,k,k-1,k+1,k);}
   }
   const geometry=new THREE.BufferGeometry();
@@ -25,7 +32,7 @@ if(THREE){
   carriage.add(panel);
   for(let i=1;i<profile.length-1;i++){
    const [x,y]=profile[i];
-   box(carriage,.035,.032,22.8,side*x,y,-9,carSteel);
+   box(carriage,.035,.032,BODY_LENGTH-.3,side*x,y,BODY_CENTER_Z,carSteel);
   }
  }
 }
