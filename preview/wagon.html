@@ -297,7 +297,7 @@ box(W-.10,.40,.14,0,top-.24,cabFront,wall);
 for(const xx of [-1.21,-.67,.67,1.21])
  box(xx===-1.21||xx===1.21?.18:.105,1.60,.14,xx,F+1.58,cabFront,wall);
 // Rounded black windshield cassette, inset inside the blue body edge.
-const glassCentreY=F+1.68,glassH=1.43;
+const glassCentreY=F+1.53,glassH=1.43;
 function frontPlate(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),16),m);
  o.position.set(x,y,z);group.add(o);return o;
@@ -316,23 +316,23 @@ for(const [xx,ww] of [[-.91,.45],[0,1.22],[.91,.45]]){
 }
 // Upper destination/marker row: two red lamps and centre metro emblem.
 for(const xx of [-.98,.98]){
- frontPlate(.42,.32,.105,xx,F+2.62,faceZ-.013,frontTrim);
- frontOutline(.42,.32,.105,xx,F+2.62,faceZ-.021,rubberFront,.012);
+ frontPlate(.42,.32,.105,xx,F+2.37,faceZ-.013,frontTrim);
+ frontOutline(.42,.32,.105,xx,F+2.37,faceZ-.021,rubberFront,.012);
  const red=new T.Mesh(new T.CircleGeometry(.086,32),redLamp);
- red.position.set(xx,F+2.62,faceZ-.031);group.add(red);
+ red.position.set(xx,F+2.37,faceZ-.031);group.add(red);
  const core=new T.Mesh(new T.CircleGeometry(.049,24),mat(0xff4b51));
- core.position.set(xx,F+2.62,faceZ-.036);group.add(core);
+ core.position.set(xx,F+2.37,faceZ-.036);group.add(core);
 }
-frontPlate(.93,.32,.075,0,F+2.62,faceZ-.014,frontTrim);
+frontPlate(.93,.32,.075,0,F+2.37,faceZ-.014,frontTrim);
 // Stylised silver metro wing badge on the central upper plaque.
 const badge=mat(0xbfc8c9,.45);
 for(const sign of [-1,1]){
  const shape=new T.Shape();
- shape.moveTo(0,F+2.61);shape.lineTo(sign*.34,F+2.70);
- shape.lineTo(sign*.20,F+2.58);shape.lineTo(sign*.06,F+2.56);shape.closePath();
+ shape.moveTo(0,F+2.36);shape.lineTo(sign*.34,F+2.45);
+ shape.lineTo(sign*.20,F+2.33);shape.lineTo(sign*.06,F+2.31);shape.closePath();
  group.add(new T.Mesh(new T.ShapeGeometry(shape),badge)).position.z=faceZ-.037;
 }
-box(.045,.18,.012,0,F+2.63,faceZ-.043,badge);
+box(.045,.18,.012,0,F+2.38,faceZ-.043,badge);
 // Route display overlays the lower portion of the central windshield.
 frontPlate(.94,.23,.025,0,F+1.075,faceZ-.038,rubberFront);
 const routeCanvas=document.createElement('canvas');routeCanvas.width=512;routeCanvas.height=128;
