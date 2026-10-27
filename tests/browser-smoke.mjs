@@ -55,5 +55,19 @@ try{
  await page.waitForTimeout(500);
  assert.ok(await page.evaluate(()=>performance.now()-window.metroLastRendered<2500),'render loop should keep running');
  assert.equal(errors.filter(x=>/ReferenceError|SyntaxError|TypeError|Metro render failure|Failed to resolve module/i.test(x)).length,0,errors.join('\n'));
+ // Independently render the existing modular 3D wagon geometry.
+ const modelPage=await browser.newPage({viewport:{width:1365,height:768},deviceScaleFactor:1});
+ const modelErrors=[];
+ modelPage.on('pageerror',e=>modelErrors.push(e.message));
+ try{
+  await modelPage.goto('http://127.0.0.1:8765/preview/wagon-model.html',{waitUntil:'domcontentloaded',timeout:30000});
+  await modelPage.waitForFunction(()=>window.wagonModelReady===true,{timeout:90000});
+  const model=await modelPage.evaluate(()=>window.wagonModelDiagnostics());
+  assert.ok(model.meshes>100,'3D wagon must contain actual geometry');
+  assert.equal(modelErrors.length,0,modelErrors.join('\\n'));
+  await modelPage.screenshot({path:'test-results/07-wagon-model.png'});
+  screenshots.push('07-wagon-model');
+  console.log('Standalone wagon model:',JSON.stringify(model));
+ }finally{await modelPage.close()}
  console.log('Browser smoke passed; screenshots:',screenshots.join(', '),'state:',JSON.stringify(state));
 }finally{await browser.close()}
