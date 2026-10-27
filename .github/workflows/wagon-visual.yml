@@ -1,0 +1,37 @@
+name: Wagon 3D model checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [testing]
+    paths:
+      - 'preview/wagon.html'
+      - 'tests/wagon-visual.mjs'
+      - '.github/workflows/wagon-visual.yml'
+permissions:
+  contents: read
+jobs:
+  wagon-model:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start model server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/wagon-server.log 2>&1 &
+      - name: Check only wagon prototype
+        run: node tests/wagon-visual.mjs
+      - name: Save wagon visual report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wagon-3d-visual-report
+          path: test-results/wagon/
+          if-no-files-found: warn
+          retention-days: 14
