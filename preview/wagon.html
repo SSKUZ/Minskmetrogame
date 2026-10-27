@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v58</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v58: добавлены объёмные продольные рёбра на боковых панелях кузова; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v59</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v59: рифление кузова переделано в гладкую штампованную поверхность без накладных брусков; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -112,16 +112,34 @@ for(const side of [-1,1]){
   box(.085,sill-F,len,x,(sill+F)/2,mid,wall);
   box(.085,top-.28-header,len,x,(header+top-.28)/2,mid,wall);
   for(const e of [-1,1])box(.085,header-sill,pier,x,(header+sill)/2,mid+e*(windowWidth+pier)/2,wall);
-  // Shallow horizontal pressed-steel corrugations on the BLUE passenger
-  // waist panels, confined to each solid window bay. The ribs stop at
-  // every doorway and never cover the cab access door or window glazing.
-  const ribMaterial=mat(0x2d6488,.24);
-  for(let k=0;k<6;k++){
-   const yy=F+.19+k*.128;
-   const rib=new T.Mesh(new T.BoxGeometry(.016,.018,Math.max(.08,len-.065)),ribMaterial);
-   rib.position.set(x+side*.052,yy,mid);
-   group.add(rib);
+  // Press-formed waist sheet: a single continuous smooth surface with
+  // rounded, shallow embossing. No independent rectangular bars.
+  // Its outer face sits just outside the existing structural side sheet.
+  const profileStart=F+.065,profileEnd=F+1.025;
+  const rows=144,cols=8,positions=[],triangles=[];
+  const outerX=x+side*.046;
+  const embossed=(y)=>{
+   const t=(y-profileStart)/(profileEnd-profileStart);
+   // Six softly blended corrugations with zero slope at their troughs.
+   const wave=Math.pow(Math.sin(Math.PI*6*t),4);
+   const fade=Math.min(1,Math.max(0,(t/.045)),Math.max(0,(1-t)/.045));
+   return .024*wave*fade;
+  };
+  for(let j=0;j<=rows;j++){
+   const y=profileStart+(profileEnd-profileStart)*j/rows;
+   for(let k=0;k<=cols;k++){
+    const z=a+.035+(len-.07)*k/cols;
+    positions.push(outerX+side*embossed(y),y,z);
+   }
   }
+  for(let j=0;j<rows;j++)for(let k=0;k<cols;k++){
+   const p=j*(cols+1)+k,q=p+cols+1;
+   triangles.push(p,q,p+1,q,q+1,p+1);
+  }
+  const pressedGeo=new T.BufferGeometry();
+  pressedGeo.setAttribute('position',new T.Float32BufferAttribute(positions,3));
+  pressedGeo.setIndex(triangles);pressedGeo.computeVertexNormals();
+  group.add(new T.Mesh(pressedGeo,wall));
   // Actual window glass only inside the structural cutout, not the full wall bay.
   if(windowWidth>.30)roundedOpening(windowWidth,header-sill,.16,x,(header+sill)/2,mid,side);
  }
@@ -465,7 +483,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v58 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v59 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
