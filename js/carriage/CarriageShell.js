@@ -19,8 +19,9 @@ if(THREE){
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
-  const panel=new THREE.Mesh(geometry,carCream);
-  panel.material=carCream;
+  const panelMaterial=carCream.clone();
+  panelMaterial.side=THREE.DoubleSide;
+  const panel=new THREE.Mesh(geometry,panelMaterial);
   carriage.add(panel);
   for(let i=1;i<profile.length-1;i++){
    const [x,y]=profile[i];
