@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v52</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v52: прозрачные лобовые стёкла без непрозрачной подложки; 3D-оборудование задней стенки кабины; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v53</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v53: устранена настоящая причина чёрных стёкол: в маске вырезаны три сквозных оконных проёма; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -294,7 +294,7 @@ for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
 const cabFront=-L/2+.07,faceZ=cabFront-.205;
 const mask=mat(0x171f24),gasket=mat(0x070b0e),frame=mat(0x53646b,.32);
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
-const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.16,metalness:.02,roughness:.20,side:T.DoubleSide,depthWrite:false});
+const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.10,metalness:.02,roughness:.20,side:T.DoubleSide,depthWrite:false});
 const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
 function facePanel(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),20),m);
@@ -356,7 +356,23 @@ for(const sign of [-1,1])cabShoulder(sign,F+.34,top-.23);
 // One unified fascia with narrow metal rim, not floating individual panels.
 // The upper edge must sit BELOW the curved roof profile (top+.13).
 // Earlier fascia reached above the actual roof and broke the silhouette.
-facePanel(2.43,2.05,.22,0,F+1.58,faceZ+.015,mask);
+// Cut actual windshield openings in the black fascia. A solid black
+// ShapeGeometry previously sat directly BEHIND the transparent panes,
+// making every windshield appear like an opaque black panel.
+const fasciaShape=roundedShape(2.43,2.05,.22);
+for(const [cx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
+ const outline=roundedShape(ww-.015,1.315,.085).getPoints(24);
+ const hole=new T.Path();
+ // Shape holes require reverse winding relative to the outer perimeter.
+ for(let i=outline.length-1;i>=0;i--){
+  const p=outline[i];
+  if(i===outline.length-1)hole.moveTo(cx+p.x,p.y+(F+1.60)-(F+1.58));
+  else hole.lineTo(cx+p.x,p.y+(F+1.60)-(F+1.58));
+ }
+ hole.closePath();fasciaShape.holes.push(hole);
+}
+const fasciaMesh=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),mask);
+fasciaMesh.position.set(0,F+1.58,faceZ+.015);group.add(fasciaMesh);
 faceBorder(2.43,2.05,.22,0,F+1.58,faceZ+.007,frame,.010);
 // Three tall glass panels: wide central, narrow left/right, black mullions.
 for(const [xx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
@@ -439,7 +455,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v52 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v53 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
