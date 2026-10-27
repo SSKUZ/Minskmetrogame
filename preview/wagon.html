@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v67</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v67: доработаны ниша автосцепки, сцепная головка и пневморукава; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v68</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v68: доработаны наружные зеркала и стеклоочистители кабины; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v67';
+window.wagonSideBodyVersion='smooth-v68';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -481,7 +481,7 @@ lampCassette(.98,.43,[.105],[-.105]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v67 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v68 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -534,25 +534,28 @@ for(const side of [-1,1]){
  frontLine([[side*.34,F-.12,faceZ-.52],
  [side*.39,F-.23,faceZ-.57],[side*.28,F-.31,faceZ-.60]],.026,rubberFace);
 }
-for(const x of [-1.14,1.14]){
- // Side-mounted mirror stems and rectangular mirror housings.
- const mirror=new T.Mesh(new T.BoxGeometry(.14,.32,.07),rubberFace);
- mirror.position.set(x*1.27,F+1.91,faceZ+.10);group.add(mirror);
- frontLine([[x,F+1.78,faceZ+.12],[x*1.19,F+1.80,faceZ+.10],
- [x*1.27,F+1.85,faceZ+.10]],.018,rubberFace);
+// Compact side mirrors on angled stalks, with reflective inward-facing glass.
+const mirrorGlass=new T.MeshStandardMaterial({color:0x8babb7,metalness:.62,roughness:.16,side:T.DoubleSide});
+for(const sign of [-1,1]){
+ const x=sign*1.27;
+ frontLine([[sign*1.12,F+1.78,faceZ+.12],
+  [sign*1.23,F+1.83,faceZ+.09],
+  [x,F+1.89,faceZ+.09]],.014,rubberFace);
+ box(.13,.27,.072,x,F+1.97,faceZ+.09,rubberFace);
+ box(.085,.215,.008,x-sign*.071,F+1.97,faceZ+.09,mirrorGlass);
 }
-// Two parked windshield wipers, modelled as slim articulated arms.
-// Each blade follows the bottom edge of its respective glass bay.
+// Two articulated windshield wipers parked low across the front glass.
+// Thin metal arms and rubber blades remain visibly separate from the panes.
 const wiperMetal=mat(0x252b2c,.28);
 for(const sign of [-1,1]){
- const pivotX=sign*.89,pivotY=F+1.025;
- frontCylinder(pivotX,pivotY,faceZ-.126,.033,.025,wiperMetal);
+ const pivotX=sign*.91,pivotY=F+1.005;
+ frontCylinder(pivotX,pivotY,faceZ-.126,.031,.025,wiperMetal);
  frontLine([[pivotX,pivotY,faceZ-.137],
-  [sign*.70,F+1.085,faceZ-.14],
-  [sign*.43,F+1.105,faceZ-.143]],.011,wiperMetal);
- frontLine([[sign*.69,F+1.105,faceZ-.148],
-  [sign*.31,F+1.123,faceZ-.148],
-  [sign*.04,F+1.13,faceZ-.148]],.013,rubberFace);
+  [sign*.75,F+1.055,faceZ-.145],
+  [sign*.49,F+1.105,faceZ-.151]],.010,wiperMetal);
+ frontLine([[sign*.70,F+1.085,faceZ-.157],
+  [sign*.43,F+1.115,faceZ-.157],
+  [sign*.19,F+1.135,faceZ-.157]],.012,rubberFace);
 }
 // Lower fascia vertical service seams and fastening heads.
 for(const x of [-1.17,1.17]){
