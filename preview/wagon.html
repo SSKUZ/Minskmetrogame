@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v25</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v25: закрыт верхний зазор над всеми пассажирскими дверями без изменения створок.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v26</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v26: боковая дверь машиниста утоплена в настоящий проём кузова.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -55,17 +55,39 @@ for(const side of [-1,1]){
   box(.08,.53,len,x,F+.265,mid,wall);
   // Separate exterior access door to the driver's cab, on each side of the head car.
   if(mid < -7.5){
-   const cabDoorZ=-8.52, cabDoorW=.74, cabDoorH=1.94;
-   // Full-height opaque sidewall, with a clearly outlined cab door in its plane.
-   box(.085,top-.28-F,len,x,(top-.28+F)/2,mid,wall);
-   const outline=mat(0x11191e,.35);
-   roundedPanel(cabDoorW+.07,cabDoorH+.07,.13,x+side*.055,F+cabDoorH/2,cabDoorZ,outline);
-   roundedPanel(cabDoorW,cabDoorH,.12,x+side*.073,F+cabDoorH/2,cabDoorZ,wall);
-   // Tall glazed window in upper half of the driver's access door.
-   roundedPanel(.48,.69,.085,x+side*.092,F+1.47,cabDoorZ,glass);
-   // Perimeter of the glazed insert.
-   for(const yy of [F+1.125,F+1.815])box(.028,.023,.51,x+side*.104,yy,cabDoorZ,metal);
-   for(const zz of [cabDoorZ-.24,cabDoorZ+.24])box(.028,.70,.023,x+side*.104,F+1.47,zz,metal);
+   const cabDoorZ=-8.52,cabDoorW=.74,cabDoorH=1.94;
+   const cabBottom=F,cabTop=F+cabDoorH,bodyTop=top-.28;
+   const leftEdge=cabDoorZ-cabDoorW/2,rightEdge=cabDoorZ+cabDoorW/2;
+   // The original continuous sidewall hid the door. Cut a true aperture:
+   // metal sheet remains only above and on both sides of the access door.
+   const leftLen=leftEdge-a,rightLen=b-rightEdge;
+   if(leftLen>0)box(.085,bodyTop-F,leftLen,x,(bodyTop+F)/2,(a+leftEdge)/2,wall);
+   if(rightLen>0)box(.085,bodyTop-F,rightLen,x,(bodyTop+F)/2,(rightEdge+b)/2,wall);
+   box(.085,bodyTop-cabTop,cabDoorW,x,(bodyTop+cabTop)/2,cabDoorZ,wall);
+   const recess=x-side*.026;
+   const cabShape=roundedShape(cabDoorW-.012,cabDoorH-.010,.12);
+   const windowW=.48,windowH=.69,windowY=F+1.47;
+   const hole=new T.Path(),pts=roundedShape(windowW,windowH,.08).getPoints(16);
+   const offsetY=windowY-(F+cabDoorH/2);
+   for(let i=pts.length-1;i>=0;i--){
+    const p=pts[i];if(i===pts.length-1)hole.moveTo(p.x,p.y+offsetY);
+    else hole.lineTo(p.x,p.y+offsetY);
+   }
+   hole.closePath();cabShape.holes.push(hole);
+   const leaf=new T.Mesh(new T.ShapeGeometry(cabShape,16),wall);
+   leaf.rotation.y=Math.PI/2;
+   leaf.position.set(recess,F+cabDoorH/2,cabDoorZ);group.add(leaf);
+   roundedPanel(windowW-.012,windowH-.012,.075,recess+side*.004,windowY,cabDoorZ,glass);
+   // Narrow dark recessed seal, same visual principle as passenger doors.
+   const cabSeal=mat(0x1b303d);
+   const rim=roundedShape(cabDoorW+.008,cabDoorH+.008,.125).getPoints(12);
+   const rimCurve=new T.CatmullRomCurve3(rim.map(p=>new T.Vector3(x+side*.007,F+cabDoorH/2+p.y,cabDoorZ-p.x)),true);
+   group.add(new T.Mesh(new T.TubeGeometry(rimCurve,72,.009,6,true),cabSeal));
+   const winPts=roundedShape(windowW,windowH,.08).getPoints(12);
+   const winCurve=new T.CatmullRomCurve3(winPts.map(p=>new T.Vector3(recess+side*.009,windowY+p.y,cabDoorZ-p.x)),true);
+   group.add(new T.Mesh(new T.TubeGeometry(winCurve,64,.009,6,true),cabSeal));
+   // Compact exterior handle, attached to the recessed leaf.
+   box(.024,.018,.09,recess+side*.017,F+1.03,cabDoorZ+.24,metal);
    continue;
   }
   const windowWidth=Math.min(1.67,Math.max(0,len-.38));
