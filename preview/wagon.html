@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v37</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v37: добавлены отражения и внутренние рамки лобового остекления; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v38</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v38: уточнены стойки окон, нижние кромки стёкол и утопленное табло; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -338,6 +338,20 @@ for(const [cx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
  box(ww-.055,.018,.008,cx,F+.956,faceZ-.082,gasket);
  box(ww-.070,.055,.008,cx,F+2.21,faceZ-.079,glassShade);
 }
+// Narrow windshield mullions and curved top seam, based on the three-bay
+// front arrangement in the photographic reference.
+const sealTrim=mat(0x1b252b);
+for(const x of [-.645,.645]){
+ box(.036,1.25,.024,x,F+1.61,faceZ-.105,sealTrim);
+ box(.018,.18,.026,x,F+2.28,faceZ-.10,frame);
+}
+// Glazing lower sill: three separate metal caps, not a single bright stripe.
+for(const [cx,w] of [[-.92,.48],[0,1.20],[.92,.48]]){
+ box(w-.035,.026,.030,cx,F+.932,faceZ-.105,frame);
+}
+// Destination display gets a recessed, unlit glass insert, with no station text.
+const destinationGlass=new T.MeshStandardMaterial({color:0x111b21,metalness:.10,roughness:.22});
+facePanel(.78,.15,.018,0,F+1.115,faceZ-.051,destinationGlass);
 // Upper row integrated into the main black fascia.
 for(const xx of [-.99,.99]){
  facePanel(.39,.28,.09,xx,F+2.49,faceZ-.014,gasket);
@@ -381,7 +395,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v37 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v38 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
