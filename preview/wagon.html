@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v14</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v14: сохранена геометрия линий; окраска нанесена на поверхность кузова.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v15</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v15: поручни салона, приборы кабины, дворники и обрамление фар. Полосы не изменены.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -195,6 +195,53 @@ box(1.30,.70,.65,-.45,F+.87,-8.84,dark);
 box(1.15,.07,.48,-.45,F+1.28,-8.84,metal);
 box(.48,.15,.43,.63,F+.48,-8.66,seat);
 box(.14,.65,.14,.63,F+.19,-8.66,metal);
+// Interior detailing: slim stainless grab rails, overhead transverse bars and
+// soft ceiling diffusers. All dimensions are in metres, relative to floor F.
+const steel=mat(0xb7c0c2,.72),rubber=mat(0x333c42),instrument=mat(0x202d34);
+function rodBetween(a,b,radius,material){
+ const A=new T.Vector3(...a),B=new T.Vector3(...b),v=B.clone().sub(A);
+ const rod=new T.Mesh(new T.CylinderGeometry(radius,radius,v.length(),10),material);
+ rod.position.copy(A.add(B).multiplyScalar(.5));
+ rod.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());
+ group.add(rod);return rod;
+}
+for(const z of [-6.95,-3.10,0,3.10,6.95]){
+ rodBetween([-.92,F+2.08,z],[.92,F+2.08,z],.019,steel);
+ for(const x of [-.92,.92]){
+  rodBetween([x,F+.12,z],[x,F+2.08,z],.018,steel);
+  rodBetween([x,F+2.08,z],[x*.83,F+2.35,z],.015,steel);
+ }
+}
+for(const x of [-.76,.76]){
+ rodBetween([x,F+2.26,-7.40],[x,F+2.26,8.90],.019,steel);
+}
+// Driver's console: instrument binnacle, circular dials and switches.
+box(1.05,.29,.09,-.45,F+1.39,-8.99,instrument);
+for(let i=0;i<4;i++){
+ const dial=new T.Mesh(new T.CylinderGeometry(.065,.065,.013,20),black);
+ dial.rotation.x=Math.PI/2;dial.position.set(-.86+i*.26,F+1.43,-9.047);group.add(dial);
+ const needle=box(.009,.047,.007,-.86+i*.26,F+1.44,-9.061,light);
+ needle.rotation.z=.35;
+}
+for(let i=0;i<5;i++){
+ const sw=new T.Mesh(new T.CylinderGeometry(.024,.024,.045,10),steel);
+ sw.position.set(-.88+i*.18,F+1.32,-8.74);group.add(sw);
+}
+rodBetween([-.04,F+1.29,-8.62],[.03,F+1.49,-8.75],.027,steel);
+box(.48,.14,.07,.63,F+.91,-8.73,seat); // seat back
+// Front wiper arms follow the outer face of the front glass.
+for(const x of [-.55,.55]){
+ rodBetween([x-.26,F+1.15,cabFront-.192],[x+.20,F+1.61,cabFront-.192],.014,rubber);
+ rodBetween([x+.08,F+1.50,cabFront-.201],[x+.35,F+1.73,cabFront-.201],.018,rubber);
+}
+// Exterior lamp bezels and front grab handles.
+for(const x of [-.98,-.33,.33,.98]){
+ const bezel=new T.Mesh(new T.TorusGeometry(.126,.018,7,24),metal);
+ bezel.position.set(x,F+.65,cabFront-.229);group.add(bezel);
+}
+for(const x of [-1.15,1.15]){
+ rodBetween([x,F+.30,cabFront-.215],[x,F+.85,cabFront-.215],.015,steel);
+}
 // Opposite end is the inter-car bulkhead.
 box(W-.08,2.2,.09,0,F+1.1,L/2-.055,interior);
 box(.72,1.83,.10,0,F+.93,L/2-.12,metal);
