@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v26</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v26: боковая дверь машиниста утоплена в настоящий проём кузова.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v27</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v27: удалена перекрывавшая дверь машиниста сплошная нижняя панель.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -51,9 +51,8 @@ for(const side of [-1,1]){
   if(len<.1)continue;
   // Door apertures must remain completely clear down to the floor.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
-  // Under-window side skirt exists only between doorways, never across leaves.
-  box(.08,.53,len,x,F+.265,mid,wall);
   // Separate exterior access door to the driver's cab, on each side of the head car.
+  // IMPORTANT: no continuous lower skirt here: it would cover the recessed door.
   if(mid < -7.5){
    const cabDoorZ=-8.52,cabDoorW=.74,cabDoorH=1.94;
    const cabBottom=F,cabTop=F+cabDoorH,bodyTop=top-.28;
@@ -90,6 +89,8 @@ for(const side of [-1,1]){
    box(.024,.018,.09,recess+side*.017,F+1.03,cabDoorZ+.24,metal);
    continue;
   }
+  // The waist sheet belongs ONLY to passenger window bays, never cab doors.
+  box(.08,.53,len,x,F+.265,mid,wall);
   const windowWidth=Math.min(1.67,Math.max(0,len-.38));
   const pier=(len-windowWidth)/2;
   const sill=F+1.04,header=F+2.00;
