@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Геометрический прототип</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Проверочный 3D-макет, не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v3 — глухие стены и двери</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v3: металлические простенки и закрытые двери; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -9,7 +9,7 @@ const renderer=new T.WebGLRenderer({antialias:true});document.getElementById('st
 scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
 const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
-const wall=mat(0xd4d7d2),roof=mat(0xe8e5d8),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x78472c),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.19,side:T.DoubleSide,depthWrite:false});
+const wall=mat(0xe0e2dd),roof=mat(0xe8e5d8),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x78472c),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
 const group=new T.Group();scene.add(group);
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
 const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
@@ -26,9 +26,9 @@ for(const side of [-1,1]){
   if(len<.1)continue;
   // Door apertures are not filled with glass or wall.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
-  const windowWidth=Math.min(1.45,Math.max(0,len-.64));
+  const windowWidth=Math.min(1.15,Math.max(0,len-.95));
   const pier=(len-windowWidth)/2;
-  const sill=F+1.05,header=F+1.97;
+  const sill=F+1.12,header=F+1.90;
   // Solid sidewall from the under-window waist to the roof, uninterrupted at joints.
   box(.085,sill-F,len,x,(sill+F)/2,mid,wall);
   box(.085,top-.28-header,len,x,(header+top-.28)/2,mid,wall);
@@ -45,6 +45,15 @@ for(const side of [-1,1]){
   box(.10,.10,doorWidth+.09,x,F+doorHeight+.04,dz,metal);
   for(const e of [-1,1])box(.09,doorHeight,.09,x,F+doorHeight/2,dz+e*doorWidth/2,metal);
   box(.10,.025,doorWidth,x,F+.015,dz,metal);
+  // Each closed sliding leaf is opaque metal, with only a small window insert.
+  for(const halfDoor of [-1,1]){
+   const leafZ=dz+halfDoor*doorWidth/4;
+   box(.085,doorHeight-.09,doorWidth/2-.045,x,F+doorHeight/2,leafZ,wall);
+   box(.022,.70,.38,x+side*.052,F+1.48,leafZ,glass);
+   for(const yy of [F+1.12,F+1.84])box(.025,.035,.42,x+side*.063,yy,leafZ,metal);
+   for(const zz of [leafZ-.20,leafZ+.20])box(.025,.75,.028,x+side*.063,F+1.48,zz,metal);
+   box(.025,.15,.035,x+side*.065,F+1.04,dz+halfDoor*.12,metal);
+  }
  }
 }
 // Extruded roof profile in a single metric cross section.
