@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v35</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v35: исправлена боковая полоса у двери кабины, увеличены дверные окна, детализированы тележки; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v36</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v36: исправлен профиль крыши над кабиной; добавлена кнопка вида спереди; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -366,7 +366,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v35 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v36 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -378,9 +378,9 @@ function frontCylinder(x,y,z,r,depth,material){
  obj.rotation.x=Math.PI/2;obj.position.set(x,y,z);group.add(obj);return obj;
 }
 // Blue roof eyebrow follows the rounded top of the cab, not a square box.
-frontLine([[-1.22,F+2.56,faceZ+.06],[-1.18,F+2.70,faceZ+.045],[-.98,F+2.79,faceZ+.025],
- [-.50,F+2.84,faceZ+.015],[0,F+2.85,faceZ+.012],[.50,F+2.84,faceZ+.015],
- [.98,F+2.79,faceZ+.025],[1.18,F+2.70,faceZ+.045],[1.22,F+2.56,faceZ+.06]],.038,blueEdge);
+frontLine([[-1.22,top-.10,faceZ+.06],[-1.18,top-.02,faceZ+.045],[-.98,top+.065,faceZ+.025],
+ [-.50,top+.125,faceZ+.015],[0,top+.13,faceZ+.012],[.50,top+.125,faceZ+.015],
+ [.98,top+.065,faceZ+.025],[1.18,top-.02,faceZ+.045],[1.22,top-.10,faceZ+.06]],.038,blueEdge);
 // Full-width lower fascia edge and a narrow bumper step.
 frontLine([[-1.22,F+.335,faceZ-.027],[-.65,F+.32,faceZ-.038],
  [0,F+.315,faceZ-.045],[.65,F+.32,faceZ-.038],[1.22,F+.335,faceZ-.027]],.014,rim);
@@ -511,9 +511,11 @@ function setCamera(mode){
  ctl.update();
  document.getElementById('view').textContent=mode==='salon'?'Снаружи вагона':'Камера салона';
  document.getElementById('driver').textContent=mode==='driver'?'Снаружи вагона':'Камера машиниста';
+ document.getElementById('front').textContent=mode==='front'?'Снаружи вагона':'Вид спереди';
 }
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
+document.getElementById('front').onclick=()=>setCamera(cameraMode==='front'?'outside':'front');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 window.wagonDiagnostics=()=>({cameraMode,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height});window.wagonSetCamera=setCamera;document.getElementById('status').textContent='3D загружено';window.wagonReady=true;function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
