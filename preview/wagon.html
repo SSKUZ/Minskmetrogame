@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v4 — широкие окна со скруглением</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v4: широкие закруглённые окна и остекление дверей; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v5 — двери без ручек</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v5: закруглённые верхние углы дверей, без ручек; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -69,11 +69,13 @@ for(const side of [-1,1]){
   // Each closed sliding leaf is opaque metal, with only a small window insert.
   for(const halfDoor of [-1,1]){
    const leafZ=dz+halfDoor*doorWidth/4;
-   box(.085,doorHeight-.09,doorWidth/2-.045,x,F+doorHeight/2,leafZ,wall);
+   box(.085,doorHeight-.19,doorWidth/2-.045,x,F+(doorHeight-.19)/2,leafZ,wall);
+   // Rounded upper outside corner on the leaf, matching the historic sliding doors.
+   roundedPanel(doorWidth/2-.045,.24,.105,x+side*.051,F+doorHeight-.21,leafZ,wall);
    roundedPanel(.43,.78,.09,x+side*.055,F+1.49,leafZ,glass);
    
    
-   box(.025,.15,.035,x+side*.065,F+1.04,dz+halfDoor*.12,metal);
+
   }
  }
 }
