@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v33</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v33: уточнённая передняя маска по эталону, 6 нижних фар; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v34</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v34: доработанные фары, зеркала, обводы кабины и сцепка; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -361,6 +361,59 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
+// v34 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
+const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
+function frontLine(points,r=.012,material=rim){
+ const curve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p)));
+ group.add(new T.Mesh(new T.TubeGeometry(curve,Math.max(24,points.length*12),r,8,false),material));
+}
+function frontCylinder(x,y,z,r,depth,material){
+ const obj=new T.Mesh(new T.CylinderGeometry(r,r,depth,32),material);
+ obj.rotation.x=Math.PI/2;obj.position.set(x,y,z);group.add(obj);return obj;
+}
+// Blue roof eyebrow follows the rounded top of the cab, not a square box.
+frontLine([[-1.22,F+2.56,faceZ+.06],[-1.18,F+2.70,faceZ+.045],[-.98,F+2.79,faceZ+.025],
+ [-.50,F+2.84,faceZ+.015],[0,F+2.85,faceZ+.012],[.50,F+2.84,faceZ+.015],
+ [.98,F+2.79,faceZ+.025],[1.18,F+2.70,faceZ+.045],[1.22,F+2.56,faceZ+.06]],.038,blueEdge);
+// Full-width lower fascia edge and a narrow bumper step.
+frontLine([[-1.22,F+.335,faceZ-.027],[-.65,F+.32,faceZ-.038],
+ [0,F+.315,faceZ-.045],[.65,F+.32,faceZ-.038],[1.22,F+.335,faceZ-.027]],.014,rim);
+box(2.42,.075,.25,0,F+.225,faceZ-.04,blueEdge);
+box(2.24,.025,.27,0,F+.19,faceZ-.08,rubberFace);
+// Glazing mullions: three separate bays with broad central window and
+// darker rubber seals. Wiper pivots and arms sit in front of glass.
+for(const x of [-.64,.64]){
+ box(.028,1.29,.012,x,F+1.60,faceZ-.071,rubberFace);
+}
+for(const x of [-.89,.89]){
+ frontCylinder(x,F+1.04,faceZ-.09,.045,.024,rubberFace);
+}
+// Small white marker highlights and raised metal rings around all six lamps.
+for(const x of [-1.02,-.49,-.165,.165,.49,1.02]){
+ const circle=new T.Mesh(new T.TorusGeometry(.108,.011,8,40),rim);
+ circle.position.set(x,lampY,lampZ-.041);group.add(circle);
+}
+// Realistic black coupler block, circular knuckle and pipe connections.
+box(.49,.29,.34,0,F-.035,faceZ-.32,rubberFace);
+frontCylinder(0,F-.03,faceZ-.535,.155,.13,metal);
+frontCylinder(0,F-.03,faceZ-.617,.072,.15,rubberFace);
+for(const x of [-.34,.34]){
+ box(.10,.18,.29,x,F-.10,faceZ-.30,dark);
+ frontCylinder(x,F-.11,faceZ-.46,.065,.065,metal);
+}
+for(const x of [-1.14,1.14]){
+ // Side-mounted mirror stems and rectangular mirror housings.
+ const mirror=new T.Mesh(new T.BoxGeometry(.14,.32,.07),rubberFace);
+ mirror.position.set(x*1.27,F+1.91,faceZ+.10);group.add(mirror);
+ frontLine([[x,F+1.78,faceZ+.12],[x*1.19,F+1.80,faceZ+.10],
+ [x*1.27,F+1.85,faceZ+.10]],.018,rubberFace);
+}
+// Horizontal nose and side transition seams, visible at head-on view.
+for(const y of [F+.38,F+.27]){
+ frontLine([[-1.23,y,faceZ+.10],[-.86,y,faceZ+.095],[0,y,faceZ+.09],
+ [.86,y,faceZ+.095],[1.23,y,faceZ+.10]],.006,blueEdge);
+}
 // Cab bulkhead and control console, behind the front windscreen.
 const cabRear=-7.68;
 box(W-.18,1.98,.09,0,F+.99,cabRear,interior);
