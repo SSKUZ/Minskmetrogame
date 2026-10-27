@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v16</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v16: детализация пассажирского салона, дверных порогов и крыши. Кабина и полосы не изменены.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v17</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v17: двери заполняют проёмы по высоте; стёкла прозрачные, как боковые окна.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -81,16 +81,28 @@ for(const side of [-1,1]){
   box(.10,.10,doorWidth+.09,x,F+doorHeight+.04,dz,metal);
   for(const e of [-1,1])box(.09,doorHeight,.09,x,F+doorHeight/2,dz+e*doorWidth/2,metal);
   box(.10,.025,doorWidth,x,F+.015,dz,metal);
-  // Each closed sliding leaf is opaque metal, with only a small window insert.
+  // Closed sliding leaves fill the aperture up to the underside of the top lintel.
+  // Glass is an actual transparent insert in a metal frame, not a tinted patch
+  // sitting on an opaque door face.
+  const leafWidth=doorWidth/2-.014,leafHeight=doorHeight-.018;
   for(const halfDoor of [-1,1]){
    const leafZ=dz+halfDoor*doorWidth/4;
-   box(.085,doorHeight-.19,doorWidth/2-.045,x,F+(doorHeight-.19)/2,leafZ,wall);
-   // Rounded upper outside corner on the leaf, matching the historic sliding doors.
-   roundedPanel(doorWidth/2-.045,.24,.105,x+side*.051,F+doorHeight-.21,leafZ,wall);
-   roundedPanel(.43,.78,.09,x+side*.055,F+1.49,leafZ,glass);
-   
-   
-
+   const glassW=.43,glassH=.78,glassY=F+1.49;
+   const baseY=F+.012,topY=baseY+leafHeight;
+   const gBottom=glassY-glassH/2,gTop=glassY+glassH/2;
+   // Opaque metal around the transparent rectangular window aperture.
+   box(.085,gBottom-baseY,leafWidth,x,(baseY+gBottom)/2,leafZ,wall);
+   box(.085,topY-gTop,leafWidth,x,(gTop+topY)/2,leafZ,wall);
+   const pier=(leafWidth-glassW)/2;
+   for(const sign of [-1,1])
+    box(.085,glassH,pier,x,glassY,leafZ+sign*(glassW+pier)/2,wall);
+   // Transparent pane uses precisely the same material as the side windows.
+   roundedPanel(glassW-.015,glassH-.015,.09,x+side*.050,glassY,leafZ,glass);
+   // Thin gasket, flush with the door skin.
+   const gasket=mat(0x343b3c);
+   const frameShape=roundedShape(glassW,glassH,.09).getPoints(12);
+   const frameCurve=new T.CatmullRomCurve3(frameShape.map(p=>new T.Vector3(x+side*.055,glassY+p.y,leafZ-p.x)),true);
+   group.add(new T.Mesh(new T.TubeGeometry(frameCurve,64,.012,5,true),gasket));
   }
  }
 }
