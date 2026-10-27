@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v15</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v15: поручни салона, приборы кабины, дворники и обрамление фар. Полосы не изменены.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v16</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v16: детализация пассажирского салона, дверных порогов и крыши. Кабина и полосы не изменены.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -160,6 +160,50 @@ for(const side of [-1,1])for(const [a,b] of sections){
 }
 for(const side of [-1,1])box(.035,.035,L-.30,side*.78,top-.38,0,metal);
 for(let z=-8.3;z<=8.3;z+=2.1)box(.60,.025,1.4,0,top+.015,z,mat(0xfff7d9));
+// Passenger-compartment detailing only: seating modules, inner wall trim,
+// overhead panels and doorway threshold hardware. Cab is intentionally untouched.
+const lining=mat(0xcac9c1),edgeTrim=mat(0x9a9f9f,.35),upholstery=mat(0x75564a);
+for(const side of [-1,1]){
+ const ix=side*(half-.115);
+ // Inner window reveals and wall panels between doorways.
+ const bays=[[-7.70,-7.36],[-5.96,-2.90],[-1.50,1.50],[2.90,5.96],[7.36,9.35]];
+ for(const [a,b] of bays){
+  if(b-a<.5)continue;
+  const mid=(a+b)/2,len=b-a;
+  box(.014,.22,len-.08,ix,F+.20,mid,lining);
+  box(.018,.035,len-.08,ix,F+1.04,mid,edgeTrim);
+  box(.014,.07,len-.08,ix,top-.38,mid,lining);
+ }
+ for(const dz of doors){
+  // Recessed rubber edges, threshold and floor warning marking.
+  for(const sign of [-1,1]){
+   box(.012,doorHeight-.16,.018,side*(half-.094),F+(doorHeight-.16)/2,dz+sign*(doorWidth/2-.055),edgeTrim);
+  }
+  box(.22,.008,doorWidth-.14,side*(half-.20),F+.012,dz,edgeTrim);
+ }
+}
+// Separate cushions on the existing continuous benches, not replacement seats.
+for(const side of [-1,1]){
+ for(const [a,b] of sections){
+  const count=Math.max(1,Math.floor((b-a-.14)/.48));
+  const step=(b-a-.14)/count;
+  for(let i=0;i<count;i++){
+   const zz=a+.07+(i+.5)*step;
+   box(.41,.035,Math.max(.20,step-.028),side*.99,F+.545,zz,upholstery);
+   box(.035,.46,Math.max(.20,step-.028),side*1.17,F+.81,zz,upholstery);
+  }
+ }
+}
+// Low-profile roof ventilation grilles on the exterior, without touching livery.
+for(const z of [-6.8,-3.6,0,3.6,6.8]){
+ box(.78,.025,.56,0,top+.145,z,metal);
+ for(let k=-3;k<=3;k++)box(.63,.012,.025,0,top+.167,z+k*.07,dark);
+}
+// Diffuse ceiling strips along the saloon; existing overhead lighting retained.
+const ceilingLight=mat(0xfff0cc);
+for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
+ box(.14,.012,1.65,x,top-.235,z,ceilingLight);
+}
 // HEAD CAR: front cab at negative Z, distinct from intermediate carriage.
 const cabFront=-L/2+.07;
 box(W-.10,.76,.12,0,F+.38,cabFront,wall);
