@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v13</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v13: белые полосы выполнены плоской окраской без выступающих планок.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v14</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v14: сохранена геометрия линий; окраска нанесена на поверхность кузова.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -100,10 +100,23 @@ for(const side of [-1,1]){
 // Each chevron has one inward tip at the lower middle of the leaf and its
 // upper and lower ends at the OUTER edge. No diagonals cross.
 function stripeSegment(side,z1,y1,z2,y2,width=.105){
- const x=side*(half+.081),dz=z2-z1,dy=y2-y1;
- const mesh=new T.Mesh(new T.PlaneGeometry(Math.hypot(dz,dy),width),cream);
- mesh.rotation.order='YXZ';mesh.rotation.y=Math.PI/2;mesh.rotation.x=-Math.atan2(dy,dz);
- mesh.position.set(x,(y1+y2)/2,(z1+z2)/2);group.add(mesh);
+ // Painted stripe: flat quadrilateral on the actual exterior sheet surface.
+ // Preserve the exact z/y endpoints and width of v12; no raised geometry.
+ const dz=z2-z1,dy=y2-y1,len=Math.hypot(dz,dy);
+ if(len<1e-5)return;
+ const nz=-dy/len*width/2,ny=dz/len*width/2;
+ const outline=new T.Shape();
+ outline.moveTo(-z1-nz,y1+ny);
+ outline.lineTo(-z2-nz,y2+ny);
+ outline.lineTo(-z2+nz,y2-ny);
+ outline.lineTo(-z1+nz,y1-ny);
+ outline.closePath();
+ const decal=new T.Mesh(new T.ShapeGeometry(outline),cream);
+ decal.rotation.y=Math.PI/2;
+ // Exterior face of both the sidewall and door leaves is half-.04+.085/2.
+ decal.position.x=side*(half+.004);
+ decal.renderOrder=3;
+ group.add(decal);
 }
 for(const side of [-1,1]){
  const beltY=F+1.07,tipY=F+.49,bottomY=F+.12;
