@@ -6,11 +6,17 @@ on:
     paths:
       - 'preview/wagon.html'
       - 'tests/wagon-visual.mjs'
+      - 'tests/wagon-image-compare.mjs'
+      - 'tests/wagon-syntax.mjs'
+      - 'tests/reference/**'
+      - 'package.json'
       - '.github/workflows/wagon-visual.yml'
 permissions:
   contents: read
+  actions: read
 jobs:
   wagon-model:
+    if: github.ref == 'refs/heads/testing'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -20,8 +26,33 @@ jobs:
           node-version: '22'
       - name: Install browser
         run: |
-          npm install --no-save --package-lock=false playwright@1.56.1
+          npm install --package-lock=false
           npx playwright install --with-deps chromium
+      - name: Check wagon JavaScript syntax
+        run: node tests/wagon-syntax.mjs
+      - name: Download previous successful testing render
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const {owner, repo} = context.repo;
+            const runs = await github.rest.actions.listWorkflowRuns({owner, repo, workflow_id:'wagon-visual.yml', branch:'testing', status:'success', per_page:20});
+            for (const run of runs.data.workflow_runs) {
+              if (run.id >= context.runId) continue;
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({owner, repo, run_id:run.id});
+              const artifact = artifacts.data.artifacts.find(a => a.name.startsWith('wagon-3d-visual-report') && !a.expired);
+              if (!artifact) continue;
+              const zip = await github.rest.actions.downloadArtifact({owner, repo, artifact_id:artifact.id, archive_format:'zip'});
+              fs.writeFileSync('/tmp/wagon-baseline.zip', Buffer.from(zip.data));
+              core.info(`Baseline ${run.head_sha}: ${run.html_url}`);
+              break;
+            }
+      - name: Extract previous render
+        run: |
+          mkdir -p test-results/wagon-baseline
+          if test -f /tmp/wagon-baseline.zip; then
+            unzip -q /tmp/wagon-baseline.zip -d test-results/wagon-baseline
+          fi
       - name: Start model server
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/wagon-server.log 2>&1 &
@@ -31,7 +62,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wagon-3d-visual-report
+          name: wagon-3d-visual-report-${{ github.sha }}
           path: test-results/wagon/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 30
+      - name: Add report to run summary
+        if: always()
+        run: |
+          if test -f test-results/wagon/report.md; then
+            cat test-results/wagon/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi

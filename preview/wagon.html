@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v80</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v80: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v81</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v81: фиксированные камеры и автоматическое визуальное сравнение.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -10,7 +10,9 @@ scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.Directio
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
 const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
 const wall=mat(0x235273),roof=mat(0x2a5878),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x77716b),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
-const group=new T.Group();scene.add(group);const dark=mat(0x28323a);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
+const group=new T.Group();scene.add(group);const qaObjects=new Map();
+function feature(name,object){object.name=name;qaObjects.set(name,object);return object;}
+const dark=mat(0x28323a);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
 
 // Rounded profile lies in the (longitudinal z, vertical y) plane, normal to x.
@@ -254,7 +256,7 @@ const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32Buffer
  g.setAttribute('position',new T.Float32BufferAttribute(vs,3));
  g.setIndex(fs);g.computeVertexNormals();
  const cap=new T.Mesh(g,new T.MeshStandardMaterial({color:0x235273,metalness:.20,roughness:.42,side:T.DoubleSide}));
- group.add(cap);
+ group.add(cap);feature('roof',cap);
 }
 // Longitudinal benches between doors, with an unobstructed central aisle.
 const sections=[[-9.30,-7.75],[-6.05,-3.15],[-1.45,1.45],[3.15,6.05],[7.75,9.30]];
@@ -420,13 +422,13 @@ for(const [cx,ww] of frontBays){
 const fasciaBacking=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),gasket);
 fasciaBacking.position.set(0,F+1.58,faceZ+.034);group.add(fasciaBacking);
 const fasciaMesh=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),mask);
-fasciaMesh.position.set(0,F+1.58,faceZ+.015);group.add(fasciaMesh);
+fasciaMesh.position.set(0,F+1.58,faceZ+.015);group.add(fasciaMesh);feature('fascia',fasciaMesh);
 faceBorder(2.48,2.10,.245,0,F+1.58,faceZ+.007,frame,.012);
 // All three glazing sections are real transparent openings, not dark
 // backing plates. Rubber perimeter seals sit in front of the glazing.
 for(const [xx,ww] of frontBays){
  faceBorder(ww,1.33,.12,xx,F+1.60,faceZ-.010,gasket,.019);
- facePanel(ww-.038,1.29,.10,xx,F+1.60,faceZ-.018,frontGlass);
+ feature(`window-${xx===0?'center':xx>0?'left':'right'}`,facePanel(ww-.038,1.29,.10,xx,F+1.60,faceZ-.018,frontGlass));
  faceBorder(ww,1.33,.12,xx,F+1.60,faceZ-.027,frame,.010);
 }
 // Subtle windshield reflections and inset rubber seals.
@@ -466,7 +468,7 @@ for(const sign of [-1,1]){
  // In the new reference each pocket contains one red lamp towards the
  // OUTER shoulder and a smaller unlit circular fitting towards the logo.
  const redX=xx+sign*.085,darkX=xx-sign*.105;
- faceCircle(redX,F+2.43,faceZ-.076,.083,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide}));
+ feature(`marker-${sign>0?'left':'right'}`,faceCircle(redX,F+2.43,faceZ-.076,.083,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide})));
  faceCircle(redX-.018,F+2.455,faceZ-.080,.021,mat(0xff6b66));
  faceCircle(darkX,F+2.43,faceZ-.070,.043,gasket);
  faceCircle(darkX,F+2.43,faceZ-.079,.027,lensDark);
@@ -508,6 +510,7 @@ const frontFeatures={upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destina
 const lampReflector=mat(0xb8c4c6,.16),lampBezel=mat(0x56636a,.42);
 const lampGlass=new T.MeshPhysicalMaterial({color:0xe9f0e9,metalness:.12,roughness:.14,transparent:true,opacity:.78,clearcoat:1,clearcoatRoughness:.10,side:T.DoubleSide});
 const lampInner=mat(0x697b83,.34);
+let lowerLampIndex=0;
 function lampCassette(cx,w,lamps){
  facePanel(w,.39,.105,cx,lampY,lampZ,gasket);
  faceBorder(w,.39,.105,cx,lampY,lampZ-.008,frame,.012);
@@ -515,7 +518,7 @@ function lampCassette(cx,w,lamps){
   const x=cx+offset;
   // Layered concentric reflector and protective lens; subtle off-axis
   // glints give depth without adding protrusions to the car body.
-  faceCircle(x,lampY,lampZ-.019,.119,lampBezel);
+  feature(`headlamp-${lowerLampIndex++}`,faceCircle(x,lampY,lampZ-.019,.119,lampBezel));
   faceCircle(x,lampY,lampZ-.027,.108,lampReflector);
   faceCircle(x,lampY,lampZ-.034,.091,lampInner);
   faceCircle(x,lampY,lampZ-.044,.079,warmLens);
@@ -530,9 +533,11 @@ lampCassette(.99,.46,[0]);
 // Reference has a broad three-section BLACK crash/bumper band below
 // the lamps, not a stack of narrow blue and silver decorative rails.
 const bumperBlack=mat(0x101316,.82);
+const bumperParts=[];
 for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
- box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack);
+ bumperParts.push(box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack));
 }
+qaObjects.set('bumper',bumperParts);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
 // v80 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
@@ -577,7 +582,7 @@ for(const side of [-1,1]){
 }
 // Central drawbar, cast coupling head and visible knuckle.
 box(.23,.19,.52,0,F-.055,faceZ-.34,couplerSteel);
-box(.48,.245,.20,0,F-.048,faceZ-.64,couplerSteel);
+feature('coupler',box(.48,.245,.20,0,F-.048,faceZ-.64,couplerSteel));
 frontCylinder(0,F-.048,faceZ-.767,.123,.11,rubberFace);
 frontCylinder(0,F-.048,faceZ-.823,.061,.09,couplerSteel);
 for(const side of [-1,1]){
@@ -611,7 +616,7 @@ for(const sign of [-1,1]){
  frontLine([[sign*1.12,F+1.78,faceZ+.12],
   [sign*1.24,F+1.83,faceZ+.09],
   [x,F+1.89,faceZ+.09]],.014,rim);
- box(.16,.29,.076,x,F+1.98,faceZ+.09,mirrorYellow);
+ feature(`mirror-${sign>0?'left':'right'}`,box(.16,.29,.076,x,F+1.98,faceZ+.09,mirrorYellow));
  box(.11,.235,.008,x-sign*.084,F+1.98,faceZ+.09,mirrorGlass);
 }
 // Two articulated windshield wipers parked low across the front glass.
@@ -799,23 +804,24 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-let cameraMode='outside';
+const modelVersion=81,lightingPreset='inspection-v1';
+const cameraPresets={
+ reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
+ front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
+ side:{position:[21,3.9,-1],target:[0,2.0,0],fov:35},
+ outside:{position:[8,5,-14],target:[0,1.8,0],fov:58},
+ salon:{position:[.75,F+2.0,6.7],target:[0,F+1.05,-2.2],fov:58},
+ driver:{position:[-.53,F+1.23,-8.55],target:[-.53,F+1.18,-11.8],fov:58}
+};
+const captureMode=new URLSearchParams(location.search).get('qa')==='1';
+if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el.style.display='none');grid.visible=false;}
+let cameraMode='outside',renderedFrames=0;
 function setCamera(mode){
  cameraMode=mode;
- if(mode==='front'){
-  camera.position.set(0,F+1.65,cabFront-4.8);
-  ctl.target.set(0,F+1.45,cabFront);
- }else if(mode==='salon'){
-  // Ceiling-mounted diagonal view, ~2.0 m above floor, above passengers.
-  camera.position.set(.75,F+2.0,6.7);
-  ctl.target.set(0,F+1.05,-2.2);
- }else if(mode==='driver'){
-  // Seated driver's eye level, facing the front of the head car (-Z).
-  camera.position.set(-.53,F+1.23,-8.55);
-  ctl.target.set(-.53,F+1.18,-11.8);
- }else{
-  camera.position.set(8,5,-14);ctl.target.set(0,1.8,0);
- }
+ const preset=cameraPresets[mode]||cameraPresets.outside;
+ ctl.enableDamping=false;ctl.autoRotate=false;
+ camera.position.fromArray(preset.position);ctl.target.fromArray(preset.target);
+ camera.fov=preset.fov;camera.updateProjectionMatrix();
  ctl.update();
  document.getElementById('view').textContent=mode==='salon'?'Снаружи вагона':'Камера салона';
  document.getElementById('driver').textContent=mode==='driver'?'Снаружи вагона':'Камера машиниста';
@@ -825,5 +831,20 @@ document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outs
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 document.getElementById('front').onclick=()=>setCamera(cameraMode==='front'?'outside':'front');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-window.wagonDiagnostics=()=>({cameraMode,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height});window.wagonSetCamera=setCamera;document.getElementById('status').textContent='3D загружено';window.wagonReady=true;function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
+function projectedFeature(object){
+ const bounds=new T.Box3();
+ for(const mesh of Array.isArray(object)?object:[object])bounds.union(new T.Box3().setFromObject(mesh));
+ const points=[];
+ for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+  const p=new T.Vector3(x,y,z).project(camera);points.push([(p.x+1)*innerWidth/2,(1-p.y)*innerHeight/2]);
+ }
+ return {x:Math.min(...points.map(p=>p[0])),y:Math.min(...points.map(p=>p[1])),width:Math.max(...points.map(p=>p[0]))-Math.min(...points.map(p=>p[0])),height:Math.max(...points.map(p=>p[1]))-Math.min(...points.map(p=>p[1]))};
+}
+window.wagonDiagnostics=()=>({modelVersion,cameraMode,lightingPreset,renderedFrames,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height,camera:{position:camera.position.toArray(),target:ctl.target.toArray(),fov:camera.fov},features:Object.fromEntries([...qaObjects].map(([name,object])=>[name,projectedFeature(object)]))});
+window.wagonSetCamera=setCamera;
+const viewParam=new URLSearchParams(location.search).get('view');
+if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
+document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
+function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera);renderedFrames++;}loop();
+
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>

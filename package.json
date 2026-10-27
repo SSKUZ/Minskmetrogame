@@ -1,1 +1,15 @@
-{"name":"minsk-metro-simulator","private":true,"type":"module","scripts":{"check":"node --check js/main.js && node --test tests/*.test.js","test":"node --test tests/*.test.js"}}
+{
+  "name": "minsk-metro-simulator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check js/main.js && node --test tests/*.test.js",
+    "test": "node --test tests/*.test.js",
+    "test:wagon": "node tests/wagon-syntax.mjs && node tests/wagon-visual.mjs"
+  },
+  "devDependencies": {
+    "pixelmatch": "7.1.0",
+    "playwright": "1.56.1",
+    "pngjs": "7.0.0"
+  }
+}
