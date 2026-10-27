@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v7</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v7: добавлены боковые служебные двери кабины машиниста с окнами.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v8</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v8: синяя окраска, полосы, фары, передняя маска, отделка. Художественная реконструкция.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -9,8 +9,8 @@ const renderer=new T.WebGLRenderer({antialias:true});document.getElementById('st
 scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
 const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
-const wall=mat(0xe0e2dd),roof=mat(0xe8e5d8),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x78472c),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
-const group=new T.Group();scene.add(group);
+const wall=mat(0x235273),roof=mat(0x2a5878),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x77716b),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
+const group=new T.Group();scene.add(group);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
 
 // Rounded profile lies in the (longitudinal z, vertical y) plane, normal to x.
@@ -56,9 +56,9 @@ for(const side of [-1,1]){
    const cabDoorZ=-8.52, cabDoorW=.74, cabDoorH=1.94;
    // Full-height opaque sidewall, with a clearly outlined cab door in its plane.
    box(.085,top-.28-F,len,x,(top-.28+F)/2,mid,wall);
-   const outline=mat(0x424b51,.35);
-   box(.022,cabDoorH+.07,cabDoorW+.07,x+side*.055,F+cabDoorH/2,cabDoorZ,outline);
-   box(.024,cabDoorH,cabDoorW,x+side*.073,F+cabDoorH/2,cabDoorZ,wall);
+   const outline=mat(0x11191e,.35);
+   roundedPanel(cabDoorW+.07,cabDoorH+.07,.13,x+side*.055,F+cabDoorH/2,cabDoorZ,outline);
+   roundedPanel(cabDoorW,cabDoorH,.12,x+side*.073,F+cabDoorH/2,cabDoorZ,wall);
    // Tall glazed window in upper half of the driver's access door.
    roundedPanel(.48,.69,.085,x+side*.092,F+1.47,cabDoorZ,glass);
    // Perimeter of the glazed insert.
@@ -94,6 +94,32 @@ for(const side of [-1,1]){
   }
  }
 }
+
+// Visual reference: blue body, cream belt line, corrugations and contrasting door chevrons.
+// Trim is placed slightly outside the metal skin so it is visible from either side.
+for(const side of [-1,1]){
+ const x=side*(half+.024);
+ for(let z=-9.23;z<9.15;z+=.53){
+  // Short horizontal corrugations below the window belt, omitting the passenger doors.
+  if(doors.some(d=>Math.abs(d-z)<doorWidth/2+.06))continue;
+  box(.018,.016,.45,x,F+.40,z,metal);
+  box(.018,.014,.45,x,F+.64,z,metal);
+ }
+ // Continuous pale belt, segmented around the door openings.
+ const cuts=[-L/2,...doors.flatMap(d=>[d-doorWidth/2,d+doorWidth/2]),L/2].sort((a,b)=>a-b);
+ for(let i=0;i<cuts.length-1;i++){
+  const aa=cuts[i],bb=cuts[i+1],mid=(aa+bb)/2;
+  if(doors.some(d=>Math.abs(d-mid)<.01))continue;
+  box(.020,.12,bb-aa-.02,x,F+1.07,mid,cream);
+ }
+ for(const d of doors){
+  // White V / X styling on the two closed sliding leaves.
+  for(const sign of [-1,1]){
+   const shape=new T.Mesh(new T.BoxGeometry(.025,.075,.86),cream);
+   shape.rotation.x=sign*.73;shape.position.set(x+side*.095,F+.52,d+sign*.23);group.add(shape);
+  }
+ }
+}
 // Extruded roof profile in a single metric cross section.
 const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
 const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,L/2);
@@ -118,30 +144,38 @@ const cabFront=-L/2+.07;
 box(W-.10,.76,.12,0,F+.38,cabFront,wall);
 box(W-.10,.44,.12,0,top-.54,cabFront,wall);
 for(const xx of [-1.13,1.13])box(.24,1.42,.12,xx,F+1.47,cabFront,wall);
-// Three glazed windscreen apertures: one broad central and two narrower lateral lights.
-const frontGlass=new T.MeshStandardMaterial({color:0x486e7e,transparent:true,opacity:.62,metalness:.12,roughness:.22,side:T.DoubleSide});
-for(const [xx,ww] of [[0,1.30],[-.88,.38],[.88,.38]]){
- const p=new T.Mesh(new T.ShapeGeometry(roundedShape(ww,1.12,.12),12),frontGlass);
- p.position.set(xx,F+1.72,cabFront-.073);group.add(p);
- for(const yy of [F+1.16,F+2.28])box(ww+.03,.035,.025,xx,yy,cabFront-.092,metal);
+// Rebuilt flat dark front mask and tall rounded windscreens in one plane.
+box(W-.23,1.45,.08,0,F+1.60,cabFront-.115,black);
+const frontGlass=new T.MeshStandardMaterial({color:0x426879,transparent:true,opacity:.53,metalness:.12,roughness:.20,side:T.DoubleSide});
+for(const [xx,ww] of [[0,1.19],[-.91,.42],[.91,.42]]){
+ const p=new T.Mesh(new T.ShapeGeometry(roundedShape(ww,1.23,.15),12),frontGlass);
+ p.position.set(xx,F+1.66,cabFront-.172);group.add(p);
+ const pts=roundedShape(ww,1.23,.15).getPoints(12);
+ const curve=new T.CatmullRomCurve3(pts.map(q=>new T.Vector3(xx+q.x,F+1.66+q.y,cabFront-.18)),true);
+ group.add(new T.Mesh(new T.TubeGeometry(curve,96,.025,6,true),metal));
 }
-const dark=mat(0x28323a),red=mat(0xa73731);
-for(const xx of [-.96,.96]){
- box(.30,.17,.055,xx,F+.63,cabFront-.13,dark);
- box(.20,.11,.06,xx,F+.63,cabFront-.17,red);
+// Destination panel, two upper red markers and four lower white lamps.
+box(.92,.23,.035,0,F+1.05,cabFront-.18,black);
+for(const xx of [-.99,.99]){
+ const marker=new T.Mesh(new T.CylinderGeometry(.115,.115,.04,24),redLamp);
+ marker.rotation.x=Math.PI/2;marker.position.set(xx,F+2.35,cabFront-.20);group.add(marker);
 }
-box(.80,.11,.10,0,F+.45,cabFront-.14,dark); // head-car coupler base
-box(.24,.19,.32,0,F+.28,cabFront-.33,metal);
+for(const xx of [-.98,-.33,.33,.98]){
+ const lamp=new T.Mesh(new T.CylinderGeometry(.12,.12,.045,24),light);
+ lamp.rotation.x=Math.PI/2;lamp.position.set(xx,F+.65,cabFront-.20);group.add(lamp);
+}
+box(1.6,.12,.10,0,F+.38,cabFront-.20,wall);
+box(.26,.20,.38,0,F+.18,cabFront-.36,metal);
 // Cab bulkhead and control console, behind the front windscreen.
 const cabRear=-7.68;
-box(W-.18,1.98,.09,0,F+.99,cabRear,wall);
+box(W-.18,1.98,.09,0,F+.99,cabRear,interior);
 box(.82,1.82,.055,.36,F+.92,cabRear-.058,metal);
 box(1.30,.70,.65,-.45,F+.87,-8.84,dark);
 box(1.15,.07,.48,-.45,F+1.28,-8.84,metal);
 box(.48,.15,.43,.63,F+.48,-8.66,seat);
 box(.14,.65,.14,.63,F+.19,-8.66,metal);
 // Opposite end is the inter-car bulkhead.
-box(W-.08,2.2,.09,0,F+1.1,L/2-.055,wall);
+box(W-.08,2.2,.09,0,F+1.1,L/2-.055,interior);
 box(.72,1.83,.10,0,F+.93,L/2-.12,metal);
 // Underframe and simplified bogies at measured-looking locations (not yet factory verified).
 box(1.78,.18,L-1.0,0,F-.27,0,dark);
