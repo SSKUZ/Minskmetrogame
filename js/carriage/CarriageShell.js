@@ -43,6 +43,9 @@ for(const side of [-1,1]){
  for(const [front,back] of wallRanges){
   const length=front-back,center=(front+back)/2;
   box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
+  // Recessed lower sidewall: stepped kick panel instead of one planar slab.
+  box(carriage,.045,.26,length,side*1.982,1.075,center,carCream);
+  box(carriage,.042,.025,length,side*1.950,1.218,center,carSteel);
   box(carriage,.12,.55,length,side*2.07,3.39,center,carWhite);
   box(carriage,.12,.09,length,side*2.07,1.94,center,carCream);
   box(carriage,.12,.09,length,side*2.07,3.08,center,carCream);
