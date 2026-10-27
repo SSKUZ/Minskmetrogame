@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v51</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v51: по скриншотам улучшена читаемость лобовых стёкол и контраст рам; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v52</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v52: прозрачные лобовые стёкла без непрозрачной подложки; 3D-оборудование задней стенки кабины; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -294,7 +294,7 @@ for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
 const cabFront=-L/2+.07,faceZ=cabFront-.205;
 const mask=mat(0x171f24),gasket=mat(0x070b0e),frame=mat(0x53646b,.32);
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
-const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.52,metalness:.08,roughness:.20,side:T.DoubleSide,depthWrite:false});
+const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.16,metalness:.02,roughness:.20,side:T.DoubleSide,depthWrite:false});
 const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
 function facePanel(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),20),m);
@@ -360,7 +360,8 @@ facePanel(2.43,2.05,.22,0,F+1.58,faceZ+.015,mask);
 faceBorder(2.43,2.05,.22,0,F+1.58,faceZ+.007,frame,.010);
 // Three tall glass panels: wide central, narrow left/right, black mullions.
 for(const [xx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
- facePanel(ww,1.33,.105,xx,F+1.60,faceZ-.010,gasket);
+ // No opaque backing: the cab interior must be visible through the glazing.
+ faceBorder(ww,1.33,.105,xx,F+1.60,faceZ-.010,gasket,.019);
  facePanel(ww-.038,1.29,.085,xx,F+1.60,faceZ-.018,frontGlass);
  faceBorder(ww,1.33,.105,xx,F+1.60,faceZ-.027,frame,.010);
 }
@@ -438,7 +439,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v51 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v52 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -510,8 +511,27 @@ for(const y of [F+.38,F+.27]){
 }
 // Cab bulkhead and control console, behind the front windscreen.
 const cabRear=-7.68;
-box(W-.18,1.98,.09,0,F+.99,cabRear,interior);
-box(.82,1.82,.055,.36,F+.92,cabRear-.058,metal);
+// Rear bulkhead: actual 3D cab equipment, not a printed texture.
+// A pale rear wall is visible through the transparent front windows.
+box(W-.18,2.28,.09,0,F+1.14,cabRear,interior);
+// Offset rear access door and dark glazed upper pane.
+box(.81,1.91,.065,.40,F+.955,cabRear-.072,mat(0x9caaa8));
+box(.57,.71,.018,.40,F+1.47,cabRear-.115,new T.MeshStandardMaterial({color:0x47606b,transparent:true,opacity:.55,side:T.DoubleSide,depthWrite:false}));
+box(.60,.027,.045,.40,F+1.83,cabRear-.133,metal);
+box(.055,.13,.075,.72,F+.93,cabRear-.157,metal);
+// Rear-wall equipment locker, circuit-breaker cabinets and shallow panels.
+const cabEquipment=mat(0x7b898b,.28),cabInset=mat(0x303d43),cabLabel=mat(0xd5d2bc);
+box(.65,1.40,.20,-.87,F+1.22,cabRear-.18,cabEquipment);
+box(.53,.69,.012,-.87,F+1.53,cabRear-.292,cabInset);
+for(let i=0;i<4;i++)box(.40,.016,.017,-.87,F+1.29+i*.115,cabRear-.31,metal);
+box(.52,.40,.11,-.87,F+.68,cabRear-.255,cabEquipment);
+box(.38,.075,.012,-.87,F+.79,cabRear-.317,cabLabel);
+box(.42,.70,.13,1.00,F+1.53,cabRear-.18,cabEquipment);
+for(let i=0;i<3;i++)box(.29,.08,.018,1.00,F+1.36+i*.16,cabRear-.258,cabInset);
+// Vertical cab conduits and ceiling-mounted equipment housing.
+for(const x of [-1.17,1.22])box(.035,1.55,.048,x,F+1.30,cabRear-.14,metal);
+box(1.72,.19,.34,0,top-.35,cabRear-.37,cabEquipment);
+box(.95,.055,.18,-.25,top-.51,cabRear-.40,cabLabel);
 box(1.30,.70,.65,-.45,F+.87,-8.84,dark);
 box(1.15,.07,.48,-.45,F+1.28,-8.84,metal);
 box(.48,.15,.43,.63,F+.48,-8.66,seat);
