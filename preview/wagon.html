@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v70</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v70: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v71</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v71: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v70';
+window.wagonSideBodyVersion='smooth-v71';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -462,30 +462,29 @@ faceBorder(.84,.21,.025,0,F+1.115,faceZ-.063,frame,.008);
 // unlit lens, central cassette with THREE closely spaced lit lenses.
 // Keep the entire lamp cassette within the black fascia; previously the
 // lower half projected into the blue apron, unlike the reference.
+// NEW photographic reference: one outer lamp per side and FOUR central
+// silver-reflector headlights; no dark auxiliary circles in lower pockets.
 const lampY=F+.76,lampZ=faceZ-.030;
-const frontFeatures={upperRedLamps:2,lowerLamps:5,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'};
-function lampCassette(cx,w,lamps,darkAux=[]){
- facePanel(w,.36,.095,cx,lampY,lampZ,mask);
- faceBorder(w,.36,.095,cx,lampY,lampZ-.008,frame,.012);
+const frontFeatures={upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'};
+const lampReflector=mat(0xa9b4b6,.24),lampBezel=mat(0x606c71,.38);
+function lampCassette(cx,w,lamps){
+ facePanel(w,.39,.105,cx,lampY,lampZ,gasket);
+ faceBorder(w,.39,.105,cx,lampY,lampZ-.008,frame,.012);
  for(const offset of lamps){
   const x=cx+offset;
-  faceCircle(x,lampY,lampZ-.018,.116,gasket);
-  faceCircle(x,lampY,lampZ-.065,.097,warmLens);
-  faceCircle(x-.027,lampY+.033,lampZ-.068,.025,light);
- }
- for(const offset of darkAux){
-  const x=cx+offset;
-  faceCircle(x,lampY,lampZ-.017,.068,gasket);
-  faceCircle(x,lampY,lampZ-.053,.049,lensDark);
+  faceCircle(x,lampY,lampZ-.019,.119,lampBezel);
+  faceCircle(x,lampY,lampZ-.033,.102,lampReflector);
+  faceCircle(x,lampY,lampZ-.064,.069,warmLens);
+  faceCircle(x-.021,lampY+.027,lampZ-.070,.018,light);
  }
 }
-lampCassette(-.98,.49,[-.105],[.105]);
-lampCassette(0,.94,[-.305,0,.305]);
-lampCassette(.98,.49,[.105],[-.105]);
+lampCassette(-.99,.46,[0]);
+lampCassette(0,1.28,[-.435,-.145,.145,.435]);
+lampCassette(.99,.46,[0]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v70 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v71 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -516,7 +515,7 @@ for(const x of [-.89,.89]){
  frontCylinder(x,F+1.04,faceZ-.09,.045,.024,rubberFace);
 }
 // Small white marker highlights and raised metal rings around all six lamps.
-for(const x of [-1.085,-.305,0,.305,1.085]){
+for(const x of [-.99,-.435,-.145,.145,.435,.99]){
  const circle=new T.Mesh(new T.TorusGeometry(.108,.011,8,40),rim);
  circle.position.set(x,lampY,lampZ-.041);group.add(circle);
 }
