@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v60</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v60: четыре плавные выпуклости, белая полоса проходит по верхней; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v60</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v60: боковины возвращены к гладкому состоянию без выпуклостей; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -112,37 +112,6 @@ for(const side of [-1,1]){
   box(.085,sill-F,len,x,(sill+F)/2,mid,wall);
   box(.085,top-.28-header,len,x,(header+top-.28)/2,mid,wall);
   for(const e of [-1,1])box(.085,header-sill,pier,x,(header+sill)/2,mid+e*(windowWidth+pier)/2,wall);
-  // Four smooth stamped bulges integrated into the sheet: the upper one
-  // carries the white belt; three more are equally spaced below.
-  const waistBase=F+.08,waistTop=F+1.035;
-  const corrugationCenters=[F+.18,F+.43,F+.68,F+.94];
-  const bulgeWidth=.095,bulgeHeight=.027;
-  const corrugation=(y)=>{
-   let d=0;
-   for(const c of corrugationCenters){
-    const t=Math.abs(y-c)/bulgeWidth;
-    if(t<1)d+=bulgeHeight*.5*(1+Math.cos(Math.PI*t));
-   }
-   return d;
-  };
-  const rows=160,cols=6,positions=[],triangles=[];
-  // Place the base at the actual outer face of the structural sheet.
-  const outerX=x+side*.043;
-  for(let j=0;j<=rows;j++){
-   const y=waistBase+(waistTop-waistBase)*j/rows;
-   for(let k=0;k<=cols;k++){
-    const z=a+.035+(len-.07)*k/cols;
-    positions.push(outerX+side*corrugation(y),y,z);
-   }
-  }
-  for(let j=0;j<rows;j++)for(let k=0;k<cols;k++){
-   const p=j*(cols+1)+k,q=p+cols+1;
-   triangles.push(p,q,p+1,q,q+1,p+1);
-  }
-  const pressedGeo=new T.BufferGeometry();
-  pressedGeo.setAttribute('position',new T.Float32BufferAttribute(positions,3));
-  pressedGeo.setIndex(triangles);pressedGeo.computeVertexNormals();
-  group.add(new T.Mesh(pressedGeo,wall));
   // Actual window glass only inside the structural cutout, not the full wall bay.
   if(windowWidth>.30)roundedOpening(windowWidth,header-sill,.16,x,(header+sill)/2,mid,side);
  }
@@ -231,7 +200,11 @@ for(const side of [-1,1]){
  // Side-window sill starts at F+1.04: belt must remain BELOW it.
  const beltY=F+.94,tipY=F+.58,bottomY=F+.23;
  const outer=doorWidth/2-.11,inner=.19;
- // No separate metallic bar overlays: corrugation belongs to the sheet.
+ for(let z=-9.23;z<9.15;z+=.53){
+  if(doors.some(d=>Math.abs(d-z)<doorWidth/2+.06))continue;
+  box(.018,.016,.45,side*(half+.024),F+.40,z,metal);
+  box(.018,.014,.45,side*(half+.024),F+.64,z,metal);
+ }
  const cuts=[-L/2,...doors.flatMap(d=>[d-doorWidth/2,d+doorWidth/2]),L/2].sort((aa,bb)=>aa-bb);
  for(let i=0;i<cuts.length-1;i++){
   const aa=cuts[i],bb=cuts[i+1],mid=(aa+bb)/2;
@@ -241,21 +214,7 @@ for(const side of [-1,1]){
    const doorStart=-8.52-.74/2,doorEnd=-8.52+.74/2;
    if(aa<doorStart)stripeSegment(side,aa,beltY,Math.min(bb,doorStart),beltY,.105);
    if(bb>doorEnd)stripeSegment(side,Math.max(aa,doorEnd),beltY,bb,beltY,.105);
-  }else{
-   // White paint follows the crown of the fourth stamped ridge.
-   const stripW=.105,steps=48,vertices=[],faces=[];
-   for(let j=0;j<=steps;j++){
-    const zz=aa+(bb-aa)*j/steps;
-    for(const yy of [beltY-stripW/2,beltY+stripW/2]){
-     const t=Math.abs(yy-beltY)/.095;
-     const lift=t<1?.027*.5*(1+Math.cos(Math.PI*t)):0;
-     vertices.push(side*(half+.004+.004+lift),yy,zz);
-    }
-   }
-   for(let j=0;j<steps;j++){const v=j*2;faces.push(v,v+1,v+2,v+1,v+3,v+2)}
-   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));g.setIndex(faces);g.computeVertexNormals();
-   const stripe=new T.Mesh(g,cream);stripe.renderOrder=4;group.add(stripe);
-  }
+  }else stripeSegment(side,aa,beltY,bb,beltY,.105);
  }
  // Painted white chevrons on the two recessed door leaves.
  // Keep the stripes behind the glass level, without touching the windows.
