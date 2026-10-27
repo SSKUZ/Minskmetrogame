@@ -1,10 +1,33 @@
-export function buildCarriageShell({carriage,box,carFloor,carCream,carWhite,carSteel,carGlass}){
+export function buildCarriageShell({THREE,carriage,box,carFloor,carCream,carWhite,carSteel,carGlass}){
 box(carriage,4.14,.12,23,0,.88,-9,carFloor);
 // Floor edge strips and service access panels.
 for(const side of [-1,1])box(carriage,.065,.012,22.65,side*1.97,.953,-9,carSteel);
 for(let z=-.2;z>-19;z-=3.7){box(carriage,.72,.008,.85,0,.946,z,carCream);box(carriage,.74,.009,.022,0,.952,z+.43,carSteel);}
 
-box(carriage,4.15,.12,23,0,3.65,-9,carCream);
+// Profiled side coves replace the former flat, box-like ceiling silhouette.
+box(carriage,2.70,.10,23,0,3.65,-9,carCream);
+if(THREE){
+ const profile=[[1.33,3.69],[1.52,3.66],[1.77,3.54],[1.97,3.32],[2.08,3.13]];
+ for(const side of [-1,1]){
+  const vertices=[],indices=[];
+  for(let i=0;i<profile.length;i++){
+   const [x,y]=profile[i];
+   vertices.push(side*x,y,2.5,side*x,y,-20.5);
+   if(i){const k=i*2;indices.push(k-2,k-1,k,k-1,k+1,k);}
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  const panel=new THREE.Mesh(geometry,carCream);
+  panel.material=carCream;
+  carriage.add(panel);
+  for(let i=1;i<profile.length-1;i++){
+   const [x,y]=profile[i];
+   box(carriage,.035,.032,22.8,side*x,y,-9,carSteel);
+  }
+ }
+}
 // Longitudinal ceiling joints and ventilator grilles.
 for(const side of [-1,1]){
  box(carriage,.045,.016,22.5,side*1.10,3.575,-9,carSteel);
