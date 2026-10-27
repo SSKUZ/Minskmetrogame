@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v32</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v32: новая передняя маска, три оконных секции и встроенные блоки фар; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v33</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v33: уточнённая передняя маска по эталону, 6 нижних фар; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -344,6 +344,7 @@ faceBorder(.84,.21,.025,0,F+1.115,faceZ-.046,frame,.008);
 // Three flush lamp cassettes: outer pair with one illuminated and one
 // unlit lens, central cassette with THREE closely spaced lit lenses.
 const lampY=F+.59,lampZ=faceZ-.030;
+const frontFeatures={upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'};
 function lampCassette(cx,w,positions){
  facePanel(w,.36,.095,cx,lampY,lampZ,mask);
  faceBorder(w,.36,.095,cx,lampY,lampZ-.008,frame,.012);
@@ -354,9 +355,9 @@ function lampCassette(cx,w,positions){
   if(lit)faceCircle(x-.027,lampY+.033,lampZ-.028,.025,light);
  }
 }
-lampCassette(-.96,.51,[[-.115,true],[.115,false]]);
-lampCassette(0,.89,[[-.29,true],[0,true],[.29,true]]);
-lampCassette(.96,.51,[[-.115,false],[.115,true]]);
+lampCassette(-1.02,.36,[[0,true]]);
+lampCassette(0,1.38,[[-.49,true],[-.165,true],[.165,true],[.49,true]]);
+lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
@@ -445,5 +446,5 @@ function setCamera(mode){
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-window.wagonDiagnostics=()=>({cameraMode,meshCount:group.children.filter(o=>o.isMesh).length,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height});window.wagonSetCamera=setCamera;document.getElementById('status').textContent='3D загружено';window.wagonReady=true;function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
+window.wagonDiagnostics=()=>({cameraMode,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height});window.wagonSetCamera=setCamera;document.getElementById('status').textContent='3D загружено';window.wagonReady=true;function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
