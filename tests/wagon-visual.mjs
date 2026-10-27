@@ -9,7 +9,7 @@ page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://127.0.0.1:8765/preview/wagon.html',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>window.wagonReady===true&&typeof window.wagonDiagnostics==='function',{timeout:90000});
- const views=['outside','driver','salon'];
+ const views=['front','outside','driver','salon'];
  const reports=[];
  for(const mode of views){
   await page.evaluate(m=>window.wagonSetCamera(m),mode);
