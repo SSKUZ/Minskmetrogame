@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v6</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v6: головной вагон с кабиной, лобовыми окнами и тележками. Часть деталей пока по фото.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v7</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v7: добавлены боковые служебные двери кабины машиниста с окнами.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -51,7 +51,22 @@ for(const side of [-1,1]){
   if(len<.1)continue;
   // Door apertures are not filled with glass or wall.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
-  const windowWidth=Math.min(mid < -7.5 ? .68 : 1.67,Math.max(0,len-.38));
+  // Separate exterior access door to the driver's cab, on each side of the head car.
+  if(mid < -7.5){
+   const cabDoorZ=-8.52, cabDoorW=.74, cabDoorH=1.94;
+   // Full-height opaque sidewall, with a clearly outlined cab door in its plane.
+   box(.085,top-.28-F,len,x,(top-.28+F)/2,mid,wall);
+   const outline=mat(0x424b51,.35);
+   box(.022,cabDoorH+.07,cabDoorW+.07,x+side*.055,F+cabDoorH/2,cabDoorZ,outline);
+   box(.024,cabDoorH,cabDoorW,x+side*.073,F+cabDoorH/2,cabDoorZ,wall);
+   // Tall glazed window in upper half of the driver's access door.
+   roundedPanel(.48,.69,.085,x+side*.092,F+1.47,cabDoorZ,glass);
+   // Perimeter of the glazed insert.
+   for(const yy of [F+1.125,F+1.815])box(.028,.023,.51,x+side*.104,yy,cabDoorZ,metal);
+   for(const zz of [cabDoorZ-.24,cabDoorZ+.24])box(.028,.70,.023,x+side*.104,F+1.47,zz,metal);
+   continue;
+  }
+  const windowWidth=Math.min(1.67,Math.max(0,len-.38));
   const pier=(len-windowWidth)/2;
   const sill=F+1.04,header=F+2.00;
   // Solid sidewall from the under-window waist to the roof, uninterrupted at joints.
