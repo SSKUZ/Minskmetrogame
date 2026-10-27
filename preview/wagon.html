@@ -442,5 +442,5 @@ function setCamera(mode){
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-document.getElementById('status').textContent='3D загружено';function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
+window.wagonDiagnostics=()=>({cameraMode,meshCount:group.children.filter(o=>o.isMesh).length,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height});window.wagonSetCamera=setCamera;document.getElementById('status').textContent='3D загружено';window.wagonReady=true;function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
