@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v68</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v68: доработаны наружные зеркала и стеклоочистители кабины; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v69</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v69: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v68';
+window.wagonSideBodyVersion='smooth-v69';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -291,7 +291,7 @@ for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
 // A restrained black inset with three glazed bays, separated upper lamp
 // pockets and three independent LOWER lamp modules (not loose circles).
 const cabFront=-L/2+.07,faceZ=cabFront-.205;
-const mask=mat(0x171f24),gasket=mat(0x070b0e),frame=mat(0x53646b,.32);
+const mask=mat(0x171f24,.58),gasket=mat(0x070b0e,.92),frame=mat(0x53646b,.32);
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
 const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.10,metalness:.02,roughness:.20,side:T.DoubleSide,depthWrite:false});
 const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
@@ -382,6 +382,10 @@ for(const [cx,ww] of frontBays){
  }
  hole.closePath();fasciaShape.holes.push(hole);
 }
+// Recessed surround behind the main black fascia; the thin metal lip
+// sits outside the mask rather than crossing the transparent openings.
+const fasciaBacking=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),gasket);
+fasciaBacking.position.set(0,F+1.58,faceZ+.034);group.add(fasciaBacking);
 const fasciaMesh=new T.Mesh(new T.ShapeGeometry(fasciaShape,24),mask);
 fasciaMesh.position.set(0,F+1.58,faceZ+.015);group.add(fasciaMesh);
 faceBorder(2.43,2.05,.22,0,F+1.58,faceZ+.007,frame,.010);
@@ -481,7 +485,7 @@ lampCassette(.98,.43,[.105],[-.105]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v68 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v69 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
