@@ -5,12 +5,12 @@ import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);
-const renderer=new T.WebGLRenderer({antialias:true});document.getElementById('status').textContent='3D загружено';renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);
 scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
 const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
 const wall=mat(0x235273),roof=mat(0x2a5878),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x77716b),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
-const group=new T.Group();scene.add(group);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
+const group=new T.Group();scene.add(group);const dark=mat(0x28323a);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
 
 // Rounded profile lies in the (longitudinal z, vertical y) plane, normal to x.
@@ -189,5 +189,5 @@ for(const z of [-6.50,6.50]){
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 let inside=false;document.getElementById('view').onclick=()=>{inside=!inside;camera.position.set(inside?0:8,inside?2.5:5,inside?0:-14);ctl.target.set(0,inside?2:1.8,inside?-5:0);document.getElementById('view').textContent=inside?'Снаружи вагона':'Внутри вагона'};
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
+document.getElementById('status').textContent='3D загружено';function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
