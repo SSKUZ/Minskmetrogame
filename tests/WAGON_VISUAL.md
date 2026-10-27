@@ -50,3 +50,6 @@ local environments whose Chromium trust store lacks the proxy CA; it retains
 HTTPS verification. `WAGON_EXPECT_VERSION` rejects stale live versions.
 Every run records a source-module hash and verifies the served module matches
 it. Local uncommitted captures are marked with `workingTreeDirty`.
+The rear 78% of the side-view image is protected: with a compatible baseline,
+any changed pixels there fail the front-only task's regression check. This
+does not claim coverage of every surface hidden from that camera.

@@ -4,7 +4,7 @@ import {mkdir,readFile,writeFile,access} from 'node:fs/promises';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {comparePixels,comparePhoto} from './wagon-image-compare.mjs';
+import {comparePixels,comparePhoto,compareProtectedSide} from './wagon-image-compare.mjs';
 
 const output=process.env.WAGON_RESULTS_DIR||'test-results/wagon';
 const baseline=process.env.WAGON_BASELINE_DIR||'test-results/wagon-baseline';
@@ -73,6 +73,10 @@ try{
    comparison={mode,...await comparePixels(screenshot,path.join(baseline,`${mode}.png`),path.join(output,`${mode}-diff.png`)),lightingChanged:!!old&&old.lightingPreset!==data.lightingPreset,cameraChanged:!!old&&JSON.stringify(old.camera)!==JSON.stringify(data.camera)};
   }catch(error){if(error.code!=='ENOENT')throw error;}
   report.comparisons.push(comparison);
+  if(mode==='side'&&comparison.status==='compared'){
+   report.protectedSide=await compareProtectedSide(screenshot,path.join(baseline,'side.png'));
+   assert.equal(report.protectedSide.changedPixels,0,'Protected rear body changed outside the permitted front work');
+  }
   if(mode==='reference')report.photo=await comparePhoto(data.features,reference,screenshot,path.join(output,'reference-geometry-overlay.png'));
  }
  assert.deepEqual(errors,[],'Wagon JavaScript errors');

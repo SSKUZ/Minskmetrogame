@@ -19,6 +19,13 @@ export async function comparePixels(currentPath,baselinePath,diffPath){
  return {status:'compared',changedPixels,totalPixels:width*height,changedPixelFraction:changedPixels/(width*height),bounds:changedPixels?bounds:null,regions:[...tiles].map(([tile,pixels])=>({tile,pixels})).sort((a,b)=>b.pixels-a.pixels),interpretation:'Changed pixels measure changed render area, not model-to-photo similarity. Intentional geometry or lighting changes need review.'};
 }
 function normalized(b,a){return {cx:(b.x+b.width/2-a.x-a.width/2)/a.width,cy:(b.y+b.height/2-a.y)/a.width,width:b.width/a.width,height:b.height/a.width};}
+export async function compareProtectedSide(currentPath,baselinePath){
+ const current=PNG.sync.read(await readFile(currentPath)),previous=PNG.sync.read(await readFile(baselinePath));
+ if(current.width!==previous.width||current.height!==previous.height)return {status:'incompatible-resolution'};
+ const width=Math.floor(current.width*.78),height=current.height,a=new PNG({width,height}),b=new PNG({width,height});
+ PNG.bitblt(current,a,0,0,width,height,0,0);PNG.bitblt(previous,b,0,0,width,height,0,0);
+ return {status:'compared',region:{x:0,y:0,width,height},changedPixels:pixelmatch(a.data,b.data,null,width,height,{threshold:.12,includeAA:false})};
+}
 function line(png,x0,y0,x1,y1,color){
  const n=Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0)));
  for(let i=0;i<=n;i++){

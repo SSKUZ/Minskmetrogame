@@ -1,18 +1,57 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v82</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v82: цельная крыша кабины, пропорции окон и маски, фары и зеркала по эталону.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v83</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v83: кобальтовая эмаль, серебряные отражатели фар и объёмные сигнальные фонари.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
-const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);
-const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);
-scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
+const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
+// Preserve the agreed body/interior lighting on layer 0. New front surfaces
+// use layer 1 so material calibration cannot recolor the passenger body.
+scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));
+const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
+const frontAmbient=new T.HemisphereLight(0xfff5e6,0x3c404a,.65);frontAmbient.layers.set(1);scene.add(frontAmbient);
+const frontKey=new T.DirectionalLight(0xfff3df,2.2);frontKey.position.set(4,8,-17);frontKey.layers.set(1);scene.add(frontKey);
+const fill=new T.DirectionalLight(0xcbdcff,.6);fill.position.set(-6,4,-13);fill.layers.set(1);scene.add(fill);
+let frontEnvironment;
+// Procedural light boxes provide physically reflected ceiling bands without
+// painting highlights into the train or adding geometry to the wagon.
+{
+ const studio=new T.Scene();studio.background=new T.Color(0x30302e);
+ studio.add(new T.Mesh(new T.BoxGeometry(30,12,50),new T.MeshBasicMaterial({color:0x282826,side:T.BackSide})));
+ function softbox(w,h,d,x,y,z,color,intensity=1){
+  const material=new T.MeshBasicMaterial({color});material.color.multiplyScalar(intensity);
+  const object=new T.Mesh(new T.BoxGeometry(w,h,d),material);object.position.set(x,y,z);studio.add(object);
+ }
+ softbox(29,.02,49,0,-3.5,0,0x353638);
+ for(const x of [-4.0,4.0])softbox(.45,.04,22,x,5.1,0,0xfff6df,4);
+ for(const x of [-5.0,5.0])softbox(.40,3.2,.05,x,1.5,-6,0xf7f1e4,2.5);
+ const generator=new T.PMREMGenerator(renderer);const environment=generator.fromScene(studio,.04,.1,80);
+ frontEnvironment=environment.texture;generator.dispose();
+ studio.traverse(object=>{if(object.isMesh){object.geometry.dispose();object.material.dispose();}});
+}
 const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
 const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
 const wall=mat(0x235273),roof=mat(0x2a5878),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x77716b),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
 const group=new T.Group();scene.add(group);const qaObjects=new Map();
 function feature(name,object){object.name=name;qaObjects.set(name,object);return object;}
 const dark=mat(0x28323a);const cream=mat(0xe5ded0),black=mat(0x12171b),light=mat(0xfff4c7),redLamp=mat(0xb52228),interior=mat(0xd6d0c1);
+// Front material clones leave every shared passenger/cab material unchanged.
+const frontPaint=new T.MeshPhysicalMaterial({color:0x034db5,metalness:.16,roughness:.25,clearcoat:.85,clearcoatRoughness:.16,envMapIntensity:.8,side:T.DoubleSide});
+const frontMaterialCache=new Map();
+function frontAppearance(object){
+ object.traverse(mesh=>{
+  if(!mesh.isMesh)return;mesh.layers.set(1);
+  const source=mesh.material;
+  if(!frontMaterialCache.has(source)){
+   const material=source===wall||source===roof?frontPaint.clone():source.clone();
+   if(source===dark)material.color.setHex(0x15191d);
+   if(material.isMeshStandardMaterial){material.envMap=frontEnvironment;material.envMapIntensity=source.userData.frontOptics?2.2:source===wall||source===roof?.65:.40;}
+   frontMaterialCache.set(source,material);
+  }
+  mesh.material=frontMaterialCache.get(source);
+ });return object;
+}
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
 
 // Rounded profile lies in the (longitudinal z, vertical y) plane, normal to x.
@@ -251,12 +290,12 @@ const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32Buffer
   const k=j*(sections+1)+i,n=k+sections+1;fs.push(k,k+1,n,k+1,n+1,n);
  }
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(fs);geometry.computeVertexNormals();
- group.add(new T.Mesh(geometry,roof));
+ const shell=new T.Mesh(geometry,roof);group.add(shell);frontAppearance(shell);
  const frontShape=new T.Shape();frontShape.moveTo(-half,top-.26);
  for(const p of frontPoints)frontShape.lineTo(p.x,p.y);
  frontShape.lineTo(half,top-.26);frontShape.closePath();
  const cap=new T.Mesh(new T.ExtrudeGeometry(frontShape,{depth:.055,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:3,curveSegments:24}),roof);
- cap.position.z=z0;group.add(cap);feature('roof',cap);
+ cap.position.z=z0;group.add(cap);frontAppearance(cap);feature('roof',cap);
 }
 // Longitudinal benches between doors, with an unobstructed central aisle.
 const sections=[[-9.30,-7.75],[-6.05,-3.15],[-1.45,1.45],[3.15,6.05],[7.75,9.30]];
@@ -317,12 +356,13 @@ for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
  box(.14,.012,1.65,x,top-.235,z,ceilingLight);
 }
 // Front fascia based on the supplied 81-717 reference.
+const frontMeshStart=group.children.length;
 // A restrained black inset with three glazed bays, separated upper lamp
 // pockets and three independent LOWER lamp modules (not loose circles).
 const cabFront=-L/2+.07,faceZ=cabFront-.205;
-const mask=mat(0x171f24,.58),gasket=mat(0x070b0e,.92),frame=mat(0x53646b,.32);
+const mask=mat(0x111315,.22),gasket=mat(0x080909,.03),frame=mat(0x4d4e49,.58);mask.roughness=.32;gasket.roughness=.60;frame.roughness=.33;
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
-const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.10,metalness:.02,roughness:.20,side:T.DoubleSide,depthWrite:false});
+const frontGlass=new T.MeshStandardMaterial({color:0x92a49c,transparent:true,opacity:.12,metalness:.02,roughness:.12,side:T.DoubleSide,depthWrite:false});
 const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
 function facePanel(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),20),m);
@@ -472,8 +512,13 @@ for(const sign of [-1,1]){
  const xx=sign*.895,yy=F+2.29;
  facePanel(.535,.215,.10,xx,yy,faceZ-.014,gasket);
  faceBorder(.535,.215,.10,xx,yy,faceZ-.024,frame,.009);
- feature(`marker-${sign>0?'left':'right'}`,faceCircle(xx,yy,faceZ-.076,.066,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide})));
- faceCircle(xx-.014,yy+.020,faceZ-.080,.014,mat(0xff6b66));
+ const marker=new T.Group();marker.position.set(xx,yy,faceZ-.065);group.add(marker);
+ const rimMesh=new T.Mesh(new T.TorusGeometry(.062,.005,12,48),frame);marker.add(rimMesh);
+ const redLensMaterial=new T.MeshPhysicalMaterial({color:0xcc051e,emissive:0xff0827,emissiveIntensity:1.5,roughness:.18,clearcoat:1,metalness:.08});
+ const lens=new T.Mesh(new T.SphereGeometry(.059,32,20),redLensMaterial);lens.scale.z=.25;lens.position.z=-.008;marker.add(lens);
+ const core=new T.Mesh(new T.CircleGeometry(.035,40),new T.MeshBasicMaterial({color:0xffc4cb,side:T.DoubleSide}));core.position.z=-.024;marker.add(core);
+ const glint=new T.Mesh(new T.CircleGeometry(.013,24),new T.MeshBasicMaterial({color:0xffffff,side:T.DoubleSide}));glint.position.set(.014,.018,-.026);marker.add(glint);
+ feature(`marker-${sign>0?'left':'right'}`,marker);
  for(const offset of [-.16,.16]){
   faceCircle(xx+offset,yy,faceZ-.070,.037,gasket);
   faceCircle(xx+offset,yy,faceZ-.079,.026,lensDark);
@@ -499,24 +544,26 @@ faceBorder(.99,.185,.025,0,F+1.255,faceZ-.063,frame,.008);
 // silver-reflector headlights; no dark auxiliary circles in lower pockets.
 const lampY=F+.785,lampZ=faceZ-.030;
 const frontFeatures={upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'};
-const lampReflector=mat(0xb8c4c6,.16),lampBezel=mat(0x56636a,.42);
-const lampGlass=new T.MeshPhysicalMaterial({color:0xe9f0e9,metalness:.12,roughness:.14,transparent:true,opacity:.78,clearcoat:1,clearcoatRoughness:.10,side:T.DoubleSide});
-const lampInner=mat(0x697b83,.34);
+const lampReflector=new T.MeshStandardMaterial({color:0xd6d1c6,metalness:.94,roughness:.17,side:T.DoubleSide});
+lampReflector.userData.frontOptics=true;
+const lampBezel=mat(0x575953,.78);lampBezel.roughness=.25;
+const lampGlass=new T.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.06,transparent:true,opacity:.16,clearcoat:1,clearcoatRoughness:.06,side:T.DoubleSide,depthWrite:false});
 let lowerLampIndex=0;
 function lampCassette(cx,w,lamps){
  facePanel(w,.40,.105,cx,lampY,lampZ,gasket);
- faceBorder(w,.40,.105,cx,lampY,lampZ-.008,frame,.012);
+ faceBorder(w,.40,.105,cx,lampY,lampZ-.008,frame,.008);
  for(const offset of lamps){
-  const x=cx+offset,radius=Math.abs(cx)>.8?.105:.096;
-  // Layered concentric reflector and protective lens; subtle off-axis
-  // glints give depth without adding protrusions to the car body.
-  feature(`headlamp-${lowerLampIndex++}`,faceCircle(x,lampY,lampZ-.019,radius,lampBezel));
-  faceCircle(x,lampY,lampZ-.027,radius*.91,lampReflector);
-  faceCircle(x,lampY,lampZ-.034,radius*.77,lampInner);
-  faceCircle(x,lampY,lampZ-.044,radius*.67,warmLens);
-  faceCircle(x,lampY,lampZ-.052,radius*.61,lampGlass);
-  faceCircle(x-.024,lampY+.034,lampZ-.061,.018,light);
-  faceCircle(x+.031,lampY-.030,lampZ-.059,.009,lampReflector);
+  const radius=Math.abs(cx)>.8?.105:.096;
+  const assembly=new T.Group();assembly.position.set(cx+offset,lampY,lampZ-.035);group.add(assembly);
+  const outer=new T.Mesh(new T.TorusGeometry(radius-.006,.006,12,64),lampBezel);assembly.add(outer);
+  const silverRim=new T.Mesh(new T.TorusGeometry(radius*.88,.0045,12,64),lampReflector);silverRim.position.z=-.003;assembly.add(silverRim);
+  // Concave spun reflector: the center is genuinely recessed behind its rim.
+  const points=[[.13,.043],[.35,.039],[.60,.027],[.79,.011],[.88,0]].map(([r,z])=>new T.Vector2(radius*r,z));
+  const reflector=new T.Mesh(new T.LatheGeometry(points,64),lampReflector);reflector.rotation.x=Math.PI/2;assembly.add(reflector);
+  const socket=new T.Mesh(new T.CylinderGeometry(radius*.17,radius*.17,.018,24),lampBezel);socket.rotation.x=Math.PI/2;socket.position.z=.030;assembly.add(socket);
+  const bulb=new T.Mesh(new T.SphereGeometry(radius*.20,24,16),new T.MeshPhysicalMaterial({color:0xffeed4,roughness:.14,metalness:.15,clearcoat:1}));bulb.position.z=.015;bulb.scale.z=.65;assembly.add(bulb);
+  const cover=new T.Mesh(new T.SphereGeometry(radius*.88,40,24),lampGlass);cover.scale.z=.09;cover.position.z=-.007;assembly.add(cover);
+  feature(`headlamp-${lowerLampIndex++}`,assembly);
  }
 }
 lampCassette(-.995,.535,[0]);
@@ -524,7 +571,7 @@ lampCassette(0,1.15,[-.385,-.128,.128,.385]);
 lampCassette(.995,.535,[0]);
 // Reference has a broad three-section BLACK crash/bumper band below
 // the lamps, not a stack of narrow blue and silver decorative rails.
-const bumperBlack=mat(0x101316,.82);
+const bumperBlack=mat(0x0e1011,.25);bumperBlack.roughness=.45;
 const bumperParts=[];
 for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
  bumperParts.push(box(w-.012,.225,.09,cx,F+.405,faceZ-.092,bumperBlack));
@@ -533,7 +580,7 @@ qaObjects.set('bumper',bumperParts);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
 // v80 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
-const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
+const blueEdge=mat(0x073d87,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
  const curve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p)));
  group.add(new T.Mesh(new T.TubeGeometry(curve,Math.max(24,points.length*12),r,8,false),material));
@@ -555,11 +602,6 @@ for(const x of [-.601,.601]){
 }
 for(const x of [-.89,.89]){
  frontCylinder(x,F+1.04,faceZ-.09,.045,.024,rubberFace);
-}
-// Small white marker highlights and raised metal rings around all six lamps.
-for(const x of [-.995,-.385,-.128,.128,.385,.995]){
- const circle=new T.Mesh(new T.TorusGeometry(Math.abs(x)>.8?.095:.087,.008,8,40),rim);
- circle.position.set(x,lampY,lampZ-.041);group.add(circle);
 }
 // Recessed dark coupling pocket with a narrow metal lip. The actual
 // coupling head sits proud of the pocket, below the painted blue apron.
@@ -599,7 +641,7 @@ frontCylinder(0,F+.07,faceZ-.84,.042,.045,pinSteel);
 // Reference: conspicuous YELLOW rounded rectangular mirror housings,
 // supported by slender metal stalks on both sides of the driver's cab.
 const mirrorGlass=new T.MeshStandardMaterial({color:0x8babb7,metalness:.62,roughness:.16,side:T.DoubleSide});
-const mirrorYellow=mat(0xe0b52c,.38);
+const mirrorYellow=new T.MeshPhysicalMaterial({color:0xffc600,roughness:.28,metalness:.12,clearcoat:.65,clearcoatRoughness:.2,side:T.DoubleSide});
 for(const sign of [-1,1]){
  // The photo shows a longer outrigger on the right side of the image.
  const x=sign*(sign>0?1.31:1.47),yy=F+1.73;
@@ -632,6 +674,7 @@ for(const y of [F+.38,F+.27]){
  frontLine([[-1.23,y,faceZ+.10],[-.86,y,faceZ+.095],[0,y,faceZ+.09],
  [.86,y,faceZ+.095],[1.23,y,faceZ+.10]],.006,blueEdge);
 }
+for(const object of group.children.slice(frontMeshStart))frontAppearance(object);
 // Cab bulkhead and control console, behind the front windscreen.
 const cabRear=-7.68;
 // Rear bulkhead: actual 3D cab equipment, not a printed texture.
@@ -795,7 +838,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=82,lightingPreset='inspection-v1';
+const modelVersion=83,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -836,6 +879,16 @@ window.wagonSetCamera=setCamera;
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
 document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
-function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera);renderedFrames++;}loop();
+// Separate fixed passes also isolate lights (Three.js lights are camera-layer
+// filtered, not per-mesh filtered). Keep depth to preserve correct occlusion.
+function loop(){
+ requestAnimationFrame(loop);ctl.update();const background=scene.background;
+ camera.layers.set(0);renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
+ renderer.render(scene,camera);
+ renderer.autoClear=false;scene.background=null;camera.layers.set(1);
+ renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+ renderer.render(scene,camera);
+ scene.background=background;renderer.autoClear=true;camera.layers.enable(0);renderedFrames++;
+}loop();
 
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>
