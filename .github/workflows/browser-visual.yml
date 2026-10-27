@@ -1,7 +1,5 @@
 name: Browser visual smoke (testing)
 on:
-  push:
-    branches: [testing]
   workflow_dispatch:
 permissions:
   contents: read
