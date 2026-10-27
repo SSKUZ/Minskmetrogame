@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v20</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v20: цельные створки от порога до верха, узкое синее обрамление, прозрачные окна.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v21</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v21: цельные утопленные створки с оконными вырезами; убраны ошибочные дверные полосы.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -77,47 +77,52 @@ for(const side of [-1,1]){
   if(windowWidth>.30)roundedOpening(windowWidth,header-sill,.16,x,(header+sill)/2,mid,side);
  }
  for(const dz of doors){
-  // Two complete recessed pocket-door leaves; slim dark-blue reveal instead
-  // of the previous heavy grey rectangular jambs and lintel.
-  const frame=mat(0x142e40),seal=mat(0x263239);
-  const leafW=doorWidth/2-.009,leafH=doorHeight-.012;
-  const recessX=x-side*.030;
-  const rim=roundedShape(doorWidth+.018,doorHeight+.012,.115).getPoints(16);
-  const rimCurve=new T.CatmullRomCurve3(rim.map(p=>new T.Vector3(x+side*.008,F+doorHeight/2+p.y,dz-p.x)),true);
-  group.add(new T.Mesh(new T.TubeGeometry(rimCurve,96,.010,6,true),frame));
-  // Thin header and sill, recessed rather than broad metal strips.
-  box(.018,.016,doorWidth+.01,x+side*.003,F+doorHeight+.004,dz,frame);
-  box(.018,.012,doorWidth+.01,x+side*.003,F+.003,dz,frame);
+  // One continuous metal surface per leaf, with a real transparent cutout.
+  // Rounded upper OUTER corners, straight central meeting edges.
+  const leafW=doorWidth/2-.008,leafH=doorHeight-.008;
+  const recessX=x-side*.025,glassW=.43,glassH=.78,glassY=F+1.49;
+  const seal=mat(0x1a2d39);
+  function leafShape(w,h,r,outerOnRight){
+   const q=new T.Shape(),l=-w/2,rr=w/2,bot=-h/2,hi=h/2;
+   q.moveTo(l,bot);q.lineTo(rr,bot);
+   if(outerOnRight){
+    q.lineTo(rr,hi-r);q.quadraticCurveTo(rr,hi,rr-r,hi);
+    q.lineTo(l,hi);
+   }else{
+    q.lineTo(rr,hi);q.lineTo(l+r,hi);
+    q.quadraticCurveTo(l,hi,l,hi-r);
+   }
+   q.lineTo(l,bot);q.closePath();return q;
+  }
   for(const halfDoor of [-1,1]){
    const leafZ=dz+halfDoor*doorWidth/4;
-   const glassW=.43,glassH=.78,glassY=F+1.49;
-   const base=F+.006,topDoor=base+leafH;
-   const gBottom=glassY-glassH/2,gTop=glassY+glassH/2;
-   // Full-height opaque lower and upper portions, plus side piers around
-   // the transparent window. This avoids fragile triangulation with holes.
-   box(.032,gBottom-base,leafW,recessX,(base+gBottom)/2,leafZ,wall);
-   box(.032,topDoor-gTop,leafW,recessX,(gTop+topDoor)/2,leafZ,wall);
-   const pier=(leafW-glassW)/2;
-   for(const sign of [-1,1])
-    box(.032,glassH,pier,recessX,glassY,leafZ+sign*(glassW+pier)/2,wall);
-   // Round ONLY the two top outer corners using a thin blue overlay,
-   // preserving the full lower door sheet.
-   const cap=new T.Shape(),l=-leafW/2,rr=leafW/2,h=.18,R=.105;
-   cap.moveTo(l,-h/2);cap.lineTo(rr,-h/2);cap.lineTo(rr,h/2-R);
-   cap.quadraticCurveTo(rr,h/2,rr-R,h/2);
-   cap.lineTo(l+R,h/2);cap.quadraticCurveTo(l,h/2,l,h/2-R);
-   cap.closePath();
-   const capMesh=new T.Mesh(new T.ShapeGeometry(cap),wall);
-   capMesh.rotation.y=Math.PI/2;
-   capMesh.position.set(recessX+side*.017,topDoor-h/2,leafZ);
-   group.add(capMesh);
-   roundedPanel(glassW-.012,glassH-.012,.09,recessX+side*.020,glassY,leafZ,glass);
-   const points=roundedShape(glassW,glassH,.095).getPoints(12);
-   const gasketCurve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(recessX+side*.024,glassY+p.y,leafZ-p.x)),true);
-   group.add(new T.Mesh(new T.TubeGeometry(gasketCurve,64,.010,5,true),seal));
-   // Slender vertical rubber seam where the two leaves meet.
-   box(.012,leafH-.14,.008,recessX+side*.022,F+leafH/2,leafZ-halfDoor*leafW/2,seal);
+   // Local +X maps to world -Z, hence outer corner is right on negative-Z leaf.
+   const outline=leafShape(leafW,leafH,.115,halfDoor===-1);
+   const cutout=new T.Path();
+   const pts=roundedShape(glassW,glassH,.09).getPoints(16);
+   const yShift=glassY-(F+leafH/2);
+   // Explicit clockwise winding for the hole, counter-clockwise outline.
+   for(let i=pts.length-1;i>=0;i--){
+    const p=pts[i];if(i===pts.length-1)cutout.moveTo(p.x,p.y+yShift);
+    else cutout.lineTo(p.x,p.y+yShift);
+   }
+   cutout.closePath();outline.holes.push(cutout);
+   const metalLeaf=new T.Mesh(new T.ShapeGeometry(outline,20),wall);
+   metalLeaf.rotation.y=Math.PI/2;
+   metalLeaf.position.set(recessX,F+leafH/2,leafZ);
+   metalLeaf.material.side=T.DoubleSide;
+   group.add(metalLeaf);
+   roundedPanel(glassW-.012,glassH-.012,.085,recessX+side*.003,glassY,leafZ,glass);
+   const points=roundedShape(glassW,glassH,.09).getPoints(12);
+   const gasketCurve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(recessX+side*.009,glassY+p.y,leafZ-p.x)),true);
+   group.add(new T.Mesh(new T.TubeGeometry(gasketCurve,64,.009,5,true),seal));
+   // Seam is thin, not a third rectangular panel.
+   box(.008,leafH-.13,.007,recessX+side*.012,F+leafH/2,leafZ-halfDoor*leafW/2,seal);
   }
+  // Thin rounded painted reveal; no bulky grey jambs.
+  const rim=roundedShape(doorWidth+.022,doorHeight+.012,.13).getPoints(16);
+  const curve=new T.CatmullRomCurve3(rim.map(p=>new T.Vector3(x+side*.007,F+doorHeight/2+p.y,dz-p.x)),true);
+  group.add(new T.Mesh(new T.TubeGeometry(curve,96,.009,6,true),seal));
  }
 }
 
@@ -158,14 +163,7 @@ for(const side of [-1,1]){
   if(doors.some(d=>Math.abs(d-mid)<.01))continue;
   stripeSegment(side,aa,beltY,bb,beltY,.105);
  }
- for(const d of doors){
-  // Left leaf: upper left -> inner right tip -> lower left.
-  stripeSegment(side,d-outer,beltY,d-inner,tipY,.105,true);
-  stripeSegment(side,d-inner,tipY,d-outer,bottomY,.105,true);
-  // Right leaf mirrors left: upper right -> inner left tip -> lower right.
-  stripeSegment(side,d+outer,beltY,d+inner,tipY,.105,true);
-  stripeSegment(side,d+inner,tipY,d+outer,bottomY,.105,true);
- }
+
 }
 // Extruded roof profile in a single metric cross section.
 const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
