@@ -5,6 +5,8 @@ import {mkdir} from 'node:fs/promises';
 await mkdir('test-results',{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
 const errors=[];
+const screenshots=[];
+async function capture(name){await page.screenshot({path:`test-results/${name}.png`});screenshots.push(name)}
 const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:1,hasTouch:true,isMobile:true});
 page.on('pageerror',e=>errors.push('pageerror: '+e.message));
 page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
@@ -16,12 +18,12 @@ try{
  assert.equal(state.playing,true,'preview must start');
  assert.equal(state.camera,'cab');
  assert.ok(await page.locator('#scene').isVisible());
- await page.screenshot({path:'test-results/01-cab.png'});
+ await capture('01-cab');
  await page.locator('#carCameraToggle').click();
  state=await page.evaluate(()=>window.metroDiagnostics());
  assert.equal(state.camera,'carriage');
  await page.waitForTimeout(600);
- await page.screenshot({path:'test-results/02-carriage.png'});
+ await capture('02-carriage');
  await page.locator('#carCameraToggle').click();
  assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'cab');
  const station=page.locator('#stationCameraToggle');
@@ -29,12 +31,29 @@ try{
   await station.click();
   assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'platform');
   await page.waitForTimeout(500);
-  await page.screenshot({path:'test-results/03-platform.png'});
+  await capture('03-platform');
   await station.click();
   assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'cab');
  }
  await page.waitForTimeout(1500);
+ // Capture a desktop-sized viewport to expose more of the dashboard and station geometry.
+ await page.setViewportSize({width:1365,height:768});
+ await page.waitForTimeout(900);
+ await capture('04-cab-desktop');
+ await page.locator('#carCameraToggle').click();
+ assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'carriage');
+ await page.waitForTimeout(500);
+ await capture('05-carriage-desktop');
+ await page.locator('#carCameraToggle').click();
+ if(await station.isVisible()){
+  await station.click();
+  assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'platform');
+  await page.waitForTimeout(500);
+  await capture('06-platform-desktop');
+  await station.click();
+ }
+ await page.waitForTimeout(500);
  assert.ok(await page.evaluate(()=>performance.now()-window.metroLastRendered<2500),'render loop should keep running');
  assert.equal(errors.filter(x=>/ReferenceError|SyntaxError|TypeError|Metro render failure|Failed to resolve module/i.test(x)).length,0,errors.join('\n'));
- console.log('Browser smoke passed; captured screenshots; state:',JSON.stringify(state));
+ console.log('Browser smoke passed; screenshots:',screenshots.join(', '),'state:',JSON.stringify(state));
 }finally{await browser.close()}
