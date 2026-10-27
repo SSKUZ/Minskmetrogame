@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v3 — глухие стены и двери</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v3: металлические простенки и закрытые двери; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Кузов v4 — широкие окна со скруглением</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v4: широкие закруглённые окна и остекление дверей; не игровая сборка.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -12,6 +12,31 @@ const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,rough
 const wall=mat(0xe0e2dd),roof=mat(0xe8e5d8),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x78472c),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.30,side:T.DoubleSide,depthWrite:false});
 const group=new T.Group();scene.add(group);
 function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
+
+// Rounded profile lies in the (longitudinal z, vertical y) plane, normal to x.
+function roundedShape(w,h,r){
+ const q=new T.Shape(),a=-w/2,b=-h/2,R=Math.min(r,w/2-.001,h/2-.001);
+ q.moveTo(a+R,b);q.lineTo(a+w-R,b);q.quadraticCurveTo(a+w,b,a+w,b+R);
+ q.lineTo(a+w,b+h-R);q.quadraticCurveTo(a+w,b+h,a+w-R,b+h);
+ q.lineTo(a+R,b+h);q.quadraticCurveTo(a,b+h,a,b+h-R);
+ q.lineTo(a,b+R);q.quadraticCurveTo(a,b,a+R,b);return q;
+}
+function roundedPanel(w,h,r,x,y,z,m){
+ const mesh=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),12),m);
+ mesh.rotation.y=Math.PI/2;mesh.position.set(x,y,z);group.add(mesh);return mesh;
+}
+function roundedOpening(w,h,r,x,y,z,side){
+ // Fill the four square corners with opaque body metal so the cut-out is rounded.
+ const outer=new T.Shape();outer.moveTo(-w/2,-h/2);outer.lineTo(w/2,-h/2);outer.lineTo(w/2,h/2);outer.lineTo(-w/2,h/2);outer.closePath();
+ const hole=new T.Path();const points=roundedShape(w,h,r).getPoints(12);
+ for(let i=points.length-1;i>=0;i--){const p=points[i];if(i===points.length-1)hole.moveTo(p.x,p.y);else hole.lineTo(p.x,p.y)}hole.closePath();outer.holes.push(hole);
+ const patch=new T.Mesh(new T.ShapeGeometry(outer,12),wall);patch.rotation.y=Math.PI/2;patch.position.set(x+side*.004,y,z);group.add(patch);
+ roundedPanel(w-.045,h-.045,r-.012,x+side*.055,y,z,glass);
+ const pts=roundedShape(w,h,r).getPoints(12);
+ const curve=new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(x+side*.07,y+p.y,z-p.x)),true,'centripetal');
+ group.add(new T.Mesh(new T.TubeGeometry(curve,96,.022,6,true),metal));
+}
+
 const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
 box(W-.12,.12,L-.08,0,F-.06,0,floor);
 for(const x of [-1,1]){box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);box(.08,.53,L-.08,x*(half-.04),F+.265,0,wall);box(.08,.30,L-.08,x*(half-.04),top-.15,0,wall)}
@@ -26,19 +51,15 @@ for(const side of [-1,1]){
   if(len<.1)continue;
   // Door apertures are not filled with glass or wall.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
-  const windowWidth=Math.min(1.15,Math.max(0,len-.95));
+  const windowWidth=Math.min(1.67,Math.max(0,len-.38));
   const pier=(len-windowWidth)/2;
-  const sill=F+1.12,header=F+1.90;
+  const sill=F+1.04,header=F+2.00;
   // Solid sidewall from the under-window waist to the roof, uninterrupted at joints.
   box(.085,sill-F,len,x,(sill+F)/2,mid,wall);
   box(.085,top-.28-header,len,x,(header+top-.28)/2,mid,wall);
   for(const e of [-1,1])box(.085,header-sill,pier,x,(header+sill)/2,mid+e*(windowWidth+pier)/2,wall);
   // Actual window glass only inside the structural cutout, not the full wall bay.
-  if(windowWidth>.30){
-   box(.018,header-sill-.07,windowWidth-.07,x-side*.047,(header+sill)/2,mid,glass);
-   for(const zz of [mid-windowWidth/2,mid+windowWidth/2])box(.04,header-sill,.04,x-side*.045,(header+sill)/2,zz,metal);
-   for(const yy of [sill,header])box(.04,.035,windowWidth+.05,x-side*.045,yy,mid,metal);
-  }
+  if(windowWidth>.30)roundedOpening(windowWidth,header-sill,.16,x,(header+sill)/2,mid,side);
  }
  for(const dz of doors){
   // Metal jambs are structural parts of the same sidewall.
@@ -49,9 +70,9 @@ for(const side of [-1,1]){
   for(const halfDoor of [-1,1]){
    const leafZ=dz+halfDoor*doorWidth/4;
    box(.085,doorHeight-.09,doorWidth/2-.045,x,F+doorHeight/2,leafZ,wall);
-   box(.022,.70,.38,x+side*.052,F+1.48,leafZ,glass);
-   for(const yy of [F+1.12,F+1.84])box(.025,.035,.42,x+side*.063,yy,leafZ,metal);
-   for(const zz of [leafZ-.20,leafZ+.20])box(.025,.75,.028,x+side*.063,F+1.48,zz,metal);
+   roundedPanel(.43,.78,.09,x+side*.055,F+1.49,leafZ,glass);
+   
+   
    box(.025,.15,.035,x+side*.065,F+1.04,dz+halfDoor*.12,metal);
   }
  }
