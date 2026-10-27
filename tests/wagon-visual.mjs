@@ -86,6 +86,14 @@ try{
  await page.screenshot({path:path.join(output,'reference-repeat.png'),animations:'disabled'});
  report.repeat=await comparePixels(path.join(output,'reference.png'),path.join(output,'reference-repeat.png'),path.join(output,'repeat-diff.png'));
  assert.equal(report.repeat.changedPixels,0,'Frozen reference camera produced nondeterministic pixels');
+ await page.setViewportSize({width:412,height:915});
+ await page.evaluate(()=>window.wagonSetCamera('reference'));
+ const mobileFrame=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
+ await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,mobileFrame);
+ report.mobile=await page.evaluate(()=>window.wagonDiagnostics());
+ const mobileFace=report.mobile.features.fascia;
+ assert.ok(mobileFace.x>=0&&mobileFace.x+mobileFace.width<=412,'Reference fascia is clipped on a phone');
+ await page.screenshot({path:path.join(output,'mobile-reference.png'),animations:'disabled'});
  report.result='pass';
 }catch(error){report.result='fail';report.failure=error.stack;throw error;}
 finally{
@@ -94,7 +102,7 @@ finally{
  const metrics=(report.photo?.measurements||[]).map(m=>`| ${m.name} | ${m.status} | ${m.actual?m.actual.width.toFixed(4):'—'} | ${m.expected?m.expected.width.toFixed(4):'—'} | ${m.actual?m.actual.height.toFixed(4):'—'} | ${m.expected?m.expected.height.toFixed(4):'—'} |`).join('\n');
  const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. These reports do not prove the absence of visual defects.\n`;
  await writeFile(path.join(output,'report.md'),markdown);
- const images=['reference','front','side','reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
+ const images=['reference','front','side','mobile-reference','reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
  await writeFile(path.join(output,'index.html'),`<!doctype html><meta charset="utf-8"><title>Wagon visual report</title><style>body{font:16px system-ui;background:#17202b;color:#eee;max-width:1600px;margin:auto;padding:24px}img{width:100%;height:auto}pre{white-space:pre-wrap}</style><h1>Wagon ${report.views[0]?.modelVersion||''} · ${report.commit}</h1><p>Technical result: ${report.result}. Geometry diagnostics require visual review.</p><p>Cyan: model bounds. Amber: photo bounds aligned to fascia.</p>${images.map(i=>`<h2>${i}</h2><img src="${i}.png" alt="${i}">`).join('')}<pre>${JSON.stringify(report,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;')}</pre>`);
  await browser.close();
 }

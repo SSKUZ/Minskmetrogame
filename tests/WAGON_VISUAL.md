@@ -53,3 +53,6 @@ it. Local uncommitted captures are marked with `workingTreeDirty`.
 The rear 78% of the side-view image is protected: with a compatible baseline,
 any changed pixels there fail the front-only task's regression check. This
 does not claim coverage of every surface hidden from that camera.
+An additional 412 × 915 portrait capture checks that the front fascia fits
+on a phone. It uses responsive framing and is separate from the six fixed
+1536 × 934 comparison views.

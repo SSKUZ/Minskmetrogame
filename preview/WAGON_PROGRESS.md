@@ -79,3 +79,43 @@ run 40573092241 passed, compared to v81 and uploaded 18 evidence files.
 Remaining front priorities: real curved roof brow rather than a flat cap,
 cast coupling head/pneumatics, external wiper layout, mirror arm proportions.
 All cab and saloon equipment stays frozen per the user's latest instruction.
+
+## v84: current exterior geometry checkpoint
+
+Rebuilt the forward roof brow as a sampled quarter-ellipse surface joined to
+the roof shell. Replaced overlapping front pillar boxes/corner patches with
+one continuous elliptical sheet per corner. A minimal joining exception
+tapers the first 0.50 m of the upper side header; the rest of that header,
+all passenger apertures and livery are preserved.
+
+Replaced the block coupler with a beveled cast outline, two real holes, male
+spigot, recessed socket, fasteners, pneumatic units and hoses. Removed the
+obsolete box that had occluded the new socket. Corrected bumper divisions,
+valve levers, mirror size/arms and the external central wiper. Refined front
+glass and reflector materials. Information display remains blank.
+
+Added a 412 × 915 portrait capture and responsive front-camera framing. The
+six principal captures retain exactly the same 1536 × 934 presets. Protected
+source checks confirm unchanged door/window/livery, saloon, cab equipment,
+seat and underframe blocks. Protected side pixels and repeated-frame pixels
+are asserted unchanged. Game unit checks remain 10/12, with the same two
+baseline failures; game mechanics were not changed.
+
+## Remaining differences / next permitted work
+
+- Brow-to-existing-roof joins, panel seams and corner normals remain
+  approximate. Refine these using the current photo and actual screenshots.
+- Lens optics, gasket cross-sections, thin metal edges, emblem contour and
+  aged metal on the coupling are simplified rather than factory CAD.
+- Station reflections/illumination are approximated by fixed inspection
+  lights; pixel differences from the photo do not measure likeness.
+- The equipment visible through the front windows is intentionally preserved
+  and differs from the photo. Do not remodel any interior equipment without
+  a separate user task. Do not touch passenger side bodywork or doors.
+- Coarse photo bounds may all fall inside the diagnostic band while curved
+  surfaces or occlusion are still wrong. No 100% or photorealism claim.
+
+To resume, fetch current testing and verify its actual published module hash;
+use the successful Actions artifact for that model commit as the baseline.
+Publication evidence is in the commit-linked reports, not implied by this
+checkpoint. Continue external front-only changes and inspect every PNG.
