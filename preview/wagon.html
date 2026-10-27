@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v29</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v29: синяя дверь машиниста и единая белая графика ниже окон.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v30</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v30: переработана передняя часть вагона по референсу 81-717.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -283,33 +283,86 @@ const ceilingLight=mat(0xfff0cc);
 for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
  box(.14,.012,1.65,x,top-.235,z,ceilingLight);
 }
-// HEAD CAR: front cab at negative Z, distinct from intermediate carriage.
+// HEAD CAR FRONT — 81-717 reference: blue rounded shell, three tall
+// glazed bays, paired marker lamps, centre badge, route board and six lamps.
+// Only front-end parts are rebuilt; side doors, stripes and saloon stay intact.
 const cabFront=-L/2+.07;
-box(W-.10,.76,.12,0,F+.38,cabFront,wall);
-box(W-.10,.44,.12,0,top-.54,cabFront,wall);
-for(const xx of [-1.13,1.13])box(.24,1.42,.12,xx,F+1.47,cabFront,wall);
-// Rebuilt flat dark front mask and tall rounded windscreens in one plane.
-box(W-.23,1.45,.08,0,F+1.60,cabFront-.115,black);
-const frontGlass=new T.MeshStandardMaterial({color:0x426879,transparent:true,opacity:.53,metalness:.12,roughness:.20,side:T.DoubleSide});
-for(const [xx,ww] of [[0,1.19],[-.91,.42],[.91,.42]]){
- const p=new T.Mesh(new T.ShapeGeometry(roundedShape(ww,1.23,.15),12),frontGlass);
- p.position.set(xx,F+1.66,cabFront-.172);group.add(p);
- const pts=roundedShape(ww,1.23,.15).getPoints(12);
- const curve=new T.CatmullRomCurve3(pts.map(q=>new T.Vector3(xx+q.x,F+1.66+q.y,cabFront-.18)),true);
- group.add(new T.Mesh(new T.TubeGeometry(curve,96,.025,6,true),metal));
+const faceZ=cabFront-.19;
+const frontTrim=mat(0x10191e),rubberFront=mat(0x080d11),lampHousing=mat(0x1b252b);
+const warmLamp=new T.MeshStandardMaterial({color:0xffedc1,emissive:0xffca7c,emissiveIntensity:.85,roughness:.24});
+const frontGlass=new T.MeshStandardMaterial({color:0x365467,transparent:true,opacity:.40,metalness:.13,roughness:.22,side:T.DoubleSide,depthWrite:false});
+// The front blue skin is divided into top cap, glazing pillars and lower skirt.
+box(W-.10,.74,.14,0,F+.37,cabFront,wall);
+box(W-.10,.40,.14,0,top-.24,cabFront,wall);
+for(const xx of [-1.21,-.67,.67,1.21])
+ box(xx===-1.21||xx===1.21?.18:.105,1.60,.14,xx,F+1.58,cabFront,wall);
+// Rounded black windshield cassette, inset inside the blue body edge.
+const glassCentreY=F+1.68,glassH=1.43;
+function frontPlate(w,h,r,x,y,z,m){
+ const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),16),m);
+ o.position.set(x,y,z);group.add(o);return o;
 }
-// Destination panel, two upper red markers and four lower white lamps.
-box(.92,.23,.035,0,F+1.05,cabFront-.18,black);
-for(const xx of [-.99,.99]){
- const marker=new T.Mesh(new T.CylinderGeometry(.115,.115,.04,24),redLamp);
- marker.rotation.x=Math.PI/2;marker.position.set(xx,F+2.35,cabFront-.20);group.add(marker);
+function frontOutline(w,h,r,x,y,z,m,thick=.014){
+ const pts=roundedShape(w,h,r).getPoints(18);
+ const path=new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(x+p.x,y+p.y,z)),true);
+ group.add(new T.Mesh(new T.TubeGeometry(path,96,thick,6,true),m));
 }
-for(const xx of [-.98,-.33,.33,.98]){
- const lamp=new T.Mesh(new T.CylinderGeometry(.12,.12,.045,24),light);
- lamp.rotation.x=Math.PI/2;lamp.position.set(xx,F+.65,cabFront-.20);group.add(lamp);
+frontPlate(W-.18,1.66,.18,0,glassCentreY,faceZ+.006,frontTrim);
+for(const [xx,ww] of [[-.91,.45],[0,1.22],[.91,.45]]){
+ // Real dark glazing with softly rounded corners and thin rubber gaskets.
+ frontPlate(ww,glassH,.13,xx,glassCentreY,faceZ-.009,rubberFront);
+ frontPlate(ww-.045,glassH-.045,.115,xx,glassCentreY,faceZ-.019,frontGlass);
+ frontOutline(ww,glassH,.13,xx,glassCentreY,faceZ-.026,metal,.011);
 }
-box(1.6,.12,.10,0,F+.38,cabFront-.20,wall);
-box(.26,.20,.38,0,F+.18,cabFront-.36,metal);
+// Upper destination/marker row: two red lamps and centre metro emblem.
+for(const xx of [-.98,.98]){
+ frontPlate(.42,.32,.105,xx,F+2.62,faceZ-.013,frontTrim);
+ frontOutline(.42,.32,.105,xx,F+2.62,faceZ-.021,rubberFront,.012);
+ const red=new T.Mesh(new T.CircleGeometry(.086,32),redLamp);
+ red.position.set(xx,F+2.62,faceZ-.031);group.add(red);
+ const core=new T.Mesh(new T.CircleGeometry(.049,24),mat(0xff4b51));
+ core.position.set(xx,F+2.62,faceZ-.036);group.add(core);
+}
+frontPlate(.93,.32,.075,0,F+2.62,faceZ-.014,frontTrim);
+// Stylised silver metro wing badge on the central upper plaque.
+const badge=mat(0xbfc8c9,.45);
+for(const sign of [-1,1]){
+ const shape=new T.Shape();
+ shape.moveTo(0,F+2.61);shape.lineTo(sign*.34,F+2.70);
+ shape.lineTo(sign*.20,F+2.58);shape.lineTo(sign*.06,F+2.56);shape.closePath();
+ group.add(new T.Mesh(new T.ShapeGeometry(shape),badge)).position.z=faceZ-.037;
+}
+box(.045,.18,.012,0,F+2.63,faceZ-.043,badge);
+// Route display overlays the lower portion of the central windshield.
+frontPlate(.94,.23,.025,0,F+1.075,faceZ-.038,rubberFront);
+const routeCanvas=document.createElement('canvas');routeCanvas.width=512;routeCanvas.height=128;
+const routeCtx=routeCanvas.getContext('2d');
+routeCtx.fillStyle='#090e12';routeCtx.fillRect(0,0,512,128);
+routeCtx.fillStyle='#d6c66b';routeCtx.font='bold 80px Arial';routeCtx.textAlign='center';
+routeCtx.textBaseline='middle';routeCtx.fillText('МИНСК',256,69);
+const routeTexture=new T.CanvasTexture(routeCanvas);
+const routeBoard=new T.Mesh(new T.PlaneGeometry(.85,.18),
+ new T.MeshBasicMaterial({map:routeTexture,transparent:false,side:T.DoubleSide}));
+routeBoard.position.set(0,F+1.075,faceZ-.045);group.add(routeBoard);
+// Black lower lamp fascia with six circular lamp recesses, 4 lit + 2 dark.
+frontPlate(W-.19,.47,.14,0,F+.63,faceZ-.010,frontTrim);
+for(const xx of [-1.02,-.62,-.22,.22,.62,1.02]){
+ const lit=Math.abs(xx)!==1.02;
+ const bezel=new T.Mesh(new T.RingGeometry(.107,.143,32),metal);
+ bezel.position.set(xx,F+.63,faceZ-.034);group.add(bezel);
+ const lamp=new T.Mesh(new T.CircleGeometry(.102,32),lit?warmLamp:lampHousing);
+ lamp.position.set(xx,F+.63,faceZ-.038);group.add(lamp);
+ if(lit){
+  const glint=new T.Mesh(new T.CircleGeometry(.040,24),light);
+  glint.position.set(xx-.019,F+.655,faceZ-.042);group.add(glint);
+ }
+}
+// Blue bumper strip, central coupler and side grab handles.
+box(W-.22,.095,.17,0,F+.26,faceZ+.055,wall);
+box(.32,.22,.43,0,F+.07,faceZ-.12,metal);
+for(const xx of [-1.22,1.22]){
+ rodBetween([xx,F+.32,faceZ-.055],[xx,F+.89,faceZ-.055],.015,steel);
+}
 // Cab bulkhead and control console, behind the front windscreen.
 const cabRear=-7.68;
 box(W-.18,1.98,.09,0,F+.99,cabRear,interior);
