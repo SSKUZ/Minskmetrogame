@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v47</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v47: по визуальным снимкам скорректированы дверные шевроны и приближён фронтальный ракурс; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v48</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v48: добавлены скошенные плечи кабины для перехода к боковым стенкам; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -352,6 +352,25 @@ function noseCornerSurface(sign,y0,y1){
 // One uninterrupted curved skin per corner; the previous two isolated
 // strips left an obvious rectangular gap through the middle of the cab.
 for(const sign of [-1,1])noseCornerSurface(sign,F+.33,top-.23);
+// Tapered blue cab shoulders: front panel is slightly narrower than the
+// side shell, as on the reference. Sloped triangular surfaces replace the
+// impression of a blunt rectangular nose at upper and lower corners.
+function cabShoulder(sign,lowerY,upperY){
+ const points=[
+  [sign*1.215,lowerY,faceZ+.06],
+  [sign*(half-.015),lowerY,cabFront+.20],
+  [sign*(half-.015),upperY,cabFront+.20],
+  [sign*1.215,upperY,faceZ+.06]
+ ];
+ const g=new T.BufferGeometry();
+ g.setAttribute('position',new T.Float32BufferAttribute(points.flat(),3));
+ g.setIndex([0,1,2,0,2,3]);g.computeVertexNormals();
+ const m=new T.Mesh(g,wall);group.add(m);
+}
+for(const sign of [-1,1]){
+ cabShoulder(sign,F+.34,F+.61);
+ cabShoulder(sign,F+2.49,top-.23);
+}
 // One unified fascia with narrow metal rim, not floating individual panels.
 // The upper edge must sit BELOW the curved roof profile (top+.13).
 // Earlier fascia reached above the actual roof and broke the silhouette.
@@ -437,7 +456,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v47 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v48 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
