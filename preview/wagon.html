@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v50</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v50: боковые плечи кабины объединены в цельную переходную поверхность; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v51</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v51: по скриншотам улучшена читаемость лобовых стёкол и контраст рам; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -292,9 +292,9 @@ for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
 // A restrained black inset with three glazed bays, separated upper lamp
 // pockets and three independent LOWER lamp modules (not loose circles).
 const cabFront=-L/2+.07,faceZ=cabFront-.205;
-const mask=mat(0x10171c),gasket=mat(0x070b0e),frame=mat(0x46535b,.32);
+const mask=mat(0x171f24),gasket=mat(0x070b0e),frame=mat(0x53646b,.32);
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
-const frontGlass=new T.MeshStandardMaterial({color:0x344e5b,transparent:true,opacity:.33,metalness:.12,roughness:.24,side:T.DoubleSide,depthWrite:false});
+const frontGlass=new T.MeshStandardMaterial({color:0x64818c,transparent:true,opacity:.52,metalness:.08,roughness:.20,side:T.DoubleSide,depthWrite:false});
 const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
 function facePanel(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),20),m);
@@ -365,8 +365,8 @@ for(const [xx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
  faceBorder(ww,1.33,.105,xx,F+1.60,faceZ-.027,frame,.010);
 }
 // Subtle windshield reflections and inset rubber seals.
-const windshieldReflection=new T.MeshBasicMaterial({color:0x9fb9c0,transparent:true,opacity:.095,depthWrite:false,side:T.DoubleSide});
-const glassShade=new T.MeshBasicMaterial({color:0x071015,transparent:true,opacity:.24,depthWrite:false,side:T.DoubleSide});
+const windshieldReflection=new T.MeshBasicMaterial({color:0x9fb9c0,transparent:true,opacity:.055,depthWrite:false,side:T.DoubleSide});
+const glassShade=new T.MeshBasicMaterial({color:0x071015,transparent:true,opacity:.12,depthWrite:false,side:T.DoubleSide});
 for(const [cx,ww] of [[-.92,.49],[0,1.21],[.92,.49]]){
  const glint=new T.Shape();
  glint.moveTo(cx-ww*.30,F+2.20);
@@ -438,7 +438,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v50 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v51 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
