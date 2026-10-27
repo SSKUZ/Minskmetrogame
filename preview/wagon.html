@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v23</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v23: створки до уровня пола салона; восстановлены белые линии на дверях.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v24</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v24: устранена сплошная боковая панель, закрывавшая низ дверей; сохранены две створки и белые линии.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -39,7 +39,7 @@ function roundedOpening(w,h,r,x,y,z,side){
 
 const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
 box(W-.12,.12,L-.08,0,F-.06,0,floor);
-for(const x of [-1,1]){box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);box(.08,.53,L-.08,x*(half-.04),F+.265,0,wall);box(.08,.30,L-.08,x*(half-.04),top-.15,0,wall)}
+for(const x of [-1,1]){box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);box(.08,.30,L-.08,x*(half-.04),top-.15,0,wall)}
 // Four identical openings per side. Door modules and window bays occupy disjoint intervals.
 const doors=[-6.65,-2.2,2.2,6.65],ends=[-L/2,...doors.flatMap(z=>[z-doorWidth/2,z+doorWidth/2]),L/2].sort((a,b)=>a-b);
 // Side body is continuous sheet metal with rectangular cut-outs for windows and doors.
@@ -49,8 +49,10 @@ for(const side of [-1,1]){
  for(let i=0;i<ends.length-1;i++){
   const a=ends[i],b=ends[i+1],mid=(a+b)/2,len=b-a;
   if(len<.1)continue;
-  // Door apertures are not filled with glass or wall.
+  // Door apertures must remain completely clear down to the floor.
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
+  // Under-window side skirt exists only between doorways, never across leaves.
+  box(.08,.53,len,x,F+.265,mid,wall);
   // Separate exterior access door to the driver's cab, on each side of the head car.
   if(mid < -7.5){
    const cabDoorZ=-8.52, cabDoorW=.74, cabDoorH=1.94;
