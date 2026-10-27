@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v18</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v18: утопленные двери-купе с закруглёнными верхними углами и прозрачными окнами.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v19</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v19: убрана перекрывающая двери панель; полосы нанесены на утопленные створки.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -86,8 +86,11 @@ for(const side of [-1,1]){
   const leafWidth=doorWidth/2-.018,leafHeight=doorHeight-.016;
   const recessX=x-side*.030;
   const trim=mat(0x202c34);
-  // Dark recessed reveal behind the leaves, with a thin visible perimeter.
-  roundedPanel(doorWidth+.012,doorHeight-.004,.115,x+side*.004,F+doorHeight/2,dz,trim);
+  // Recess is OPEN: never place an opaque panel across the door glazing.
+  // Only the narrow outer contour is dark; the actual leaves remain visible.
+  const revealPoints=roundedShape(doorWidth+.020,doorHeight+.005,.13).getPoints(16);
+  const revealCurve=new T.CatmullRomCurve3(revealPoints.map(p=>new T.Vector3(x+side*.006,F+doorHeight/2+p.y,dz-p.x)),true);
+  group.add(new T.Mesh(new T.TubeGeometry(revealCurve,100,.014,6,true),trim));
   function topRoundedDoor(w,h,r){
    const sh=new T.Shape(),l=-w/2,rr=w/2,bot=-h/2,hi=h/2;
    sh.moveTo(l,bot);sh.lineTo(rr,bot);sh.lineTo(rr,hi-r);
@@ -129,7 +132,7 @@ for(const side of [-1,1]){
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
 // upper and lower ends at the OUTER edge. No diagonals cross.
-function stripeSegment(side,z1,y1,z2,y2,width=.105){
+function stripeSegment(side,z1,y1,z2,y2,width=.105,onDoor=false){
  // Painted stripe: flat quadrilateral on the actual exterior sheet surface.
  // Preserve the exact z/y endpoints and width of v12; no raised geometry.
  const dz=z2-z1,dy=y2-y1,len=Math.hypot(dz,dy);
@@ -144,7 +147,7 @@ function stripeSegment(side,z1,y1,z2,y2,width=.105){
  const decal=new T.Mesh(new T.ShapeGeometry(outline),cream);
  decal.rotation.y=Math.PI/2;
  // Exterior face of both the sidewall and door leaves is half-.04+.085/2.
- decal.position.x=side*(half+.004);
+ decal.position.x=onDoor ? side*(half-.04-.030+.009) : side*(half+.004);
  decal.renderOrder=3;
  group.add(decal);
 }
@@ -164,11 +167,11 @@ for(const side of [-1,1]){
  }
  for(const d of doors){
   // Left leaf: upper left -> inner right tip -> lower left.
-  stripeSegment(side,d-outer,beltY,d-inner,tipY);
-  stripeSegment(side,d-inner,tipY,d-outer,bottomY);
+  stripeSegment(side,d-outer,beltY,d-inner,tipY,.105,true);
+  stripeSegment(side,d-inner,tipY,d-outer,bottomY,.105,true);
   // Right leaf mirrors left: upper right -> inner left tip -> lower right.
-  stripeSegment(side,d+outer,beltY,d+inner,tipY);
-  stripeSegment(side,d+inner,tipY,d+outer,bottomY);
+  stripeSegment(side,d+outer,beltY,d+inner,tipY,.105,true);
+  stripeSegment(side,d+inner,tipY,d+outer,bottomY,.105,true);
  }
 }
 // Extruded roof profile in a single metric cross section.
