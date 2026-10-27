@@ -10,10 +10,9 @@ for(const side of [-1,1]){
  box(carriage,.045,.016,22.5,side*1.10,3.575,-9,carSteel);
  for(let z=0.8;z>-19.5;z-=3.4){
   box(carriage,.42,.014,.76,side*1.68,3.579,z,carSteel);
-  for(let j=0;j<5;j++)box(carriage,.34,.018,.023,side*1.68,3.593,z-.29+j*.145,carBlackVent());
+  for(let j=0;j<5;j++)box(carriage,.34,.018,.023,side*1.68,3.593,z-.29+j*.145,carSteel);
  }
 }
-function carBlackVent(){return carSteel;}
 
 for(const side of [-1,1]){
  const wallRanges=side===-1?[[2.5,-2.15],[-4.25,-11.95],[-14.05,-20.5]]:[[2.5,-20.5]];
