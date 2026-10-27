@@ -9,6 +9,7 @@ import {createCarriageMaterials} from './CarriageMaterials.js';
 // Geometry is rebuilt in isolated modules; passenger and door state are unchanged.
 export function buildCarriageInterior({THREE,carriage,box,getStationName}){
 const {carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}=createCarriageMaterials(THREE);
+// All geometry shares a single metric frame; no independent mesh scaling.
 buildCarriageShell({THREE,carriage,box,carFloor,carCream,carWhite,carSteel,carGlass});
 for(const side of [-1,1])for(let j=0;j<8;j++){
  const z=1.1-j*2.75;
