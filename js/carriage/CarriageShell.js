@@ -43,10 +43,15 @@ for(const side of [-1,1]){
  for(const [front,back] of wallRanges){
   const length=front-back,center=(front+back)/2;
   box(carriage,.12,.88,length,side*2.07,1.40,center,carWhite);
+  // Structural side sill and recessed kick panel follow the body section.
+  box(carriage,.14,.13,length,side*2.01,.99,center,carSteel);
+  box(carriage,.065,.08,length,side*1.94,1.055,center,carCream);
   // Recessed lower sidewall: stepped kick panel instead of one planar slab.
   box(carriage,.045,.26,length,side*1.982,1.075,center,carCream);
   box(carriage,.042,.025,length,side*1.950,1.218,center,carSteel);
   box(carriage,.12,.55,length,side*2.07,3.39,center,carWhite);
+  // Upper cant rail bridges the window header and curved roof shoulder.
+  box(carriage,.16,.12,length,side*2.015,3.19,center,carCream);
   box(carriage,.12,.09,length,side*2.07,1.94,center,carCream);
   box(carriage,.12,.09,length,side*2.07,3.08,center,carCream);
   // Wall panel joints below the windows: visible from the passenger camera.
@@ -56,6 +61,11 @@ for(const side of [-1,1]){
   }
  }
 
+}
+// Continuous underfloor longitudinal members give the body a visible depth.
+for(const side of [-1,1]){
+ box(carriage,.12,.17,22.8,side*1.73,.755,-9,carSteel);
+ box(carriage,.07,.10,22.8,side*2.01,.835,-9,carCream);
 }
 for(let z=2;z>-20;z-=.33)box(carriage,2.35,.007,.014,0,3.58,z,carSteel);
 for(let z=1.4;z>-20;z-=2.75)box(carriage,4.02,.045,.06,0,3.54,z,carCream);
