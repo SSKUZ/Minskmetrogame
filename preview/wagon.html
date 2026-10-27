@@ -424,7 +424,10 @@ const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.
 let cameraMode='outside';
 function setCamera(mode){
  cameraMode=mode;
- if(mode==='salon'){
+ if(mode==='front'){
+  camera.position.set(0,F+1.65,cabFront-7.2);
+  ctl.target.set(0,F+1.45,cabFront);
+ }else if(mode==='salon'){
   // Ceiling-mounted diagonal view, ~2.0 m above floor, above passengers.
   camera.position.set(.75,F+2.0,6.7);
   ctl.target.set(0,F+1.05,-2.2);
