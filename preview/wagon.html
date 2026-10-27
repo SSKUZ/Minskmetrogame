@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Геометрический прототип</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Проверочный 3D-макет, не игровая сборка.</small></div><button id="view">Внутри вагона</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+import * as T from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const scene=new T.Scene();scene.background=new T.Color(0x141b25);
+const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,14);
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);
+scene.add(new T.HemisphereLight(0xffffff,0x303a49,2.3));const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.add(sun);
+const ctl=new OrbitControls(camera,renderer.domElement);ctl.target.set(0,1.8,0);ctl.enableDamping=true;ctl.minDistance=.5;ctl.maxDistance=42;
+const mat=(color,metalness=0)=>new T.MeshStandardMaterial({color,metalness,roughness:.65,side:T.DoubleSide});
+const wall=mat(0xd4d7d2),roof=mat(0xe8e5d8),floor=mat(0x55585a),metal=mat(0x8d9b9d,.65),seat=mat(0x78472c),glass=new T.MeshStandardMaterial({color:0x8cb2c5,transparent:true,opacity:.19,side:T.DoubleSide,depthWrite:false});
+const group=new T.Group();scene.add(group);
+function box(w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);group.add(o);return o}
+const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
+box(W-.12,.12,L-.08,0,F-.06,0,floor);
+for(const x of [-1,1]){box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);box(.08,.53,L-.08,x*(half-.04),F+.265,0,wall);box(.08,.30,L-.08,x*(half-.04),top-.15,0,wall)}
+// Four identical openings per side. Door modules and window bays occupy disjoint intervals.
+const doors=[-6.9,-2.3,2.3,6.9],ends=[-L/2,...doors.flatMap(z=>[z-doorWidth/2,z+doorWidth/2]),L/2].sort((a,b)=>a-b);
+for(const side of [-1,1]){
+ for(let i=0;i<ends.length-1;i++){
+  const a=ends[i],b=ends[i+1],mid=(a+b)/2,len=b-a;
+  const opening=doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01);
+  if(opening)continue;
+  if(len<.1)continue;
+  // Real openings in wall; glazing has its own upper and lower solid sill.
+  box(.075,.66,len,side*(half-.04),F+.33,mid,wall);
+  box(.075,.36,len,side*(half-.04),top-.18,mid,wall);
+  const wz=Math.max(.1,len-.34),wy=top-.36-(F+.66);
+  if(wy>.2&&wz>.25){
+   box(.018,wy,wz,side*(half-.095),(top-.36+F+.66)/2,mid,glass);
+   for(const z of [a+.16,b-.16])box(.05,wy,.035,side*(half-.095),(top-.36+F+.66)/2,z,metal);
+  }
+ }
+ for(const dz of doors){
+  box(.10,.10,doorWidth+.09,side*(half-.05),F+doorHeight+.04,dz,metal);
+  for(const e of [-1,1])box(.09,doorHeight,.06,side*(half-.05),F+doorHeight/2,dz+e*doorWidth/2,metal);
+  // Open doorways show the uninterrupted passenger aisle.
+  box(.10,.025,doorWidth,side*(half-.06),F+.015,dz,metal);
+ }
+}
+// Extruded roof profile in a single metric cross section.
+const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
+const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,L/2);
+for(let i=0;i<profile.length-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2)}
+const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();group.add(new T.Mesh(geo,roof));
+// Longitudinal benches between doors, with an unobstructed central aisle.
+const sections=[[-9.30,-7.75],[-6.05,-3.15],[-1.45,1.45],[3.15,6.05],[7.75,9.30]];
+for(const side of [-1,1])for(const [a,b] of sections){
+ const len=b-a,z=(a+b)/2;
+ box(.44,.12,len-.12,side*.99,F+.47,z,seat);
+ box(.10,.63,len-.12,side*1.23,F+.78,z,seat);
+ box(.38,.24,len-.12,side*1.03,F+.24,z,metal);
+ for(const zz of [a+.08,b-.08]){
+  box(.035,1.90,.035,side*.72,F+.96,zz,metal);
+  box(.035,.42,.035,side*.72,F+.26,zz,metal);
+ }
+}
+for(const side of [-1,1])box(.035,.035,L-.30,side*.78,top-.38,0,metal);
+for(let z=-8.3;z<=8.3;z+=2.1)box(.60,.025,1.4,0,top+.015,z,mat(0xfff7d9));
+for(const z of [-L/2+.055,L/2-.055]){box(W-.08,2.2,.09,0,F+1.1,z,wall);box(.72,1.83,.10,0,F+.93,z,metal)}
+const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
+let inside=false;document.getElementById('view').onclick=()=>{inside=!inside;camera.position.set(inside?0:8,inside?2.5:5,inside?0:14);ctl.target.set(0,inside?2:1.8,inside?-5:0);document.getElementById('view').textContent=inside?'Снаружи вагона':'Внутри вагона'};
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+function loop(){requestAnimationFrame(loop);ctl.update();renderer.render(scene,camera)}loop();
+</script></body></html>
