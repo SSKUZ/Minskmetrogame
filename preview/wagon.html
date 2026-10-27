@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v75</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v75: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v76</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v76: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v75';
+window.wagonSideBodyVersion='smooth-v76';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -521,7 +521,7 @@ for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
  box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack);
 }
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v75 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v76 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -627,6 +627,21 @@ box(.52,.40,.11,-.87,F+.68,cabRear-.255,cabEquipment);
 box(.38,.075,.012,-.87,F+.79,cabRear-.317,cabLabel);
 box(.42,.70,.13,1.00,F+1.53,cabRear-.18,cabEquipment);
 for(let i=0;i<3;i++)box(.29,.08,.018,1.00,F+1.36+i*.16,cabRear-.258,cabInset);
+// Uruchcha reference: readable instrument silhouettes through the
+// LEFT windshield, illuminated route-number 18, and pale right cabinet.
+// These shallow modules attach to the rear wall, not to the front glass.
+const cabDisplayGlow=new T.MeshBasicMaterial({color:0xf1d8a4,side:T.DoubleSide});
+box(.33,.18,.035,-.87,F+1.93,cabRear-.315,mat(0x171f24));
+box(.26,.125,.009,-.87,F+1.93,cabRear-.339,cabDisplayGlow);
+for(let i=0;i<6;i++){
+ const x=-1.055+(i%3)*.17,y=F+1.02+Math.floor(i/3)*.20;
+ box(.12,.13,.024,x,y,cabRear-.328,cabInset);
+ box(.055,.016,.027,x,y,cabRear-.345,metal);
+}
+const paleCabinet=mat(0xc2bcae,.78);
+box(.37,1.10,.17,1.02,F+1.20,cabRear-.34,paleCabinet);
+for(let i=0;i<5;i++)box(.29,.012,.016,1.02,F+.83+i*.17,cabRear-.438,cabEquipment);
+box(.028,.15,.027,.87,F+1.13,cabRear-.453,metal);
 // Vertical cab conduits and ceiling-mounted equipment housing.
 for(const x of [-1.17,1.22])box(.035,1.55,.048,x,F+1.30,cabRear-.14,metal);
 box(1.72,.19,.34,0,top-.35,cabRear-.37,cabEquipment);
