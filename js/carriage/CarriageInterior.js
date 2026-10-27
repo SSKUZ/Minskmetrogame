@@ -9,10 +9,7 @@ import {createCarriageMaterials} from './CarriageMaterials.js';
 // Geometry is rebuilt in isolated modules; passenger and door state are unchanged.
 export function buildCarriageInterior({THREE,carriage,box,getStationName}){
 const {carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}=createCarriageMaterials(THREE);
-// Structural shell is built in its own metric frame to avoid breaking legacy camera and boarding coordinates.
-const shellGroup=new THREE.Group();
-carriage.add(shellGroup);
-buildCarriageShell({THREE,carriage:shellGroup,box,carFloor,carCream,carWhite,carSteel,carGlass});
+buildCarriageShell({THREE,carriage,box,carFloor,carCream,carWhite,carSteel,carGlass});
 for(const side of [-1,1])for(let j=0;j<8;j++){
  const z=1.1-j*2.75;
  if(side===-1&&[-3.2,-13].some(d=>Math.abs(z-d)<2.20))continue;
