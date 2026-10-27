@@ -6,7 +6,7 @@ await mkdir('test-results',{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
 const errors=[];
 const screenshots=[];
-async function capture(name){await page.screenshot({path:`test-results/${name}.png`});screenshots.push(name)}
+async function capture(name){await page.screenshot({path:`test-results/${name}.png`,timeout:90000,animations:'disabled'});screenshots.push(name)}
 const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:1,hasTouch:true,isMobile:true});
 page.on('pageerror',e=>errors.push('pageerror: '+e.message));
 page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
@@ -37,7 +37,7 @@ try{
  }
  await page.waitForTimeout(1500);
  // Capture a desktop-sized viewport to expose more of the dashboard and station geometry.
- await page.setViewportSize({width:1365,height:768});
+ await page.setViewportSize({width:1024,height:576});
  await page.waitForTimeout(900);
  await capture('04-cab-desktop');
  await page.locator('#carCameraToggle').click();
@@ -65,7 +65,7 @@ try{
   const model=await modelPage.evaluate(()=>window.wagonModelDiagnostics());
   assert.ok(model.meshes>100,'3D wagon must contain actual geometry');
   assert.equal(modelErrors.length,0,modelErrors.join('\\n'));
-  await modelPage.screenshot({path:'test-results/07-wagon-model.png'});
+  await modelPage.screenshot({path:'test-results/07-wagon-model.png',timeout:90000,animations:'disabled'});
   screenshots.push('07-wagon-model');
   console.log('Standalone wagon model:',JSON.stringify(model));
  }finally{await modelPage.close()}
