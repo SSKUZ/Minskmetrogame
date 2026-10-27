@@ -33,8 +33,8 @@ if(THREE){
 for(const side of [-1,1]){
  box(carriage,.045,.016,22.5,side*1.10,3.575,-9,carSteel);
  for(let z=0.8;z>-19.5;z-=3.4){
-  box(carriage,.42,.014,.76,side*1.68,3.579,z,carSteel);
-  for(let j=0;j<5;j++)box(carriage,.34,.018,.023,side*1.68,3.593,z-.29+j*.145,carSteel);
+  box(carriage,.42,.014,.76,side*1.68,3.515,z,carSteel);
+  for(let j=0;j<5;j++)box(carriage,.34,.018,.023,side*1.68,3.502,z-.29+j*.145,carSteel);
  }
 }
 
@@ -46,6 +46,11 @@ for(const side of [-1,1]){
   box(carriage,.12,.55,length,side*2.07,3.39,center,carWhite);
   box(carriage,.12,.09,length,side*2.07,1.94,center,carCream);
   box(carriage,.12,.09,length,side*2.07,3.08,center,carCream);
+  // Wall panel joints below the windows: visible from the passenger camera.
+  for(let z=back+.55;z<front-.2;z+=2.75){
+   box(carriage,.014,.81,.018,side*2.001,1.40,z,carSteel);
+   box(carriage,.024,.055,.38,side*1.995,1.08,z+.25,carCream);
+  }
  }
 
 }
