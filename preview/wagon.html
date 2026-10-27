@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v74</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v74: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v75</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v75: уточнены материалы и глубина передней чёрной маски; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -175,7 +175,7 @@ for(const side of [-1,1]){
 
 // Version 61 invariant: no corrugation meshes or raised strips on side panels.
 // Keep the white belt as a flat paint decal only.
-window.wagonSideBodyVersion='smooth-v74';
+window.wagonSideBodyVersion='smooth-v75';
 // Reference-image side graphics: horizontal belt below windows, and on each
 // passenger doorway two INWARD-FACING CHEVRONS (> <), one on each leaf.
 // Each chevron has one inward tip at the lower middle of the leaf and its
@@ -453,11 +453,17 @@ for(const [cx,w] of [[-.92,.48],[0,1.20],[.92,.48]]){
 // black plates. The dark lens sits within the thin frame below.
 // Three separate upper recesses: elongated marker-light pockets on
 // either side of the broad emblem recess, matching the front photograph.
-for(const xx of [-.93,.93]){
+for(const sign of [-1,1]){
+ const xx=sign*.93;
  facePanel(.49,.27,.115,xx,F+2.43,faceZ-.014,gasket);
  faceBorder(.49,.27,.115,xx,F+2.43,faceZ-.024,frame,.009);
- faceCircle(xx,F+2.43,faceZ-.076,.087,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide}));
- faceCircle(xx-.018,F+2.455,faceZ-.079,.024,mat(0xff6b66));
+ // In the new reference each pocket contains one red lamp towards the
+ // OUTER shoulder and a smaller unlit circular fitting towards the logo.
+ const redX=xx+sign*.085,darkX=xx-sign*.105;
+ faceCircle(redX,F+2.43,faceZ-.076,.083,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide}));
+ faceCircle(redX-.018,F+2.455,faceZ-.080,.021,mat(0xff6b66));
+ faceCircle(darkX,F+2.43,faceZ-.070,.043,gasket);
+ faceCircle(darkX,F+2.43,faceZ-.079,.027,lensDark);
 }
 facePanel(1.00,.27,.105,0,F+2.43,faceZ-.014,gasket);
 faceBorder(1.00,.27,.105,0,F+2.43,faceZ-.024,frame,.009);
@@ -515,7 +521,7 @@ for(const [cx,w] of [[-.91,.60],[0,1.20],[.91,.60]]){
  box(w-.012,.225,.09,cx,F+.285,faceZ-.092,bumperBlack);
 }
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v74 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v75 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
@@ -568,15 +574,17 @@ for(const side of [-1,1]){
  frontLine([[side*.34,F-.12,faceZ-.52],
  [side*.39,F-.23,faceZ-.57],[side*.28,F-.31,faceZ-.60]],.026,rubberFace);
 }
-// Compact side mirrors on angled stalks, with reflective inward-facing glass.
+// Reference: conspicuous YELLOW rounded rectangular mirror housings,
+// supported by slender metal stalks on both sides of the driver's cab.
 const mirrorGlass=new T.MeshStandardMaterial({color:0x8babb7,metalness:.62,roughness:.16,side:T.DoubleSide});
+const mirrorYellow=mat(0xe0b52c,.38);
 for(const sign of [-1,1]){
- const x=sign*1.27;
+ const x=sign*1.29;
  frontLine([[sign*1.12,F+1.78,faceZ+.12],
-  [sign*1.23,F+1.83,faceZ+.09],
-  [x,F+1.89,faceZ+.09]],.014,rubberFace);
- box(.13,.27,.072,x,F+1.97,faceZ+.09,rubberFace);
- box(.085,.215,.008,x-sign*.071,F+1.97,faceZ+.09,mirrorGlass);
+  [sign*1.24,F+1.83,faceZ+.09],
+  [x,F+1.89,faceZ+.09]],.014,rim);
+ box(.16,.29,.076,x,F+1.98,faceZ+.09,mirrorYellow);
+ box(.11,.235,.008,x-sign*.084,F+1.98,faceZ+.09,mirrorGlass);
 }
 // Two articulated windshield wipers parked low across the front glass.
 // Thin metal arms and rubber blades remain visibly separate from the panes.
