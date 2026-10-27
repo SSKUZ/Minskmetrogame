@@ -18,7 +18,7 @@ try{
   assert.equal(data.cameraMode,mode);
   assert.ok(data.meshCount>100,'Wagon geometry missing');
   assert.ok(data.renderWidth>0&&data.renderHeight>0,'WebGL canvas empty');
-  assert.deepEqual(data.frontFeatures,{upperRedLamps:2,lowerLamps:5,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'},'Front fascia feature specification mismatch');
+  assert.deepEqual(data.frontFeatures,{upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'},'Front fascia feature specification mismatch');
   reports.push(data);
   // One screenshot per active wagon view, never screenshots of the game.
   await page.screenshot({path:`test-results/wagon/${mode}.png`,timeout:90000,animations:'disabled'});
