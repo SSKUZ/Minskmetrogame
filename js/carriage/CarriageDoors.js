@@ -5,6 +5,9 @@ const carSlidingDoorLeaves=[];
 for(const side of [-1])for(const dz of [-3.2,-13]){
  for(const edge of [-1,1])box(carriage,.06,2.20,.075,side*2.01,2.08,dz+edge*1.02,carSteel);
  box(carriage,.06,.075,2.10,side*2.01,3.21,dz,carSteel);
+ // Door sill and overhead mechanism housing remain stationary.
+ box(carriage,.19,.045,2.11,side*1.96,.96,dz,carSteel);
+ box(carriage,.15,.15,2.20,side*1.96,3.31,dz,carCream);
  for(const half of [-1,1]){
   const leaf=new THREE.Group();carriage.add(leaf);
   box(leaf,.07,.66,.97,side*2.01,1.37,0,carDoor);
@@ -17,6 +20,8 @@ for(const side of [-1])for(const dz of [-3.2,-13]){
   for(const y of [1.86,2.70])box(leaf,.024,.025,.85,side*1.975,y,0,carSteel);
   for(const z of [-.41,.41])box(leaf,.024,.83,.026,side*1.975,2.28,z,carSteel);
   box(leaf,.022,.13,.13,side*1.96,1.71,half*.32,carSteel);
+  // Finger guard and horizontal glass bead are attached to moving leaf.
+  box(leaf,.022,1.77,.025,side*1.955,2.18,half*.475,carSteel);
   const leafZ=dz+half*.51;leaf.position.z=leafZ;carSlidingDoorLeaves.push({leaf,leafZ,half});
  }
 }
