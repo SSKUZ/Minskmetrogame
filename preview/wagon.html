@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v45</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v45: объединены передние углы в непрерывные скруглённые поверхности; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v46</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v46: по снимкам выявлено перекрытие фар: исправлены слои линз и яркость; табло пустое.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -295,7 +295,7 @@ const cabFront=-L/2+.07,faceZ=cabFront-.205;
 const mask=mat(0x10171c),gasket=mat(0x070b0e),frame=mat(0x46535b,.32);
 const lensDark=mat(0x172128),badgeSilver=mat(0xbec6c7,.55);
 const frontGlass=new T.MeshStandardMaterial({color:0x344e5b,transparent:true,opacity:.33,metalness:.12,roughness:.24,side:T.DoubleSide,depthWrite:false});
-const warmLens=new T.MeshStandardMaterial({color:0xffefc9,emissive:0xffd39a,emissiveIntensity:.7,metalness:.08,roughness:.18});
+const warmLens=new T.MeshBasicMaterial({color:0xfff3cc,side:T.DoubleSide});
 function facePanel(w,h,r,x,y,z,m){
  const o=new T.Mesh(new T.ShapeGeometry(roundedShape(w,h,r),20),m);
  o.position.set(x,y,z);group.add(o);return o;
@@ -396,7 +396,7 @@ facePanel(.78,.15,.018,0,F+1.115,faceZ-.051,destinationGlass);
 for(const xx of [-.99,.99]){
  facePanel(.39,.28,.09,xx,F+2.43,faceZ-.014,gasket);
  faceBorder(.39,.28,.09,xx,F+2.43,faceZ-.022,frame,.010);
- faceCircle(xx,F+2.43,faceZ-.029,.081,redLamp);
+ faceCircle(xx,F+2.43,faceZ-.075,.081,new T.MeshBasicMaterial({color:0xe02c34,side:T.DoubleSide}));
  faceCircle(xx-.014,F+2.45,faceZ-.032,.025,mat(0xf34b4a));
 }
 facePanel(.87,.28,.065,0,F+2.43,faceZ-.013,gasket);
@@ -427,8 +427,8 @@ function lampCassette(cx,w,positions){
  for(const [offset,lit] of positions){
   const x=cx+offset;
   faceCircle(x,lampY,lampZ-.018,.116,gasket);
-  faceCircle(x,lampY,lampZ-.024,.097,lit?warmLens:lensDark);
-  if(lit)faceCircle(x-.027,lampY+.033,lampZ-.028,.025,light);
+  faceCircle(x,lampY,lampZ-.065,.097,lit?warmLens:lensDark);
+  if(lit)faceCircle(x-.027,lampY+.033,lampZ-.068,.025,light);
  }
 }
 lampCassette(-1.02,.36,[[0,true]]);
@@ -437,7 +437,7 @@ lampCassette(1.02,.36,[[0,true]]);
 // Thin blue bumper with restrained mechanical coupler below.
 box(W-.20,.095,.18,0,F+.24,faceZ+.075,wall);
 box(.27,.19,.38,0,F+.04,faceZ-.10,metal);
-// v45 reference-driven front detail: fitted glazing trim, roof eyebrow,
+// v46 reference-driven front detail: fitted glazing trim, roof eyebrow,
 // nose seams, marker lamp bezels, realistic wiper pivot and mechanical coupler.
 const blueEdge=mat(0x1c4663,.25),rim=mat(0x74838a,.65),rubberFace=mat(0x0b1013);
 function frontLine(points,r=.012,material=rim){
