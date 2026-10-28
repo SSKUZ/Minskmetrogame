@@ -45,3 +45,11 @@ test('original front and rear cab shell geometry is modular',()=>{
  assert.match(shell,/box\(cab,6\.8,\.25,2\.3,0,1\.37,3\.55,cabShell\)/);
  assert.match(shell,/box\(cab,8\.25,\.23,9\.8,0,\.53,4\.5,floorRubber\)/);
 });
+
+test('non-interactive cab desk details do not replace original controls',()=>{
+ const details=readFileSync(new URL('../js/cab/CabDeskDetails.js',import.meta.url),'utf8');
+ assert.match(main,/detailCabInstrumentDeck\(\{THREE,instrumentDeck,cabMetal,cabRubber\}\)/);
+ assert.match(details,/CabDeskSurfaceDetails/);
+ assert.match(details,/for\(let i=0;i<8;i\+\+\)/);
+ assert.match(main,/const cabHitTargets=\[\]/);
+});
