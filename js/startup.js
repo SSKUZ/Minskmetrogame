@@ -7,7 +7,7 @@
   if(start)start.style.display='none';
   window.metroStarted=true;started=true;
   window.dispatchEvent(new Event('metro-start'));
-  setTimeout(()=>{if(!window.metro3DReady){const status=document.getElementById('status');if(status)status.textContent='Запуск резервного режима: 3D загружается или недоступен';}},2500);
+  setTimeout(()=>{if(!window.metro3DReady){const status=document.getElementById('status');if(status)status.textContent='Загрузка 3D…';}},2500);
  }
  if(play){play.removeAttribute('onclick');play.addEventListener('click',launch)}
  window.addEventListener('error',e=>{console.error('Metro startup error:',e.message);const status=document.getElementById('status');if(status)status.textContent='Ошибка 3D: '+e.message});

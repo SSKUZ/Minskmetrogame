@@ -8,7 +8,7 @@ permissions:
 jobs:
   cab:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,7 +28,10 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Browser smoke test of actual cab
         run: |
-          node tests/cab-browser.mjs
+          node tests/cab-cold-start.mjs
+          CAB_SUITE=desktop node tests/cab-browser.mjs
+          CAB_SUITE=mobile node tests/cab-browser.mjs
+          CAB_SUITE=launch node tests/cab-browser.mjs
           node tests/cab-visual-compare.mjs
       - name: Upload cab screenshots
         if: always()

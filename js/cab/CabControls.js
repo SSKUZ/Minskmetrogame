@@ -9,6 +9,7 @@ export function createCabControls(kit){
  }
  function button(parent,id,x,y,text,color=m.black,options={}){
   const g=new THREE.Group();g.position.set(x,y,.019);parent.add(g);
+  kit.contactShadow(g,.095);
   cylinder(g,.026,.014,0,0,0,m.black);ring(g,.023,.003,0,0,.009,m.steel);
   const capProfile=[[0,-.005],[.019,-.005],[.020,0],[.019,.005],[.015,.008],[0,.009]].map(p=>new THREE.Vector2(...p));
   const cap=mesh(g,kit.geometry('pushbutton-cap',()=>new THREE.LatheGeometry(capProfile,32)),color,0,0,.015);cap.rotation.x=Math.PI/2;
@@ -17,11 +18,14 @@ export function createCabControls(kit){
  }
  function rotary(parent,id,x,y,text,options={}){
   const g=new THREE.Group();g.position.set(x,y,.018);parent.add(g);
+  kit.contactShadow(g,.106);
   cylinder(g,.029,.007,0,0,0,m.edge);cylinder(g,.025,.013,0,0,.009,m.black,.028);
   const knob=new THREE.Group();knob.userData.cabDynamic=true;knob.position.z=.017;g.add(knob);
   const profile=[[.009,0],[.017,.002],[.021,.008],[.018,.020],[.012,.029]].map(p=>new THREE.Vector2(p[0],p[1]));
   const grip=mesh(knob,new THREE.LatheGeometry(profile,20),m.black);grip.rotation.x=Math.PI/2;grip.position.z=.03;
   rounded(knob,.013,.047,.010,0,0,.058,m.black,.005);box(knob,.002,.020,.001,0,.008,.064,m.ivory);
+  const ribs=new THREE.InstancedMesh(kit.geometry('knob-rib',()=>new THREE.BoxGeometry(.0015,.0016,.018)),m.black,18),rib=new THREE.Object3D();
+  for(let i=0;i<18;i++){const a=i/18*Math.PI*2;rib.position.set(Math.cos(a)*.018,Math.sin(a)*.018,.039);rib.rotation.z=a;rib.updateMatrix();ribs.setMatrixAt(i,rib.matrix);}knob.add(ribs);
   for(const a of [-.8,0,.8]){const tick=box(g,.001,.004,.001,Math.sin(a)*.034,Math.cos(a)*.034,.007,m.black);tick.rotation.z=-a;}
   label(g,text,0,.064,options.labelWidth??.13,.017,'#151713',.012);
   const c=register(id,g,grip,'rotary',options.title??text,options.enabled!==false);c.knob=knob;return c;
@@ -55,10 +59,16 @@ export function createCabControls(kit){
   for(const y of [-.089,.072]){const o=ring(g,.080,.004,0,y,0,m.steel);o.rotation.x=Math.PI/2;}
   cylinder(g,.092,.026,0,.11,0,m.steel);g.children.at(-1).rotation.x=0;
   cylinder(g,.079,.025,0,-.12,0,m.steel);g.children.at(-1).rotation.x=0;
+  rounded(g,.174,.286,.026,0,-.127,-.048,m.casing,.012);
   for(let i=0;i<8;i++){const a=i*Math.PI/4;const o=cylinder(g,.004,.006,Math.sin(a)*.079,.127,Math.cos(a)*.079,m.black,undefined,8);o.rotation.x=0;}
   for(const x of [-.050,.050])for(const y of [-.050,.040]){
    const boss=cylinder(g,.010,.025,x,y,.068,m.steel,undefined,12);cylinder(g,.0045,.003,x,y,.082,m.black,undefined,6);
   }
+  for(const x of [-.064,.064]){
+   cylinder(g,.012,.012,x,-.209,-.026,m.steel,undefined,6);
+   cylinder(g,.007,.004,x,-.209,-.018,m.black,undefined,6);
+  }
+  const outlet=cylinder(g,.025,.049,.071,-.058,.034,m.brass,undefined,6);outlet.rotation.z=-Math.PI/2;
   const graduated=new THREE.Group();graduated.position.set(0,.129,0);graduated.rotation.x=-Math.PI/2;g.add(graduated);
   for(let i=0;i<28;i++){const a=i/28*Math.PI*2;const tick=box(graduated,.0012,i%7===0?.010:.005,.0008,Math.cos(a)*.067,Math.sin(a)*.067,.003,m.black);tick.rotation.z=a-Math.PI/2;}
   for(let i=0;i<5;i++){const a=-Math.PI*.8+i*Math.PI*.3;label(graduated,['I','II','III','IV','V'][i],Math.cos(a)*.049,Math.sin(a)*.049,.015,.010,'#292a24',.004);}
@@ -71,7 +81,8 @@ export function createCabControls(kit){
   const plate=kit.panel(g,.176,.15,0,-.23,.06);label(plate,'КРАН ТОРМОЗНОЙ',0,.049,.16,.017);
   label(plate,'I   II   III   IV   V',0,.014,.145,.018);
   label(plate,'ИГРОВОЙ ТОРМОЗ',0,-.035,.16,.014,'#5e3824');
-  cylinder(g,.028,.029,0,-.37,.065,m.steel);box(g,.095,.013,.014,-.045,-.37,.09,m.red);
+  cylinder(g,.028,.029,0,-.37,.065,m.brass);box(g,.095,.013,.014,-.045,-.37,.09,m.red);
+  cylinder(g,.010,.013,0,-.37,.087,m.steel,undefined,6);
   kit.tube(g,[[.04,-.12,-.02],[.06,-.35,-.04],[.10,-.58,-.03]],.016,m.rubber,12);
   return c;
  }

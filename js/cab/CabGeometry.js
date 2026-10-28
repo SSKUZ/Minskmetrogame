@@ -14,7 +14,10 @@ export function createCabGeometry(THREE,materials){
  }
  function rounded(parent,w,h,d,x,y,z,mat=materials.panel,r=.012){
   const key=`r:${w}:${h}:${d}:${r}`;
-  return mesh(parent,geometry(key,()=>{const g=new THREE.ExtrudeGeometry(shape(w,h,r),{depth:d,bevelEnabled:true,bevelSegments:2,bevelSize:.002,bevelThickness:.002,curveSegments:5,steps:1});g.translate(0,0,-d/2);return g}),mat,x,y,z);
+  const surface=mat===materials.panel?'plate':'';
+  return mesh(parent,geometry(key+surface,()=>{const bevel=Math.min(.002,w*.08,h*.08,d*.25);const g=new THREE.ExtrudeGeometry(shape(w,h,r),{depth:d,bevelEnabled:true,bevelSegments:3,bevelSize:bevel,bevelThickness:bevel,curveSegments:8,steps:1});g.translate(0,0,-d/2);
+   if(surface){const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,(p.getX(i)+w/2)/w,(p.getY(i)+h/2)/h);}
+   return g;}),mat,x,y,z);
  }
  function box(parent,w,h,d,x,y,z,mat=materials.casing){return mesh(parent,geometry(`b:${w}:${h}:${d}`,()=>new THREE.BoxGeometry(w,h,d)),mat,x,y,z)}
  function cylinder(parent,r,h,x,y,z,mat=materials.steel,r2=r,segments=32){
@@ -49,7 +52,11 @@ export function createCabGeometry(THREE,materials){
  }
  function panel(parent,w,h,x,y,z=0,mat=materials.panel){
   const group=new THREE.Group();group.position.set(x,y,z);parent.add(group);
+  rounded(group,w+.003,h+.003,.008,0,0,-.014,materials.rubber,.012);
   rounded(group,w,h,.021,0,0,0,mat,.012);screws(group,w,h,.014);return group;
  }
- return {THREE,materials,mesh,geometry,shape,box,rounded,cylinder,ring,tube,label,panel,screws,cache};
+ function contactShadow(parent,w,h=w,x=0,y=0,z=-.003){
+  const o=mesh(parent,geometry(`shadow:${w}:${h}`,()=>new THREE.PlaneGeometry(w,h)),materials.contactShadow,x,y,z);o.castShadow=false;return o;
+ }
+ return {THREE,materials,mesh,geometry,shape,box,rounded,cylinder,ring,tube,label,panel,screws,contactShadow,cache};
 }

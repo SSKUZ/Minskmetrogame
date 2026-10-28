@@ -1,6 +1,6 @@
-import {createCabModel} from './cab/CabModel.js?v=cab-r1';
+import {createCabModel} from './cab/CabModel.js?v=cab-r2';
 import {createCabCommands} from './cab/CabCommands.js';
-import {installCabInteraction} from './cab/CabInteraction.js?v=cab-r1';
+import {installCabInteraction} from './cab/CabInteraction.js?v=cab-r2';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
 import {createPassengerModelFactory} from './passengers/PassengerModels.js';
@@ -16,7 +16,7 @@ import {gameSnapshot} from './core/GameState.js';
 import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js?v=20261026-smooth-v16';
 import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passengers/PassengerMotion.js';
 
-let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
+import * as THREE from './vendor/three.module.js';
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x11161a);scene.fog=new THREE.Fog(0x11161a,45,190);const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.045,230);const stationCamera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,230);camera.position.set(0,3.35,4.72);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.16));const headlights=[];for(const side of [-1,1]){const beam=new THREE.SpotLight(0xf0f6ff,185,88,Math.PI/9,.34,1.4);beam.position.set(side*1.02,1.48,1.0);beam.target.position.set(side*1.55,1.65,-37);scene.add(beam,beam.target);headlights.push(beam)}const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
 const mat=(c,metal=0)=>createMaterial(THREE,c,metal),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);

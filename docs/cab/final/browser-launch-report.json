@@ -1,0 +1,16 @@
+{
+  "suite": "launch",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "normal start screen and depot traction",
+      "result": "passed"
+    },
+    {
+      "name": "no JavaScript or module load errors",
+      "result": "passed"
+    }
+  ],
+  "errors": [],
+  "requests": []
+}
