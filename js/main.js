@@ -1,3 +1,4 @@
+import {createCabInstrumentDeck} from './cab/CabInstrumentDeck.js';
 import {createCabDeskButtonFactory} from './cab/CabControls3D.js';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
@@ -237,9 +238,7 @@ function renderRearMirrors(){
   for(const item of rearMirrors)item.face.visible=true;
  }
 }
-const instrumentDeck=new THREE.Group();instrumentDeck.position.set(0,1.79,3.24);instrumentDeck.rotation.x=.39;cab.add(instrumentDeck);
-box(instrumentDeck,6.0,.13,1.32,0,0,0,cabShell);
-function cabScreen(x,z,w,h,colour){const g=new THREE.Group();g.position.set(x,.12,z);instrumentDeck.add(g);box(g,w+.13,.12,h+.12,0,0,0,cabEdge);box(g,w,.025,h,0,.076,0,new THREE.MeshBasicMaterial({color:colour}));return g}
+const {instrumentDeck,cabScreen}=createCabInstrumentDeck({THREE,cab,box,cabShell,cabEdge});
 const leftCabScreen=cabScreen(-1.78,-.17,1.24,.72,0x0b2936);
 const midCabScreen=cabScreen(-.22,-.18,1.46,.92,0x102e48);
 const rightCabScreen=cabScreen(1.44,-.22,.96,.68,0x132d2c);
