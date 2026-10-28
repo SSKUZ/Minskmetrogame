@@ -4,7 +4,7 @@ import {mkdir,readFile,writeFile,access} from 'node:fs/promises';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {comparePixels,comparePhoto} from './wagon-image-compare.mjs';
+import {comparePixels,comparePhoto,compareProtectedFront} from './wagon-image-compare.mjs';
 import {verifyFrontProtection} from './wagon-front-protection.mjs';
 
 const output=process.env.WAGON_RESULTS_DIR||'test-results/wagon';
@@ -52,7 +52,8 @@ try{
  await page.route('**/__wagon_v84.html*',route=>route.fulfill({body:frontLock.fixture,contentType:'text/html'}));
  await page.goto(new URL('__wagon_v84.html?qa=1&view=front',target).href,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.wagonReady&&window.wagonDiagnostics().renderedFrames>=3,null,{timeout:90000});
- await page.screenshot({path:path.join(output,'protected-v84-front.png'),animations:'disabled'});
+ await page.screenshot({path:path.join(output,'protected-v84-front.png'),animations:'disabled',timeout:90000});
+ const immutableFrontGeometry=(await page.evaluate(()=>window.wagonDiagnostics())).features;
  report.frontProtection={baseCommit:frontLock.baseCommit,protectedBlocks:frontLock.protectedBlocks};
  const url=new URL(target);url.searchParams.set('qa','1');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
@@ -75,14 +76,14 @@ try{
  }
  for(const mode of viewModes){
   await page.evaluate(m=>window.wagonSetDoors?.(m==='door-open',{instant:true}),mode);
-  await page.evaluate(m=>window.wagonSetCamera(m),mode);
-  const start=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
+  const start=await page.evaluate(m=>{window.wagonSetCamera(m);return window.wagonDiagnostics().renderedFrames},mode);
   await page.waitForFunction(frame=>window.wagonDiagnostics().renderedFrames>=frame+3,start,{timeout:30000});
   const data=await page.evaluate(()=>window.wagonDiagnostics());
   data.passenger=await page.evaluate(()=>window.wagonSideDiagnostics?.()||null);
   if(data.passenger){
    assert.equal(data.passenger.leafCount,16);assert.equal(data.passenger.windowCount,8);
    assert.ok(data.passenger.wallThickness>.1,'Real wall depth missing');
+   if(data.passenger.interior){assert.equal(data.passenger.interior.seatCount,40);assert.equal(data.passenger.interior.allSeatsVolumetric,true);assert.ok(data.passenger.interior.aisleWidth>=1.4);}
    if(mode==='door-open')assert.ok(Math.abs(data.passenger.doorClearWidth-1.208)<.001,'Open leaves must leave the measured clear aperture');
    if(mode==='window-close'||mode==='door-open'){
     data.apertures=await page.evaluate(()=>window.wagonApertureChecks());
@@ -102,37 +103,44 @@ try{
   }
   for(const [prefix,count] of [['headlamp-',6],['marker-',2],['window-',3]])assert.equal(Object.keys(data.features).filter(k=>k.startsWith(prefix)).length,count,'Actual registered front meshes: '+prefix);
   const screenshot=path.join(output,`${mode}.png`);
-  await page.screenshot({path:screenshot,timeout:90000,animations:'disabled'});
+  await page.screenshot({path:screenshot,timeout:90000,animations:'disabled',timeout:90000});
   report.views.push({...data,screenshot:`${mode}.png`});
   const old=previous?.views?.find(v=>v.cameraMode===mode);
   if(old?.features)assert.deepEqual(Object.keys(data.features).sort(),Object.keys(old.features).sort(),'A registered feature disappeared');
   let comparison={mode,status:'no-compatible-baseline'};
   try{
    await access(path.join(baseline,`${mode}.png`));
-   comparison={mode,...await comparePixels(screenshot,path.join(baseline,`${mode}.png`),path.join(output,`${mode}-diff.png`)),lightingChanged:!!old&&old.lightingPreset!==data.lightingPreset,cameraChanged:!!old&&JSON.stringify(old.camera)!==JSON.stringify(data.camera)};
+   comparison={mode,...await comparePixels(screenshot,path.join(baseline,`${mode}.png`),path.join(output,`${mode}-diff.png`)),lightingChanged:!!old&&old.lightingPreset!==data.lightingPreset,sideLightingChanged:old?.passenger?.lightingPreset!==data.passenger?.lightingPreset,cameraChanged:!!old&&JSON.stringify(old.camera)!==JSON.stringify(data.camera)};
   }catch(error){if(error.code!=='ENOENT')throw error;}
   report.comparisons.push(comparison);
   if(mode==='front'){
-   report.frontProtection.pixels=await comparePixels(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'));
+   assert.deepEqual(data.features,immutableFrontGeometry,'Projected front geometry differs from v84');
+   const glazing=await page.evaluate(()=>window.wagonFrontGlassTriangles?.()||[]);
+   report.frontProtection.pixels=glazing.length?await compareProtectedFront(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'),glazing):await comparePixels(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'));
    assert.equal(report.frontProtection.pixels.changedPixels,0,'Protected front differs from immutable v84');
   }
   if(mode==='reference')report.photo=await comparePhoto(data.features,reference,screenshot,path.join(output,'reference-geometry-overlay.png'));
+  if(mode==='window-inside'&&await page.evaluate(()=>!!window.wagonShiftInspectionCamera)){
+   const f=await page.evaluate(()=>{window.wagonShiftInspectionCamera(.18);return window.wagonDiagnostics().renderedFrames});
+   await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,f);
+   const shifted=path.join(output,'window-inside-parallax.png');await page.screenshot({path:shifted,animations:'disabled',timeout:90000});
+   report.parallax={translationMetres:.18,...await comparePixels(shifted,screenshot,path.join(output,'window-inside-parallax-diff.png'))};
+   assert.ok(report.parallax.changedPixels>300,'Moving alongside the window does not reveal changing perspective');
+  }
  }
  assert.deepEqual(errors,[],'Wagon JavaScript errors');
- await page.evaluate(()=>{window.wagonSetDoors?.(false,{instant:true});window.wagonSetCamera('reference')});
- const frame=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
+ const frame=await page.evaluate(()=>{window.wagonSetDoors?.(false,{instant:true});window.wagonSetCamera('reference');return window.wagonDiagnostics().renderedFrames});
  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,frame);
- await page.screenshot({path:path.join(output,'reference-repeat.png'),animations:'disabled'});
+ await page.screenshot({path:path.join(output,'reference-repeat.png'),animations:'disabled',timeout:90000});
  report.repeat=await comparePixels(path.join(output,'reference.png'),path.join(output,'reference-repeat.png'),path.join(output,'repeat-diff.png'));
  assert.equal(report.repeat.changedPixels,0,'Frozen reference camera produced nondeterministic pixels');
  await page.setViewportSize({width:412,height:915});
- await page.evaluate(()=>window.wagonSetCamera('reference'));
- const mobileFrame=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
+ const mobileFrame=await page.evaluate(()=>{window.wagonSetCamera('reference');return window.wagonDiagnostics().renderedFrames});
  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,mobileFrame);
  report.mobile=await page.evaluate(()=>window.wagonDiagnostics());
  const mobileFace=report.mobile.features.fascia;
  assert.ok(mobileFace.x>=0&&mobileFace.x+mobileFace.width<=412,'Reference fascia is clipped on a phone');
- await page.screenshot({path:path.join(output,'mobile-reference.png'),animations:'disabled'});
+ await page.screenshot({path:path.join(output,'mobile-reference.png'),animations:'disabled',timeout:90000});
  report.result='pass';
 }catch(error){report.result='fail';report.failure=error.stack;throw error;}
 finally{

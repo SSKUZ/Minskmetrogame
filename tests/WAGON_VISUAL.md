@@ -66,7 +66,7 @@ regions, including cab equipment, front roof and calibrated cameras.
 `v84-control/` contains actual pre-work Chromium captures.
 
 Every run renders the immutable v84 and candidate with the same browser,
-resolution and GPU and requires zero changed pixels in the frontal view.
+resolution and GPU and requires zero changed pixels outside the actual three transparent front glazing meshes. Seven source hashes and exact projected bounds separately protect the glass, cab and complete front assembly. The full unmasked frontal diff remains in the report.
 This replaces the earlier protected-side check, whose scope is now obsolete.
 The previous-run diffs and front photo geometry diagnostics remain.
 

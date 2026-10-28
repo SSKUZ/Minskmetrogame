@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v86</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v86: рельефные боковины, сквозные окна и объёмные двери с движением в карманах. Передок v84 сохранён.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v87</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v87: объёмный пассажирский салон, 40 мест, поручни и освещение. Передок v84 сохранён.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -112,6 +112,8 @@ const sideRubber=new T.MeshStandardMaterial({color:0x10151a,roughness:.83,side:T
 const sideSteel=new T.MeshStandardMaterial({color:0xb5b6aa,metalness:.65,roughness:.32,envMap:frontEnvironment,envMapIntensity:.6,side:T.DoubleSide});
 const sideCream=new T.MeshStandardMaterial({color:0xe8ddbf,metalness:.1,roughness:.5,side:T.DoubleSide});
 const sideLining=new T.MeshStandardMaterial({color:0xd7d1bf,roughness:.72,side:T.DoubleSide});
+const chevronPaint=sideCream.clone();chevronPaint.polygonOffset=true;chevronPaint.polygonOffsetFactor=-1;chevronPaint.polygonOffsetUnits=-2;
+const doorInnerLining=sideLining.clone();doorInnerLining.polygonOffset=true;doorInnerLining.polygonOffsetFactor=-1;doorInnerLining.polygonOffsetUnits=-2;
 const sideGlass=new T.MeshPhysicalMaterial({color:0xe1ecec,transparent:true,opacity:.13,roughness:.12,metalness:0,envMap:frontEnvironment,envMapIntensity:.20,clearcoat:.18,depthWrite:false,side:T.DoubleSide});
 const sideAmbient=new T.HemisphereLight(0xfff6e6,0x343b47,.95);sideAmbient.layers.set(2);scene.add(sideAmbient);
 for(const [x,y,z,power] of [[7,10,3,2.4],[-6,5,-4,1.0]]){
@@ -221,7 +223,7 @@ function doorOutline(w,h,r,outerOnRight){
 function doorChevron(leaf,side,z1,y1,z2,y2){
  const width=.10,dz=z2-z1,dy=y2-y1,len=Math.hypot(dz,dy),nz=-dy/len*width/2,ny=dz/len*width/2;
  const q=new T.Shape();q.moveTo(-z1-nz,y1+ny);q.lineTo(-z2-nz,y2+ny);q.lineTo(-z2+nz,y2-ny);q.lineTo(-z1+nz,y1-ny);q.closePath();
- const mesh=new T.Mesh(new T.ShapeGeometry(q),sideCream);mesh.rotation.y=Math.PI/2;mesh.position.x=side*.017;
+ const mesh=new T.Mesh(new T.ShapeGeometry(q),chevronPaint);mesh.rotation.y=Math.PI/2;mesh.position.x=side*.017;
  leaf.add(mesh);passenger(mesh);
 }
 function buildPassengerDoors(side,dz){
@@ -250,7 +252,7 @@ function buildPassengerDoors(side,dz){
   hole.closePath();outline.holes.push(hole);
   const shell=new T.Mesh(new T.ExtrudeGeometry(outline,{depth:.032,bevelEnabled:false,curveSegments:20}),sidePaint);
   shell.rotation.y=Math.PI/2;shell.position.x=-.016;leaf.add(shell);passenger(shell);
-  const innerSkin=new T.Mesh(new T.ShapeGeometry(outline,20),sideLining);innerSkin.rotation.y=Math.PI/2;innerSkin.position.x=-side*.0164;leaf.add(innerSkin);passenger(innerSkin);
+  const innerSkin=new T.Mesh(new T.ShapeGeometry(outline,20),doorInnerLining);innerSkin.rotation.y=Math.PI/2;innerSkin.position.x=-side*.018;leaf.add(innerSkin);passenger(innerSkin);
   const pane=new T.Mesh(new T.ShapeGeometry(roundedShape(glassW-.018,glassH-.018,.079),16),sideGlass);
   pane.rotation.y=Math.PI/2;pane.position.set(0,shift,0);leaf.add(pane);passenger(pane);
   sideRing(glassW,glassH,.085,side*.017,shift,0,sideRubber,.010,leaf);
@@ -268,6 +270,7 @@ let doorProgress=0,doorTarget=0;
 function setDoorProgress(progress){
  doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorProgress*doorProgress*(3-2*doorProgress);
  for(const d of slidingLeaves)d.leaf.position.z=d.homeZ+d.half*d.travel*t;
+ qaFramesRemaining=3;
 }
 window.wagonSetDoors=(open,{instant=false}={})=>{doorTarget=open?1:0;if(instant)setDoorProgress(doorTarget)};
 function advanceDoors(dt){
@@ -414,43 +417,109 @@ const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32Buffer
  const cap=new T.Mesh(capGeometry,roof);cap.position.z=z0;group.add(cap);frontAppearance(cap);feature('roof',cap);
 }
 // Longitudinal benches between doors, with an unobstructed central aisle.
+// Reuse the existing longitudinal bench layout; refine it into forty seats.
+// The original little bench inside the locked cab is retained verbatim.
 const sections=[[-9.30,-7.75],[-5.70,-2.80],[-1.10,1.80],[3.50,6.40],[8.10,9.30]];
-for(const side of [-1,1])for(const [a,b] of sections){
+for(const side of [-1,1])for(const [a,b] of sections.filter(([a])=>a<-7.7)){
  const len=b-a,z=(a+b)/2;
- box(.44,.12,len-.12,side*(a<-7.7?.99:.95),F+.47,z,seat);
- box(.10,.63,len-.12,side*(a<-7.7?1.23:1.12),F+.78,z,seat);
- box(.38,.24,len-.12,side*(a<-7.7?1.03:.98),F+.24,z,metal);
+ box(.44,.12,len-.12,side*.99,F+.47,z,seat);
+ box(.10,.63,len-.12,side*1.23,F+.78,z,seat);
+ box(.38,.24,len-.12,side*1.03,F+.24,z,metal);
  for(const zz of [a+.08,b-.08]){
   box(.035,1.90,.035,side*.72,F+.96,zz,metal);
   box(.035,.42,.035,side*.72,F+.26,zz,metal);
  }
 }
-for(const side of [-1,1])box(.035,.035,L-.30,side*.78,top-.38,0,metal);
-for(let z=-8.3;z<=8.3;z+=2.1)box(.60,.025,1.4,0,top+.015,z,mat(0xfff7d9));
-// Inner side lining and doorway thresholds now belong to the thick shell.
-const upholstery=mat(0x75564a);
-// Separate cushions on the existing continuous benches, not replacement seats.
+// Original cab-bench upholstery also belongs to the frozen cab view.
 for(const side of [-1,1]){
- for(const [a,b] of sections){
-  const count=Math.max(1,Math.floor((b-a-.14)/.48));
-  const step=(b-a-.14)/count;
-  for(let i=0;i<count;i++){
-   const zz=a+.07+(i+.5)*step;
-   box(.41,.035,Math.max(.20,step-.028),side*.99,F+.545,zz,upholstery);
-   box(.035,.46,Math.max(.20,step-.028),side*1.17,F+.81,zz,upholstery);
-  }
+ const a=-9.30,b=-7.75,count=2,step=(b-a-.14)/count,padding=mat(0x75564a);
+ for(let i=0;i<count;i++){
+  const zz=a+.07+(i+.5)*step;
+  box(.41,.035,Math.max(.20,step-.028),side*.99,F+.545,zz,padding);
+  box(.035,.46,Math.max(.20,step-.028),side*1.17,F+.81,zz,padding);
  }
 }
-// Low-profile roof ventilation grilles on the exterior, without touching livery.
-for(const z of [-6.8,-3.6,0,3.6,6.8]){
- box(.78,.025,.56,0,top+.145,z,metal);
- for(let k=-3;k<=3;k++)box(.63,.012,.025,0,top+.167,z+k*.07,dark);
+// Keep cab-facing portions of the original overhead fittings unchanged.
+for(const side of [-1,1])box(.035,.035,1.728,side*.78,top-.38,-8.589,metal);
+for(let z=-8.3;z<=-8.3;z+=2.1)box(.60,.025,1.4,0,top+.015,z,mat(0xfff7d9));
+const saloonStart=-7.60,saloonEnd=9.43,saloonLength=saloonEnd-saloonStart;
+function grainTexture(size,repeatX,repeatY){
+ let seed=717;const data=new Uint8Array(size*size*4);
+ for(let i=0;i<size*size;i++){
+  seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;
+  const value=211+(seed>>>0)%42;
+  data.set([value,value,value,255],i*4);
+ }
+ const texture=new T.DataTexture(data,size,size,T.RGBAFormat);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(repeatX,repeatY);texture.needsUpdate=true;return texture;
 }
-// Diffuse ceiling strips along the saloon; existing overhead lighting retained.
-const ceilingLight=mat(0xfff0cc);
-for(const x of [-.53,.53])for(const z of [-5.8,-2.8,.2,3.2,6.2]){
- box(.14,.012,1.65,x,top-.235,z,ceilingLight);
+const floorFinish=new T.MeshStandardMaterial({color:0x747a7c,roughness:.86,bumpMap:grainTexture(64,5,28),bumpScale:.0014});
+const vinyl=new T.MeshPhysicalMaterial({color:0x344758,roughness:.48,clearcoat:.15,envMap:frontEnvironment,envMapIntensity:.35,bumpMap:grainTexture(64,2,3),bumpScale:.0005});
+const seatBase=new T.MeshStandardMaterial({color:0xb9bab0,metalness:.20,roughness:.52});
+const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
+const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
+const saloonSeats=[],saloonRails=[];
+sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
+function saloonCushion(w,h,d,x,y,z,material){
+ const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
+ const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);group.add(mesh);return passenger(mesh);
 }
+const seatBays=[[-5.52,-2.67,6],[-1.08,1.78,6],[3.37,6.22,6],[8.38,9.25,2]];
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a,z=(a+b)/2;
+ sideBox(.42,.34,len-.05,side*.973,F+.245,z,seatBase);
+ // Ventilation slots in the actual seat plinth.
+ for(let k=0;k<Math.floor(len/.085)-1;k++)sideBox(.002,.060,.035,side*.761,F+.25,a+.085+k*.085,sideRubber);
+ for(let i=0;i<count;i++){
+  const width=len/count-.022,zz=a+(i+.5)*len/count;
+  const pad=saloonCushion(.45,.10,width,side*.962,F+.485,zz,vinyl);
+  const back=saloonCushion(.095,.48,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.065;
+  saloonSeats.push({side,z:zz,seat:pad,back});
+ }
+ for(const zz of [a+.015,b-.015]){
+  const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+1.90,zz],[side*.76,F+2.10,zz],[side*.93,F+2.23,zz]],.017,railBlue);saloonRails.push(pole);
+  sideTube([[side*1.16,F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.015,sideSteel);
+ }
+}
+// Curved internal ceiling follows the roof instead of a suspended flat box.
+{
+ const vs=[],ix=[],columns=48;
+ for(let i=0;i<=columns;i++){
+  const x=-1.20+2.40*i/columns,y=3.32-.18*Math.pow(Math.abs(x)/1.20,2.4);
+  vs.push(x,y,saloonStart,x,y,saloonEnd);
+ }
+ for(let i=0;i<columns;i++){const k=i*2;ix.push(k,k+1,k+2,k+1,k+3,k+2)}
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
+ const mesh=new T.Mesh(geometry,ceilingWhite);group.add(mesh);passenger(mesh);
+}
+const diffuser=new T.MeshStandardMaterial({color:0xfff2d5,emissive:0xffecd0,emissiveIntensity:.48,roughness:.65});
+for(const side of [-1,1]){
+ sideTube([[side*.72,F+2.12,saloonStart+.30],[side*.72,F+2.12,saloonEnd-.20]],.018,sideSteel);
+ for(const z of doors){
+  sideTube([[side*.72,3.08,z],[side*.72,3.24,z]],.012,railBlue);
+  // Inner door head and floor seam are fixed, outside the sliding channel.
+  sideBox(.10,.18,doorWidth+.06,side*(half-.20),3.13,z,sideLining);
+ }
+ for(const z of [-6.9,-4.65,-2.4,-.15,2.1,4.35,6.6,8.75]){
+  sideBox(.16,.022,1.92,side*.53,3.285,z,sideSteel);
+  sideBox(.137,.025,1.87,side*.53,3.267,z,diffuser);
+ }
+ for(const w of passengerWindows.filter(w=>w.side===side)){
+  sideRing(w.w+.05,w.h+.05,.15,side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
+  sideBox(.014,.045,w.w+.12,side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
+ }
+ // Narrow longitudinal ceiling ventilation slots, on actual 3D trim.
+ sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
+ for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
+}
+for(const z of [-5.4,-.4,4.6,8.6]){
+ const lamp=new T.PointLight(0xffeed7,1.3,4.2,2);lamp.position.set(0,3.09,z);lamp.layers.set(2);scene.add(lamp);
+}
+// Floor inlays mark the threshold without blocking the 3D doorway.
+for(const side of [-1,1])for(const z of doors){
+ sideBox(.18,.003,doorWidth-.16,side*1.12,F+.012,z,sideSteel);
+ for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
+}
+
 // Front fascia based on the supplied 81-717 reference.
 const frontMeshStart=group.children.length;
 // A restrained black inset with three glazed bays, separated upper lamp
@@ -845,16 +914,6 @@ function rodBetween(a,b,radius,material){
  rod.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());
  group.add(rod);return rod;
 }
-for(const z of [-6.95,-3.10,0,3.10,6.95]){
- rodBetween([-.92,F+2.08,z],[.92,F+2.08,z],.019,steel);
- for(const x of [-.92,.92]){
-  rodBetween([x,F+.12,z],[x,F+2.08,z],.018,steel);
-  rodBetween([x,F+2.08,z],[x*.83,F+2.35,z],.015,steel);
- }
-}
-for(const x of [-.76,.76]){
- rodBetween([x,F+2.26,-7.40],[x,F+2.26,8.90],.019,steel);
-}
 // Four-dial instrument module relocated from in front of the chair to the
 // LEFT cab side wall, upright beside the shallow equipment block.
 // The panel is mounted in the YZ plane and projects only 6 cm into the cab.
@@ -870,8 +929,23 @@ for(let i=0;i<4;i++){
  indicator.rotation.x=.35;
 }
 // Opposite end is the inter-car bulkhead.
-box(W-.08,2.2,.09,0,F+1.1,L/2-.055,interior);
-box(.72,1.83,.10,0,F+.93,L/2-.12,metal);
+// Real inter-car end wall and a thick glazed hinged door, cream inside.
+{
+ const pier=(W-.18-.78)/2;
+ for(const side of [-1,1])sideBox(pier,2.24,.08,side*(.78+pier)/2,F+1.12,L/2-.055,sideLining);
+ sideBox(.78,.31,.08,0,F+2.085,L/2-.055,sideLining);
+ const shape=roundedShape(.735,1.91,.065),hole=new T.Path(),pts=roundedShape(.48,.68,.10).getPoints(16);
+ for(let i=pts.length-1;i>=0;i--){const p=pts[i];if(i===pts.length-1)hole.moveTo(p.x,p.y+.47);else hole.lineTo(p.x,p.y+.47)}
+ hole.closePath();shape.holes.push(hole);
+ const leaf=new T.Mesh(new T.ExtrudeGeometry(shape,{depth:.047,bevelEnabled:false,curveSegments:16}),sideLining);leaf.position.set(0,F+.97,L/2-.16);group.add(leaf);passenger(leaf);
+ const pane=passenger(facePanel(.46,.66,.09,0,F+1.44,L/2-.17,sideGlass));
+ sideTube(roundedShape(.48,.68,.10).getPoints(16).map(p=>[p.x,F+1.44+p.y,L/2-.171]),.013,sideRubber,true);
+ sideTube(roundedShape(.755,1.94,.075).getPoints(16).map(p=>[p.x,F+.97+p.y,L/2-.169]),.014,sideSteel,true);
+ sideBox(.12,.025,.04,.25,F+1.0,L/2-.196,sideSteel);
+ for(const y of [F+.28,F+1.60])sideBox(.033,.10,.036,-.36,y,L/2-.183,sideSteel);
+ // Exterior blue skin on the same door, using its real glass aperture.
+ const outer=new T.Mesh(new T.ShapeGeometry(shape,16),sidePaint);outer.position.set(0,F+.97,L/2-.111);group.add(outer);passenger(outer);
+}
 // Underframe and simplified bogies at measured-looking locations (not yet factory verified).
 box(1.78,.18,L-1.0,0,F-.27,0,dark);
 for(const z of [-6.50,6.50]){
@@ -894,7 +968,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=86,lightingPreset='station-softboxes-v2';
+const modelVersion=87,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -916,7 +990,7 @@ Object.assign(cameraPresets,{
 });
 const captureMode=new URLSearchParams(location.search).get('qa')==='1';
 if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el.style.display='none');grid.visible=false;}
-let cameraMode='outside',renderedFrames=0;
+let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
 function fitCameraProjection(){
  const base=cameraPresets[cameraMode]?.fov||58;
  const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side'].includes(cameraMode)?1.64:0;
@@ -924,6 +998,7 @@ function fitCameraProjection(){
  camera.updateProjectionMatrix();
 }
 function setCamera(mode){
+ qaFramesRemaining=3;
  cameraMode=mode;
  const preset=cameraPresets[mode]||cameraPresets.outside;
  ctl.enableDamping=false;ctl.autoRotate=false;
@@ -933,11 +1008,12 @@ function setCamera(mode){
  document.getElementById('view').textContent=mode==='salon'?'Снаружи вагона':'Камера салона';
  document.getElementById('driver').textContent=mode==='driver'?'Снаружи вагона':'Камера машиниста';
  document.getElementById('front').textContent=mode==='front'?'Снаружи вагона':'Вид спереди';
+ const select=document.getElementById('cameraSelect');if(select)select.value=mode;
 }
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 document.getElementById('front').onclick=()=>setCamera(cameraMode==='front'?'outside':'front');
-window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;fitCameraProjection();renderer.setSize(innerWidth,innerHeight)});
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;fitCameraProjection();renderer.setSize(innerWidth,innerHeight);qaFramesRemaining=3});
 function projectedFeature(object){
  const bounds=new T.Box3();
  for(const mesh of Array.isArray(object)?object:[object])bounds.union(new T.Box3().setFromObject(mesh));
@@ -948,6 +1024,22 @@ function projectedFeature(object){
  return {x:Math.min(...points.map(p=>p[0])),y:Math.min(...points.map(p=>p[1])),width:Math.max(...points.map(p=>p[0]))-Math.min(...points.map(p=>p[0])),height:Math.max(...points.map(p=>p[1]))-Math.min(...points.map(p=>p[1]))};
 }
 window.wagonDiagnostics=()=>({modelVersion,cameraMode,lightingPreset,renderedFrames,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height,camera:{position:camera.position.toArray(),target:ctl.target.toArray(),fov:camera.fov},features:Object.fromEntries([...qaObjects].map(([name,object])=>[name,projectedFeature(object)]))});
+window.wagonFrontGlassTriangles=()=>{
+ const triangles=[];
+ for(const [name,mesh] of qaObjects){
+  if(!name.startsWith('window-'))continue;
+  const geometry=mesh.geometry,position=geometry.attributes.position,index=geometry.index;
+  for(let i=0;i<index.count;i+=3){
+   const tri=[];
+   for(let j=0;j<3;j++){
+    const point=new T.Vector3().fromBufferAttribute(position,index.getX(i+j)).applyMatrix4(mesh.matrixWorld).project(camera);
+    tri.push([(point.x+1)*innerWidth/2,(1-point.y)*innerHeight/2]);
+   }
+   triangles.push(tri);
+  }
+ }
+ return triangles;
+};
 window.wagonSetCamera=setCamera;
 window.wagonSideDiagnostics=()=>({
  wallThickness:sideWallBase-sideWallInner,windowCount:passengerWindows.length,
@@ -955,8 +1047,10 @@ window.wagonSideDiagnostics=()=>({
  leafCount:slidingLeaves.length,doorProgress,doorTarget,
  doorClearWidth:2*(doorWidth/4+slidingLeaves[0].travel*(doorProgress*doorProgress*(3-2*doorProgress))-(doorWidth/2-.008)/2),
  leaves:slidingLeaves.map(d=>({side:d.side,doorZ:d.doorZ,z:d.leaf.position.z,homeZ:d.homeZ,half:d.half,thickness:d.thickness,x:d.leaf.position.x})),
- passengerMeshes:passengerNodes.length
+ passengerMeshes:passengerNodes.length,lightingPreset:'passenger-softboxes-warm-v2'
+ ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
 });
+window.wagonShiftInspectionCamera=dz=>{camera.position.z+=dz;ctl.target.z+=dz;ctl.update();qaFramesRemaining=3};
 window.wagonApertureChecks=()=>{
  group.updateMatrixWorld(true);
  const meshes=[];group.traverse(o=>{if(o.isMesh&&!o.material.transparent&&!o.userData.slidingDoor)meshes.push(o)});
@@ -977,6 +1071,15 @@ window.wagonApertureChecks=()=>{
 const doorButton=document.createElement('button');doorButton.id='doors';doorButton.textContent='Открыть двери';doorButton.style.cssText='left:14px;bottom:64px';
 doorButton.onclick=()=>{window.wagonSetDoors(!doorTarget);doorButton.textContent=doorTarget?'Закрыть двери':'Открыть двери'};document.body.appendChild(doorButton);
 if(captureMode)doorButton.style.display='none';
+const controls=document.createElement('nav');controls.id='controls';controls.setAttribute('aria-label','Просмотр вагона');
+const cameraSelect=document.createElement('select');cameraSelect.id='cameraSelect';cameraSelect.setAttribute('aria-label','Ракурс камеры');
+for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Передняя часть v84',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
+ const option=document.createElement('option');option.value=value;option.textContent=label;cameraSelect.appendChild(option);
+}
+cameraSelect.onchange=()=>{setCamera(cameraSelect.value);if(cameraSelect.value==='door-open'){window.wagonSetDoors(true);doorButton.textContent='Закрыть двери'}};
+controls.appendChild(cameraSelect);for(const button of document.querySelectorAll('button'))controls.appendChild(button);document.body.appendChild(controls);
+const controlStyle=document.createElement('style');controlStyle.textContent='#controls{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;gap:8px;flex-wrap:wrap}#controls button{position:static;padding:10px 14px;font-size:13px}#cameraSelect{border:1px solid #53677d;border-radius:8px;background:#162535;color:#f4f6f8;padding:10px;font:13px system-ui}#status{bottom:115px!important}@media(max-width:600px){#info{max-width:calc(100vw - 40px);font-size:11px}#controls button{flex:1 1 40%;padding:9px 6px}#cameraSelect{width:100%}#status{bottom:164px!important}}';document.head.appendChild(controlStyle);
+if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
 document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
@@ -984,15 +1087,16 @@ document.getElementById('status').textContent='3D загружено';window.wag
 // filtered, not per-mesh filtered). Keep depth to preserve correct occlusion.
 let lastRenderTime=performance.now();
 function loop(){
- requestAnimationFrame(loop);const now=performance.now();if(!captureMode)advanceDoors((now-lastRenderTime)/1000);lastRenderTime=now;
+ requestAnimationFrame(loop);if(captureMode&&qaFramesRemaining<=0)return;
+ const now=performance.now();if(!captureMode)advanceDoors((now-lastRenderTime)/1000);lastRenderTime=now;
  ctl.update();const background=scene.background;
  camera.layers.set(0);renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
  renderer.render(scene,camera);
- renderer.autoClear=false;scene.background=null;camera.layers.set(1);
+ renderer.autoClear=false;scene.background=null;camera.layers.set(2);
  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
  renderer.render(scene,camera);
- camera.layers.set(2);renderer.render(scene,camera);
- scene.background=background;renderer.autoClear=true;camera.layers.enable(0);renderedFrames++;
+ camera.layers.set(1);renderer.render(scene,camera);
+ scene.background=background;renderer.autoClear=true;camera.layers.enable(0);renderedFrames++;qaFramesRemaining--;
 }loop();
 
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>

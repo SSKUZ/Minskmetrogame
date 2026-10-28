@@ -165,3 +165,39 @@ clear open doorways and zero pocket contacts at all five sampled poses.
 The local four-view smoke run exposed a test reset issue (doors left open
 before the repeat capture); fixed by explicitly closing before repeating.
 CI always captures all fourteen views; custom short view lists are local only.
+
+## v87: volumetric saloon and perspective checks
+
+Refined the existing longitudinal seating arrangement into forty individually
+rounded 3D cushions and backs, seat plinth ventilation, curved blue uprights,
+stainless rails, inner window reveals, floor finish, curved ceiling, ceiling
+ventilation and diffuse fixtures. Added a thick glazed inter-car end door.
+The original cab bench and upholstery remain. Door leaf inner skins and
+paint decals use stable depth separation to avoid z-fighting at long range.
+
+Passenger lights/materials use a separate rendering layer. Opaque passenger
+surfaces render before the preserved front glazing so transparency composites
+in the correct order. QA renders exactly three frames after a camera/door
+change, then holds the actual WebGL frame; ordinary interaction stays live.
+Camera changes and frame-counter reads are atomic in the test to avoid races.
+The viewer now offers all inspection cameras and door control on phones.
+
+Front regression now separates the unchanged front assembly from the new
+passenger background visible THROUGH its three transparent panes. Seven
+source hashes freeze front geometry, glass, equipment and materials; projected
+bounds of every registered front part must exactly equal immutable v84.
+Pixel comparison excludes ONLY the triangulated interiors of the three actual
+transparent front meshes (not arbitrary rectangles). The complete unmasked
+frontal diff is always retained. The v87 full local run: 0 changed exterior
+pixels; 174 changed pixels behind glazing, not an exterior edit. This replaces
+the overbroad full-frame equality requirement, which rejected new saloon
+ceiling visible above the old cab partition. Cab source blocks are unchanged.
+
+Local full run: fourteen views, phone framing, 0 repeated-frame changes,
+all five sampled door poses clear, 30/60 Hz travel equal, eight windows and
+eight open doorways clear. A real 0.18 m camera shift along the window yields
+326304 changed pixels; source geometry and forty extruded seat assemblies
+confirm the interior is genuinely three-dimensional. This is not a likeness
+score. CI v86 run 40630907974 succeeded; published v86 module hash matched.
+Next: replace the remaining old faceted/grey-blue side roof and grilles with
+one smooth cobalt shell, formed haunches and opposed ventilation scoops.
