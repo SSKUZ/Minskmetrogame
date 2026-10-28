@@ -1480,7 +1480,7 @@ document.getElementById('status').textContent='3D загружено';// Export 
 window.wagonExportConsist=()=>{
  if(!consist?.root||consist.cars.length!==4)throw new Error('v106 consist unavailable');
  const doors=consist.cars.map(car=>({name:car.root.name,leaves:car.leaves.map(d=>({uuid:d.leaf.uuid,homeZ:d.homeZ,half:d.half,travel:d.travel}))}));
- return {geometry:consist.root.toJSON(),doors};
+ return {geometry:consist.root.toJSON(),lighting:scene.children.filter(o=>o.isLight).map(o=>o.toJSON()),doors};
 };
 window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
