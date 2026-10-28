@@ -6,11 +6,13 @@ on:
     paths:
       - 'preview/wagon.html'
       - 'preview/train-components.js'
+      - 'preview/train-factory.js'
       - 'tests/wagon-visual.mjs'
       - 'tests/wagon-image-compare.mjs'
       - 'tests/wagon-front-protection.mjs'
       - 'tests/wagon-continuity.mjs'
       - 'tests/wagon-warning.mjs'
+      - 'tests/wagon-train.mjs'
       - 'tests/wagon-syntax.mjs'
       - 'tests/reference/**'
       - 'package.json'
@@ -33,7 +35,7 @@ jobs:
           npm install --package-lock=false
           npx playwright install --with-deps chromium
       - name: Check wagon JavaScript syntax
-        run: node tests/wagon-syntax.mjs && node --check preview/train-components.js
+        run: node tests/wagon-syntax.mjs && node --check preview/train-components.js && node --check preview/train-factory.js
       - name: Download previous successful testing render
         uses: actions/github-script@v7
         with:
@@ -64,6 +66,8 @@ jobs:
         run: node tests/wagon-visual.mjs
       - name: Check visible warning markings on both sides
         run: node tests/wagon-warning.mjs
+      - name: Check reusable intermediate car
+        run: node tests/wagon-train.mjs
       - name: Save wagon visual report
         if: always()
         uses: actions/upload-artifact@v4

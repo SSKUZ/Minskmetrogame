@@ -1,6 +1,6 @@
 # Current scope — stage 5
 
-Current checkpoint: v103 on testing, based on v101 (744a21c). The task now
+Current checkpoint: v104 on testing, based on v101 (744a21c). The task now
 includes four cars 81-717 / 81-714 / 81-714 / reversed 81-717. Preserve the
 existing head-car detail. Work progressively: warning markings, real end
 walls, intermediate-car components, consist assembly, then performance and
@@ -43,6 +43,30 @@ open door), plus the original v88 control set and front-equipment locks.
 Actual end screenshots show three glazed openings and exposed coupling; no
 ceiling fitting now protrudes through the end. v102 published source/hash
 and both-side warning images were separately checked in Chromium.
+
+## v104 — independent 81-714 and component library
+
+Added preview/train-factory.js. The intermediate uses the existing passenger
+bay, door and warning builders; a symmetric four-door grid; five window bays
+per side; a full passenger floor/ceiling; two real end modules; and 44 actual
+volumetric cushions/backs. No cab partition, controls, nose fascia or mirrors
+are copied into it. Two bogies/eight wheels use the shared underframe template.
+The existing six-seat and two-seat bench modules and four-part vent modules
+reuse BufferGeometry/Material/Texture identities. The intermediate is neither
+a stretched head nor a fourfold HTML copy. Two independent sliding registries
+can already be rebound by cloneCar; assembleConsist accepts variable lengths.
+
+Local intermediate browser check passes seven views, 44 seats, 10 side panes,
+16 leaves, 16 visible warning shields, 8 wheels and 2 end walls. All 16 leaves
+open and close, with a 1.208 m clear doorway. Both-side warning pixel tests
+also pass. Head reference/front/side/open-door/saloon captures retain the
+source locks and zero equipment pixel changes. Original calibrated head
+construction remains; only its parts are offered through captureBuild.
+
+A live v103 browser check exposed missing sibling-module publication. A
+separate testing commit fixes the existing deploy workflow to copy all viewer
+assets beside wagon.html; main production is still only read. Local success
+was not treated as proof of a working published viewer.
 
 All earlier stage-4 and stage-3 notes below are historical.
 

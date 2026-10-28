@@ -28,7 +28,7 @@ export function createAutomaticCoupling({floor=.95,materials:m,face=.40}={}){
  box(.46,.25,.08,0,y,face-.38,m.steel);
  const s=new T.Shape();s.moveTo(-.22,-.12);s.quadraticCurveTo(-.31,-.10,-.27,.01);s.lineTo(-.16,.15);s.quadraticCurveTo(-.10,.25,.01,.23);s.quadraticCurveTo(.12,.24,.16,.12);s.lineTo(.25,-.01);s.quadraticCurveTo(.31,-.12,.20,-.15);s.lineTo(-.22,-.12);
  for(const [x,yy,rx,ry] of [[-.085,-.015,.062,.066],[.083,-.008,.076,.078]]){const p=new T.Path();p.absellipse(x,yy,rx,ry,0,Math.PI*2,true);s.holes.push(p)}
- panel(s,0,y,face-.075,m.cast,.075);
+ const casting=panel(s,0,y,face-.075,m.cast,.075);casting.userData.couplingContact=true;
  for(const x of [-.21,0,.21]){
   const bolt=new T.Mesh(new T.CylinderGeometry(.013,.013,.012,10),m.steel);bolt.rotation.x=Math.PI/2;bolt.position.set(x,y-.10,face+.003);root.add(bolt);
  }
@@ -83,4 +83,18 @@ export function createIntercarEnd({floor=.95,width=2.646,eave=3.155,materials:m}
  root.traverse(o=>{if(o.isMesh)o.layers.set(2)});
  root.userData.glazedOpenings=3;root.userData.doorClearWidth=.735;root.userData.couplingFace=.40;
  return root;
+}
+
+export function createIntercarConnection({floor=.95,gap=.80,materials:m}={}){
+ const root=new T.Group();root.name='intercar-air-and-electric-connections';
+ const {box,tube}=toolsFor(root);
+ // Each car already owns a coupling half and two air-hose loops. Join their
+ // actual free terminals; do not draw a second full coupling over the first.
+ for(const side of [-1,1]){
+  const connector=new T.Mesh(new T.CylinderGeometry(.031,.031,.060,12),m.steel);
+  connector.rotation.x=Math.PI/2;connector.position.set(side*.28,floor-.40,0);root.add(connector);
+ }
+ tube([[.55,floor-.17,-gap/2+.07],[.55,floor-.35,-.19],[.55,floor-.54,0],[.55,floor-.35,.19],[.55,floor-.17,gap/2-.07]],.020,m.rubber);
+ for(const z of [-gap/2+.07,gap/2-.07])box(.065,.085,.045,.55,floor-.17,z,m.cast);
+ root.traverse(o=>{if(o.isMesh)o.layers.set(2)});root.userData.connection=true;return root;
 }

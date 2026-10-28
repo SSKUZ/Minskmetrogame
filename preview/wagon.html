@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v103</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v103: торцевая стенка с остеклённой дверью и автосцепкой.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v104</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v104: самостоятельный промежуточный 81-714 и общие компоненты.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {createIntercarEnd} from './train-components.js?v=103';
+import {createIntercarEnd} from './train-components.js?v=104';
+import {createIntermediateCar,cloneCar,assembleConsist} from './train-factory.js?v=104';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
@@ -416,7 +417,7 @@ function buildBodyCorner(side){
 let doorProgress=0,doorTarget=0;
 function setDoorProgress(progress){
  doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorProgress*doorProgress*(3-2*doorProgress);
- for(const d of slidingLeaves)d.leaf.position.z=d.homeZ+d.half*d.travel*t;
+ for(const car of activeCars)for(const d of car.leaves)d.leaf.position.z=d.homeZ+d.half*d.travel*t;
  qaFramesRemaining=3;
 }
 window.wagonSetDoors=(open,{instant=false}={})=>{doorTarget=open?1:0;if(instant)setDoorProgress(doorTarget)};
@@ -1040,6 +1041,8 @@ const intercarMaterials={paint:sidePaint,lining:sideLining,cream:sideCream,glass
 const headRearEnd=createIntercarEnd({floor:F,width:2*sideWallBase,eave:sideEave-.015,materials:intercarMaterials});
 headRearEnd.position.z=L/2;group.add(headRearEnd);passenger(headRearEnd);
 window.wagonEndDiagnostics=()=>({ends:1,glazedOpenings:headRearEnd.userData.glazedOpenings,doorWidth:headRearEnd.userData.doorClearWidth,couplingFaceZ:L/2+headRearEnd.userData.couplingFace});
+for(const side of [-1,1])for(const dz of doors)addDoorCautions(side,dz);
+const underframeStart=group.children.length;
 // Underframe and simplified bogies at measured-looking locations (not yet factory verified).
 box(1.78,.18,L-1.0,0,F-.27,0,dark);
 for(const z of [-6.50,6.50]){
@@ -1060,9 +1063,67 @@ for(const z of [-6.50,6.50]){
   wheel.rotation.z=Math.PI/2;wheel.position.set(xx,F-.78,zz);group.add(wheel);
  }
 }
+// Shared component library; existing calibrated head construction stays intact.
+const underframeNodes=group.children.slice(underframeStart);
+for(const s of saloonSeats){s.seat.userData.passengerSeat=true;s.back.userData.passengerSeatBack=true;}
+for(const o of underframeNodes)if(o.geometry?.type==='CylinderGeometry'&&o.geometry.parameters.radiusTop===.39)o.userData.wheel=true;
+group.name='81-717';group.userData.carType='81-717';group.userData.hasCab=true;
+function captureBuild(target,build){
+ const add=group.add,np=passengerNodes.length,nw=passengerWindows.length,nl=slidingLeaves.length;
+ group.add=function(...objects){target.add(...objects);return this};
+ try{build();return {windows:passengerWindows.slice(nw),leaves:slidingLeaves.slice(nl)}}
+ finally{group.add=add;passengerNodes.splice(np);passengerWindows.splice(nw);slidingLeaves.splice(nl)}
+}
+function templateFrom(nodes,name,centerZ=0){
+ const root=new T.Group();root.name=name;for(const object of nodes)root.add(object.clone(true));root.position.z=-centerZ;return root;
+}
+group.updateMatrixWorld(true);
+function benchTemplate(a,b,count){
+ const materials=new Set([vinyl,seatBase,sideSteel,railBlue,sideRubber]);
+ const nodes=group.children.filter(o=>{
+  if(!o.isMesh||!materials.has(o.material))return false;
+  const box=new T.Box3().setFromObject(o);
+  return box.min.z>=a-.055&&box.max.z<=b+.055&&box.min.y>F+.025&&box.max.y<3.25&&Math.max(Math.abs(box.min.x),Math.abs(box.max.x))<1.27;
+ });
+ const template=templateFrom(nodes,'shared-'+count+'-seat-bay',(a+b)/2);let seats=0;template.traverse(o=>{if(o.userData.passengerSeat)seats++});
+ if(seats!==count*2)throw new Error('Shared bench extraction lost volumetric seats: '+seats);
+ return template;
+}
+for(const hood of roofScoops)hood.userData.roofVent=true;
+const ventTemplates=[-1,1].map(side=>{
+ const nodes=group.children.filter(o=>{
+  if(!o.isMesh)return false;const b=new T.Box3().setFromObject(o);
+  return b.min.y>3.40&&b.min.z>-7.50&&b.max.z<-6.73&&b.min.x*side>0&&b.max.x*side>0&&Math.max(Math.abs(b.min.x),Math.abs(b.max.x))<1.2;
+ });
+ if(nodes.length!==4)throw new Error('Roof scoop template must contain one hood, mouth and two guides');
+ return templateFrom(nodes,'shared-roof-vent',-7.12);
+});
+const componentLibrary={
+ dimensions:{length:L,width:W,floor:F,wallHalf:sideWallBase,eave:sideEave,crown:bodyEnvelope.mainCrown},
+ materials:{paint:sidePaint,lining:sideLining,floor,floorFinish,steel:sideSteel,rubber:sideRubber,ceiling:ceilingWhite,diffuser},intercarMaterials,
+ bench6:benchTemplate(-5.52,-2.67,6),bench2:benchTemplate(8.38,9.25,2),ventTemplates,ventReferenceY:passengerRoofY(.94,-7.12),
+ underframe:templateFrom(underframeNodes,'shared-underframe-and-bogies'),
+ buildBay:(target,side,a,b)=>captureBuild(target,()=>buildPassengerBay(side,a,b)),
+ buildDoors:(target,side,z)=>captureBuild(target,()=>buildPassengerDoors(side,z)),
+ buildWarnings:(target,side,z)=>captureBuild(target,()=>addDoorCautions(side,z)),
+ addInnerWindowTrim:(target,w)=>captureBuild(target,()=>{
+  sideRing(w.w+.05,w.h+.05,.15,w.side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
+  sideBox(.014,.045,w.w+.12,w.side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
+ })
+};
+const intermediateTemplate=createIntermediateCar(componentLibrary);
+scene.add(intermediateTemplate.root);
+const formationParam=new URLSearchParams(location.search).get('formation')||'single';
+intermediateTemplate.root.visible=formationParam==='intermediate';group.visible=!intermediateTemplate.root.visible;
+const headTemplate={root:group,type:'81-717',windows:passengerWindows,leaves:slidingLeaves,doorCenters:doors,length:L,hasCab:true};
+let activeCars=formationParam==='intermediate'?[intermediateTemplate]:[headTemplate];
+window.wagonTrainDiagnostics=()=>({cars:activeCars.map(car=>{
+ const counts={seats:0,wheels:0,ends:0,warnings:0};car.root.traverse(o=>{if(o.userData.passengerSeat)counts.seats++;if(o.userData.wheel)counts.wheels++;if(o.userData.intercarEnd)counts.ends++;if(o.userData.warningDecal)counts.warnings++});
+ return {type:car.type,hasCab:car.hasCab,position:car.root.position.toArray(),rotationY:car.root.rotation.y,windows:car.windows.length,leaves:car.leaves.length,openLeaves:car.leaves.filter(d=>Math.abs(d.leaf.position.z-d.homeZ)>.001).length,doorClearWidth:.008+1.2*(doorProgress*doorProgress*(3-2*doorProgress)),...counts};
+}),formation:formationParam});
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=103,lightingPreset='station-softboxes-v2';
+const modelVersion=104,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1085,6 +1146,9 @@ Object.assign(cameraPresets,{
 // Stage 4 fixed inspection cameras, also applied to the immutable v88 fixture.
 Object.assign(cameraPresets,{"quarter-45":{"position":[15,4,-15],"target":[0,2,0],"fov":38},"roof-overview":{"position":[12,12,-12],"target":[0,2,0],"fov":43},"cab-roof-join":{"position":[4.8,5.2,-8.55],"target":[0.2,3.4,-8.55],"fov":38},"cab-wall-join":{"position":[5.5,2.55,-7.8],"target":[0,2.4,-7.8],"fov":39}});
 Object.assign(cameraPresets,{
+ 'intermediate-side':{position:[26,2.25,0],target:[0,2.25,0],fov:29},
+ 'intermediate-angle':{position:[15,5,-15],target:[0,2,0],fov:50},
+ 'intermediate-salon':{position:[.55,2.55,8.7],target:[0,2.0,-7.5],fov:58},
  'rear-end':{position:[0,1.80,17.6],target:[0,1.80,L/2],fov:31},
  'rear-end-angle':{position:[4.8,3.2,14.2],target:[0,2.0,L/2],fov:43},
  'side-negative':{position:[-26,2.25,0],target:[0,2.25,0],fov:29},
@@ -1318,13 +1382,12 @@ if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
 document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
 // Construct before the first frame; a texture error must fail browser checks.
-for(const side of [-1,1])for(const dz of doors)addDoorCautions(side,dz);
-window.wagonWarningDecals=group.children.filter(o=>o.userData.warningDecal).length;
-window.wagonWarningDiagnostics=()=>group.children.filter(o=>o.userData.warningDecal).map(mesh=>{
+window.wagonWarningDecals=activeCars.reduce((n,car)=>{car.root.traverse(o=>{if(o.userData.warningDecal)n++});return n},0);
+window.wagonWarningDiagnostics=()=>activeCars.flatMap((car,carIndex)=>{const meshes=[];car.root.traverse(o=>{if(o.userData.warningDecal)meshes.push(o)});return meshes.map(mesh=>{
  mesh.geometry.computeBoundingBox();const b=mesh.geometry.boundingBox,p=b.getCenter(new T.Vector3());
  const projected=p.clone().applyMatrix4(mesh.matrixWorld).project(camera);
- return {side:mesh.userData.side,doorZ:mesh.userData.doorZ,direction:mesh.userData.direction,center:p.toArray(),bounds:{min:b.min.toArray(),max:b.max.toArray()},screen:[(projected.x+1)*innerWidth/2,(1-projected.y)*innerHeight/2],depthTest:mesh.material.depthTest};
-});
+ return {carIndex,side:Math.sign(new T.Vector3(mesh.userData.side,0,0).transformDirection(mesh.matrixWorld).x),doorZ:mesh.userData.doorZ,direction:mesh.userData.direction,center:p.toArray(),bounds:{min:b.min.toArray(),max:b.max.toArray()},screen:[(projected.x+1)*innerWidth/2,(1-projected.y)*innerHeight/2],depthTest:mesh.material.depthTest};
+})});
 // Separate fixed passes also isolate lights (Three.js lights are camera-layer
 // filtered, not per-mesh filtered). Keep depth to preserve correct occlusion.
 let lastRenderTime=performance.now();
