@@ -18,6 +18,10 @@ try{
  assert.ok(state.metrics.meshCount>0);
  assert.ok(state.metrics.triangles>0);
  assert.equal(state.stationCameraActive,true);
+ // The detailed model's first car is centered half a car behind the front anchor.
+ assert.ok(Math.abs(state.trainPosition[2]-(state.trainAnchorZ+19.206/2))<.001,'incorrect v106 longitudinal placement');
+ assert.ok(Math.abs(state.trainPosition[0]+.31)<.001,'incorrect v106 track lateral alignment');
+ assert.ok(Math.abs(state.trainPosition[1]-state.platformPosition[1])<.001,'v106 and platform elevation differ');
  await page.screenshot({path:'test-results/v106/station-closed.png'});
  await page.locator('#screenDoorToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,{timeout:12000});
