@@ -77,6 +77,37 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
     geometry.morphAttributes[name]=attributes.map(rehomeAttribute);
    if(geometry.index)geometry.setIndex(rehomeAttribute(geometry.index));
   });
+  // The viewer's warning labels use a CanvasTexture created in an iframe.
+  // Its HTMLCanvasElement belongs to a different realm, and is not a reliable
+  // WebGL upload source for the game's renderer. Copy the exact original
+  // pixels to a local canvas and use a local THREE material/texture.
+  const warningMeshes=[];
+  root.traverse(object=>{if(object.isMesh&&object.userData?.warningDecal)warningMeshes.push(object);});
+  if(warningMeshes.length!==64)throw new Error('v106 expected 64 original warning decals, got '+warningMeshes.length);
+  const sourceWarningMap=warningMeshes[0].material?.map;
+  const sourceWarningImage=sourceWarningMap?.image||sourceWarningMap?.source?.data;
+  if(!sourceWarningImage?.width||!sourceWarningImage?.height)throw new Error('v106 warning decal canvas unavailable');
+  const localWarningCanvas=document.createElement('canvas');
+  localWarningCanvas.width=sourceWarningImage.width;
+  localWarningCanvas.height=sourceWarningImage.height;
+  localWarningCanvas.getContext('2d').drawImage(sourceWarningImage,0,0);
+  const localWarningTexture=new THREE.CanvasTexture(localWarningCanvas);
+  localWarningTexture.colorSpace=sourceWarningMap.colorSpace;
+  localWarningTexture.anisotropy=sourceWarningMap.anisotropy;
+  localWarningTexture.flipY=sourceWarningMap.flipY;
+  const originalWarningMaterial=warningMeshes[0].material;
+  const localWarningMaterial=new THREE.MeshBasicMaterial({
+   map:localWarningTexture,transparent:originalWarningMaterial.transparent,
+   side:THREE.DoubleSide,depthTest:originalWarningMaterial.depthTest,
+   depthWrite:originalWarningMaterial.depthWrite,
+   toneMapped:originalWarningMaterial.toneMapped,
+   alphaTest:originalWarningMaterial.alphaTest
+  });
+  for(const decal of warningMeshes){
+   decal.material=localWarningMaterial;
+   decal.layers.enable(0);
+   decal.layers.enable(2);
+  }
   window.metroV106InvalidTextureMaps=0;
   root.name='game-v106-four-car-consist';
   // Preserve the exact four original viewer layers. The game renders the
@@ -111,7 +142,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   for(const sourceLight of source.lighting)lighting.add(localLight(sourceLight));
   Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
-  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,warningDecals:0,rehomedAttributes};
+  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,warningDecals:0,warningTexturesRehomed:1,rehomedAttributes};
   root.traverse(o=>{if(o.isMesh){metrics.meshCount++;if(o.userData?.warningDecal)metrics.warningDecals++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
   // Inspect the actual in-memory source assets before the first game render.
   // Report broken resources rather than silently removing their maps.
