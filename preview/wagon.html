@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v101</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v101: наклейки привязаны к 3D-координатам и видимы поверх кузова.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v102</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v102: настоящие предупреждающие наклейки с проверкой обеих сторон.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -231,7 +231,7 @@ function doorChevron(leaf,side,z1,y1,z2,y2){
 // Draw once at high resolution; share the texture among all 16 decals.
 function makeDoorCautionTexture(){
  const c=document.createElement('canvas');c.width=768;c.height=512;
- const ctx=c.getContext('2d');ctx.clearRect(0,0);
+ const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
  ctx.beginPath();ctx.moveTo(28,22);ctx.lineTo(740,22);ctx.lineTo(740,316);
  ctx.lineTo(384,494);ctx.lineTo(28,316);ctx.closePath();
  ctx.fillStyle='#f5cc05';ctx.fill();ctx.lineWidth=17;ctx.strokeStyle='#161616';ctx.stroke();
@@ -253,19 +253,19 @@ function addDoorCautions(side,dz){
  if(!doorCautionMaterial){
   doorCautionMaterial=new T.MeshBasicMaterial({
    map:makeDoorCautionTexture(),transparent:true,side:T.DoubleSide,
-   depthTest:false,depthWrite:false,toneMapped:false
+   depthTest:true,depthWrite:false,toneMapped:false,alphaTest:.025
   });
  }
  for(const direction of [-1,1]){
-  const z=dz+direction*(doorWidth/2+.29),y=F+.48;
+  const z=dz+direction*(doorWidth/2+.22),y=F+.51;
   // Explicit platform-facing rectangle in the YZ plane. Unlike a rotated
   // XY plane this cannot accidentally face inward on the opposite side.
-  const x=side*(half+.095),w=.37,h=.27;
+  const x=side*(sideWallBase+.0012),w=.24,h=.15;
   const verts=new Float32Array([
    x,y-h/2,z-w/2, x,y-h/2,z+w/2,
    x,y+h/2,z+w/2, x,y+h/2,z-w/2
   ]);
-  const uv=new Float32Array(side>0?[0,0,1,0,1,1,0,1]:[1,0,0,0,0,1,1,1]);
+  const uv=new Float32Array(side>0?[1,0,0,0,0,1,1,1]:[0,0,1,0,1,1,0,1]);
   const geo=new T.BufferGeometry();
   geo.setAttribute('position',new T.BufferAttribute(verts,3));
   geo.setAttribute('uv',new T.BufferAttribute(uv,2));
@@ -273,10 +273,9 @@ function addDoorCautions(side,dz){
   geo.computeVertexNormals();
   const decal=new T.Mesh(geo,doorCautionMaterial);
   decal.layers.set(2);
-  decal.renderOrder=2000;
-  decal.frustumCulled=false;
+  decal.renderOrder=2;
   decal.name='passenger-door-caution';
-  decal.userData.warningDecal=true;
+  decal.userData.warningDecal=true;decal.userData.side=side;decal.userData.doorZ=dz;decal.userData.direction=direction;
   group.add(decal);
  }
 }
@@ -1064,7 +1063,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=101,lightingPreset='station-softboxes-v2';
+const modelVersion=102,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1086,6 +1085,12 @@ Object.assign(cameraPresets,{
 });
 // Stage 4 fixed inspection cameras, also applied to the immutable v88 fixture.
 Object.assign(cameraPresets,{"quarter-45":{"position":[15,4,-15],"target":[0,2,0],"fov":38},"roof-overview":{"position":[12,12,-12],"target":[0,2,0],"fov":43},"cab-roof-join":{"position":[4.8,5.2,-8.55],"target":[0.2,3.4,-8.55],"fov":38},"cab-wall-join":{"position":[5.5,2.55,-7.8],"target":[0,2.4,-7.8],"fov":39}});
+Object.assign(cameraPresets,{
+ 'side-negative':{position:[-26,2.25,0],target:[0,2.25,0],fov:29},
+ 'warning-positive':{position:[3.2,1.46,-1.85],target:[1.32,1.46,-1.85],fov:48},
+ 'warning-negative':{position:[-3.2,1.46,-1.85],target:[-1.32,1.46,-1.85],fov:48},
+ 'warning-oblique':{position:[4.5,2.0,-4.0],target:[1.32,1.46,-1.85],fov:35}
+});
 const captureMode=new URLSearchParams(location.search).get('qa')==='1';
 if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el.style.display='none');grid.visible=false;}
 let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
@@ -1310,53 +1315,15 @@ if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
 document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
-// Noncritical decals must never block initial 3D rendering. Add them only
-// after the complete wagon has initialized and the first frames can render.
-// Build decals synchronously before the first capture frame: QA capture mode
-// stops its render loop immediately, so deferred decals never appeared.
-try{
- for(const side of [-1,1])for(const dz of doors)addDoorCautions(side,dz);
- window.wagonWarningDecals=group.children.filter(o=>o.userData.warningDecal).length;
-// Project the decals to a DOM overlay as a reliable visibility fallback.
-// Each shield is anchored to its exact 3D position and tracks the camera.
-const warningOverlay=document.createElement('div');
-warningOverlay.id='warningOverlay';
-warningOverlay.style.cssText='position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:3';
-document.body.appendChild(warningOverlay);
-const warningImage=doorCautionMaterial.map.image.toDataURL('image/png');
-const warningLabels=group.children.filter(o=>o.userData.warningDecal).map(mesh=>{
- const el=document.createElement('img');
- el.src=warningImage;el.alt='Будьте осторожны';
- el.style.cssText='position:absolute;transform:translate(-50%,-50%);pointer-events:none;object-fit:fill;display:none';
- warningOverlay.appendChild(el);
- return {mesh,el};
+// Critical safety markings are ordinary depth-tested 3D surfaces.
+// Construct before the first frame; a texture error must fail browser checks.
+for(const side of [-1,1])for(const dz of doors)addDoorCautions(side,dz);
+window.wagonWarningDecals=group.children.filter(o=>o.userData.warningDecal).length;
+window.wagonWarningDiagnostics=()=>group.children.filter(o=>o.userData.warningDecal).map(mesh=>{
+ mesh.geometry.computeBoundingBox();const b=mesh.geometry.boundingBox,p=b.getCenter(new T.Vector3());
+ const projected=p.clone().applyMatrix4(mesh.matrixWorld).project(camera);
+ return {side:mesh.userData.side,doorZ:mesh.userData.doorZ,direction:mesh.userData.direction,center:p.toArray(),bounds:{min:b.min.toArray(),max:b.max.toArray()},screen:[(projected.x+1)*innerWidth/2,(1-projected.y)*innerHeight/2],depthTest:mesh.material.depthTest};
 });
-window.wagonWarningLabels=warningLabels.length;
-window.updateWarningLabels=function(){
- const cw=renderer.domElement.clientWidth,ch=renderer.domElement.clientHeight;
- const cameraPosition=new T.Vector3();camera.getWorldPosition(cameraPosition);
- const projected=new T.Vector3(),right=new T.Vector3(),up=new T.Vector3();
- for(const {mesh,el} of warningLabels){
-  const side=Math.sign(mesh.geometry.attributes.position.getX(0));
-  // Do not show stickers through the wagon from its opposite side.
-  if(side*cameraPosition.x<half+.12){el.style.display='none';continue;}
-  projected.copy(mesh.geometry.boundingSphere?.center||mesh.position);
-  if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
-  projected.copy(mesh.geometry.boundingSphere.center).project(camera);
-  if(projected.z<0||projected.z>1||Math.abs(projected.x)>1.12||Math.abs(projected.y)>1.12){el.style.display='none';continue;}
-  const a=mesh.geometry.attributes.position;
-  const p0=new T.Vector3(a.getX(0),a.getY(0),a.getZ(0)).project(camera);
-  const p1=new T.Vector3(a.getX(1),a.getY(1),a.getZ(1)).project(camera);
-  const p3=new T.Vector3(a.getX(3),a.getY(3),a.getZ(3)).project(camera);
-  const w=Math.max(4,Math.hypot((p1.x-p0.x)*cw/2,(p1.y-p0.y)*ch/2));
-  const h=Math.max(4,Math.hypot((p3.x-p0.x)*cw/2,(p3.y-p0.y)*ch/2));
-  el.style.left=((projected.x+1)*cw/2)+'px';
-  el.style.top=((1-projected.y)*ch/2)+'px';
-  el.style.width=w+'px';el.style.height=h+'px';el.style.display='block';
- }
-};
- document.getElementById('status').textContent='3D загружено · предупреждений: '+window.wagonWarningDecals;
-}catch(error){console.error('Optional warning decal error:',error);window.wagonWarningDecals=0;}
 // Separate fixed passes also isolate lights (Three.js lights are camera-layer
 // filtered, not per-mesh filtered). Keep depth to preserve correct occlusion.
 let lastRenderTime=performance.now();
@@ -1370,7 +1337,7 @@ function loop(){
  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
  renderer.render(scene,camera);
  camera.layers.set(1);renderer.render(scene,camera);
- scene.background=background;renderer.autoClear=true;camera.layers.enable(0);if(window.updateWarningLabels)window.updateWarningLabels();renderedFrames++;qaFramesRemaining--;
+ scene.background=background;renderer.autoClear=true;camera.layers.enable(0);renderedFrames++;qaFramesRemaining--;
 }loop();
 
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>

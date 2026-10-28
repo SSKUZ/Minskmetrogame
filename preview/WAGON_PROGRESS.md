@@ -1,3 +1,33 @@
+# Current scope — stage 5
+
+Current checkpoint: v102 on testing, based on v101 (744a21c). The task now
+includes four cars 81-717 / 81-714 / 81-714 / reversed 81-717. Preserve the
+existing head-car detail. Work progressively: warning markings, real end
+walls, intermediate-car components, consist assembly, then performance and
+browser review. Never change main or unrelated gameplay/physics.
+
+## v102 — confirmed warning failure and real 3D repair
+
+Chromium reproduced the v101 texture failure: clearRect was called with two
+arguments, while four are required. The broad optional-error handler swallowed
+that exception; the verified v101 creates zero warning meshes. Historical
+object counters therefore do not establish visibility. Preserved exact v101
+source and SHA in tests/reference/wagon-v101.html and stage5-v101.json.
+Fixed texture initialization, removed the DOM fallback and broad exception,
+enabled depth testing, corrected both-side UV orientation and placed 0.240 x
+0.150 m shields 1.2 mm above the flat metal between ribs (Y 1.385–1.535 m).
+Each marking is fixed beside the door, not on a sliding leaf or threshold.
+One shared texture/material serves all sixteen. Real supplied side photographs
+02-5350.jpg, 03-5353.jpg and 04-5356.jpg remain available and were inspected.
+
+Local browser verification: old 18 views and six v88 controls pass; the new
+five-view warning check passes with actual yellow pixels at all eight places
+on each side, readable unmirrored closeups and an oblique view. No JS/console
+errors. The front-equipment protection still has zero changed pixels.
+The existing workflow now explicitly runs the visual warning test.
+
+All earlier stage-4 and stage-3 notes below are historical.
+
 # Current scope — stage 4
 
 Current candidate: v91, testing only, based on confirmed v88. The current user

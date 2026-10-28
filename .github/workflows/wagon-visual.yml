@@ -9,6 +9,7 @@ on:
       - 'tests/wagon-image-compare.mjs'
       - 'tests/wagon-front-protection.mjs'
       - 'tests/wagon-continuity.mjs'
+      - 'tests/wagon-warning.mjs'
       - 'tests/wagon-syntax.mjs'
       - 'tests/reference/**'
       - 'package.json'
@@ -60,6 +61,8 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/wagon-server.log 2>&1 &
       - name: Check only wagon prototype
         run: node tests/wagon-visual.mjs
+      - name: Check visible warning markings on both sides
+        run: node tests/wagon-warning.mjs
       - name: Save wagon visual report
         if: always()
         uses: actions/upload-artifact@v4
