@@ -28,3 +28,12 @@ test('inspection page loads the real game cab and exposes bounded camera API',()
  assert.match(main,/setView\(y,p\)/);
  assert.match(main,/setZoom\(fov\)/);
 });
+
+test('instrument deck factory retains original measurements and screen creation',()=>{
+ const deck=readFileSync(new URL('../js/cab/CabInstrumentDeck.js',import.meta.url),'utf8');
+ assert.match(deck,/instrumentDeck\.position\.set\(0,1\.79,3\.24\)/);
+ assert.match(deck,/instrumentDeck\.rotation\.x=\.39/);
+ assert.match(deck,/box\(instrumentDeck,6\.0,\.13,1\.32,0,0,0,cabShell\)/);
+ assert.match(deck,/return \{instrumentDeck,cabScreen\}/);
+ for(const name of ['leftCabScreen','midCabScreen','rightCabScreen'])assert.ok(main.includes(name));
+});
