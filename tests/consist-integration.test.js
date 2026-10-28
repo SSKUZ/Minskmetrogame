@@ -23,3 +23,13 @@ test('door adapter addresses all original 64 leaves without rewriting door physi
  assert.equal(validateV106Consist({cars}),true);
  assert.throws(()=>validateV106Consist({cars:cars.slice(1)}));
 });
+
+test('game loads actual v106 model on demand without replacing physics',()=>{
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const bridge=readFileSync(new URL('../js/train/ConsistViewerBridge.js',import.meta.url),'utf8');
+ assert.match(html,/id="consistInspectFrame"/);
+ assert.match(html,/ConsistViewerBridge\.js/);
+ assert.match(bridge,/preview\/wagon\.html\?formation=train/);
+ assert.match(bridge,/frame\.src='about:blank'/);
+ assert.doesNotMatch(bridge,/stepTrainMotion|TrainPhysics/);
+});
