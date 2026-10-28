@@ -8,6 +8,7 @@ permissions:
 jobs:
   cab:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,8 +20,7 @@ jobs:
           node --check tests/cab-controls.test.js
       - name: Run isolated cab regression tests
         run: node --test tests/cab-controls.test.js
-      - name: Run full game regression suite (known baseline failures tracked separately)
-        continue-on-error: true
+      - name: Run full game regression suite
         run: npm test
       - name: Install browser dependencies
         run: |
@@ -28,9 +28,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Browser smoke test of actual cab
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/cab-http.log 2>&1 &
-          sleep 2
           node tests/cab-browser.mjs
+          node tests/cab-visual-compare.mjs
       - name: Upload cab screenshots
         if: always()
         uses: actions/upload-artifact@v4

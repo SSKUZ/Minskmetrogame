@@ -1,0 +1,14 @@
+{
+ "image":"assets/cab/design-reference.jpg",
+ "sha256":"3d348768568c37adf570a4a9b1f1c398c0aa09885a4bab31aa1c7f5c002d6d00",
+ "viewport":{"width":1536,"height":864},
+ "camera":{"yaw":0,"pitch":-0.43,"fov":66},
+ "note":"Manually annotated centres in the customer concept. Tolerances check layout, not photographic identity or engineering certification.",
+ "maxDx":0.045,"maxDy":0.05,
+ "landmarks":{
+  "speed":[602,267],"doors":[744,266],"voltage":[947,278],"current":[1121,280],
+  "radioSpeaker":[259,164],"cctv":[1454,126],"lighting":[285,447],"wiper":[472,448],
+  "check":[661,429],"doorOpen":[978,432],"controller":[580,545],
+  "brakeValve":[1340,562],"brakeRelease":[947,675],"emergency":[1110,680]
+ }
+}
