@@ -1482,7 +1482,7 @@ window.wagonExportConsist=()=>{
  const doors=consist.cars.map(car=>({name:car.root.name,leaves:car.leaves.map(d=>({uuid:d.leaf.uuid,homeZ:d.homeZ,half:d.half,travel:d.travel}))}));
  return {geometry:consist.root.toJSON(),lighting:scene.children.filter(o=>o.isLight).map(o=>o.toJSON()),doors};
 };
-window.wagonReady=true;
+window.wagonGetLiveConsist=()=>({root:consist.root,cars:consist.cars,lighting:scene.children.filter(o=>o.isLight)}); window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
 // Construct before the first frame; a texture error must fail browser checks.
 window.wagonWarningDecals=activeCars.reduce((n,car)=>{car.root.traverse(o=>{if(o.userData.warningDecal)n++});return n},0);
