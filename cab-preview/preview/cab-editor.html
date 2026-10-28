@@ -2,18 +2,33 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>81-717 · кабина cab-r2</title><style>
 *{box-sizing:border-box}body{margin:0;background:#111a20;color:#e9e7dc;font:14px system-ui}header{padding:12px 18px;border-bottom:1px solid #3a464a;display:flex;justify-content:space-between;align-items:center;gap:16px}h1{font-size:17px;margin:0}a{color:#d4bf83}main{display:grid;grid-template-columns:1fr 240px;height:calc(100dvh - 52px)}iframe{width:100%;height:100%;border:0;min-height:0}aside{padding:16px;background:#19262d;overflow:auto}button{background:#2c4049;border:1px solid #647780;color:#fff;padding:10px;border-radius:5px;cursor:pointer}.row{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}label{display:block;margin:18px 0}input{width:100%}small,p{line-height:1.55;color:#c0c9c9}img{width:100%;height:auto;border:1px solid #75818a}@media(max-width:700px){main{grid-template-columns:1fr;grid-template-rows:minmax(360px,1fr) auto}aside{max-height:30dvh;padding:10px}header{padding:8px;min-height:52px}h1{font-size:14px}}
-</style></head><body><header><h1>81-717 · игровая кабина · cab-r2</h1><a href="../?preview=station&amp;v=cab-r2">Открыть игру целиком ↗</a></header>
-<main><iframe id="game" title="Рабочая 3D-кабина" src="../?preview=station&amp;cabInspector=1&amp;v=cab-r2"></iframe><aside>
+</style></head><body><header><h1>81-717 · игровая кабина · cab-r2</h1><a href="../?preview=station&amp;v=cab-r2.1">Открыть игру целиком ↗</a></header>
+<main><iframe id="game" title="Рабочая 3D-кабина" src="../?preview=station&amp;cabInspector=1&amp;v=cab-r2.1"></iframe><aside>
 <strong>Камера машиниста</strong><p id="status">Загрузка сцены…</p><p id="performance" aria-live="off">Частота кадров: измерение…</p><div class="row"><button id="front">Путь</button><button id="up">Пульт</button><button id="left">Слева</button><button id="right">Справа</button></div>
 <label>Угол обзора <input id="zoom" type="range" min="38" max="82" value="66"></label><button id="reset">Ракурс эталона</button>
 <p>Управляйте кнопками и рукоятками прямо в игре. Мышь или касание на свободной поверхности поворачивают голову.</p>
 <small>W/S или ↑/↓ — рычаг; 1–5 — тяга; N — выбег; B — служебный тормоз; пробел — полный тормоз; O/P — двери; I — INFO; L/F — свет/фары; H — сигнал; T — проверка ламп.</small>
 <p>Электрические приборы помечены «НЕТ ДАННЫХ»: ток, напряжение и пневматика пока не моделируются.</p>
-<a href="../assets/cab/design-reference.jpg" target="_blank"><img src="../assets/cab/design-reference.jpg" alt="Утверждённый эталон кабины"></a><p><a href="cab-comparison.html">Сравнение и отчёт ↗</a></p>
+<a href="../assets/cab/design-reference.jpg" target="_blank"><img src="../assets/cab/design-reference.jpg" alt="Утверждённый эталон кабины"></a><p><a href="cab-comparison.html?v=cab-r2.1">Сравнение и отчёт ↗</a></p>
 </aside></main><script>
 const frame=document.querySelector('#game');let api=null;
-frame.addEventListener('load',()=>{const timer=setInterval(()=>{const w=frame.contentWindow;if(w.metro3DReady&&w.metroCabInspector){api=w.metroCabInspector;document.querySelector('#status').textContent='Игра загружена · '+api.version;clearInterval(timer)}},300)});
-setInterval(()=>{if(!api||document.hidden)return;const frames=api.getPerformance().frameHistoryMs.slice(-45).filter(ms=>Number.isFinite(ms)&&ms>0);if(frames.length<12)return;const fps=1000/(frames.reduce((n,ms)=>n+ms,0)/frames.length);document.querySelector('#performance').textContent='Частота кадров: ≈'+fps.toLocaleString('ru-RU',{maximumFractionDigits:1})+' кадр/с · на этом устройстве';},2000);
+const cameraControls=['front','up','left','right','zoom','reset'];
+function refresh(){
+ if(document.hidden)return;
+ const w=frame.contentWindow;
+ if(w.metro3DReady&&w.metroLastRendered&&w.metroCabInspector){
+  api=w.metroCabInspector;document.querySelector('#status').textContent='Игра загружена · '+api.version;
+  for(const id of cameraControls)document.getElementById(id).disabled=false;
+  const frames=api.getPerformance().frameHistoryMs.slice(-45).filter(ms=>Number.isFinite(ms)&&ms>0);
+  if(frames.length>=12){const fps=1000/(frames.reduce((n,ms)=>n+ms,0)/frames.length);document.querySelector('#performance').textContent='Частота кадров: ≈'+fps.toLocaleString('ru-RU',{maximumFractionDigits:1})+' кадр/с · на этом устройстве';}
+ }else{
+  api=null;const unavailable=w.metro3DError||w.document.body?.classList.contains('metro-fallback');
+  document.querySelector('#status').textContent=unavailable?'Не удалось запустить 3D в этом браузере. Доступен резервный режим.':'Загрузка сцены…';
+  document.querySelector('#performance').textContent=unavailable?'Частота кадров 3D недоступна':'Частота кадров: измерение…';
+  for(const id of cameraControls)document.getElementById(id).disabled=true;
+ }
+}
+frame.addEventListener('load',refresh);setInterval(refresh,2000);refresh();
 const preset=(y,p)=>{if(api)api.setView(y,p)};
 document.querySelector('#front').onclick=()=>preset(0,-.03);document.querySelector('#up').onclick=()=>preset(0,-.49);document.querySelector('#left').onclick=()=>preset(.62,-.37);document.querySelector('#right').onclick=()=>preset(-.62,-.37);
 document.querySelector('#zoom').oninput=e=>api?.setZoom(Number(e.target.value));document.querySelector('#reset').onclick=()=>{preset(0,-.43);if(api)api.setZoom(66);document.querySelector('#zoom').value=66};
