@@ -88,7 +88,8 @@ try{
  assert.ok(moving.game.train.distanceToStation<beforeMove.train.distanceToStation-2,'train distance did not advance: '+JSON.stringify({beforeMove,moving}));
  assert.equal(moving.v106.loaded,true,'v106 unloaded while train was moving');
  assert.equal(moving.v106.metrics.warningDecals,64,'warning decals disappeared while moving');
- await page.screenshot({path:'test-results/v106/station-desktop-moving.png'});
+ // Software WebGL may need over 30s to deliver a full frame while the train moves.
+ await page.screenshot({path:'test-results/v106/station-desktop-moving.png',timeout:120000,animations:'disabled'});
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed during v106 smoke');
  assert.deepEqual(errors,[]);
