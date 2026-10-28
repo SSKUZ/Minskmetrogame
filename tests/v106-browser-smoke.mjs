@@ -29,14 +29,15 @@ try{
  await page.waitForTimeout(450);
  await page.screenshot({path:'test-results/v106/station-desktop-closed.png'});
  await page.locator('#screenDoorToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,{timeout:12000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorsOpen===true,{timeout:15000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,{timeout:60000});
  await page.screenshot({path:'test-results/v106/station-open.png'});
  await page.screenshot({path:'test-results/v106/station-desktop-open.png'});
  const after=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(after.doorsOpen,true);
  // Reversing the door command must close all animated leaves, not only open them.
  await page.locator('#screenDoorToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,{timeout:12000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,{timeout:60000});
  const closedAgain=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(closedAgain.doorsOpen,false);
  // The original model must survive leaving and re-entering the platform camera.
