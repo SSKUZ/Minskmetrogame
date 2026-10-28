@@ -3,6 +3,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {PNG} from 'pngjs';
+import {createHash} from 'node:crypto';
 
 const output=path.join(process.env.WAGON_RESULTS_DIR||'test-results/wagon','train');await mkdir(output,{recursive:true});
 const target=process.env.WAGON_TARGET_URL||'http://127.0.0.1:8765/preview/wagon.html';
@@ -26,6 +27,14 @@ try{
  const url=new URL(target);url.searchParams.set('qa','1');url.searchParams.set('formation','intermediate');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>window.wagonReady&&window.wagonDiagnostics().renderedFrames>=3,null,{timeout:90000});
+ const source=await readFile('preview/wagon.html','utf8'),hash=s=>createHash('sha256').update(s).digest('hex');
+ assert.equal(hash(await page.locator('script[type="module"]').textContent()),hash(source.match(/<script type="module">([\s\S]*?)<\/script>/)[1]),'Published viewer is stale');
+ report.externalModules=[];
+ for(const match of source.matchAll(/from '\.\/([^']+\.js(?:\?[^']*)?)'/g)){
+  const file=match[1],response=await page.evaluate(async file=>{const r=await fetch(new URL(file,location.href));return {status:r.status,text:await r.text()}},file);
+  assert.equal(response.status,200,`Missing published module: ${file}`);
+  const sha=hash(response.text);assert.equal(sha,hash(await readFile(path.join('preview',file.split('?')[0]),'utf8')),`Stale published module: ${file}`);report.externalModules.push({file,sha256:sha});
+ }
  report.version=await page.evaluate(()=>window.wagonDiagnostics().modelVersion);
  report.intermediate=await page.evaluate(()=>window.wagonTrainDiagnostics());
  assert.equal(report.intermediate.cars.length,1);const c=report.intermediate.cars[0];
@@ -46,6 +55,7 @@ try{
   assert.equal(report.train.joints.length,3);
   for(const j of report.train.joints){assert.ok(Math.abs(j.bodyGap-.80)<.00001,'Bodies overlap or separate excessively');assert.ok(j.couplingGap<.00001,'Actual cast coupling faces do not meet');assert.ok(j.opposedNormals<-.99999)}
   assert.ok(report.train.uniqueGeometries<report.train.cars.reduce((n,c)=>n+c.meshes,0)*.6,'Car copies duplicate GPU geometry');
+  if(report.version>=106)for(const b of Object.values(report.train.batching)){assert.equal(b.before.triangles,b.after.triangles,'Optimisation removed triangles');assert.ok(b.after.meshes<b.before.meshes*.5,'Static batching failed to reduce object submissions')}
   for(const view of ['train-side','train-side-negative','train-angle','front','rear-cab','rear-cab-angle','intercar','coupling-close'])await frame(view);
   report.visibleWarningPixels=[];
   for(let car=0;car<4;car++){

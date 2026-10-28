@@ -42,7 +42,7 @@ const page=await browser.newPage({viewport:{width:1536,height:934},deviceScaleFa
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 // Node's request context can use the runtime's trusted proxy CA when the
 // local Chromium certificate store lacks it. HTTPS verification stays enabled.
-if(process.env.WAGON_FETCH_HTML==='1')await page.route('https://**/wagon.html*',async route=>{
+if(process.env.WAGON_FETCH_HTML==='1')await page.route(new URL(target).origin+'/**',async route=>{
  const response=await route.fetch();await route.fulfill({response});
 });
 // Optional fixtures for restricted local runtimes. CI uses its HTTP server.

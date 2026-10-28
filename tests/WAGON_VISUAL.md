@@ -1,3 +1,32 @@
+# Stage 5: four-car viewer and visible warnings
+
+Current workflow preserves all 18 calibrated head views and six v88 controls
+in single-car mode. It additionally runs:
+
+- `wagon-warning.mjs`: sixteen head warnings, eight actual yellow pixel patches
+  on each side, readable closeups and an oblique view, real depth testing,
+  correct sheet/rib/door placement and no DOM fallback.
+- `wagon-train.mjs`: independent full-length 81-714; 25 views across four cars,
+  both outward heads, 44/40 real seats, 32 wheels, 64 leaves, body separation,
+  actual cast-coupling vertex contact, 64 visible warning patches, phone
+  framing, full-train no-cropping, preserved triangle counts and served hashes
+  for every sibling JS module.
+- `wagon-ui.mjs`: ordinary 412 x 915 phone controls, actual open/close of all
+  car doors, car/formation/camera selectors, orbit gesture and GPU idle.
+
+`preview/train-components.js` owns the classic end/coupling modules;
+`train-factory.js` builds the intermediate and variable-length consists;
+`train-batching.js` batches static opaque geometry without dropping triangles.
+All viewer assets must publish beside wagon.html. The existing deploy job
+copies the full candidate/preview directory, with main production kept intact.
+Reports under warnings/, train/ and ui/ are included in the existing artifact.
+Immutable v101 and the confirmed clearRect error are in stage5-v101.json;
+real-photo provenance and dimensional limits are in stage5-sources.json.
+
+Older stage notes below document historical protection policies. The current
+head-equipment source lock remains enforced; all viewer/game controls are
+independent of the unmodified game JS modules.
+
 # Wagon visual checks
 
 Use only `testing`. The sole front photo is `reference/uruchcha-81-717.png`, copied

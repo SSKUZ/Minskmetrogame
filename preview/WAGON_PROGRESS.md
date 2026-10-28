@@ -1,6 +1,6 @@
 # Current scope — stage 5
 
-Current checkpoint: v105 on testing, based on v101 (744a21c). The task now
+Current checkpoint: v106 on testing, based on v101 (744a21c). The task now
 includes four cars 81-717 / 81-714 / 81-714 / reversed 81-717. Preserve the
 existing head-car detail. Work progressively: warning markings, real end
 walls, intermediate-car components, consist assembly, then performance and
@@ -94,6 +94,43 @@ protected equipment pixels. v102, v103 and v104 visual Actions succeeded;
 the repaired v103 and independent v104 publications were actually rendered.
 Next checkpoint measures and reduces static draw calls without dropping
 triangles or changing moving doors/glazing.
+
+## v106 — exact static batches and final visual checks
+
+Added preview/train-batching.js. Only static opaque meshes with identical
+material/layer/render state are concatenated, preserving every original
+triangle, normal and UV. Shared batched templates are instantiated twice;
+moving leaves, transparent panes, warning markings, coupling contact meshes
+and protected front equipment remain separate. Source ranges retain actual
+vertex/index bounds and component provenance for geometry diagnostics.
+
+Head template meshes: 1612 -> 296, triangles 487401 -> 487401. Intermediate:
+1061 -> 194, triangles 416922 -> 416922. Whole-train side rendering measured
+5579 -> 1213 draw calls (78.3% fewer), with exactly 1839994 drawn triangles
+in both cases. Geometry/material identities remain shared; four textures.
+CPU-submit timings in local SwiftShader are diagnostics, not measured FPS on
+physical phones. The normal viewer stops GPU submissions after the camera
+and doors settle, and OrbitControls change events request fresh frames.
+
+Removed slope-based polygon offset from the door interior lining and retained
+only a constant small offset for chevrons: the old slope bias projected cream
+inner faces through blue outer leaves in distant oblique views. Train near
+plane is 2 m; close/calibrated head cameras retain 0.03 m. Whole-train presets
+automatically fit actual bounds and have explicit no-cropping assertions.
+
+Full local 18-view head suite and six v88 controls pass with zero protected
+front-equipment changes and deterministic repeat images. The 25-view train
+suite checks all four bodies, actual coupling-face vertices, outward cabs,
+all 64 moving leaves, 168 seats, 32 wheels and actual yellow pixels at all 64
+warnings. It checks both phone train/cab framing and the served SHA-256 of
+all three sibling JS modules. Ordinary phone controls are tested separately.
+
+Remaining limits: this is still the isolated viewer; gameplay/physics are
+unchanged. Original envelope and underframe approximations are retained;
+factory dimensions, exact Minsk subvariant end hardware and small finishes
+are not CAD-verified. No articulated curve physics, coupler slack simulation,
+passenger transfer through end doors or new bidirectional driving is added.
+No claim of a physical-device frame rate is made from SwiftShader captures.
 
 All earlier stage-4 and stage-3 notes below are historical.
 

@@ -14,7 +14,7 @@ if(process.env.HTTPS_PROXY&&process.env.WAGON_USE_PROXY==='1')launch.proxy={serv
 const browser=await chromium.launch(launch),page=await browser.newPage({viewport:{width:1536,height:934},deviceScaleFactor:1});
 const errors=[],report={result:'running',target,views:[],errors};
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
-if(process.env.WAGON_FETCH_HTML==='1')await page.route('https://**/wagon.html*',async r=>r.fulfill({response:await r.fetch()}));
+if(process.env.WAGON_FETCH_HTML==='1')await page.route(new URL(target).origin+'/**',async r=>r.fulfill({response:await r.fetch()}));
 if(process.env.WAGON_LOCAL_ROOT)await page.route('http://127.0.0.1:8765/**',r=>r.fulfill({path:path.join(process.env.WAGON_LOCAL_ROOT,new URL(r.request().url()).pathname),contentType:r.request().url().includes('.html')?'text/html':'application/javascript'}));
 if(process.env.WAGON_ASSET_DIR)await page.route('https://cdn.jsdelivr.net/npm/three@0.160.1/**',r=>r.fulfill({path:path.join(process.env.WAGON_ASSET_DIR,r.request().url().endsWith('OrbitControls.js')?'OrbitControls.js':'three.module.js'),contentType:'application/javascript',headers:{'access-control-allow-origin':'*'}}));
 try{

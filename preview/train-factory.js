@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {createIntercarEnd} from './train-components.js?v=105';
+import {createIntercarEnd} from './train-components.js?v=106';
 
 // The intermediate is built from passenger modules, not a scaled head car.
 // The library owns the shared materials/geometries and calibrated head parts.

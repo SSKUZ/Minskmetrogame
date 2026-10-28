@@ -49,6 +49,8 @@ jobs:
           touch public/.nojekyll
           test -f public/preview/wagon.html
           test -f public/preview/train-components.js
+          test -f public/preview/train-factory.js
+          test -f public/preview/train-batching.js
           test -f public/index.html
           test -f public/preview/index.html
           test -f public/preview/js/main.js

@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Четырёхвагонный состав · v105</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v105: 81-717 — 81-714 — 81-714 — 81-717.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Четырёхвагонный состав · v106</b><br>Каждый вагон: 19,206 × 2,670 м · 4 двери на сторону<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v106: четыре вагона, общие компоненты, 64 предупреждающие наклейки.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {createIntercarEnd,createIntercarConnection} from './train-components.js?v=105';
-import {createIntermediateCar,cloneCar,assembleConsist} from './train-factory.js?v=105';
+import {createIntercarEnd,createIntercarConnection} from './train-components.js?v=106';
+import {createIntermediateCar,cloneCar,assembleConsist} from './train-factory.js?v=106';
+import {batchStaticCar} from './train-batching.js?v=106';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
@@ -122,8 +123,8 @@ const sideRubber=new T.MeshStandardMaterial({color:0x10151a,roughness:.83,side:T
 const sideSteel=new T.MeshStandardMaterial({color:0xb5b6aa,metalness:.65,roughness:.32,envMap:frontEnvironment,envMapIntensity:.6,side:T.DoubleSide});
 const sideCream=new T.MeshStandardMaterial({color:0xe8ddbf,metalness:.1,roughness:.5,side:T.DoubleSide});
 const sideLining=new T.MeshStandardMaterial({color:0xd7d1bf,roughness:.72,side:T.DoubleSide});
-const chevronPaint=sideCream.clone();chevronPaint.polygonOffset=true;chevronPaint.polygonOffsetFactor=-1;chevronPaint.polygonOffsetUnits=-2;
-const doorInnerLining=sideLining.clone();doorInnerLining.polygonOffset=true;doorInnerLining.polygonOffsetFactor=-1;doorInnerLining.polygonOffsetUnits=-2;
+const chevronPaint=sideCream.clone();chevronPaint.polygonOffset=true;chevronPaint.polygonOffsetFactor=0;chevronPaint.polygonOffsetUnits=-1;
+const doorInnerLining=sideLining.clone();doorInnerLining.polygonOffset=false;
 const sideGlass=new T.MeshPhysicalMaterial({color:0xe1ecec,transparent:true,opacity:.13,roughness:.12,metalness:0,envMap:frontEnvironment,envMapIntensity:.20,clearcoat:.18,depthWrite:false,side:T.DoubleSide});
 const sideAmbient=new T.HemisphereLight(0xfff6e6,0x343b47,.95);sideAmbient.layers.set(2);scene.add(sideAmbient);
 for(const [x,y,z,power] of [[7,10,3,2.4],[-6,5,-4,1.0]]){
@@ -422,6 +423,7 @@ function setDoorProgress(progress){
 }
 window.wagonSetDoors=(open,{instant=false}={})=>{doorTarget=open?1:0;if(instant)setDoorProgress(doorTarget)};
 function advanceDoors(dt){
+ if(doorProgress===doorTarget)return;
  const step=T.MathUtils.clamp(Number(dt)||0,0,.1)/1.55;
  setDoorProgress(doorProgress+Math.sign(doorTarget-doorProgress)*Math.min(step,Math.abs(doorTarget-doorProgress)));
 }
@@ -1114,7 +1116,10 @@ const componentLibrary={
 const intermediateTemplate=createIntermediateCar(componentLibrary);
 scene.add(intermediateTemplate.root);
 const headTemplate={root:group,type:'81-717',windows:passengerWindows,leaves:slidingLeaves,doorCenters:doors,length:L,hasCab:true};
-const consist=assembleConsist({'81-717':headTemplate,'81-714':intermediateTemplate});
+for(const [name,value] of qaObjects)if(name!=='roof')for(const node of Array.isArray(value)?value:[value])node.userData.keepRenderObject=true;
+const headRenderTemplate=cloneCar(headTemplate),intermediateRenderTemplate=cloneCar(intermediateTemplate);
+const batching={head:batchStaticCar(headRenderTemplate.root),intermediate:batchStaticCar(intermediateRenderTemplate.root)};
+const consist=assembleConsist({'81-717':headRenderTemplate,'81-714':intermediateRenderTemplate});
 for(let i=0;i<consist.cars.length-1;i++){
  const joint=createIntercarConnection({floor:F,gap:consist.gap,materials:intercarMaterials});
  joint.position.z=(consist.cars[i].root.position.z+consist.cars[i+1].root.position.z)/2;consist.root.add(joint);
@@ -1141,7 +1146,12 @@ function carMeasurements(car){
  const counts={seats:0,wheels:0,ends:0,warnings:0,roofVents:0,meshes:0,frontLamps:0,frontPanes:0},body=new T.Box3(),contacts=[];
  car.root.updateMatrixWorld(true);
  car.root.traverse(o=>{
-  if(o.isMesh)counts.meshes++;if(/^headlamp-[0-5]$/.test(o.name))counts.frontLamps++;if(/^window-(left|center|right)$/.test(o.name))counts.frontPanes++;
+  if(o.isMesh)counts.meshes++;
+  for(const p of o.userData.batchedParts||[]){
+   if(p.passengerSeat)counts.seats++;if(p.wheel)counts.wheels++;if(p.roofVent)counts.roofVents++;
+   if(p.structural)body.union(new T.Box3(new T.Vector3(...p.bounds.min),new T.Vector3(...p.bounds.max)).applyMatrix4(o.matrixWorld));
+  }
+  if(/^headlamp-[0-5]$/.test(o.name))counts.frontLamps++;if(/^window-(left|center|right)$/.test(o.name))counts.frontPanes++;
   if(o.userData.passengerSeat)counts.seats++;if(o.userData.wheel)counts.wheels++;if(o.userData.intercarEnd)counts.ends++;
   if(o.userData.warningDecal)counts.warnings++;if(o.userData.roofVent)counts.roofVents++;
   if(o.isMesh&&(o.userData.sideWall||['outer-side','outer-roof'].includes(o.userData.structuralRole)))body.union(new T.Box3().setFromObject(o));
@@ -1160,7 +1170,7 @@ window.wagonTrainDiagnostics=()=>{
   joints.push({bodyGap:cars[i+1].body.min[2]-cars[i].body.max[2],couplingGap:a&&b?new T.Vector3(...a.point).distanceTo(new T.Vector3(...b.point)):null,opposedNormals:a&&b?new T.Vector3(...a.normal).dot(new T.Vector3(...b.normal)):null});
  }
  const geometries=new Set(),materials=new Set();for(const car of activeCars)car.root.traverse(o=>{if(o.isMesh){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m)}});
- return {cars,joints,formation:formationMode,uniqueGeometries:geometries.size,uniqueMaterials:materials.size,frame:window.wagonFrameStats||null};
+ return {cars,joints,formation:formationMode,batching,uniqueGeometries:geometries.size,uniqueMaterials:materials.size,frame:window.wagonFrameStats||null};
 };
 window.wagonSelectCar=index=>{
  if(!Number.isInteger(index)||index<0||index>=consist.cars.length)throw new Error('Unknown car');
@@ -1176,7 +1186,7 @@ window.wagonSetFormation=mode=>{
 };
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=105,lightingPreset='station-softboxes-v2';
+const modelVersion=106,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1223,6 +1233,7 @@ Object.assign(cameraPresets,{
 const captureMode=new URLSearchParams(location.search).get('qa')==='1';
 if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el.style.display='none');grid.visible=false;}
 let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
+ctl.addEventListener('change',()=>{qaFramesRemaining=3});
 function fitCameraProjection(){
  const base=cameraPresets[cameraMode]?.fov||58;
  const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side','side-full','side-angle','roof-side','quarter-45','roof-overview','train-side','train-side-negative','train-angle'].includes(cameraMode)?1.64:['door-close','door-open','window-close','roof-join','cab-roof-join','cab-wall-join'].includes(cameraMode)?.95:0;
@@ -1242,7 +1253,7 @@ function setCamera(mode){
  cameraMode=mode;
  const preset=cameraPresets[mode]||cameraPresets.outside;
  ctl.enableDamping=false;ctl.autoRotate=false;
- ctl.maxDistance=mode.startsWith('train-')?180:42;camera.far=mode.startsWith('train-')?300:150;camera.near=mode.startsWith('train-')?1:.03;
+ ctl.maxDistance=mode.startsWith('train-')?180:42;camera.far=mode.startsWith('train-')?300:150;camera.near=mode.startsWith('train-')?2:.03;
  camera.position.fromArray(preset.position);ctl.target.fromArray(preset.target);
  if(formationMode==='train'){
   const ownCar=!mode.startsWith('train-')&&!['rear-cab','rear-cab-angle','intercar','coupling-close'].includes(mode);
@@ -1461,7 +1472,7 @@ const carSelect=document.createElement('select');carSelect.id='carSelect';carSel
 for(const [i,car] of consist.cars.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=(i+1)+' · '+car.type;carSelect.appendChild(option)}
 carSelect.onchange=()=>window.wagonSelectCar(Number(carSelect.value));
 controls.appendChild(formationSelect);controls.appendChild(carSelect);controls.appendChild(cameraSelect);for(const button of document.querySelectorAll('button'))controls.appendChild(button);document.body.appendChild(controls);
-const controlStyle=document.createElement('style');controlStyle.textContent='#controls{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;gap:8px;flex-wrap:wrap}#controls button{position:static;padding:10px 14px;font-size:13px}#cameraSelect,#formationSelect,#carSelect{border:1px solid #53677d;border-radius:8px;background:#162535;color:#f4f6f8;padding:10px;font:13px system-ui}#status{bottom:115px!important}@media(max-width:600px){#info{max-width:calc(100vw - 40px);font-size:11px}#controls button{flex:1 1 40%;padding:9px 6px}#cameraSelect{width:100%}#formationSelect,#carSelect{flex:1 1 40%;min-width:0}#status{bottom:164px!important}}';document.head.appendChild(controlStyle);
+const controlStyle=document.createElement('style');controlStyle.textContent='#controls{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;gap:8px;flex-wrap:wrap}#controls button{position:static;padding:10px 14px;font-size:13px}#cameraSelect,#formationSelect,#carSelect{border:1px solid #53677d;border-radius:8px;background:#162535;color:#f4f6f8;padding:10px;font:13px system-ui}#status{bottom:115px!important}@media(max-width:600px){#info{max-width:calc(100vw - 40px);font-size:11px}#controls button{flex:1 1 40%;padding:9px 6px}#cameraSelect{width:100%}#formationSelect,#carSelect{flex:1 1 40%;min-width:0}#status{bottom:220px!important}}';document.head.appendChild(controlStyle);
 if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);else setCamera(formationMode==='train'?'train-angle':formationMode==='intermediate'?'intermediate-angle':'outside');
@@ -1482,7 +1493,8 @@ function loop(){
  requestAnimationFrame(loop);if(captureMode&&qaFramesRemaining<=0)return;
  const now=performance.now();if(!captureMode)advanceDoors((now-lastRenderTime)/1000);lastRenderTime=now;
  const frameStart=performance.now();renderer.info.reset();
- ctl.update();const background=scene.background;
+ const moved=ctl.update();if(!captureMode&&!moved&&qaFramesRemaining<=0&&doorProgress===doorTarget)return;
+ const background=scene.background;
  camera.layers.set(0);renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
  renderer.render(scene,camera);
  renderer.autoClear=false;scene.background=null;camera.layers.set(2);
