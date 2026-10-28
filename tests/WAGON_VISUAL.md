@@ -1,6 +1,6 @@
 # Wagon visual checks
 
-Use only `testing`. The sole photo is `reference/uruchcha-81-717.png`, copied
+Use only `testing`. The sole front photo is `reference/uruchcha-81-717.png`, copied
 from the user's 5312.png attachment. Its SHA-256 is checked before rendering.
 Manual bounds in the adjacent JSON file are approximate, inspectable labels.
 
@@ -9,7 +9,7 @@ Run `npm install --package-lock=false`, `npx playwright install chromium`, start
 
 The existing **Wagon 3D model checks** workflow runs on relevant testing pushes
 and can be launched manually on testing. It downloads the latest retained
-successful testing artifact as the baseline, renders six fixed views at
+successful testing artifact as the baseline, renders fourteen fixed views at
 1536 × 934 / DPR 1, waits for built geometry and rendered frames, and uploads
 the screenshots, diffs, JSON, Markdown, and an HTML gallery. The artifact name
 and report contain the tested commit SHA; the report also identifies baseline
@@ -74,3 +74,12 @@ Eight additional deterministic presets: side-full, side-angle, door-close,
 window-close, window-inside, door-open, roof-side, roof-join. The door-open
 preset becomes a true open-door capture when moving leaves land in stage 3.
 Camera presets are for inspection, not a factory dimensional survey.
+
+
+Stage 3 side-source provenance is in `reference/side-stage3-sources.json`.
+The AI collage is not dimensional evidence. Source photos of sides and the
+mechanical manual guide review; side likeness is not a fake percentage metric.
+Checks additionally cover forty volumetric seats, 26 roof scoops, normal/winding
+agreement, 30/60 Hz door motion, sampled wall-pocket clearance and real window
+parallax. The ordinary viewer remains live; QA holds each actual WebGL frame
+only after three renders. All captures retain fixed 1536 × 934 parameters.

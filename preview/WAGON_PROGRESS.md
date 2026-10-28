@@ -1,9 +1,12 @@
-# Current scope (latest user instruction)
+# Current scope — stage 3
 
-Front exterior only: roof brow, nose corners, fascia, three front panes,
-markers, six headlights, yellow mirrors, blank information panel, bumper and
-coupler. Preserve passenger doors, side windows/walls beyond cab corners,
-saloon, seats and ALL interior equipment. No station name on the display.
+Current candidate: v88, testing only. Preserve the complete v84 front assembly,
+its source hashes, glass, cab equipment, lamps (1 + 4 + 1), mirrors, bumper,
+coupler and blank display. Passenger sides, doors, glazing, saloon and side
+roof are now the permitted work. Never change main or gameplay modules.
+
+The v80–v84 sections below are historical. Stage 3 supersedes the earlier
+front-only restrictions; its latest checkpoint is at the end of this file.
 
 # Autonomous wagon refinement checkpoint
 
@@ -201,3 +204,48 @@ confirm the interior is genuinely three-dimensional. This is not a likeness
 score. CI v86 run 40630907974 succeeded; published v86 module hash matched.
 Next: replace the remaining old faceted/grey-blue side roof and grilles with
 one smooth cobalt shell, formed haunches and opposed ventilation scoops.
+
+
+## v88: final stage-3 geometry and material checkpoint
+
+Replaced the remaining faceted passenger roof with a dense curved shell that
+starts at the exact back station of the locked front roof. Added formed side
+haunches, metallic panel seams, closed rear crown, rain edge and 26 curved
+ventilation scoops with opposed recessed mouths. The v84 forward roof source
+is unchanged. Corrected the winding of positive-side wall triangles to match
+the supplied lighting normals (the mismatch made the body almost black).
+Added an automated normal/winding agreement check. Corrected the rear belt
+and sill centres so neither overhangs the body. Stable exterior cab-paint
+depth bias removes long-distance moire without moving cab geometry.
+
+Full local v88 run passed all 14 views and the phone; repeat 0 changed pixels.
+Protected front exterior: 0; complete front frame: 185 changed pixels, all
+inside actual transparent glazing. Seven pinned source blocks and exact
+front projected bounds pass. Door sweeps (five sampled poses), open-door and
+window rays: 0 detected contacts/blockages. Counts: eight passenger windows,
+sixteen leaves, forty volumetric seats, twenty-six roof scoops; inverted wall
+normal samples: zero. v87 Actions run 40632018428 succeeded. The existing
+unit suite remains 10/12 with the same two original failures; gameplay JS
+and its tests were not modified. Final publication verification follows the
+commit; never infer deployment solely from a successful commit.
+
+Remaining limits / next justified work:
+- The fixed v84 envelope, 350 mm aft shift of the passenger grid and short
+  rear window bay should be checked against a factory drawing before any
+  claim of exact production dimensions. The frozen cab was fitted, not moved.
+- The roof transition into v84 remains an approximation constrained by the
+  protected forward shell. No nose geometry was corrected to fit the sides.
+- Window opening-light hardware, door rollers/drive details, panel welds,
+  real-world wear and exact upholstery finishes remain simplified.
+- Reflections are fixed studio approximations, not a scanned Minsk station.
+- Door contact rays sample selected heights/positions, not a continuous
+  collision solver. Parallax pixels prove changing rendered perspective,
+  not photo likeness. Inspect actual images for acceptance.
+- This is the isolated wagon viewer. Game train/passenger/physics modules
+  were deliberately left intact, so the new prototype is not automatically
+  substituted into the gameplay carriage builder.
+
+To resume: fetch testing, verify the published module hash and successful
+commit-linked Actions artifact, retain all v84 front locks, and use the current
+14-view artifact as baseline. Do not re-enable the obsolete protected-side
+rule; sides and saloon are now the permitted area.

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v87</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v87: объёмный пассажирский салон, 40 мест, поручни и освещение. Передок v84 сохранён.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v88</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v88: округлая боковая крыша, вентиляция, прозрачные окна и объёмный салон. Передок v84 сохранён.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -125,6 +125,7 @@ function sideBox(w,h,d,x,y,z,m){return passenger(box(w,h,d,x,y,z,m));}
 function sidePanel(w,h,r,x,y,z,m){return passenger(roundedPanel(w,h,r,x,y,z,m));}
 const cabOutsidePaint=sidePaint.clone();cabOutsidePaint.side=T.FrontSide;
 const cabOutsideBackPaint=sidePaint.clone();cabOutsideBackPaint.side=T.BackSide;
+for(const material of [cabOutsidePaint,cabOutsideBackPaint]){material.polygonOffset=true;material.polygonOffsetFactor=-1;material.polygonOffsetUnits=-4;}
 function refinishCabSide(object,side){
  const geometry=object.geometry.clone(),isBox=geometry.type==='BoxGeometry';
  if(isBox){const range=geometry.groups[side>0?0:1];geometry.clearGroups();geometry.setDrawRange(range.start,range.count)}
@@ -170,7 +171,8 @@ function wallSkin(side,a,b,hole,inner=false){
    for(const [y,z] of [[y0,T.MathUtils.lerp(z00,z01,t0)],[y0,T.MathUtils.lerp(z00,z01,t1)],[y1,T.MathUtils.lerp(z10,z11,t0)],[y1,T.MathUtils.lerp(z10,z11,t1)]]){
     vs.push(side*(inner?sideWallInner:sideWallBase+ribDepth(y)),y,z);
    }
-   ix.push(k,k+1,k+2,k+1,k+3,k+2);
+   if(side>0)ix.push(k,k+2,k+1,k+1,k+2,k+3);
+   else ix.push(k,k+1,k+2,k+1,k+3,k+2);
   }
  }
  for(let i=0;i<rows.length-1;i++){
@@ -184,7 +186,7 @@ function wallSkin(side,a,b,hole,inner=false){
  const normals=[];
  for(let i=0;i<vs.length;i+=3){const slope=inner?0:(ribDepth(vs[i+1]+.0005)-ribDepth(vs[i+1]-.0005))/.001,n=new T.Vector3(side,-slope,0).normalize();normals.push(n.x,n.y,n.z)}
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setAttribute('normal',new T.Float32BufferAttribute(normals,3));geometry.setIndex(ix);
- const mesh=new T.Mesh(geometry,inner?sideLining:sidePaint);group.add(mesh);passenger(mesh);
+ const mesh=new T.Mesh(geometry,inner?sideLining:sidePaint);mesh.userData.sideWall=true;group.add(mesh);passenger(mesh);
  return mesh;
 }
 function reveal(side,w,h,r,y,z){
@@ -196,6 +198,7 @@ function reveal(side,w,h,r,y,z){
 }
 function buildPassengerBay(side,a,b){
  const len=b-a,w=Math.min(a>7?1.30:1.67,len-(a>7?.86:.38)),z=a>7?a+.65+w/2:(a+b)/2,h=1.04,y=F+1.55,r=.13;
+ const bayMid=(a+b)/2;
  const hole={w,h,y,z,r};wallSkin(side,a,b,hole);wallSkin(side,a,b,{...hole,w:w+.025,h:h+.025},true);
  reveal(side,w,h,r,y,z);
  sideRing(w+.012,h+.012,r,side*(sideWallBase+.003),y,z,sideRubber,.019);
@@ -208,8 +211,8 @@ function buildPassengerBay(side,a,b){
  sideBox(.025,.20,.016,side*(half-.059),transom+.11,z,sideSteel);
  for(const dz of [-w*.22,w*.22])sideBox(.025,.018,.10,side*(half-.08),transom+.025,z+dz,sideRubber);
  // Belt and a narrow lower sill are attached to the formed shell.
- sideBox(.003,.105,len-.012,side*(sideWallBase+.003),F+.94,z,sideCream);
- sideBox(.024,.045,len,side*(sideWallBase-.006),F+.006,z,sidePaint);
+ sideBox(.003,.105,len-.012,side*(sideWallBase+.003),F+.94,bayMid,sideCream);
+ sideBox(.024,.045,len,side*(sideWallBase-.006),F+.006,bayMid,sidePaint);
  // Fine pressed panel joint at the edge of the bay, not a raised bar.
  for(const zz of [a+.012,b-.012])sideBox(.001,sideEave-F,.002,side*(sideWallBase+.0006),(F+sideEave)/2,zz,sideRubber);
 }
@@ -377,9 +380,80 @@ for(const side of [-1,1]){
 }
 // Extruded roof profile in a single metric cross section.
 const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
-const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,L/2);
+const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,-L/2+1.45);
 for(let i=0;i<profile.length-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2)}
 const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();group.add(new T.Mesh(geo,roof));
+// Smooth passenger roof starts at the exact rear station of the locked cab
+// shell. The old under-shell portion remains inside the protected nose.
+const roofJoinZ=-L/2+1.45,roofScoops=[];
+const joinProfile=new T.SplineCurve([[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]].map(p=>new T.Vector2(...p)));
+const roofSeams=[-6.5,-4.2,-1.9,.4,2.7,5,7.3,9.3];
+function passengerRoofY(x,z){
+ const shoulder=1-T.MathUtils.smoothstep(z,-7.34,-6.79),edge=sideEave+.30*shoulder;
+ const arch=Math.sqrt(Math.max(0,1-Math.pow(x/half,2)));
+ const bow=.008*Math.pow(Math.sin(Math.PI*(z-roofJoinZ)/(L/2-roofJoinZ)),2);
+ let y=edge+(top+.13-edge)*arch+bow*arch;
+ for(const seam of roofSeams)y-=.0018*Math.exp(-Math.pow((z-seam)/.008,2));
+ return y;
+}
+{
+ const columns=64,zs=[roofJoinZ,L/2];
+ for(let z=roofJoinZ;z<L/2;z+=.24)zs.push(z);
+ for(const z of roofSeams)zs.push(z-.015,z-.006,z,z+.006,z+.015);
+ zs.sort((a,b)=>a-b);const rows=[...new Set(zs)],vs=[],ix=[];
+ for(const z of rows)for(let i=0;i<=columns;i++){
+  const p=joinProfile.getPoint(i/columns),t=T.MathUtils.smoothstep(z,roofJoinZ,-7.34);
+  const frontY=p.y+.33*Math.pow(Math.abs(p.x)/half,12);
+  vs.push(p.x,T.MathUtils.lerp(frontY,passengerRoofY(p.x,z),t),z);
+ }
+ for(let j=0;j<rows.length-1;j++)for(let i=0;i<columns;i++){
+  const k=j*(columns+1)+i,n=k+columns+1;ix.push(k,k+1,n,k+1,n+1,n);
+ }
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
+ const shell=new T.Mesh(geometry,sidePaint);group.add(shell);passenger(shell);
+ // The haunch behind the first passenger doorway meets the side skin.
+ for(const side of [-1,1]){
+  const v=[],f=[],steps=48;
+  for(let i=0;i<=steps;i++){
+   const z=-7.34+i*.55/steps;v.push(side*sideWallBase,sideEave-.01,z,side*half,passengerRoofY(half,z),z);
+  }
+  for(let i=0;i<steps;i++){const k=i*2;f.push(k,k+1,k+2,k+1,k+3,k+2)}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(v,3));g.setIndex(f);g.computeVertexNormals();
+  const strip=new T.Mesh(g,sidePaint);group.add(strip);passenger(strip);
+  sideTube([[side*1.316,sideEave+.008,-6.79],[side*1.316,sideEave+.008,9.52]],.009,sidePaint);
+ }
+ // Rear crown closes the roof above the inter-car bulkhead.
+ const capShape=new T.Shape();capShape.moveTo(-half,sideEave-.015);
+ for(let i=0;i<=96;i++){const x=-half+2*half*i/96;capShape.lineTo(x,passengerRoofY(x,L/2))}
+ capShape.lineTo(half,sideEave-.015);capShape.closePath();
+ const cap=new T.Mesh(new T.ShapeGeometry(capShape,24),sidePaint);cap.position.z=L/2;group.add(cap);passenger(cap);
+}
+// Thirteen directional pressed-metal ventilation scoops on each side.
+// Opposed mouths follow the real intake/exhaust arrangement; each hood is
+// a curved shell with an open mouth, not a rectangular decorative block.
+for(const side of [-1,1])for(let i=0;i<13;i++){
+ const z=-7.12+i*1.28,cx=side*.94,direction=side>0?-1:1,width=.33,length=.58,cols=24,rows=16,vs=[],ix=[];
+ for(let j=0;j<=rows;j++){
+  const t=j/rows,zz=z+direction*(.5-t)*length,rise=.098*Math.pow(1-t,1.35)+.014*Math.sin(Math.PI*t);
+  for(let k=0;k<=cols;k++){
+   const u=-1+2*k/cols,x=cx+u*width/2;
+   vs.push(x,passengerRoofY(x,zz)+rise*Math.sqrt(Math.max(0,1-u*u)),zz);
+  }
+ }
+ for(let j=0;j<rows;j++)for(let k=0;k<cols;k++){const a=j*(cols+1)+k,b=a+cols+1;ix.push(a,b,a+1,a+1,b,b+1)}
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
+ const hood=new T.Mesh(geometry,sidePaint);group.add(hood);passenger(hood);roofScoops.push(hood);
+ const mouthZ=z+direction*length/2-direction*.012,mouth=new T.Shape();
+ for(let k=0;k<=cols;k++){
+  const u=-1+2*k/cols,x=cx+u*width/2,y=passengerRoofY(x,mouthZ)+.003;
+  if(k===0)mouth.moveTo(x,y);else mouth.lineTo(x,y);
+ }
+ for(let k=cols;k>=0;k--){const u=-1+2*k/cols,x=cx+u*width/2;mouth.lineTo(x,passengerRoofY(x,mouthZ)+.098*Math.sqrt(Math.max(0,1-u*u)))}
+ mouth.closePath();const cavity=new T.Mesh(new T.ShapeGeometry(mouth,20),sideRubber);cavity.position.z=mouthZ;group.add(cavity);passenger(cavity);
+ // Recessed guide vanes behind the mouth, visible only at a grazing angle.
+ for(const dx of [-.06,.06])sideBox(.006,.045,.028,cx+dx,passengerRoofY(cx+dx,mouthZ)+.035,mouthZ-direction*.014,sideRubber);
+}
+
 // Continuous closed cab roof: curved shell plus a blue structural front cap.
 // The cap meets the shell at exactly the same cross-section; no floating slab.
 {
@@ -968,7 +1042,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=87,lightingPreset='station-softboxes-v2';
+const modelVersion=88,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -993,7 +1067,7 @@ if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el
 let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
 function fitCameraProjection(){
  const base=cameraPresets[cameraMode]?.fov||58;
- const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side'].includes(cameraMode)?1.64:0;
+ const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side','side-full','side-angle','roof-side'].includes(cameraMode)?1.64:['door-close','door-open','window-close','roof-join'].includes(cameraMode)?.95:0;
  camera.fov=camera.aspect>=minimumAspect?base:T.MathUtils.radToDeg(2*Math.atan(Math.tan(T.MathUtils.degToRad(base)/2)*minimumAspect/camera.aspect));
  camera.updateProjectionMatrix();
 }
@@ -1041,13 +1115,25 @@ window.wagonFrontGlassTriangles=()=>{
  return triangles;
 };
 window.wagonSetCamera=setCamera;
+function invertedWallNormals(){
+ let inverted=0;
+ for(const mesh of passengerNodes.filter(o=>o.userData.sideWall)){
+  const g=mesh.geometry,p=g.attributes.position,n=g.attributes.normal;
+  for(let i=0;i<g.index.count;i+=18){
+   const indices=[0,1,2].map(j=>g.index.getX(i+j)),v=indices.map(k=>new T.Vector3().fromBufferAttribute(p,k)),face=new T.Vector3().subVectors(v[1],v[0]).cross(new T.Vector3().subVectors(v[2],v[0]));
+   if(face.lengthSq()<1e-14)continue;
+   const normal=new T.Vector3().fromBufferAttribute(n,indices[0]);if(face.dot(normal)<=0)inverted++;
+  }
+ }
+ return inverted;
+}
 window.wagonSideDiagnostics=()=>({
  wallThickness:sideWallBase-sideWallInner,windowCount:passengerWindows.length,
  windows:passengerWindows.map(({side,z,w,h,y})=>({side,z,w,h,y})),
  leafCount:slidingLeaves.length,doorProgress,doorTarget,
  doorClearWidth:2*(doorWidth/4+slidingLeaves[0].travel*(doorProgress*doorProgress*(3-2*doorProgress))-(doorWidth/2-.008)/2),
  leaves:slidingLeaves.map(d=>({side:d.side,doorZ:d.doorZ,z:d.leaf.position.z,homeZ:d.homeZ,half:d.half,thickness:d.thickness,x:d.leaf.position.x})),
- passengerMeshes:passengerNodes.length,lightingPreset:'passenger-softboxes-warm-v2'
+ passengerMeshes:passengerNodes.length,roofScoops:roofScoops.length,invertedWallNormals:invertedWallNormals(),lightingPreset:'passenger-softboxes-warm-v2'
  ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
 });
 window.wagonShiftInspectionCamera=dz=>{camera.position.z+=dz;ctl.target.z+=dz;ctl.update();qaFramesRemaining=3};
