@@ -109,6 +109,17 @@ for(const side of [-1,1]){
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
 let detailedV106Train=null;
 let detailedV106Loading=null;
+let detailedV106DoorProgress=0;
+function animateDetailedV106Doors(dt){
+ if(!detailedV106Train)return;
+ const target=doors?1:0;
+ const step=Math.min(Math.max(dt,0),.1)/1.55;
+ detailedV106DoorProgress+=Math.sign(target-detailedV106DoorProgress)*Math.min(Math.abs(target-detailedV106DoorProgress),step);
+ const p=detailedV106DoorProgress,t=p*p*(3-2*p);
+ for(const d of detailedV106Train.userData.doorActuators||[])
+  d.object.position.z=d.homeZ+d.half*d.travel*t;
+}
+
 function ensureDetailedV106(){
  if(detailedV106Train||detailedV106Loading)return detailedV106Loading;
  detailedV106Loading=loadV106Geometry({THREE,scene}).then(root=>{
@@ -1231,7 +1242,7 @@ animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 // Only expose the interior geometry when viewing from the carriage camera.
 // It must not block the cab windscreen or rear-view mirrors.
 carriage.visible=carCameraActive;
-animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+animateDoorLeaves(stationDoorLeaves,doors,elapsed);animateDetailedV106Doors(elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
 // Return to the cab only when the whole ~108m train has cleared the shot.
