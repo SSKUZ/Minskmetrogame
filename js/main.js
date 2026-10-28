@@ -87,6 +87,9 @@ for(const side of [-1,1]){
 }
 // Exterior side of the driver's train, seen in both mirrors looking backwards.
 const reflectedTrain=new THREE.Group();scene.add(reflectedTrain);
+// This low-detail train is a mirror-only proxy. It must not occlude the real
+// imported v106 when the platform camera renders the game scene.
+reflectedTrain.visible=false;
 // Shared livery for exterior platform view and the driver's side mirrors.
 const metroBluePaint=0x4679b5;
 const trainBodyMat=new THREE.MeshStandardMaterial({color:metroBluePaint,metalness:.28,roughness:.46});
@@ -249,6 +252,7 @@ function renderRearMirrors(){
  // Reduced resolution and 1 mirror per 3 frames keeps Android performance acceptable.
  if(window.metroMirrorsDisabled||++mirrorFrameNumber%2!==0)return;
  const m=rearMirrors[Math.floor(mirrorFrameNumber/2)%2];
+ reflectedTrain.visible=true;
  cab.visible=false;
  for(const item of rearMirrors)item.face.visible=false;
  try{
@@ -264,6 +268,7 @@ function renderRearMirrors(){
  renderer.render(scene,m.mirrorCamera);
  }finally{
   renderer.setRenderTarget(null);
+  reflectedTrain.visible=false;
   cab.visible=true;
   for(const item of rearMirrors)item.face.visible=true;
  }
