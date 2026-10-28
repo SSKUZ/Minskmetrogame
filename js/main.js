@@ -119,6 +119,8 @@ const useExperimentalV106=v106Query==='1'||(v106Query!=='0'&&new URLSearchParams
 let detailedV106Train=null;
 let detailedV106Loading=null;
 let detailedV106DoorProgress=0;
+const V106_PLATFORM_EDGE_X=-2.55,V106_PLATFORM_GAP=.025;
+let detailedV106TrackX=-.31,detailedV106LocalMinX=null;
 function animateDetailedV106Doors(dt){
  if(!detailedV106Train)return;
  const target=doors?1:0;
@@ -134,6 +136,13 @@ function ensureDetailedV106(){
  if(detailedV106Loading)return detailedV106Loading;
  detailedV106Loading=loadV106Geometry({THREE,scene,renderer}).then(root=>{
   detailedV106Train=root;
+  // Calibrate the platform-side body edge against the actual island-platform slab.
+  // This replaces the old hard-coded track X that left a visibly excessive gap.
+  root.position.set(0,0,0);root.updateMatrixWorld(true);
+  const localBounds=new THREE.Box3().setFromObject(root);
+  if(localBounds.isEmpty())throw new Error('v106 bounds unavailable for platform calibration');
+  detailedV106LocalMinX=localBounds.min.x;
+  detailedV106TrackX=V106_PLATFORM_EDGE_X+V106_PLATFORM_GAP-detailedV106LocalMinX;
   window.metroV106GeometryLoaded=true;
   window.metroV106GeometryError=null;
   return root;
@@ -1278,7 +1287,7 @@ if(stationCameraActive){
  // Original v106 front is at -L/2; shift its first car centre to keep
  // the front at the old station-camera reference plane.
  if(useExperimentalV106&&detailedV106Train){
-  detailedV106Train.position.set(-.31,platform.position.y,stationCameraTrainZ+19.206/2);
+  detailedV106Train.position.set(detailedV106TrackX,platform.position.y,stationCameraTrainZ+19.206/2);
   detailedV106Train.visible=true;
   // Visibility is resolved after the station camera is aimed below.
   stationTrain.visible=false;
@@ -1354,7 +1363,7 @@ if(carCameraActive){
  renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
-window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,bounds:window.metroV106Bounds||null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,bounds:window.metroV106Bounds||null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),platformEdgeX:V106_PLATFORM_EDGE_X,targetPlatformGap:V106_PLATFORM_GAP,trainPlatformSideX:detailedV106Train&&detailedV106LocalMinX!==null?detailedV106Train.position.x+detailedV106LocalMinX:null,platformGap:detailedV106Train&&detailedV106LocalMinX!==null?(detailedV106Train.position.x+detailedV106LocalMinX)-V106_PLATFORM_EDGE_X:null,trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  if(useExperimentalV106)ensureDetailedV106();
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
