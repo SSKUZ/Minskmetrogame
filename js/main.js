@@ -1283,10 +1283,13 @@ if(stationCameraActive){
  // A three-quarter front-side shot: nose in foreground, cars and platform
  // receding into the distance. The camera stays below the original roof.
  const noseZ=platform.position.z-100;
- stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
- // The legacy framing looks away from the track (x=-5.6). The imported
- // consist runs at x=-0.31, so aim the experimental camera at the train.
- const target=new THREE.Vector3(useExperimentalV106?-.31:-5.6,2.65,noseZ+44);
+ stationCamera.fov=61;stationCamera.updateProjectionMatrix();
+ // The original preview position was 3.2 m *behind* the v106 nose, so its
+ // entire front was offscreen and the frame showed mostly roof. Put the
+ // experimental camera ahead of the nose and closer to eye level; retain
+ // the legacy camera framing for ?v106=0.
+ stationCamera.position.set(useExperimentalV106?-3.85:-3.72,useExperimentalV106?3.35:4.55,noseZ+(useExperimentalV106?-5.5:3.2));
+ const target=new THREE.Vector3(useExperimentalV106?-.31:-5.6,useExperimentalV106?2.3:2.65,noseZ+(useExperimentalV106?23:44));
  target.x+=Math.sin(stationViewYaw)*35;
  
  target.y+=stationViewPitch*9;
