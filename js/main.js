@@ -1354,6 +1354,15 @@ if(previewMode==='station'||previewMode==='approach'){
  depot.position.y=descentDepth;
  for(const g of chunks){g.position.z=((g.position.z+skip+384)%384+384)%384-352;g.position.y=0;}
  platform.position.z=-dist+112;platform.position.y=0;
+ // Station preview must actually select the platform camera; otherwise the
+ // authentic consist loads but the screenshot still shows the driver's cab.
+ if(previewMode==='station'){
+  stationCameraActive=true;
+  stationCameraAnchorZ=platform.position.z-100;
+  stationCameraTrainZ=stationCameraAnchorZ;
+  stationCameraButton.classList.add('active');
+  stationCameraButton.textContent='🎮 В КАБИНУ';
+ }
  const entrance=platform.position.z+6;
  for(const g of chunks){const far=g.position.z-32;g.visible=(far>entrance+3||g.position.z<entrance-145);}
  const previewFog=new THREE.Color(0x05080b);
