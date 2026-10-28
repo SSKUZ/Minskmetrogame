@@ -109,7 +109,10 @@ for(const side of [-1,1]){
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
 // Keep the proven exterior as the default while the v106 camera alignment is under review.
 // Opt in to the experimental consist with ?v106=1; never replace the legacy model silently.
-const useExperimentalV106=new URLSearchParams(location.search).get('v106')==='1';
+const v106Query=new URLSearchParams(location.search).get('v106');
+// The dedicated station preview must exercise the actual v106 consist by
+// default. ?v106=0 remains a deliberate low-detail comparison/fallback.
+const useExperimentalV106=v106Query==='1'||(v106Query!=='0'&&new URLSearchParams(location.search).get('preview')==='station');
 let detailedV106Train=null;
 let detailedV106Loading=null;
 let detailedV106DoorProgress=0;
@@ -1343,6 +1346,7 @@ if(carCameraActive){
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
 window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
+ if(useExperimentalV106)ensureDetailedV106();
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
  dist=previewMode==='station'?0:105;
  const skip=1100-dist;
