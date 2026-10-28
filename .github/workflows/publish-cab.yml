@@ -1,0 +1,32 @@
+name: Publish isolated cab 3D inspector
+on:
+  push:
+    branches: [cab-development]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro-pages
+  cancel-in-progress: false
+jobs:
+  cab-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare standalone cab preview
+        run: |
+          mkdir -p public
+          rsync -a --exclude='.git/' --exclude='.github/' --exclude='tests/' --exclude='node_modules/' --exclude='test-results/' ./ public/
+          touch public/.nojekyll
+          test -f public/preview/cab-editor.html
+          test -f public/js/main.js
+      - name: Publish cab only, preserve existing game previews
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./public
+          destination_dir: cab-preview
+          keep_files: true
+          force_orphan: false
+          commit_message: 'Publish isolated cab-development inspector'
