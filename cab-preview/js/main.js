@@ -1,3 +1,4 @@
+import {buildReferenceCabPanel} from './cab/CabReferencePanel.js';
 import {detailCabInstrumentDeck} from './cab/CabDeskDetails.js';
 import {buildCabFrontShell,buildCabRearShell} from './cab/CabShell.js';
 import {createCabInstrumentDeck} from './cab/CabInstrumentDeck.js';
@@ -237,7 +238,7 @@ function renderRearMirrors(){
  }
 }
 const {instrumentDeck,cabScreen}=createCabInstrumentDeck({THREE,cab,box,cabShell,cabEdge});
-detailCabInstrumentDeck({THREE,instrumentDeck,cabMetal,cabRubber});
+buildReferenceCabPanel({THREE,instrumentDeck});
 const leftCabScreen=cabScreen(-1.78,-.17,1.24,.72,0x0b2936);
 const midCabScreen=cabScreen(-.22,-.18,1.46,.92,0x102e48);
 const rightCabScreen=cabScreen(1.44,-.22,.96,.68,0x132d2c);
@@ -251,13 +252,6 @@ speedPlate.position.set(0,.115,0);speedPlate.rotation.x=-Math.PI/2;midCabScreen.
 // Integrated speed and schematic train-door monitor on the same LCD.
 const renderCabDisplay=createCabDisplayUpdater(displayCtx,displayTexture);
 function updateCabDisplay(v){renderCabDisplay(v,typeof doors!=='undefined'&&doors)}
-// Hundreds of distinct switches, lamps and keypads in banks.
-for(let row=0;row<4;row++)for(let col=0;col<12;col++){const x=-2.62+col*.46,z=.38+row*.19;
-if(row<3 && ((x>.35&&x<1.65)||(x>-1.55&&x<-.7)))continue;
-const color=cabButton[(row*7+col)%cabButton.length];const button=new THREE.Mesh(new THREE.CylinderGeometry(.038,.043,.044,16),color);button.position.set(x,.115,z);instrumentDeck.add(button);
-const bezel=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.014,16),cabMetal);bezel.position.set(x,.075,z);instrumentDeck.add(bezel)}
-for(let i=0;i<8;i++){const x=-2.65+i*.75;const g=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.025,24),cabMetal);g.position.set(x,.12,-.64);instrumentDeck.add(g);const core=new THREE.Mesh(new THREE.CylinderGeometry(.087,.087,.03,24),cabRubber);core.position.set(x,.14,-.64);instrumentDeck.add(core);const needle=box(instrumentDeck,.012,.014,.073,x,.165,-.67,light)}
-for(let i=0;i<7;i++){const x=-2.25+i*.74;box(instrumentDeck,.36,.02,.08,x,.12,.88,cabRubber);box(instrumentDeck,.055,.12,.12,x,.18,.88,cabMetal)}
 // Physical throttle controller and side panels visible in perspective.
 box(cab,1.0,.22,.83,-2.35,1.68,4.12,cabEdge);
 box(cab,.16,.6,.17,-2.35,2.02,4.12,cabMetal);
