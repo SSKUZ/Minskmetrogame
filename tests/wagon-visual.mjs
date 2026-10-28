@@ -81,7 +81,7 @@ try{
   await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,frame,{timeout:30000});
   await page.screenshot({path:path.join(output,`before-v88-${mode}.png`),animations:'disabled',timeout:90000});
  }
- const url=new URL(target);url.searchParams.set('qa','1');
+ const url=new URL(target);url.searchParams.set('qa','1');url.searchParams.set('formation','single');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
  report.renderedModuleSha256=moduleHash(await page.locator('script[type="module"]').textContent());
  assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');

@@ -1,6 +1,6 @@
 # Current scope — stage 5
 
-Current checkpoint: v104 on testing, based on v101 (744a21c). The task now
+Current checkpoint: v105 on testing, based on v101 (744a21c). The task now
 includes four cars 81-717 / 81-714 / 81-714 / reversed 81-717. Preserve the
 existing head-car detail. Work progressively: warning markings, real end
 walls, intermediate-car components, consist assembly, then performance and
@@ -67,6 +67,33 @@ A live v103 browser check exposed missing sibling-module publication. A
 separate testing commit fixes the existing deploy workflow to copy all viewer
 assets beside wagon.html; main production is still only read. Local success
 was not treated as proof of a working published viewer.
+
+## v105 — four outward-ended cars and real joined couplings
+
+Assembled 81-717 / 81-714 / 81-714 / 81-717 using reusable templates and
+shared GPU resources. Car centres are Z 0, 20.006, 40.012 and 60.018 m;
+all have X/Y 0 and scale 1. The final head is rotated pi, with its cab outward.
+Actual transformed shell bounds give three 0.800001 m gaps. Actual vertices
+of opposing cast coupling faces meet to within about 6e-9 m; normals oppose.
+The air-loop terminals are joined once, with a separate electrical cable.
+No modern sealed inter-car tunnel or duplicate coupling is added.
+
+Added whole-train/tail/inter-car cameras, a single/intermediate/consist selector
+and per-car inspection. Original calibrated head presets remain in single-car
+QA. Distant train cameras use a 1 m near plane to prevent the old 0.03 m near
+plane from causing depth quantisation at 112 m. The reversed cab gets an
+isolated, rotated copy of the existing front light rig, leaving the first
+cab's calibration unchanged.
+
+Local checks pass: 25 train/intermediate views including phone framing;
+actual 64 warning pixel patches across eight individual side images; 168
+volumetric seats, 32 wheels, 64 moving leaves; 6 lamps and 3 front panes on
+each head, no cab equipment on intermediates; all four door sets open/close.
+Original head reference/front/side/saloon/open-door checks retain zero changed
+protected equipment pixels. v102, v103 and v104 visual Actions succeeded;
+the repaired v103 and independent v104 publications were actually rendered.
+Next checkpoint measures and reduces static draw calls without dropping
+triangles or changing moving doors/glazing.
 
 All earlier stage-4 and stage-3 notes below are historical.
 
