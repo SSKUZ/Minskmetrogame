@@ -78,3 +78,14 @@ test('original v106 meshes are exported and rendered in gameplay scene',()=>{
  assert.match(main,/detailedV106Train\.visible=true/);
  assert.match(main,/stationTrain\.visible=false/);
 });
+
+test('imported v106 geometry preserves all original sliding door actuators',()=>{
+ const viewer=readFileSync(new URL('../preview/wagon.html',import.meta.url),'utf8');
+ const loader=readFileSync(new URL('../js/train/V106GeometryLoader.js',import.meta.url),'utf8');
+ const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
+ assert.match(viewer,/uuid:d\.leaf\.uuid/);
+ assert.match(loader,/leaves\.length!==64/);
+ assert.match(loader,/root\.userData\.doorActuators=leaves/);
+ assert.match(main,/animateDetailedV106Doors\(elapsed\)/);
+ assert.match(main,/d\.object\.position\.z=d\.homeZ\+d\.half\*d\.travel\*t/);
+});
