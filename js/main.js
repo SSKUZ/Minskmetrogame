@@ -1,3 +1,4 @@
+import {detailCabInstrumentDeck} from './cab/CabDeskDetails.js';
 import {buildCabFrontShell,buildCabRearShell} from './cab/CabShell.js';
 import {createCabInstrumentDeck} from './cab/CabInstrumentDeck.js';
 import {createCabDeskButtonFactory} from './cab/CabControls3D.js';
@@ -236,6 +237,7 @@ function renderRearMirrors(){
  }
 }
 const {instrumentDeck,cabScreen}=createCabInstrumentDeck({THREE,cab,box,cabShell,cabEdge});
+detailCabInstrumentDeck({THREE,instrumentDeck,cabMetal,cabRubber});
 const leftCabScreen=cabScreen(-1.78,-.17,1.24,.72,0x0b2936);
 const midCabScreen=cabScreen(-.22,-.18,1.46,.92,0x102e48);
 const rightCabScreen=cabScreen(1.44,-.22,.96,.68,0x132d2c);
