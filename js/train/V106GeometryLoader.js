@@ -77,12 +77,16 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   if(metrics.meshCount<100||metrics.triangles<1000)
    throw new Error('v106 geometry incomplete: '+metrics.meshCount+' meshes / '+metrics.triangles+' triangles');
   metrics.invalidTextures=[...textures].filter(t=>!t.image&&!t.source?.data).length;
+  // The source renderer owns its GPU-generated environment maps. Their
+  // images are not necessarily portable between WebGL contexts.
+  metrics.gpuOnlyEnvironmentMaps=[...textures].filter(t=>t.isRenderTargetTexture).length;
   metrics.sourceThreeRevision=frame.contentWindow.wagonThreeRevision||null;
   metrics.gameThreeRevision=THREE.REVISION||null;
   // PMREM render-target textures may be GPU-only: report them, do not
   // reject an otherwise complete train before the game renderer tries it.
   window.metroV106InvalidTextureMaps=metrics.invalidTextures;
   window.metroV106Metrics=metrics;
+  if(metrics.gpuOnlyEnvironmentMaps)console.warn('v106: GPU-only environment maps require browser visual verification',metrics.gpuOnlyEnvironmentMaps);
   // Commit to the game scene only after the source passes integrity checks.
   // Failed loads must not leave orphaned lights or partial train geometry.
   scene.add(lighting);
