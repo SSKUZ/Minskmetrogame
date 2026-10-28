@@ -23,6 +23,7 @@ try{
  assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
  assert.equal(state.loaded,true,JSON.stringify(state));
  assert.equal(state.metrics.doorLeaves,64);
+ assert.equal(state.metrics.warningDecals,64,'all original v106 door warning decals must survive gameplay import');
  assert.ok(state.metrics.rehomedAttributes>1000,'v106 buffers were not transferred to the game THREE realm');
  assert.ok(state.metrics.lightCount>0,'original v106 lighting rig was not imported');
  assert.ok(state.metrics.rehomedEnvironmentMaterials>0,'original studio reflections were not rebuilt in the gameplay WebGL context');
@@ -68,8 +69,24 @@ try{
  const restored=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(restored.loaded,true);
  assert.equal(restored.metrics.doorLeaves,64);
- // Train departure test is temporarily disabled while its controller timeout is diagnosed.
- // The critical regression here is that the detailed train must actually be in frame.
+ // Final integration check: drive the train away from the platform with real traction.
+ // Use the same master-controller pointer interaction as a player, then verify
+ // that physics advances and the imported v106 remains render-stable in motion.
+ const beforeMove=await page.evaluate(()=>window.metroDiagnostics());
+ const master=page.locator('#masterTrack');
+ const box=await master.boundingBox();
+ assert.ok(box,'master controller is unavailable');
+ await page.mouse.move(box.x+box.width/2,box.y+box.height*.12);
+ await page.mouse.down();
+ await page.mouse.up();
+ await page.waitForFunction(()=>window.metroDiagnostics?.().speed>3,null,{timeout:30000});
+ await page.waitForFunction(()=>window.metroDiagnostics?.().dist<-2,null,{timeout:30000});
+ const moving=await page.evaluate(()=>({game:window.metroDiagnostics(),v106:window.metroV106Diagnostics()}));
+ assert.ok(moving.game.speed>3,'train failed to accelerate under traction: '+JSON.stringify(moving));
+ assert.ok(moving.game.dist<beforeMove.dist-2,'train distance did not advance: '+JSON.stringify({beforeMove,moving}));
+ assert.equal(moving.v106.loaded,true,'v106 unloaded while train was moving');
+ assert.equal(moving.v106.metrics.warningDecals,64,'warning decals disappeared while moving');
+ await page.screenshot({path:'test-results/v106/station-desktop-moving.png'});
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed during v106 smoke');
  assert.deepEqual(errors,[]);
