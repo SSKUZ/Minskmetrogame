@@ -1281,7 +1281,9 @@ if(stationCameraActive){
  // receding into the distance. The camera stays below the original roof.
  const noseZ=platform.position.z-100;
  stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
- const target=new THREE.Vector3(-5.6,2.65,noseZ+44);
+ // The legacy framing looks away from the track (x=-5.6). The imported
+ // consist runs at x=-0.31, so aim the experimental camera at the train.
+ const target=new THREE.Vector3(useExperimentalV106?-.31:-5.6,2.65,noseZ+44);
  target.x+=Math.sin(stationViewYaw)*35;
  
  target.y+=stationViewPitch*9;
