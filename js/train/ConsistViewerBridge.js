@@ -12,8 +12,7 @@
   try{
    const w=frame.contentWindow;
    if(!w||!w.wagonReady||typeof w.wagonSetDoors!=='function')return;
-   const button=document.getElementById('screenDoorToggle');
-   const open=button?.getAttribute('aria-pressed')==='true';
+   const open=latestDoorOpen;
    if(w.__metroLastDoorState!==open){
     w.wagonSetDoors(open,{instant:true});
     w.__metroLastDoorState=open;
@@ -21,6 +20,7 @@
   }catch(error){console.warn('Consist preview door sync:',error)}
  }
  function show(){
+  latestDoorOpen=document.getElementById('screenDoorToggle')?.getAttribute('aria-pressed')==='true';
   frame.src=viewer;
   syncTimer=setInterval(syncDoors,250);
   panel.hidden=false;
@@ -38,6 +38,10 @@
   open.style.display='';
   open.focus();
  }
+ window.addEventListener('metro-consist-doors',event=>{
+  latestDoorOpen=Boolean(event.detail?.open);
+  if(!panel.hidden)syncDoors();
+ });
  open.addEventListener('click',show);
  close.addEventListener('click',hide);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)hide()});
