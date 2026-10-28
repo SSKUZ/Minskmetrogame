@@ -8,8 +8,21 @@
  const frame=document.getElementById('consistInspectFrame');
  if(!open||!close||!panel||!frame)return;
  const viewer=new URL('./preview/wagon.html?formation=train',document.baseURI).href;
+ function syncDoors(){
+  try{
+   const w=frame.contentWindow;
+   if(!w||!w.wagonReady||typeof w.wagonSetDoors!=='function')return;
+   const button=document.getElementById('screenDoorToggle');
+   const open=button?.getAttribute('aria-pressed')==='true';
+   if(w.__metroLastDoorState!==open){
+    w.wagonSetDoors(open,{instant:true});
+    w.__metroLastDoorState=open;
+   }
+  }catch(error){console.warn('Consist preview door sync:',error)}
+ }
  function show(){
   frame.src=viewer;
+  syncTimer=setInterval(syncDoors,250);
   panel.hidden=false;
   panel.style.display='block';
   open.hidden=true;
@@ -17,6 +30,7 @@
   close.focus();
  }
  function hide(){
+  clearInterval(syncTimer);syncTimer=null;
   frame.src='about:blank';
   panel.hidden=true;
   panel.style.display='none';
@@ -28,5 +42,5 @@
  close.addEventListener('click',hide);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)hide()});
  panel.style.display='none';
- window.metroConsistViewer={open:show,close:hide,get active(){return !panel.hidden},version:106};
+ window.metroConsistViewer={open:show,close:hide,get active(){return !panel.hidden},version:106,syncDoors};
 })();
