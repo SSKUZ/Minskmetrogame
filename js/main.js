@@ -1327,14 +1327,16 @@ if(carCameraActive){
  // single layer-0 pass. Keep the depth buffer between passes.
  const originalTone=renderer.toneMapping,originalExposure=renderer.toneMappingExposure;
  const originalAutoClear=renderer.autoClear,originalMask=stationCamera.layers.mask;
+ const originalBackground=scene.background;
  renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
  stationCamera.layers.set(0);renderer.render(scene,stationCamera);
- renderer.autoClear=false;
+ renderer.autoClear=false;scene.background=null;
  for(const layer of [2,1,3]){
   stationCamera.layers.set(layer);
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
   renderer.render(scene,stationCamera);
  }
+ scene.background=originalBackground;
  stationCamera.layers.mask=originalMask;renderer.autoClear=originalAutoClear;
  renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
