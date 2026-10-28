@@ -78,23 +78,12 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   if(missingImages)console.warn('v106: some original texture sources are unavailable',missingImages);
   if(metrics.meshCount<100||metrics.triangles<1000)
    throw new Error('v106 geometry incomplete: '+metrics.meshCount+' meshes / '+metrics.triangles+' triangles');
-  // Live textures can be backed by a canvas in the source iframe. Report
-  // whether they are still usable, instead of silently dropping maps.
-  const textures=new Set();
-  root.traverse(object=>{
-   if(!object.isMesh)return;
-   for(const material of (Array.isArray(object.material)?object.material:[object.material])){
-    if(!material)continue;
-    for(const key of ['map','alphaMap','normalMap','roughnessMap','metalnessMap','emissiveMap','envMap']){
-     if(material[key]?.isTexture)textures.add(material[key]);
-    }
-   }
-  });
-  metrics.textures=textures.size;
   metrics.invalidTextures=[...textures].filter(t=>!t.image&&!t.source?.data).length;
   metrics.sourceThreeRevision=frame.contentWindow.wagonThreeRevision||null;
   metrics.gameThreeRevision=THREE.REVISION||null;
-  if(metrics.invalidTextures)throw new Error('v106 source has '+metrics.invalidTextures+' invalid textures');
+  // PMREM render-target textures may be GPU-only: report them, do not
+  // reject an otherwise complete train before the game renderer tries it.
+  window.metroV106InvalidTextureMaps=metrics.invalidTextures;
   window.metroV106Metrics=metrics;
   // Keep the source document alive: its canvas-backed textures and PMREM
   // resources may be invalidated when navigating the iframe to about:blank.
