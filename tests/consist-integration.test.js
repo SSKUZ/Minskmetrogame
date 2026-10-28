@@ -72,7 +72,7 @@ test('original v106 meshes are exported and rendered in gameplay scene',()=>{
  const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
  assert.match(viewer,/wagonExportConsist/);
  assert.match(viewer,/consist\.root\.toJSON\(\)/);
- assert.match(loader,/new THREE\.ObjectLoader\(\)\.parse\(serialized\)/);
+ assert.ok(loader.includes('parse(exported.geometry)'));
  assert.match(loader,/scene\.add\(root\)/);
  assert.match(main,/ensureDetailedV106\(\)/);
  assert.match(main,/detailedV106Train\.visible=true/);
@@ -85,7 +85,7 @@ test('imported v106 geometry preserves all original sliding door actuators',()=>
  const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
  assert.match(viewer,/uuid:d\.leaf\.uuid/);
  assert.match(loader,/leaves\.length!==64/);
- assert.match(loader,/root\.userData\.doorActuators=leaves/);
+ assert.ok(loader.includes("Object.defineProperty(root,'v106DoorActuators'"));
  assert.match(main,/animateDetailedV106Doors\(elapsed\)/);
  assert.match(main,/d\.object\.position\.z=d\.homeZ\+d\.half\*d\.travel\*t/);
 });
