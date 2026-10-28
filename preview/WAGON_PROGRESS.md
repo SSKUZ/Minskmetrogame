@@ -137,3 +137,31 @@ regression. Extends the existing workflow to fourteen views. No front node
 or gameplay module is changed. Next: thick corrugated side shells with real
 apertures, doors sliding in pockets, transparent glazing with opening lights,
 refine existing saloon, smooth side roof and directional ventilation scoops.
+
+## v86: passenger shell, glazing and moving doors
+
+Replaced flat walls with sampled corrugated metal skins and real rounded
+apertures. Inner skin is 122 mm behind the outer sheet, with full-depth
+window reveals, black gaskets, metal frames, transparent glass and transoms.
+Sixteen volumetric leaves have blue outer / cream inner faces, real window
+holes, attached chevrons and smooth longitudinal motion in wall pockets.
+Structural door width 1.380 m; fully open clear width 1.208 m.
+
+The original first passenger door intersected frozen cab equipment. The
+passenger grid was moved 0.350 m aft; all four doorway pitches are retained,
+the last window bay is shorter. This fits the locked v84 cab rather than
+changing it. These positions remain model layout estimates, not factory CAD.
+Cab-side paint is exterior-only: changing double-sided cab materials was
+caught by the front regression and rejected. Original inward faces remain.
+Removed obsolete inner doorway trim that crossed the new sliding channels;
+existing benches were moved just inward for pocket clearance. Full saloon
+refinement follows in v87. No gameplay JS modules were modified.
+
+Runtime checks now compare 30/60 Hz door motion and sample five points along
+the opening sweep, ray-check every window and every open doorway, and retain
+the immutable v84 frontal render plus seven source hashes. Latest local
+critical-view run: front zero changed pixels, eight clear windows, eight
+clear open doorways and zero pocket contacts at all five sampled poses.
+The local four-view smoke run exposed a test reset issue (doors left open
+before the repeat capture); fixed by explicitly closing before repeating.
+CI always captures all fourteen views; custom short view lists are local only.

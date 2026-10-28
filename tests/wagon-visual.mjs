@@ -10,6 +10,8 @@ import {verifyFrontProtection} from './wagon-front-protection.mjs';
 const output=process.env.WAGON_RESULTS_DIR||'test-results/wagon';
 const baseline=process.env.WAGON_BASELINE_DIR||'test-results/wagon-baseline';
 const target=process.env.WAGON_TARGET_URL||'http://127.0.0.1:8765/preview/wagon.html';
+const viewModes=process.env.WAGON_VIEWS?.split(',')||['reference','front','side','outside','driver','salon','side-full','side-angle','door-close','window-close','window-inside','door-open','roof-side','roof-join'];
+assert.ok(!process.env.GITHUB_ACTIONS||!process.env.WAGON_VIEWS,'CI must capture every view');
 await mkdir(output,{recursive:true});
 const reference=JSON.parse(await readFile('tests/reference/uruchcha-81-717.json','utf8'));
 const sourceHtml=await readFile('preview/wagon.html','utf8');
@@ -57,11 +59,39 @@ try{
  report.renderedModuleSha256=moduleHash(await page.locator('script[type="module"]').textContent());
  assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');
  await page.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
- for(const mode of ['reference','front','side','outside','driver','salon','side-full','side-angle','door-close','window-close','window-inside','door-open','roof-side','roof-join']){
+ if(await page.evaluate(()=>!!window.wagonAdvanceDoors)){
+  report.doorMotion=await page.evaluate(()=>{
+   const travel=dt=>{window.wagonSetDoors(false,{instant:true});window.wagonSetDoors(true);for(let i=0;i<Math.round(1/dt);i++)window.wagonAdvanceDoors(dt);return window.wagonSideDiagnostics().leaves.map(d=>d.z)};
+   const at60=travel(1/60),at30=travel(1/30),sweep=[];
+   for(const progress of [0,.25,.50,.75,1]){
+    window.wagonSetDoors(false,{instant:true});window.wagonSetDoors(true);
+    for(let i=0;i<31*progress;i++)window.wagonAdvanceDoors(1.55*progress/Math.ceil(31*progress));
+    sweep.push({progress:window.wagonSideDiagnostics().doorProgress,...window.wagonApertureChecks()});
+   }
+   window.wagonSetDoors(false,{instant:true});return {at60,at30,sweep};
+  });
+  for(let i=0;i<16;i++)assert.ok(Math.abs(report.doorMotion.at60[i]-report.doorMotion.at30[i])<1e-8,'Frame rate changes door travel');
+  for(const pose of report.doorMotion.sweep)assert.equal(pose.pocketCollisions,0,'Door intersects a pocket during its sweep');
+ }
+ for(const mode of viewModes){
+  await page.evaluate(m=>window.wagonSetDoors?.(m==='door-open',{instant:true}),mode);
   await page.evaluate(m=>window.wagonSetCamera(m),mode);
   const start=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
   await page.waitForFunction(frame=>window.wagonDiagnostics().renderedFrames>=frame+3,start,{timeout:30000});
   const data=await page.evaluate(()=>window.wagonDiagnostics());
+  data.passenger=await page.evaluate(()=>window.wagonSideDiagnostics?.()||null);
+  if(data.passenger){
+   assert.equal(data.passenger.leafCount,16);assert.equal(data.passenger.windowCount,8);
+   assert.ok(data.passenger.wallThickness>.1,'Real wall depth missing');
+   if(mode==='door-open')assert.ok(Math.abs(data.passenger.doorClearWidth-1.208)<.001,'Open leaves must leave the measured clear aperture');
+   if(mode==='window-close'||mode==='door-open'){
+    data.apertures=await page.evaluate(()=>window.wagonApertureChecks());
+    report.lastApertureCheck=data.apertures;
+    assert.equal(data.apertures.windowBlocked,0,'Opaque geometry covers a passenger window');
+    assert.equal(data.apertures.pocketCollisions,0,'Door leaf intersects its wall pocket');
+    if(mode==='door-open')assert.equal(data.apertures.openDoorBlocked,0,'Open doorway has opaque obstructions');
+   }
+  }
   if(process.env.WAGON_EXPECT_VERSION)assert.equal(data.modelVersion,Number(process.env.WAGON_EXPECT_VERSION),'Published model version is stale');
   assert.equal(data.cameraMode,mode);assert.ok(data.meshCount>100);assert.equal(data.renderWidth,1536);assert.equal(data.renderHeight,934);
   assert.deepEqual(data.frontFeatures,{upperRedLamps:2,lowerLamps:6,frontGlazingSections:3,destinationDisplay:'blank',reference:'user-supplied-front-photo'});
@@ -89,7 +119,7 @@ try{
   if(mode==='reference')report.photo=await comparePhoto(data.features,reference,screenshot,path.join(output,'reference-geometry-overlay.png'));
  }
  assert.deepEqual(errors,[],'Wagon JavaScript errors');
- await page.evaluate(()=>window.wagonSetCamera('reference'));
+ await page.evaluate(()=>{window.wagonSetDoors?.(false,{instant:true});window.wagonSetCamera('reference')});
  const frame=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,frame);
  await page.screenshot({path:path.join(output,'reference-repeat.png'),animations:'disabled'});
@@ -109,7 +139,7 @@ finally{
  await writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));
  const changes=report.comparisons.map(c=>`| ${c.mode} | ${c.status} | ${c.changedPixels??'—'} | ${c.bounds?JSON.stringify(c.bounds):'—'} |`).join('\n');
  const metrics=(report.photo?.measurements||[]).map(m=>`| ${m.name} | ${m.status} | ${m.actual?m.actual.width.toFixed(4):'—'} | ${m.expected?m.expected.width.toFixed(4):'—'} | ${m.actual?m.actual.height.toFixed(4):'—'} | ${m.expected?m.expected.height.toFixed(4):'—'} |`).join('\n');
- const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. These reports do not prove the absence of visual defects.\n`;
+ const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\nProtected v84 front: **${report.frontProtection?.pixels?.changedPixels??'not captured'} changed pixels**; seven pinned source regions. Doors: ${report.doorMotion?'30/60 Hz and five sampled clearance poses checked':'not available'}.\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. Sampled clearance rays do not replace continuous collision detection. These reports do not prove the absence of visual defects.\n`;
  await writeFile(path.join(output,'report.md'),markdown);
  const images=[...report.views.map(v=>v.cameraMode),'mobile-reference','protected-v84-front','protected-front-diff','reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
  await writeFile(path.join(output,'index.html'),`<!doctype html><meta charset="utf-8"><title>Wagon visual report</title><style>body{font:16px system-ui;background:#17202b;color:#eee;max-width:1600px;margin:auto;padding:24px}img{width:100%;height:auto}pre{white-space:pre-wrap}</style><h1>Wagon ${report.views[0]?.modelVersion||''} · ${report.commit}</h1><p>Technical result: ${report.result}. Geometry diagnostics require visual review.</p><p>Cyan: model bounds. Amber: photo bounds aligned to fascia.</p>${images.map(i=>`<h2>${i}</h2><img src="${i}.png" alt="${i}">`).join('')}<pre>${JSON.stringify(report,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;')}</pre>`);
