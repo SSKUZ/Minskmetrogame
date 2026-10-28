@@ -56,11 +56,9 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   // serialization and costly recursive inspection by debugging tools.
   Object.defineProperty(root,'v106DoorActuators',{value:leaves,configurable:true});
   root.name='game-v106-four-car-consist';
-  root.traverse(object=>{
-   // The standalone viewer uses four special camera/render layers.
-   // Game cameras use layer zero, so enable it on imported geometry.
-   object.layers.enable(0);
-  });
+  // Preserve the exact four original viewer layers. The game renders the
+  // imported consist in the same calibrated multi-pass order as the viewer.
+  // Forcing all meshes onto layer 0 destroys front-cab shading and finish.
   // Reuse the viewer's original calibrated light rig, including its distinct
   // front/cab layers. Do not substitute generic game lights for this model.
   const lighting=new THREE.Group();
