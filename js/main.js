@@ -1272,7 +1272,22 @@ if(stationCameraActive){
  if(useExperimentalV106&&detailedV106Train){
   detailedV106Train.position.set(-.31,platform.position.y,stationCameraTrainZ+19.206/2);
   detailedV106Train.visible=true;
-  stationTrain.visible=false;
+  // Do not erase the proven exterior if the imported consist is outside the
+  // station camera frustum. Geometry loading alone does not mean it is visible.
+  detailedV106Train.updateMatrixWorld(true);
+  stationCamera.updateMatrixWorld(true);
+  const v106Bounds=new THREE.Box3().setFromObject(detailedV106Train);
+  const inCamera=!v106Bounds.isEmpty()&&stationCamera.frustumCulled!==false&&(()=>{
+   const frustum=new THREE.Frustum();
+   const matrix=new THREE.Matrix4().multiplyMatrices(stationCamera.projectionMatrix,stationCamera.matrixWorldInverse);
+   frustum.setFromProjectionMatrix(matrix);
+   return frustum.intersectsBox(v106Bounds);
+  })();
+  if(!inCamera){
+   detailedV106Train.visible=false;
+   stationTrain.visible=true;
+  }else stationTrain.visible=false;
+  window.metroV106InCamera=inCamera;
  }else stationTrain.visible=true;
  // At the head of the train, looking down its side as in the photo.
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
