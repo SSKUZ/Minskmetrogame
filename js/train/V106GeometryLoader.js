@@ -86,7 +86,29 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   // front/cab layers. Do not substitute generic game lights for this model.
   const lighting=new THREE.Group();
   lighting.name='v106-original-viewer-lighting';
-  for(const light of source.lighting)lighting.add(light);
+  // Lights are realm-sensitive too: WebGLLights expects Color/Vector objects
+  // created by this THREE instance. Recreate the exact viewer light settings
+  // instead of attaching iframe Light instances directly.
+  const localLight=sourceLight=>{
+   let light;
+   if(sourceLight.isHemisphereLight)light=new THREE.HemisphereLight(sourceLight.color.getHex(),sourceLight.groundColor.getHex(),sourceLight.intensity);
+   else if(sourceLight.isDirectionalLight)light=new THREE.DirectionalLight(sourceLight.color.getHex(),sourceLight.intensity);
+   else if(sourceLight.isPointLight)light=new THREE.PointLight(sourceLight.color.getHex(),sourceLight.intensity,sourceLight.distance,sourceLight.decay);
+   else if(sourceLight.isAmbientLight)light=new THREE.AmbientLight(sourceLight.color.getHex(),sourceLight.intensity);
+   else throw new Error('v106 unsupported viewer light '+sourceLight.type);
+   light.name=sourceLight.name;
+   light.position.copy({x:sourceLight.position.x,y:sourceLight.position.y,z:sourceLight.position.z});
+   light.quaternion.copy({x:sourceLight.quaternion.x,y:sourceLight.quaternion.y,z:sourceLight.quaternion.z,w:sourceLight.quaternion.w});
+   light.scale.copy({x:sourceLight.scale.x,y:sourceLight.scale.y,z:sourceLight.scale.z});
+   light.layers.mask=sourceLight.layers.mask;
+   light.visible=sourceLight.visible;
+   if(light.isDirectionalLight&&sourceLight.target){
+    light.target.position.set(sourceLight.target.position.x,sourceLight.target.position.y,sourceLight.target.position.z);
+    lighting.add(light.target);
+   }
+   return light;
+  };
+  for(const sourceLight of source.lighting)lighting.add(localLight(sourceLight));
   Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
   const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,rehomedAttributes};
