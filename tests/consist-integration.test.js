@@ -33,3 +33,10 @@ test('game loads actual v106 model on demand without replacing physics',()=>{
  assert.match(bridge,/frame\.src='about:blank'/);
  assert.doesNotMatch(bridge,/stepTrainMotion|TrainPhysics/);
 });
+
+test('v106 viewer door leaves follow real game door control state',()=>{
+ const bridge=readFileSync(new URL('../js/train/ConsistViewerBridge.js',import.meta.url),'utf8');
+ assert.match(bridge,/getElementById\('screenDoorToggle'\)/);
+ assert.match(bridge,/wagonSetDoors\(open,\{instant:true\}\)/);
+ assert.match(bridge,/clearInterval\(syncTimer\)/);
+});
