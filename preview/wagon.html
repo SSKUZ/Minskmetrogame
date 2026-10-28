@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v94</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v94: 16 предупреждающих наклеек и жёлтые пороги; исправление загрузки.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v95</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v95: безопасная загрузка 3D, наклейки и жёлтые пороги.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -422,7 +422,7 @@ for(const side of [-1,1]){
   if(mid < -7.5){buildCabSide(side,cornerJoinZ,b);continue;}
   buildPassengerBay(side,a,b);
  }
- for(const dz of doors){buildPassengerDoors(side,dz);try{addDoorCautions(side,dz)}catch(error){console.error('Warning decal error:',error)}}
+ for(const dz of doors)buildPassengerDoors(side,dz);
 }
 
 // Side paint follows the actual metal; raised ribs are part of the shell.
@@ -1046,7 +1046,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=91,lightingPreset='station-softboxes-v2';
+const modelVersion=95,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1292,6 +1292,12 @@ if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);
 document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
+// Noncritical decals must never block initial 3D rendering. Add them only
+// after the complete wagon has initialized and the first frames can render.
+setTimeout(()=>{
+ try{for(const side of [-1,1])for(const dz of doors)addDoorCautions(side,dz)}
+ catch(error){console.error('Optional warning decal error:',error)}
+},0);
 // Separate fixed passes also isolate lights (Three.js lights are camera-layer
 // filtered, not per-mesh filtered). Keep depth to preserve correct occlusion.
 let lastRenderTime=performance.now();
