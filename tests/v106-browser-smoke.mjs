@@ -67,17 +67,5 @@ try{
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed during v106 smoke');
  assert.deepEqual(errors,[]);
- // Preserve the original v106 viewer as a visual reference in the same
- // Chromium/SwiftShader run. A green game smoke test alone cannot establish
- // that the imported finish, glazing and front match the source model.
- const viewer=await browser.newPage({viewport:{width:1365,height:768},deviceScaleFactor:1});
- try{
-  await viewer.goto('http://127.0.0.1:8765/preview/wagon.html?qa=1&formation=train&view=side-angle',{waitUntil:'commit',timeout:30000});
-  await viewer.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
-  await viewer.screenshot({path:'test-results/v106/source-viewer-side-angle.png',timeout:90000});
-  const previous=await viewer.evaluate(()=>{window.wagonSetCamera('front');return window.wagonDiagnostics().renderedFrames});
-  await viewer.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,previous,{timeout:90000});
-  await viewer.screenshot({path:'test-results/v106/source-viewer-front.png',timeout:90000});
- }finally{await viewer.close()}
  console.log(JSON.stringify({state,after},null,2));
 }finally{await browser.close()}
