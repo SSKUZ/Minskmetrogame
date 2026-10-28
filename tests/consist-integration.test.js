@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {V106_FORMATION,V106_TRAIN_LENGTH,V106_CAR_PITCH,consistCarPose,consistDoorCommand,validateV106Consist} from '../js/train/ConsistIntegration.js';
+import {V106_FORMATION,V106_TRAIN_LENGTH,V106_CAR_PITCH,consistCarPose,consistDoorCommand,validateV106Consist,updateConsistPose,synchronizeConsistDoors} from '../js/train/ConsistIntegration.js';
 test('v106 formation matches actual reusable train factory',()=>{
  const factory=readFileSync(new URL('../preview/train-factory.js',import.meta.url),'utf8');
  assert.match(factory,/export function assembleConsist/);
@@ -46,4 +46,22 @@ test('station exterior is four cars with v106 centre spacing, not the old five-c
  assert.match(main,/for\(let car=0;car<V106_FORMATION\.length;car\+\+\)/);
  assert.match(main,/const cz=12\+car\*V106_CAR_PITCH/);
  assert.doesNotMatch(main,/for\(let car=0;car<5;car\+\+\)/);
+});
+
+test('v106 car transforms follow the train position with original geometry scale',()=>{
+ const cars=V106_FORMATION.map(type=>({
+  type,leaves:Array(16).fill({}),
+  root:{position:{set(x,y,z){this.x=x;this.y=y;this.z=z}},
+   rotation:{y:0},scale:{setScalar(n){this.value=n}}}
+ }));
+ const consist={cars,root:{updateMatrixWorld(){this.updated=true}}};
+ updateConsistPose(consist,{frontZ:-100,lateral:-.31,railY:2});
+ assert.deepEqual(cars.map(c=>Number(c.root.position.z.toFixed(3))),[-100,-79.994,-59.988,-39.982]);
+ assert.ok(cars.every(c=>c.root.position.x===-.31&&c.root.scale.value===1));
+ assert.equal(cars[3].root.rotation.y,Math.PI);
+ assert.equal(consist.root.updated,true);
+ const calls=[];
+ assert.equal(synchronizeConsistDoors(consist,true,(car,open)=>calls.push({car,open})),64);
+ assert.equal(calls.length,4);
+ assert.ok(calls.every(c=>c.open===true));
 });
