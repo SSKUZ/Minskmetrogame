@@ -24,7 +24,7 @@ jobs:
         run: npm test
       - name: Install browser dependencies
         run: |
-          npm ci
+          npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Browser smoke test of actual cab
         run: |
