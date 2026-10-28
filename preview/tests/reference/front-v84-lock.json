@@ -1,0 +1,49 @@
+{
+  "baseCommit": "e08bd05f4ffe8a78b29b6cdc44071e3646237639",
+  "fixture": "wagon-v84.html",
+  "fixtureSha256": "b3dc3023d4ac00bc91ac88edd7af8fec56a11a3b9a5884ea30ef1759ac634775",
+  "regions": [
+    {
+      "name": "shared materials",
+      "start": "const wall=mat(",
+      "end": "// Front material clones",
+      "sha256": "356d69456610081f8d042f437a03ec2f9886fb8f21b6eaa983479e9dfa521b7d"
+    },
+    {
+      "name": "front materials",
+      "start": "// Front material clones",
+      "end": "function box(",
+      "sha256": "75ffa642d12a3a7198937457c726849bac9f6ad1c5782ce6ed4fc45a3181b79b"
+    },
+    {
+      "name": "nose header join",
+      "start": " const v=[],indices=[],steps=20",
+      "end": "// Four identical openings",
+      "sha256": "2f132e8de39b09b8162d7479d51cc9b2e8c753157e08c4343251692c76e39f48"
+    },
+    {
+      "name": "front roof",
+      "start": "// Continuous closed cab roof:",
+      "end": "// Longitudinal benches",
+      "sha256": "ca594920043debe3c81a61837cd15250203592947db0b5a89d936a6f9cd80b24"
+    },
+    {
+      "name": "front and cab",
+      "start": "// Front fascia based",
+      "end": "// Interior detailing:",
+      "sha256": "2a02279cd84299caed22317292df14358959cef8d9d016400b090d232b1a8340"
+    },
+    {
+      "name": "cab instruments",
+      "start": "// Four-dial instrument",
+      "end": "// Opposite end",
+      "sha256": "6d40d9289d8d3d0198c67bc3caf07c00411f0ffa4941d06ad35a24a6fe3f2675"
+    },
+    {
+      "name": "front camera",
+      "start": " reference:{position:",
+      "end": " side:{position:",
+      "sha256": "9ac40ca2af4a633b222b16948df27b52cefd1bc127a1687b78ae3660090aaa06"
+    }
+  ]
+}

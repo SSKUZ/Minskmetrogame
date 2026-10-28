@@ -1,0 +1,11 @@
+{
+  "commit": "744a21c440b27f9825880095c9f6dd635d993979",
+  "fixture": "wagon-v101.html",
+  "sha256": "1a679e773ed31262df4e2657e8eeb00eb3d43eb6883cd51c2f495cddb295d683",
+  "confirmedBrowserError": "CanvasRenderingContext2D.clearRect: 4 arguments required, but only 2 present",
+  "actualWarningMeshes": 0,
+  "reportedRequirement": 16,
+  "references": [
+    "user real side photos 02-5350.jpg, 03-5353.jpg, 04-5356.jpg"
+  ]
+}

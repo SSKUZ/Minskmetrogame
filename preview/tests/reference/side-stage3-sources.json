@@ -1,0 +1,47 @@
+{
+  "stage": 3,
+  "frontReference": "uruchcha-81-717.png remains the only front photo",
+  "sideSources": [
+    {
+      "file": "5347.png",
+      "sha256": "8abaa051b517a2af1c7ef773cfdc7a1d2e84b1236f7ebe18d579de6567c95b18",
+      "role": "AI-generated style collage; no dimensional authority; never used to remodel the front"
+    },
+    {
+      "file": "5350.jpg",
+      "sha256": "e6f54a1f053701dc37146dd7d4d83a5331d6654767996fde0edf3b54df968ae2",
+      "role": "User-supplied real Minsk train side photograph; livery, doors, ribs, glazing"
+    },
+    {
+      "file": "5353.jpg",
+      "sha256": "53fdf56242993031f1315e0be26ae78f8f922c3728dfbf9a0d3ab4e005c10663",
+      "role": "User-supplied real Minsk 81-717 head car; open passenger doorways, roof and saloon"
+    },
+    {
+      "file": "5356.jpg",
+      "sha256": "cce8981f6ffe98a7d2abb714241a50be69517665b47693461cb8c061cf7c253d",
+      "role": "User-supplied real Minsk train side photograph; open doors, window transoms, saloon finishes"
+    }
+  ],
+  "constructionSource": {
+    "title": "ГУП Московский метрополитен, механическое оборудование, курс лекций 2007",
+    "url": "https://81-717.ru/Конспект Механика 81.717.pdf",
+    "pages": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "usedFor": [
+      "four sliding doorways per side",
+      "1380 mm structural and 1208 mm open clear width",
+      "leaves enter wall pockets",
+      "opposed roof ventilation scoops, 13 each side"
+    ]
+  },
+  "limits": [
+    "Side photos are user attachments, not re-published here. Hashes preserve provenance.",
+    "The model body envelope stays v84; longitudinal side layout is not a certified factory survey.",
+    "The generated collage has contradictory end/cab geometry and was not used for construction counts."
+  ]
+}

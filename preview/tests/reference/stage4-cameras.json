@@ -1,0 +1,54 @@
+{
+  "quarter-45": {
+    "position": [
+      15,
+      4,
+      -15
+    ],
+    "target": [
+      0,
+      2,
+      0
+    ],
+    "fov": 38
+  },
+  "roof-overview": {
+    "position": [
+      12,
+      12,
+      -12
+    ],
+    "target": [
+      0,
+      2,
+      0
+    ],
+    "fov": 43
+  },
+  "cab-roof-join": {
+    "position": [
+      4.8,
+      5.2,
+      -8.55
+    ],
+    "target": [
+      0.2,
+      3.4,
+      -8.55
+    ],
+    "fov": 38
+  },
+  "cab-wall-join": {
+    "position": [
+      5.5,
+      2.55,
+      -7.8
+    ],
+    "target": [
+      0,
+      2.4,
+      -7.8
+    ],
+    "fov": 39
+  }
+}

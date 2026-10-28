@@ -1,0 +1,32 @@
+{
+  "image":"uruchcha-81-717.png",
+  "source":"Only user attachment 5312.png supplied on 2026-10-27; no earlier references",
+  "sha256":"2b47c2a5101ad0f297b00b8fe7f50fda055bc79982063a99df3f5caf6a4cb3ea",
+  "width":1536,"height":934,
+  "method":"Manually labelled visible feature bounds, normalized by fascia width; diagnostic measurements, not a similarity percentage.",
+  "features":{
+    "fascia":{"x":484,"y":121,"width":636,"height":520},
+    "roof":{"x":432,"y":31,"width":715,"height":151},
+    "window-left":{"x":497,"y":201,"width":144,"height":303},
+    "window-center":{"x":656,"y":201,"width":303,"height":303},
+    "window-right":{"x":974,"y":202,"width":134,"height":302},
+    "marker-left":{"x":550,"y":139,"width":35,"height":36},
+    "marker-right":{"x":1019,"y":142,"width":35,"height":36},
+    "headlamp-0":{"x":1035,"y":547,"width":54,"height":55},
+    "headlamp-1":{"x":883,"y":548,"width":51,"height":52},
+    "headlamp-2":{"x":814,"y":548,"width":51,"height":52},
+    "headlamp-3":{"x":746,"y":547,"width":51,"height":52},
+    "headlamp-4":{"x":679,"y":547,"width":51,"height":52},
+    "headlamp-5":{"x":518,"y":547,"width":55,"height":56},
+    "mirror-left":{"x":423,"y":274,"width":41,"height":83},
+    "mirror-right":{"x":1161,"y":272,"width":38,"height":80},
+    "bumper":{"x":480,"y":654,"width":638,"height":61},
+    "coupler":{"x":738,"y":727,"width":147,"height":101}
+  },
+  "limitations":[
+    "Reference camera intrinsics and station lighting are unknown.",
+    "Manual annotation bounds are approximate and affected by perspective and occlusion.",
+    "Projected mesh bounds do not establish visibility, detailed contour accuracy, reflections, or material realism.",
+    "Photo diagnostics flag proportions; actual screenshots still require human visual inspection."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "baseCommit": "e08bd05f4ffe8a78b29b6cdc44071e3646237639",
+  "fixture": "wagon-v84.html",
+  "fixtureSha256": "b3dc3023d4ac00bc91ac88edd7af8fec56a11a3b9a5884ea30ef1759ac634775",
+  "authorization": "Stage 4 user request permits coherent roof, corner and sidewall geometry corrections; front equipment, three panes, six lamps, mirrors, bumper, coupler, empty display and cab equipment stay fixed.",
+  "supersedesForStructuralRegionsOnly": "front-v84-lock.json",
+  "regions": [
+    {
+      "name": "shared materials",
+      "start": "const wall=mat(",
+      "end": "// Front material clones",
+      "sha256": "356d69456610081f8d042f437a03ec2f9886fb8f21b6eaa983479e9dfa521b7d"
+    },
+    {
+      "name": "front materials",
+      "start": "// Front material clones",
+      "end": "function box(",
+      "sha256": "75ffa642d12a3a7198937457c726849bac9f6ad1c5782ce6ed4fc45a3181b79b"
+    },
+    {
+      "name": "front helpers and apron",
+      "start": "// Front fascia based",
+      "end": "// One continuous elliptical sheet",
+      "sha256": "0a7774f34a323ded4557e15e8375d4cc365827063aba41920ebb6fcd33c6a2b5"
+    },
+    {
+      "name": "front equipment and cab",
+      "start": "// One unified fascia",
+      "end": "// Interior detailing:",
+      "sha256": "aa9fbcd481fda16d5f00e307fb1fe643889782a62969d8f04789cdb50200ad4e"
+    },
+    {
+      "name": "cab instruments",
+      "start": "// Four-dial instrument",
+      "end": "// Opposite end",
+      "sha256": "6d40d9289d8d3d0198c67bc3caf07c00411f0ffa4941d06ad35a24a6fe3f2675"
+    },
+    {
+      "name": "front camera",
+      "start": " reference:{position:",
+      "end": " side:{position:",
+      "sha256": "9ac40ca2af4a633b222b16948df27b52cefd1bc127a1687b78ae3660090aaa06"
+    }
+  ]
+}

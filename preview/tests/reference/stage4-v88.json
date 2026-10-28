@@ -1,0 +1,140 @@
+{
+  "baseCommit": "4f34103ee23a787d71e2e64c2161172b57226ec7",
+  "fixture": "wagon-v88.html",
+  "sha256": "58aa177e029c20c3c4c8904ceae98ea66a1a0efeda73fbf202ec380fd86e8c2d",
+  "measurementMethod": "Actual Three.js BufferGeometry bounds plus measured side-plane dimensions; Y is model coordinates, not a newly certified rail datum.",
+  "roofs": [
+    {
+      "index": 261,
+      "name": "",
+      "type": "BufferGeometry",
+      "vertices": 16,
+      "indices": 42,
+      "layer": 1,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "min": [
+        -1.3350000381469727,
+        3.140000104904175,
+        -9.602999687194824
+      ],
+      "max": [
+        1.3350000381469727,
+        3.5999999046325684,
+        -8.152999877929688
+      ]
+    },
+    {
+      "index": 262,
+      "name": "",
+      "type": "BufferGeometry",
+      "vertices": 7475,
+      "indices": 43776,
+      "layer": 4,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "min": [
+        -1.3350000381469727,
+        3.1682000160217285,
+        -8.152999877929688
+      ],
+      "max": [
+        1.3350000381469727,
+        3.608750104904175,
+        9.602999687194824
+      ]
+    },
+    {
+      "index": 267,
+      "name": "",
+      "type": "ShapeGeometry",
+      "vertices": 99,
+      "indices": 291,
+      "layer": 4,
+      "position": [
+        0,
+        0,
+        9.603
+      ],
+      "min": [
+        -1.3350000381469727,
+        3.1549999713897705,
+        9.603
+      ],
+      "max": [
+        1.3350000381469727,
+        3.5999999046325684,
+        9.603
+      ]
+    },
+    {
+      "index": 372,
+      "name": "",
+      "type": "BufferGeometry",
+      "vertices": 1625,
+      "indices": 9216,
+      "layer": 2,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "min": [
+        -1.3350000381469727,
+        3.392921209335327,
+        -9.472999572753906
+      ],
+      "max": [
+        1.3350000381469727,
+        3.731743335723877,
+        -8.152999877929688
+      ]
+    },
+    {
+      "index": 373,
+      "name": "roof",
+      "type": "BufferGeometry",
+      "vertices": 1885,
+      "indices": 10752,
+      "layer": 2,
+      "position": [
+        0,
+        0,
+        -9.713
+      ],
+      "min": [
+        -1.3350000381469727,
+        3.2100000381469727,
+        -9.713
+      ],
+      "max": [
+        1.3350000381469727,
+        3.731743335723877,
+        -9.473000005364417
+      ]
+    }
+  ],
+  "parameters": {
+    "bodyLength": 19.206,
+    "bodyWidth": 2.67,
+    "cabWallOuterWidth": 2.6757999999999997,
+    "passengerWallBaseWidth": 2.646,
+    "passengerRibWidth": 2.664,
+    "cabEaveAtJoin": 3.47,
+    "mainEave": 3.17,
+    "mainCrown": 3.6,
+    "shoulderDrop": 0.3,
+    "dropLength": 0.55,
+    "maximumEaveSlope": 0.818181818181818,
+    "sideWindowsTop": 3.02,
+    "frontWindowsTop": 3.105,
+    "bodyBottom": 0.932
+  },
+  "chosenApproach": "C: one coherent roof and wall envelope; retain the front equipment. Reassess crown balance after the topology pass."
+}

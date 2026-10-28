@@ -1,0 +1,73 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+
+await mkdir('test-results',{recursive:true});
+const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+const errors=[];
+const screenshots=[];
+async function capture(name){await page.screenshot({path:`test-results/${name}.png`,timeout:90000,animations:'disabled'});screenshots.push(name)}
+const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:1,hasTouch:true,isMobile:true});
+page.on('pageerror',e=>errors.push('pageerror: '+e.message));
+page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
+try{
+ await page.goto('http://127.0.0.1:8765/?preview=station',{waitUntil:'domcontentloaded',timeout:30000});
+ await page.waitForFunction(()=>window.metro3DReady===true&&typeof window.metroDiagnostics==='function',{timeout:90000});
+ await page.waitForTimeout(2500);
+ let state=await page.evaluate(()=>window.metroDiagnostics());
+ assert.equal(state.playing,true,'preview must start');
+ assert.equal(state.camera,'cab');
+ assert.ok(await page.locator('#scene').isVisible());
+ await capture('01-cab');
+ await page.locator('#carCameraToggle').click();
+ state=await page.evaluate(()=>window.metroDiagnostics());
+ assert.equal(state.camera,'carriage');
+ await page.waitForTimeout(600);
+ await capture('02-carriage');
+ await page.locator('#carCameraToggle').click();
+ assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'cab');
+ const station=page.locator('#stationCameraToggle');
+ if(await station.isVisible()){
+  await station.click();
+  assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'platform');
+  await page.waitForTimeout(500);
+  await capture('03-platform');
+  await station.click();
+  assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'cab');
+ }
+ await page.waitForTimeout(1500);
+ // Capture a desktop-sized viewport to expose more of the dashboard and station geometry.
+ await page.setViewportSize({width:1024,height:576});
+ await page.waitForTimeout(900);
+ await capture('04-cab-desktop');
+ await page.locator('#carCameraToggle').click();
+ assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'carriage');
+ await page.waitForTimeout(500);
+ await capture('05-carriage-desktop');
+ await page.locator('#carCameraToggle').click();
+ if(await station.isVisible()){
+  await station.click();
+  assert.equal((await page.evaluate(()=>window.metroDiagnostics())).camera,'platform');
+  await page.waitForTimeout(500);
+  await capture('06-platform-desktop');
+  await station.click();
+ }
+ await page.waitForTimeout(500);
+ assert.ok(await page.evaluate(()=>performance.now()-window.metroLastRendered<2500),'render loop should keep running');
+ assert.equal(errors.filter(x=>/ReferenceError|SyntaxError|TypeError|Metro render failure|Failed to resolve module/i.test(x)).length,0,errors.join('\n'));
+ // Independently render the existing modular 3D wagon geometry.
+ const modelPage=await browser.newPage({viewport:{width:1365,height:768},deviceScaleFactor:1});
+ const modelErrors=[];
+ modelPage.on('pageerror',e=>modelErrors.push(e.message));
+ try{
+  await modelPage.goto('http://127.0.0.1:8765/preview/wagon-model.html',{waitUntil:'domcontentloaded',timeout:30000});
+  await modelPage.waitForFunction(()=>window.wagonModelReady===true,{timeout:90000});
+  const model=await modelPage.evaluate(()=>window.wagonModelDiagnostics());
+  assert.ok(model.meshes>100,'3D wagon must contain actual geometry');
+  assert.equal(modelErrors.length,0,modelErrors.join('\\n'));
+  await modelPage.screenshot({path:'test-results/07-wagon-model.png',timeout:90000,animations:'disabled'});
+  screenshots.push('07-wagon-model');
+  console.log('Standalone wagon model:',JSON.stringify(model));
+ }finally{await modelPage.close()}
+ console.log('Browser smoke passed; screenshots:',screenshots.join(', '),'state:',JSON.stringify(state));
+}finally{await browser.close()}
