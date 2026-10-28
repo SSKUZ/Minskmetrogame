@@ -70,7 +70,7 @@ try{
  const viewer=await browser.newPage({viewport:{width:1365,height:768},deviceScaleFactor:1});
  try{
   await viewer.goto('http://127.0.0.1:8765/preview/wagon.html?qa=1&formation=train&view=side-angle',{waitUntil:'domcontentloaded',timeout:60000});
-  await viewer.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,{timeout:90000});
+  await viewer.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
   await viewer.screenshot({path:'test-results/v106/source-viewer-side-angle.png',timeout:90000});
   const previous=await viewer.evaluate(()=>{window.wagonSetCamera('front');return window.wagonDiagnostics().renderedFrames});
   await viewer.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,previous,{timeout:90000});
