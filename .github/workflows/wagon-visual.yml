@@ -8,6 +8,7 @@ on:
       - 'tests/wagon-visual.mjs'
       - 'tests/wagon-image-compare.mjs'
       - 'tests/wagon-front-protection.mjs'
+      - 'tests/wagon-continuity.mjs'
       - 'tests/wagon-syntax.mjs'
       - 'tests/reference/**'
       - 'package.json'

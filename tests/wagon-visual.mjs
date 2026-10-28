@@ -6,16 +6,24 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {comparePixels,comparePhoto,compareProtectedFront} from './wagon-image-compare.mjs';
 import {verifyFrontProtection} from './wagon-front-protection.mjs';
+import {checkContinuity} from './wagon-continuity.mjs';
 
 const output=process.env.WAGON_RESULTS_DIR||'test-results/wagon';
 const baseline=process.env.WAGON_BASELINE_DIR||'test-results/wagon-baseline';
 const target=process.env.WAGON_TARGET_URL||'http://127.0.0.1:8765/preview/wagon.html';
-const viewModes=process.env.WAGON_VIEWS?.split(',')||['reference','front','side','outside','driver','salon','side-full','side-angle','door-close','window-close','window-inside','door-open','roof-side','roof-join'];
+const viewModes=process.env.WAGON_VIEWS?.split(',')||['reference','front','side','outside','driver','salon','side-full','side-angle','door-close','window-close','window-inside','door-open','roof-side','roof-join','quarter-45','roof-overview','cab-roof-join','cab-wall-join'];
 assert.ok(!process.env.GITHUB_ACTIONS||!process.env.WAGON_VIEWS,'CI must capture every view');
 await mkdir(output,{recursive:true});
 const reference=JSON.parse(await readFile('tests/reference/uruchcha-81-717.json','utf8'));
 const sourceHtml=await readFile('preview/wagon.html','utf8');
 const frontLock=await verifyFrontProtection(sourceHtml);
+const stage4Cameras=JSON.parse(await readFile('tests/reference/stage4-cameras.json','utf8'));
+const stage4Base=JSON.parse(await readFile('tests/reference/stage4-v88.json','utf8'));
+const v88Fixture=await readFile(`tests/reference/${stage4Base.fixture}`,'utf8');
+assert.equal(createHash('sha256').update(v88Fixture).digest('hex'),stage4Base.sha256,'Immutable v88 fixture changed');
+const continuityCode=sourceHtml.slice(sourceHtml.indexOf('// Measured structural continuity:'),sourceHtml.indexOf('// End measured structural continuity.')+'// End measured structural continuity.'.length);
+const controlledV88=v88Fixture.replace('const captureMode=',`Object.assign(cameraPresets,${JSON.stringify(stage4Cameras)});\nconst captureMode=`).replace('window.wagonFrontGlassTriangles=',continuityCode+'\nwindow.wagonFrontGlassTriangles=');
+const continuityViews=['side-full','front','quarter-45','roof-overview','cab-roof-join','cab-wall-join'];
 const expectedModule=sourceHtml.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
 const moduleHash=text=>createHash('sha256').update(text).digest('hex');
 const photo=await readFile(`tests/reference/${reference.image}`);
@@ -55,11 +63,26 @@ try{
  await page.screenshot({path:path.join(output,'protected-v84-front.png'),animations:'disabled',timeout:90000});
  const immutableFrontGeometry=(await page.evaluate(()=>window.wagonDiagnostics())).features;
  report.frontProtection={baseCommit:frontLock.baseCommit,protectedBlocks:frontLock.protectedBlocks};
+ // The original v88 geometry is rendered, with only common inspection
+ // cameras and a read-only measuring function injected into its module.
+ await page.route('**/__wagon_v88.html*',route=>route.fulfill({body:controlledV88,contentType:'text/html'}));
+ await page.goto(new URL('__wagon_v88.html?qa=1',target).href,{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>window.wagonReady&&window.wagonDiagnostics().renderedFrames>=3,null,{timeout:90000});
+ report.v88Control={commit:stage4Base.baseCommit,fixtureSha256:stage4Base.sha256,cameraOverrides:stage4Cameras,measurements:await page.evaluate(()=>window.wagonContinuityDiagnostics())};
+ await writeFile(path.join(output,'v88-geometry.json'),JSON.stringify(report.v88Control,null,2));
+ for(const mode of continuityViews){
+  const frame=await page.evaluate(m=>{window.wagonSetCamera(m);return window.wagonDiagnostics().renderedFrames},mode);
+  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,frame,{timeout:30000});
+  await page.screenshot({path:path.join(output,`before-v88-${mode}.png`),animations:'disabled',timeout:90000});
+ }
  const url=new URL(target);url.searchParams.set('qa','1');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
  report.renderedModuleSha256=moduleHash(await page.locator('script[type="module"]').textContent());
  assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');
  await page.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
+ const version=await page.evaluate(()=>window.wagonDiagnostics().modelVersion);
+ report.continuity=checkContinuity(await page.evaluate(()=>window.wagonContinuityDiagnostics()),version);
+ await writeFile(path.join(output,'current-geometry.json'),JSON.stringify(report.continuity,null,2));
  if(await page.evaluate(()=>!!window.wagonAdvanceDoors)){
   report.doorMotion=await page.evaluate(()=>{
    const travel=dt=>{window.wagonSetDoors(false,{instant:true});window.wagonSetDoors(true);for(let i=0;i<Math.round(1/dt);i++)window.wagonAdvanceDoors(dt);return window.wagonSideDiagnostics().leaves.map(d=>d.z)};
@@ -115,6 +138,12 @@ try{
    comparison={mode,...await comparePixels(screenshot,path.join(baseline,`${mode}.png`),path.join(output,`${mode}-diff.png`)),lightingChanged:!!old&&old.lightingPreset!==data.lightingPreset,sideLightingChanged:old?.passenger?.lightingPreset!==data.passenger?.lightingPreset,cameraChanged:!!old&&JSON.stringify(old.camera)!==JSON.stringify(data.camera)};
   }catch(error){if(error.code!=='ENOENT')throw error;}
   report.comparisons.push(comparison);
+  if(continuityViews.includes(mode)){
+   report.v88Comparisons??=[];
+   const comparison=await comparePixels(screenshot,path.join(output,`before-v88-${mode}.png`),path.join(output,`v88-${mode}-diff.png`));
+   report.v88Comparisons.push({mode,...comparison});
+   if(version===89)assert.equal(comparison.changedPixels,0,'Diagnostic release must retain v88 geometry');
+  }
   if(mode==='front'){
    assert.deepEqual(data.features,immutableFrontGeometry,'Projected front geometry differs from v84');
    const glazing=await page.evaluate(()=>window.wagonFrontGlassTriangles?.()||[]);
@@ -151,7 +180,7 @@ finally{
  const metrics=(report.photo?.measurements||[]).map(m=>`| ${m.name} | ${m.status} | ${m.actual?m.actual.width.toFixed(4):'—'} | ${m.expected?m.expected.width.toFixed(4):'—'} | ${m.actual?m.actual.height.toFixed(4):'—'} | ${m.expected?m.expected.height.toFixed(4):'—'} |`).join('\n');
  const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\nProtected v84 front surfaces: **${report.frontProtection?.pixels?.changedPixels??'not captured'} changed pixels**; seven pinned source regions and identical projected geometry. Full frontal frame: ${report.frontProtection?.pixels?.fullFrameChangedPixels??report.frontProtection?.pixels?.changedPixels??'not captured'} changes; transparent glazing background: ${report.frontProtection?.pixels?.glazingContentChangedPixels??0}. The complete unmasked difference is saved. Doors: ${report.doorMotion?'30/60 Hz and five sampled clearance poses checked':'not available'}.\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. Sampled clearance rays do not replace continuous collision detection. These reports do not prove the absence of visual defects.\n`;
  await writeFile(path.join(output,'report.md'),markdown);
- const images=[...report.views.map(v=>v.cameraMode),'mobile-reference','protected-v84-front','protected-front-diff',...(report.frontProtection?.pixels?.fullFrameChangedPixels!==undefined?['protected-front-diff-full']:[]),...(report.parallax?['window-inside-parallax','window-inside-parallax-diff']:[]),'reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
+ const images=[...continuityViews.map(m=>'before-v88-'+m),...report.views.map(v=>v.cameraMode),...(report.v88Comparisons||[]).map(c=>'v88-'+c.mode+'-diff'),'mobile-reference','protected-v84-front','protected-front-diff',...(report.frontProtection?.pixels?.fullFrameChangedPixels!==undefined?['protected-front-diff-full']:[]),...(report.parallax?['window-inside-parallax','window-inside-parallax-diff']:[]),'reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
  await writeFile(path.join(output,'index.html'),`<!doctype html><meta charset="utf-8"><title>Wagon visual report</title><style>body{font:16px system-ui;background:#17202b;color:#eee;max-width:1600px;margin:auto;padding:24px}img{width:100%;height:auto}pre{white-space:pre-wrap}</style><h1>Wagon ${report.views[0]?.modelVersion||''} · ${report.commit}</h1><p>Technical result: ${report.result}. Geometry diagnostics require visual review.</p><p>Cyan: model bounds. Amber: photo bounds aligned to fascia.</p>${images.map(i=>`<h2>${i}</h2><img src="${i}.png" alt="${i}">`).join('')}<pre>${JSON.stringify(report,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;')}</pre>`);
  await browser.close();
 }

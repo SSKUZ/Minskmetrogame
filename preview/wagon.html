@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v88</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v88: округлая боковая крыша, вентиляция, прозрачные окна и объёмный салон. Передок v84 сохранён.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v89</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v89: диагностика единства кузова и контрольные ракурсы v88. Геометрия сохранена.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -1042,7 +1042,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=88,lightingPreset='station-softboxes-v2';
+const modelVersion=89,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1062,6 +1062,8 @@ Object.assign(cameraPresets,{
  'roof-side':{position:[9,8,0],target:[0,3.45,0],fov:56},
  'roof-join':{position:[4.7,4.6,1.2],target:[.9,3.2,0],fov:40}
 });
+// Stage 4 fixed inspection cameras, also applied to the immutable v88 fixture.
+Object.assign(cameraPresets,{"quarter-45":{"position":[15,4,-15],"target":[0,2,0],"fov":38},"roof-overview":{"position":[12,12,-12],"target":[0,2,0],"fov":43},"cab-roof-join":{"position":[4.8,5.2,-8.55],"target":[0.2,3.4,-8.55],"fov":38},"cab-wall-join":{"position":[5.5,2.55,-7.8],"target":[0,2.4,-7.8],"fov":39}});
 const captureMode=new URLSearchParams(location.search).get('qa')==='1';
 if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el.style.display='none');grid.visible=false;}
 let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
@@ -1098,6 +1100,96 @@ function projectedFeature(object){
  return {x:Math.min(...points.map(p=>p[0])),y:Math.min(...points.map(p=>p[1])),width:Math.max(...points.map(p=>p[0]))-Math.min(...points.map(p=>p[0])),height:Math.max(...points.map(p=>p[1]))-Math.min(...points.map(p=>p[1]))};
 }
 window.wagonDiagnostics=()=>({modelVersion,cameraMode,lightingPreset,renderedFrames,meshCount:group.children.filter(o=>o.isMesh).length,frontFeatures,frontZ:cabFront,bodyLength:L,bodyWidth:W,renderWidth:renderer.domElement.width,renderHeight:renderer.domElement.height,camera:{position:camera.position.toArray(),target:ctl.target.toArray(),fov:camera.fov},features:Object.fromEntries([...qaObjects].map(([name,object])=>[name,projectedFeature(object)]))});
+// Measured structural continuity: reads actual transformed triangles.
+let continuityMeasurements;
+window.wagonContinuityDiagnostics=()=>{
+ if(continuityMeasurements)return continuityMeasurements;
+ group.updateMatrixWorld(true);
+ const all=[];group.traverse(o=>{if(o.isMesh)all.push(o)});
+ const boxOf=o=>new T.Box3().setFromObject(o),worldPoint=(o,i)=>new T.Vector3().fromBufferAttribute(o.geometry.attributes.position,i).applyMatrix4(o.matrixWorld);
+ const roofs=all.filter(o=>{
+  if(o.userData.structuralRole==='outer-roof'||o.name==='roof')return true;
+  const b=boxOf(o);return o.geometry.type==='BufferGeometry'&&b.max.x-b.min.x>2.62&&b.min.y>3.13&&b.max.y>3.59;
+ });
+ const bins=new Map(),triangles=[];
+ for(const mesh of roofs){
+  const g=mesh.geometry,count=g.index?.count||g.attributes.position.count;
+  for(let i=0;i<count;i+=3){
+   const p=[0,1,2].map(j=>worldPoint(mesh,g.index?g.index.getX(i+j):i+j));
+   const z0=Math.min(...p.map(v=>v.z)),z1=Math.max(...p.map(v=>v.z)),id=triangles.length;
+   triangles.push({p,minX:Math.min(...p.map(v=>v.x)),maxX:Math.max(...p.map(v=>v.x)),mesh});
+   for(let k=Math.floor(z0/.04);k<=Math.floor(z1/.04);k++){if(!bins.has(k))bins.set(k,[]);bins.get(k).push(id)}
+  }
+ }
+ function roofHits(x,z){
+  const hits=[];
+  for(const id of bins.get(Math.floor(z/.04))||[]){
+   const {p,minX,maxX}=triangles[id];if(x<minX-1e-7||x>maxX+1e-7)continue;
+   const [a,b,c]=p,den=(b.z-c.z)*(a.x-c.x)+(c.x-b.x)*(a.z-c.z);if(Math.abs(den)<1e-12)continue;
+   const u=((b.z-c.z)*(x-c.x)+(c.x-b.x)*(z-c.z))/den,v=((c.z-a.z)*(x-c.x)+(a.x-c.x)*(z-c.z))/den;
+   if(u< -1e-6||v< -1e-6||u+v>1+1e-6)continue;
+   hits.push(u*a.y+v*b.y+(1-u-v)*c.y);
+  }
+  return hits.sort((a,b)=>a-b).filter((v,i,a)=>i===0||Math.abs(v-a[i-1])>1e-5);
+ }
+ let roofOverlapSamples=0,maximumRoofStep20mm=0;const overlapExamples=[],profiles=[];
+ for(const x of [-1.32,-1.2,-.94,-.5,0,.5,.94,1.2,1.32]){
+  let previous;
+  const samples=[];
+  for(let i=0;i<=147;i++){
+   const z=-9.45+i*.02,hits=roofHits(x,z),y=hits.at(-1);
+   if(hits.length>1){roofOverlapSamples++;if(overlapExamples.length<12)overlapExamples.push({x,z,heights:hits})}
+   if(y!==undefined&&previous!==undefined)maximumRoofStep20mm=Math.max(maximumRoofStep20mm,Math.abs(y-previous));
+   previous=y;if(i%10===0)samples.push({z,y});
+  }
+  profiles.push({x,samples});
+ }
+ const opaque=all.filter(o=>!Array.isArray(o.material)&&!o.material.transparent);
+ const ray=new T.Raycaster();ray.layers.enable(1);ray.layers.enable(2);
+ function sideHits(z,y){
+  ray.set(new T.Vector3(2,y,z),new T.Vector3(-1,0,0));ray.near=0;ray.far=.80;
+  return ray.intersectObjects(opaque,false).filter(h=>h.point.x>1.30);
+ }
+ const cabHits=sideHits(-7.5,2.4),bodyHits=sideHits(-5.5,2.4),cabX=cabHits[0]?.point.x,bodyX=bodyHits[0]?.point.x;
+ const nearCab=cabHits.filter(h=>cabX-h.point.x<.003).map(h=>h.point.x).filter((v,i,a)=>i===0||Math.abs(v-a[i-1])>1e-5);
+ const blue=all.filter(o=>!Array.isArray(o.material)&&!o.material.transparent&&o.material.color&&o.material.color.b>o.material.color.r*1.4&&o.material.color.b>o.material.color.g*1.05);
+ function lowerLine(z){for(let i=0;i<=130;i++){const y=.90+i*.001;ray.set(new T.Vector3(2,y,z),new T.Vector3(-1,0,0));ray.near=0;ray.far=.70;if(ray.intersectObjects(blue,false).length)return y}return null}
+ const cabBottom=lowerLine(-7.5),bodyBottom=lowerLine(-5.5),main=roofs.find(o=>boxOf(o).max.z>9&&o.geometry.attributes.position.count>100);
+ const edgeLines=[];
+ for(const mesh of all){
+  let points=[];
+  if(mesh.userData.roofEdgeIndices)points=mesh.userData.roofEdgeIndices.map(i=>worldPoint(mesh,i));
+  else if(mesh.userData.sideWall&&mesh.material===sidePaint){
+   const g=mesh.geometry;for(let i=0;i<g.attributes.position.count;i++){const p=worldPoint(mesh,i);if(Math.abs(p.y-sideEave)<1e-5&&p.x>0)points.push(p)}
+   points.sort((a,b)=>a.z-b.z);points=points.filter((p,i,a)=>i===0||Math.abs(p.z-a[i-1].z)>1e-6);
+  }
+  for(let i=0;i<points.length-1;i++)if(points[i].x>0)edgeLines.push(new T.Line3(points[i],points[i+1]));
+ }
+ let roofWallGap=0,roofCapGap=0;
+ const columns=main?.userData.roofColumns||64;
+ if(main&&edgeLines.length){
+  const g=main.geometry;
+  for(let i=columns;i<g.attributes.position.count;i+=columns+1){
+   const p=worldPoint(main,i);if(p.z< -6.98&&!main.userData.roofColumns)continue;
+   let gap=Infinity;for(const line of edgeLines)if(p.z>=Math.min(line.start.z,line.end.z)-1e-5&&p.z<=Math.max(line.start.z,line.end.z)+1e-5)gap=Math.min(gap,line.closestPointToPoint(p,true,new T.Vector3()).distanceTo(p));
+   if(Number.isFinite(gap))roofWallGap=Math.max(roofWallGap,gap);
+  }
+ }
+ const brow=qaObjects.get('roof');
+ if(main&&main.userData.roofColumns&&brow){
+  const browColumns=brow.userData.roofColumns||64,start=brow.geometry.attributes.position.count-(browColumns+1);
+  for(let i=0;i<=columns;i++)roofCapGap=Math.max(roofCapGap,worldPoint(main,i).distanceTo(worldPoint(brow,start+i)));
+ }
+ let invertedOuterFaces=0;
+ for(const mesh of roofs.filter(o=>o.userData.structuralRole==='outer-roof')){
+  const g=mesh.geometry;for(let i=0;i<(g.index?.count||0);i+=24){const ids=[0,1,2].map(j=>g.index.getX(i+j)),p=ids.map(k=>worldPoint(mesh,k)),n=new T.Vector3().fromBufferAttribute(g.attributes.normal,ids[0]);const face=new T.Vector3().subVectors(p[1],p[0]).cross(new T.Vector3().subVectors(p[2],p[0]));if(face.lengthSq()>1e-14&&face.dot(n)<=0)invertedOuterFaces++;}
+ }
+ const cabRoof=roofs.filter(o=>boxOf(o).min.z< -8.0),passengerRoof=roofs.filter(o=>boxOf(o).max.z>9&&o!==brow);
+ const maxY=meshes=>Math.max(...meshes.map(o=>boxOf(o).max.y));
+ return continuityMeasurements={method:'World-space triangle intersections and side-plane rays; millimetre sampling of body lower edges. No texture or color similarity metric.',roofSurfaceCount:roofs.length,roofOverlapSamples,overlapExamples,maximumRoofStep20mm,roofCapGap,roofWallGap,cabBodyPlaneDifference:Math.abs(cabX-bodyX),cabWallWidth:2*cabX,bodyWallWidth:2*bodyX,sideBottomDifference:Math.abs(cabBottom-bodyBottom),cabBottom,bodyBottom,nearCoincidentCabSkins:nearCab.length,invertedOuterFaces,cabCrown:maxY(cabRoof),mainCrown:maxY(passengerRoof),sideWindowOpeningTop:Math.max(...passengerWindows.map(w=>w.y+w.h/2)),frontWindowTop:boxOf(qaObjects.get('window-center')).max.y,profiles};
+};
+// End measured structural continuity.
+
 window.wagonFrontGlassTriangles=()=>{
  const triangles=[];
  for(const [name,mesh] of qaObjects){

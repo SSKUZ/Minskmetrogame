@@ -83,3 +83,20 @@ Checks additionally cover forty volumetric seats, 26 roof scoops, normal/winding
 agreement, 30/60 Hz door motion, sampled wall-pocket clearance and real window
 parallax. The ordinary viewer remains live; QA holds each actual WebGL frame
 only after three renders. All captures retain fixed 1536 × 934 parameters.
+
+## Stage 4 geometry continuity
+
+The six v88 control views are preserved by an immutable HTML fixture with
+verified SHA-256. Only common inspection cameras and a read-only measuring
+function are injected for those baseline captures. No train geometry is
+changed. Fixed camera values are in `reference/stage4-cameras.json`.
+The regular workflow now includes eighteen views plus six before-v88 frames.
+
+`wagon-continuity.mjs` enforces geometric criteria for v90+: one roof height
+per sampled X/Z point; at most 7.5 mm change over a 20 mm longitudinal run;
+cap/roof and roof/wall gaps at most 0.05 mm; outer wall-plane mismatch at most
+1 mm; lower-sheet mismatch at most 1.1 mm; a single exterior cab skin and
+consistent outward normals. v89 explicitly reports the existing defects as
+a diagnosis. This sampling does not prove absence of every possible triangle
+collision. Source/position checks independently protect front equipment,
+windows, door motion and the 3D saloon.

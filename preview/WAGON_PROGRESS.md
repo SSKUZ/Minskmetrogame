@@ -249,3 +249,34 @@ To resume: fetch testing, verify the published module hash and successful
 commit-linked Actions artifact, retain all v84 front locks, and use the current
 14-view artifact as baseline. Do not re-enable the obsolete protected-side
 rule; sides and saloon are now the permitted area.
+
+## Stage 4 overrides the earlier rigid roof freeze
+
+User now authorizes coherent body proportions and roof/side transition repair,
+while preserving the characteristic front, six lamps (1 + 4 + 1), mirrors,
+bumper, coupling, three panes and blank display. Main/gameplay stay untouched.
+
+v88 diagnostics (actual transformed Three.js triangles, not guesses): crown
+3.731743 m at the cab versus 3.608750 m over the main body; edge-line drop
+300 mm over 550 mm; cab/body exterior-plane difference 14.900 mm per side;
+18 mm difference of lower sheet edges; about 12.134 mm between roof and wall
+edge lines. Four upper roof surface meshes coexist, including an obsolete
+16-vertex roof under the cab. A 9 × 148 X/Z sample grid finds 585 samples
+with multiple roof heights, and a 13.729 mm rise/drop over a 20 mm run.
+The exterior cab also has two nearly coincident blue skins.
+
+v89 changes diagnostics/cameras only. Immutable v88 source/hash are in
+`tests/reference/wagon-v88.html` and `stage4-v88.json`; six original v88
+screenshots are regenerated in every workflow artifact using the identical
+camera profile. Added quarter-45, roof-overview, cab-roof-join, cab-wall-join;
+retained all fourteen previous views. Local seven-view check passed; all six
+v89/v88 control-image diffs are zero. Geometry diagnostics are explicitly
+"diagnostic-only" for v89, not a visual acceptance of its known defects.
+
+Chosen repair: replace stacked roof sheets/header blocks with one compatible
+surface family and a real upper sidewall. Keep the front equipment in place.
+First address topology and tangency, then reassess the crown balance against
+Uruchcha and real side/oblique photographs; no arbitrary uniform cab scaling.
+For v90+ the new continuity checks become mandatory. Existing source locks
+on structural roof/header/corner code need an explicit stage-4 scope update;
+the immutable v84/v88 historical fixtures and front-equipment locks remain.
