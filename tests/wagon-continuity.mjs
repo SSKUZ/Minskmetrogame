@@ -13,5 +13,6 @@ export function checkContinuity(diagnostics,version){
  assert.equal(d.nearCoincidentCabSkins,1,'Duplicate exterior cab skins remain');
  assert.ok(d.roofWallGap<=.00005,'Roof edge and sidewall have a gap');
  assert.equal(d.invertedOuterFaces,0,'A structural face has reversed normals');
+ if(version>=91)assert.ok(Math.abs(d.cabCrown-d.mainCrown)<=.05,'Cab crown remains disproportionate to the main roof');
  return {status:'pass',measurements:d,limits:'Structural surface sampling, not a general continuous collision proof. Window/door/saloon positions and six front lamps are checked separately.'};
 }

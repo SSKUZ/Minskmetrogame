@@ -1,12 +1,16 @@
-# Current scope — stage 3
+# Current scope — stage 4
 
-Current candidate: v88, testing only. Preserve the complete v84 front assembly,
-its source hashes, glass, cab equipment, lamps (1 + 4 + 1), mirrors, bumper,
-coupler and blank display. Passenger sides, doors, glazing, saloon and side
-roof are now the permitted work. Never change main or gameplay modules.
+Current candidate: v91, testing only, based on confirmed v88. The current user
+authorizes roof/corner/side-sheet restructuring and modest crown correction
+to make a coherent body. Preserve the recognizable v84 front equipment and
+its source hashes: black fascia, three panes, two red markers, six lamps
+(1 + 4 + 1), mirrors, apron, bumper, coupler and blank display. Passenger
+apertures, sliding leaves, saloon and cab equipment remain fixed to v88.
+Never change main or gameplay modules.
 
-The v80–v84 sections below are historical. Stage 3 supersedes the earlier
-front-only restrictions; its latest checkpoint is at the end of this file.
+All earlier checkpoints below are historical. Stage 4 supersedes the rigid
+structural roof/corner freeze; its measurements, explicit source-lock scope
+and latest checkpoint are at the end of this file.
 
 # Autonomous wagon refinement checkpoint
 
@@ -315,3 +319,44 @@ Visual review confirms the box-like roof join and surface holes are removed.
 The crown heights were intentionally left at about 3.732 / 3.608 m in this
 first topology pass. Next: balance only the upper crown against real front
 and side photos. Keep fascia, lights, glazing, doors and saloon in place.
+
+## v91: balanced crown and final stage-4 inspection
+
+Compared the coherent v90 shell to the real Uruchcha front and supplied real
+side/oblique photographs. Lowered only the blue front crown from 3.731743 to
+3.690000 m and raised the main crown from 3.608000 to 3.653999 m (same sampled
+main-roof region in both controls). Crown difference is now 36.001 mm rather
+than 123.743 mm. No uniform cab scaling was used. Equipment, front-window
+positions and all passenger apertures/interior coordinates are unchanged.
+The body length remains 19.206 m and nominal width 2.670 m; actual flat side
+planes now share width 2.646 m. Front/main eaves transition 3.250 -> 3.170 m
+smoothly over 2.483 m instead of the former 300 mm drop over 550 mm.
+Reduced the longitudinal roof bow from 8 to 4 mm. The original twenty-six
+vent hoods ride the new surface. Four inspection views are also selectable
+in the ordinary viewer, with responsive portrait framing.
+
+Full local v91 check: 18 views plus six immutable v88 controls, with all prior
+front/interior cameras retained. Roof overlap samples: 0; maximum height
+change over a 20 mm run: 5.044 mm; brow/main boundary gap: 0; tangent-plane
+angle: 0.000036 degrees; roof/side boundary gap: about 0.00012 mm. Exterior
+plane and lower-edge mismatches: 0. One actual exterior cab skin per side;
+no inverted structural faces. Added a 50 mm crown-balance regression limit.
+Protected front-equipment pixels: 0 changes. Repeat frame: 0 changes.
+Doors pass five sampled motion poses, 30/60 Hz timing, pocket and aperture
+rays. Window and leaf layout exactly matches v88; saloon and passenger-window
+builder source hashes match v88. These are finite geometry checks, not a
+continuous collision proof or a measure of photographic likeness.
+
+v89 Actions 40637620275 and v90 Actions 40639300733 succeeded; their separate
+publication workflows succeeded and their actual published modules were
+fetched, version/hash checked and rendered. Final v91 CI/live evidence is
+generated after this commit; do not infer deployment solely from committing.
+
+Remaining limitations: panel welds, small trim/vent edges, finishes and the
+underframe remain simplified; the existing interior is deliberately retained.
+This is a photo-guided viewer model, not a factory-CAD reconstruction. Fixed
+studio lighting does not reproduce a Minsk station. Stage 3's isolated-viewer
+scope still applies: no gameplay carriage builder, physics or controls were
+replaced. The pre-existing game-unit baseline remains 10/12 with the same
+two failures documented above. Inspect actual before/after images as well
+as metrics; retain the immutable v88 fixture and front-equipment locks.

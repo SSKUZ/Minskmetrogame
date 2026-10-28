@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v90</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v90: единая геометрия крыши и боковых стенок кабины. Лобовое оборудование сохранено.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v91</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v91: согласованные пропорции и единый плавный кузов. Лобовое оборудование сохранено.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -80,7 +80,7 @@ function roundedOpening(w,h,r,x,y,z,side){
 
 const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
 // One measured exterior envelope. Dimensions of front equipment are unchanged.
-const bodyEnvelope={browBase:3.21,frontEave:3.25,frontCrown:3.731743335723877,mainEave:3.17,mainCrown:3.60,bow:.008,rollLength:.235,cornerLength:.205,blendEnd:-6.99,widthBlendEnd:-9.0};
+const bodyEnvelope={browBase:3.21,frontEave:3.25,frontCrown:3.69,mainEave:3.17,mainCrown:3.65,bow:.004,rollLength:.235,cornerLength:.205,blendEnd:-6.99,widthBlendEnd:-9.0};
 const noseShellZ=-L/2-.105,cornerJoinZ=noseShellZ+bodyEnvelope.cornerLength,roofStartZ=noseShellZ+bodyEnvelope.rollLength;
 function smooth5(value){const t=T.MathUtils.clamp(value,0,1);return t*t*t*(10+t*(-15+6*t))}
 function outerBodyHalfWidth(z){
@@ -971,7 +971,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=90,lightingPreset='station-softboxes-v2';
+const modelVersion=91,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -998,7 +998,7 @@ if(captureMode){document.querySelectorAll('#info,#status,button').forEach(el=>el
 let cameraMode='outside',renderedFrames=0,qaFramesRemaining=3;
 function fitCameraProjection(){
  const base=cameraPresets[cameraMode]?.fov||58;
- const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side','side-full','side-angle','roof-side'].includes(cameraMode)?1.64:['door-close','door-open','window-close','roof-join'].includes(cameraMode)?.95:0;
+ const minimumAspect=['reference','front'].includes(cameraMode)?.95:['outside','side','side-full','side-angle','roof-side','quarter-45','roof-overview'].includes(cameraMode)?1.64:['door-close','door-open','window-close','roof-join','cab-roof-join','cab-wall-join'].includes(cameraMode)?.95:0;
  camera.fov=camera.aspect>=minimumAspect?base:T.MathUtils.radToDeg(2*Math.atan(Math.tan(T.MathUtils.degToRad(base)/2)*minimumAspect/camera.aspect));
  camera.updateProjectionMatrix();
 }
@@ -1207,7 +1207,7 @@ doorButton.onclick=()=>{window.wagonSetDoors(!doorTarget);doorButton.textContent
 if(captureMode)doorButton.style.display='none';
 const controls=document.createElement('nav');controls.id='controls';controls.setAttribute('aria-label','Просмотр вагона');
 const cameraSelect=document.createElement('select');cameraSelect.id='cameraSelect';cameraSelect.setAttribute('aria-label','Ракурс камеры');
-for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Эталонный ракурс',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
+for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Эталонный ракурс',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки','quarter-45':'Вид под 45°','roof-overview':'Сверху под углом','cab-roof-join':'Стык кабины и крыши','cab-wall-join':'Стык кабины и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
  const option=document.createElement('option');option.value=value;option.textContent=label;cameraSelect.appendChild(option);
 }
 cameraSelect.onchange=()=>{setCamera(cameraSelect.value);if(cameraSelect.value==='door-open'){window.wagonSetDoors(true);doorButton.textContent='Закрыть двери'}};
