@@ -1,6 +1,6 @@
 // Load the actual v106 geometry from its calibrated viewer into the gameplay
 // THREE.Scene. No approximated meshes are constructed here.
-export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
+export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
  if(!THREE?.Group||!scene?.add)throw new TypeError('THREE and scene required');
  const startedAt=performance.now();
  const frame=document.createElement('iframe');
@@ -140,13 +140,52 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   // The source renderer owns its GPU-generated environment maps. Their
   // images are not necessarily portable between WebGL contexts.
   metrics.gpuOnlyEnvironmentMaps=[...textures].filter(t=>t.isRenderTargetTexture).length;
+  // The source's studio PMREM is a WebGLRenderTarget owned by the iframe GPU
+  // context. Its texture cannot be reused in the gameplay renderer. Rebuild
+  // that *same* softbox studio and PMREM in the gameplay WebGL context, then
+  // relink only materials that reference the source GPU-only environment.
+  // Do not change their colors, roughness, clearcoat or envMapIntensity.
+  if(metrics.gpuOnlyEnvironmentMaps){
+   if(!renderer)throw new Error('v106 GPU environment requires the gameplay renderer');
+   const studio=new THREE.Scene();
+   studio.background=new THREE.Color(0x30302e);
+   studio.add(new THREE.Mesh(new THREE.BoxGeometry(30,12,50),new THREE.MeshBasicMaterial({color:0x282826,side:THREE.BackSide})));
+   const softbox=(w,h,d,x,y,z,color,intensity=1)=>{
+    const material=new THREE.MeshBasicMaterial({color});
+    material.color.multiplyScalar(intensity);
+    const object=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+    object.position.set(x,y,z);studio.add(object);
+   };
+   softbox(29,.02,49,0,-3.5,0,0x353638);
+   for(const x of [-4,4])softbox(.45,.04,22,x,5.1,0,0xfff6df,4);
+   for(const x of [-5,5])softbox(.40,3.2,.05,x,1.5,-6,0xf7f1e4,2.5);
+   const generator=new THREE.PMREMGenerator(renderer);
+   let target;
+   try{target=generator.fromScene(studio,.04,.1,80);}
+   finally{
+    generator.dispose();
+    studio.traverse(object=>{if(object.isMesh){object.geometry.dispose();object.material.dispose();}});
+   }
+   const replaced=new Set();
+   root.traverse(object=>{
+    if(!object.isMesh)return;
+    for(const material of (Array.isArray(object.material)?object.material:[object.material])){
+     if(material?.envMap?.isRenderTargetTexture&&material.envMap!==target.texture){
+      material.envMap=target.texture;material.needsUpdate=true;replaced.add(material);
+     }
+    }
+   });
+   if(!replaced.size){target.dispose();throw new Error('v106 GPU environment material references not found');}
+   Object.defineProperty(root,'v106EnvironmentTarget',{value:target,configurable:true});
+   metrics.rehomedEnvironmentMaterials=replaced.size;
+  }
   metrics.sourceThreeRevision=frame.contentWindow.wagonThreeRevision||null;
   metrics.gameThreeRevision=THREE.REVISION||null;
   // PMREM render-target textures may be GPU-only: report them, do not
   // reject an otherwise complete train before the game renderer tries it.
   window.metroV106InvalidTextureMaps=metrics.invalidTextures;
   window.metroV106Metrics=metrics;
-  if(metrics.gpuOnlyEnvironmentMaps)console.warn('v106: GPU-only environment maps require browser visual verification',metrics.gpuOnlyEnvironmentMaps);
+  if(metrics.gpuOnlyEnvironmentMaps)console.info('v106: rebuilt original studio PMREM in gameplay renderer for',metrics.rehomedEnvironmentMaterials,'materials');
   // Commit to the game scene only after the source passes integrity checks.
   // Failed loads must not leave orphaned lights or partial train geometry.
   // Viewer light positions are expressed in the original consist's local
