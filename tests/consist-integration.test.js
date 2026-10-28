@@ -40,3 +40,10 @@ test('v106 viewer door leaves follow real game door control state',()=>{
  assert.match(bridge,/wagonSetDoors\(open,\{instant:true\}\)/);
  assert.match(bridge,/clearInterval\(syncTimer\)/);
 });
+
+test('station exterior is four cars with v106 centre spacing, not the old five-car layout',()=>{
+ const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
+ assert.match(main,/for\(let car=0;car<V106_FORMATION\.length;car\+\+\)/);
+ assert.match(main,/const cz=12\+car\*V106_CAR_PITCH/);
+ assert.doesNotMatch(main,/for\(let car=0;car<5;car\+\+\)/);
+});
