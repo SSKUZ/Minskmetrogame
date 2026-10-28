@@ -1,6 +1,6 @@
 # Current scope — stage 5
 
-Current checkpoint: v102 on testing, based on v101 (744a21c). The task now
+Current checkpoint: v103 on testing, based on v101 (744a21c). The task now
 includes four cars 81-717 / 81-714 / 81-714 / reversed 81-717. Preserve the
 existing head-car detail. Work progressively: warning markings, real end
 walls, intermediate-car components, consist assembly, then performance and
@@ -25,6 +25,24 @@ five-view warning check passes with actual yellow pixels at all eight places
 on each side, readable unmirrored closeups and an oblique view. No JS/console
 errors. The front-equipment protection still has zero changed pixels.
 The existing workflow now explicitly runs the visual warning test.
+
+## v103 — reusable classic end wall
+
+Added preview/train-components.js: formed blue outer end sheet with cream
+inner lining, a thick hinged central door, two fixed end panes, real clear
+glazing, rubber/metal frames, hinges, handle, vertical handrails, threshold,
+pressed lower ribs and an automatic coupling with cast outline/openings and
+air-hose loops. The head's old incomplete rear bulkhead is replaced once.
+The existing curved rear crown closes its top; there is no invented modern
+bellows. Source/photo provenance is in tests/reference/stage5-sources.json.
+Only the last four ceiling fitting parts are clipped to the inner end line:
+the originals projected through the new external sheet. Other saloon and
+passenger aperture positions are unchanged.
+Local six-view check passes (reference, front, two rear views, full side,
+open door), plus the original v88 control set and front-equipment locks.
+Actual end screenshots show three glazed openings and exposed coupling; no
+ceiling fitting now protrudes through the end. v102 published source/hash
+and both-side warning images were separately checked in Chromium.
 
 All earlier stage-4 and stage-3 notes below are historical.
 

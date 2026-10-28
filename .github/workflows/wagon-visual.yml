@@ -5,6 +5,7 @@ on:
     branches: [testing]
     paths:
       - 'preview/wagon.html'
+      - 'preview/train-components.js'
       - 'tests/wagon-visual.mjs'
       - 'tests/wagon-image-compare.mjs'
       - 'tests/wagon-front-protection.mjs'
@@ -32,7 +33,7 @@ jobs:
           npm install --package-lock=false
           npx playwright install --with-deps chromium
       - name: Check wagon JavaScript syntax
-        run: node tests/wagon-syntax.mjs
+        run: node tests/wagon-syntax.mjs && node --check preview/train-components.js
       - name: Download previous successful testing render
         uses: actions/github-script@v7
         with:

@@ -1,0 +1,35 @@
+{
+  "scope": "Classic 81-717/714 body ends, end door and visible inter-car hardware. Generic series references do not establish every Minsk subvariant dimension.",
+  "photos": [
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:81-717_2525_and_81-714_coupling.jpg",
+      "author": "Self-photographed / Xenotron",
+      "license": "CC0-1.0",
+      "observed": "Open classic inter-car space, glazed end door, vertical handrails, exposed automatic coupling and air hoses; no sealed bellows."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:81-714,_Budapest_metro.jpg",
+      "author": "Christo",
+      "license": "CC-BY-SA-4.0",
+      "observed": "Full intermediate passenger compartment, central end door and two fixed end panes."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:81-717_714_metro_car_in_Minsk_-_2.jpg",
+      "author": "Homoatrox; levels edit Ptyx",
+      "license": "CC-BY-SA-3.0",
+      "observed": "Minsk blue livery, cream belt, yellow warning shields beside doors."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:81-717.714_межвагонный_барьер.jpg",
+      "author": "Monoklon",
+      "license": "CC-BY-SA-3.0",
+      "observed": "Series-specific exposed coupling, hoses, end door and separate anti-fall barriers. This barrier variant is not assumed universal to Minsk."
+    }
+  ],
+  "localUserReferences": [
+    "02-5350.jpg",
+    "03-5353.jpg",
+    "04-5356.jpg"
+  ],
+  "dimensions": "Retain the agreed existing head-car model envelope. Sources distinguish body dimensions and coupling-centre length; this is not a factory-CAD reconstruction."
+}

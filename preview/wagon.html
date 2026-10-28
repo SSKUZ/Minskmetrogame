@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v102</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v102: настоящие предупреждающие наклейки с проверкой обеих сторон.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v103</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v103: торцевая стенка с остеклённой дверью и автосцепкой.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {createIntercarEnd} from './train-components.js?v=103';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
@@ -1024,23 +1025,21 @@ for(let i=0;i<4;i++){
  indicator.rotation.x=.35;
 }
 // Opposite end is the inter-car bulkhead.
-// Real inter-car end wall and a thick glazed hinged door, cream inside.
-{
- const pier=(W-.18-.78)/2;
- for(const side of [-1,1])sideBox(pier,2.24,.08,side*(.78+pier)/2,F+1.12,L/2-.055,sideLining);
- sideBox(.78,.31,.08,0,F+2.085,L/2-.055,sideLining);
- const shape=roundedShape(.735,1.91,.065),hole=new T.Path(),pts=roundedShape(.48,.68,.10).getPoints(16);
- for(let i=pts.length-1;i>=0;i--){const p=pts[i];if(i===pts.length-1)hole.moveTo(p.x,p.y+.47);else hole.lineTo(p.x,p.y+.47)}
- hole.closePath();shape.holes.push(hole);
- const leaf=new T.Mesh(new T.ExtrudeGeometry(shape,{depth:.047,bevelEnabled:false,curveSegments:16}),sideLining);leaf.position.set(0,F+.97,L/2-.16);group.add(leaf);passenger(leaf);
- const pane=passenger(facePanel(.46,.66,.09,0,F+1.44,L/2-.17,sideGlass));
- sideTube(roundedShape(.48,.68,.10).getPoints(16).map(p=>[p.x,F+1.44+p.y,L/2-.171]),.013,sideRubber,true);
- sideTube(roundedShape(.755,1.94,.075).getPoints(16).map(p=>[p.x,F+.97+p.y,L/2-.169]),.014,sideSteel,true);
- sideBox(.12,.025,.04,.25,F+1.0,L/2-.196,sideSteel);
- for(const y of [F+.28,F+1.60])sideBox(.033,.10,.036,-.36,y,L/2-.183,sideSteel);
- // Exterior blue skin on the same door, using its real glass aperture.
- const outer=new T.Mesh(new T.ShapeGeometry(shape,16),sidePaint);outer.position.set(0,F+.97,L/2-.111);group.add(outer);passenger(outer);
+// Clip only the last ceiling fittings to the inside of the new end sheet.
+// The old fittings extended beyond the body and pierced its exterior face.
+for(const object of group.children){
+ const p=object.geometry?.parameters;
+ if(p&&object.geometry.type==='BoxGeometry'&&object.position.z>8.5&&object.position.y>3.25&&p.depth>1.5){
+  const excess=object.position.z+p.depth/2-(L/2-.10);
+  if(excess>0){object.geometry=new T.BoxGeometry(p.width,p.height,p.depth-excess);object.position.z-=excess/2;object.name='rear-trimmed-light-fitting'}
+ }
 }
+
+// Reusable real end module: blue outside, cream inside, three clear panes.
+const intercarMaterials={paint:sidePaint,lining:sideLining,cream:sideCream,glass:sideGlass,rubber:sideRubber,steel:sideSteel,cast:couplerSteel,valve:new T.MeshStandardMaterial({color:0xa72d21,roughness:.65})};
+const headRearEnd=createIntercarEnd({floor:F,width:2*sideWallBase,eave:sideEave-.015,materials:intercarMaterials});
+headRearEnd.position.z=L/2;group.add(headRearEnd);passenger(headRearEnd);
+window.wagonEndDiagnostics=()=>({ends:1,glazedOpenings:headRearEnd.userData.glazedOpenings,doorWidth:headRearEnd.userData.doorClearWidth,couplingFaceZ:L/2+headRearEnd.userData.couplingFace});
 // Underframe and simplified bogies at measured-looking locations (not yet factory verified).
 box(1.78,.18,L-1.0,0,F-.27,0,dark);
 for(const z of [-6.50,6.50]){
@@ -1063,7 +1062,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=102,lightingPreset='station-softboxes-v2';
+const modelVersion=103,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1086,6 +1085,8 @@ Object.assign(cameraPresets,{
 // Stage 4 fixed inspection cameras, also applied to the immutable v88 fixture.
 Object.assign(cameraPresets,{"quarter-45":{"position":[15,4,-15],"target":[0,2,0],"fov":38},"roof-overview":{"position":[12,12,-12],"target":[0,2,0],"fov":43},"cab-roof-join":{"position":[4.8,5.2,-8.55],"target":[0.2,3.4,-8.55],"fov":38},"cab-wall-join":{"position":[5.5,2.55,-7.8],"target":[0,2.4,-7.8],"fov":39}});
 Object.assign(cameraPresets,{
+ 'rear-end':{position:[0,1.80,17.6],target:[0,1.80,L/2],fov:31},
+ 'rear-end-angle':{position:[4.8,3.2,14.2],target:[0,2.0,L/2],fov:43},
  'side-negative':{position:[-26,2.25,0],target:[0,2.25,0],fov:29},
  'warning-positive':{position:[3.2,1.46,-1.85],target:[1.32,1.46,-1.85],fov:48},
  'warning-negative':{position:[-3.2,1.46,-1.85],target:[-1.32,1.46,-1.85],fov:48},
@@ -1305,7 +1306,7 @@ doorButton.onclick=()=>{window.wagonSetDoors(!doorTarget);doorButton.textContent
 if(captureMode)doorButton.style.display='none';
 const controls=document.createElement('nav');controls.id='controls';controls.setAttribute('aria-label','Просмотр вагона');
 const cameraSelect=document.createElement('select');cameraSelect.id='cameraSelect';cameraSelect.setAttribute('aria-label','Ракурс камеры');
-for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Эталонный ракурс',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки','quarter-45':'Вид под 45°','roof-overview':'Сверху под углом','cab-roof-join':'Стык кабины и крыши','cab-wall-join':'Стык кабины и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
+for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Эталонный ракурс',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки','quarter-45':'Вид под 45°','roof-overview':'Сверху под углом','cab-roof-join':'Стык кабины и крыши','cab-wall-join':'Стык кабины и стенки','rear-end':'Торцевая стенка','rear-end-angle':'Торец под углом',salon:'Внутри салона',driver:'Место машиниста'})){
  const option=document.createElement('option');option.value=value;option.textContent=label;cameraSelect.appendChild(option);
 }
 cameraSelect.onchange=()=>{setCamera(cameraSelect.value);if(cameraSelect.value==='door-open'){window.wagonSetDoors(true);doorButton.textContent='Закрыть двери'}};
