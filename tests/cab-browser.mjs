@@ -15,7 +15,7 @@ try{
  await page.waitForFunction(()=>{
   const w=document.querySelector('#game')?.contentWindow;
   return w?.metro3DReady===true&&!!w.metroCabInspector&&typeof w.metroDiagnostics==='function';
- },{timeout:90000});
+ },null,{timeout:90000});
  await page.waitForTimeout(1500);
  const before=await page.evaluate(()=>{
   const w=document.querySelector('#game').contentWindow,a=w.metroCabInspector;
@@ -36,7 +36,7 @@ try{
  view=await page.evaluate(()=>document.querySelector('#game').contentWindow.metroCabInspector.getView());
  assert.ok(view.yaw>.7,'right view must rotate');
  await page.screenshot({path:'test-results/cab/03-right-view.png',animations:'disabled'});
- await page.locator('#zoom').fill('40');
+ await page.locator('#zoom').evaluate(el=>{el.value='40';el.dispatchEvent(new Event('input',{bubbles:true}))});
  view=await page.evaluate(()=>document.querySelector('#game').contentWindow.metroCabInspector.getView());
  assert.equal(view.fov,40);
  await page.screenshot({path:'test-results/cab/04-zoom.png',animations:'disabled'});
