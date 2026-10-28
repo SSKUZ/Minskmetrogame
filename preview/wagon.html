@@ -294,7 +294,8 @@ function buildPassengerDoors(side,dz){
   sideBox(.012,doorHeight,.025,side*(sideWallInner-.006),F+doorHeight/2,z,sideSteel);
  }
  // Paint the existing metal threshold, without adding yellow overlay plates.
- sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
+ const threshold=sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
+ threshold.name='v106-passenger-threshold';threshold.userData.passengerThreshold=true;
  // Recolour the existing vertical lower sill face, not the moving door leaves.
  sideBox(.012,.092,doorWidth,side*(half-.082),F-.055,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
  sideBox(.15,.16,doorWidth+.12,side*(half-.21),F+doorHeight+.04,dz,sideLining);
