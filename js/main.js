@@ -119,11 +119,15 @@ const useExperimentalV106=v106Query==='1'||(v106Query!=='0'&&new URLSearchParams
 let detailedV106Train=null;
 let detailedV106Loading=null;
 let detailedV106DoorProgress=0;
-const V106_PLATFORM_EDGE_X=-2.55,V106_PLATFORM_GAP=.025;
-// Original v106: W=2.670m, passenger threshold is side*(half-.082).
-// Platform is on the negative-X side, so the actual outer threshold plane is -1.253m.
-const V106_PLATFORM_THRESHOLD_LOCAL_X=-(2.670/2-.082);
-let detailedV106TrackX=-.31;
+const V106_PLATFORM_GAP=.025;
+// Source v106 threshold: sideBox(.17,.025,doorWidth,side*(half-.082),...).
+// Measure its OUTER face (centre minus half the .17m thickness), not its centre.
+const V106_PLATFORM_THRESHOLD_OUTER_X=-(2.670/2-.082+.17/2);
+// Keep the train centred over the physical rails. Bring the platform to the train,
+// not the train 1.27m off the track. The legacy platform remains unchanged.
+const V106_PLATFORM_EDGE_X=useExperimentalV106?V106_PLATFORM_THRESHOLD_OUTER_X-V106_PLATFORM_GAP:-2.55;
+const V106_PLATFORM_FAR_EDGE_X=-22.75;
+let detailedV106TrackX=0;
 function animateDetailedV106Doors(dt){
  if(!detailedV106Train)return;
  const target=doors?1:0;
@@ -139,8 +143,8 @@ function ensureDetailedV106(){
  if(detailedV106Loading)return detailedV106Loading;
  detailedV106Loading=loadV106Geometry({THREE,scene,renderer}).then(root=>{
   detailedV106Train=root;
-  // Align the real passenger-door threshold, not the consist bounding box.
-  detailedV106TrackX=V106_PLATFORM_EDGE_X+V106_PLATFORM_GAP-V106_PLATFORM_THRESHOLD_LOCAL_X;
+  // Align the source v106 threshold OUTER face while keeping bogies over the rails.
+  detailedV106TrackX=V106_PLATFORM_EDGE_X+V106_PLATFORM_GAP-V106_PLATFORM_THRESHOLD_OUTER_X;
   window.metroV106GeometryLoaded=true;
   window.metroV106GeometryError=null;
   return root;
@@ -781,10 +785,12 @@ for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.Point
 const marble=mat(0xe5dfca),floorTile=mat(0xc9c8b9),trim=mat(0x77736e),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
 const greenBand=mat(0x24552b),blackGranite=mat(0x17191a),creamWall=mat(0xe8e5d6),warmGold=new THREE.MeshBasicMaterial({color:0xffc25d}),silverRail=mat(0xa7aaa5,.6);
 // Glossy cream terrazzo with dark granite strips beside both platform edges.
-// Platform edge must meet the carriage threshold: train outer door face x=-2.43,
-// new island edge x=-2.55 -> 0.12 m clearance (previously >2 metres).
-box(platform,20.2,.045,128,-12.65,.725,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
-for(const x of [-2.84,-22.39])box(platform,.35,.052,128,x,.754,-57,blackGranite);
+// For v106, extend the island slab to the door threshold without moving the
+// train off the track. Both the upper slab and the lower concrete base agree.
+const islandWidth=V106_PLATFORM_EDGE_X-V106_PLATFORM_FAR_EDGE_X;
+const islandCentre=(V106_PLATFORM_EDGE_X+V106_PLATFORM_FAR_EDGE_X)/2;
+box(platform,islandWidth,.045,128,islandCentre,.725,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
+for(const x of [V106_PLATFORM_EDGE_X-.29,-22.39])box(platform,.35,.052,128,x,.754,-57,blackGranite);
 // Fine terrazzo tile joints and longitudinal seams on the original cream floor.
 // Reference station photo: smooth, uninterrupted pale-grey platform surface.
 // No decorative square grid or tile joints.
@@ -872,8 +878,8 @@ for(const y of [1.675,3.795])box(platform,.05,.035,13.66,3.14,y,-55,routeFrame);
 for(const z of [-61.83,-48.17])box(platform,.05,2.16,.035,3.14,2.735,z,routeFrame);
 
 
-box(platform,20.2,.8,128,-12.65,.30,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
-box(platform,.16,.07,128,-2.94,.78,-57,yellow);
+box(platform,islandWidth,.8,128,islandCentre,.30,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
+box(platform,.16,.07,128,V106_PLATFORM_EDGE_X-.39,.78,-57,yellow);
 // Single central island platform: the player drives on the RIGHT-hand track.
 // The opposite track lies beyond the LEFT-hand row of columns.
 box(platform,.16,.07,128,-22.73,.74,-57,yellow);
@@ -1361,7 +1367,7 @@ if(carCameraActive){
  renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
-window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,bounds:window.metroV106Bounds||null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),platformEdgeX:V106_PLATFORM_EDGE_X,targetPlatformGap:V106_PLATFORM_GAP,trainPlatformSideX:detailedV106Train?detailedV106Train.position.x+V106_PLATFORM_THRESHOLD_LOCAL_X:null,platformGap:detailedV106Train?(detailedV106Train.position.x+V106_PLATFORM_THRESHOLD_LOCAL_X)-V106_PLATFORM_EDGE_X:null,trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,bounds:window.metroV106Bounds||null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),platformEdgeX:V106_PLATFORM_EDGE_X,targetPlatformGap:V106_PLATFORM_GAP,trainPlatformSideX:detailedV106Train?detailedV106Train.position.x+V106_PLATFORM_THRESHOLD_OUTER_X:null,platformGap:detailedV106Train?(detailedV106Train.position.x+V106_PLATFORM_THRESHOLD_OUTER_X)-V106_PLATFORM_EDGE_X:null,railCentreX:0,trackOffset:detailedV106Train?detailedV106Train.position.x:null,trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  if(useExperimentalV106)ensureDetailedV106();
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
