@@ -1,0 +1,26 @@
+{
+  "commit": "ea12fdd6538402d4038bd16ab9350e9f0efa823c",
+  "errors": [],
+  "stats": {
+    "state": {
+      "train": {
+        "speed": 0,
+        "doorsOpen": false,
+        "distanceToStation": 0
+      },
+      "station": {
+        "index": 0,
+        "stopped": true
+      },
+      "camera": "cab",
+      "playing": true
+    },
+    "meshes": 205,
+    "triangles": 17840,
+    "view": {
+      "yaw": -0.6,
+      "pitch": -0.18,
+      "fov": 75
+    }
+  }
+}
