@@ -19,7 +19,7 @@ export async function comparePixels(currentPath,baselinePath,diffPath){
  return {status:'compared',changedPixels,totalPixels:width*height,changedPixelFraction:changedPixels/(width*height),bounds:changedPixels?bounds:null,regions:[...tiles].map(([tile,pixels])=>({tile,pixels})).sort((a,b)=>b.pixels-a.pixels),interpretation:'Changed pixels measure changed render area, not model-to-photo similarity. Intentional geometry or lighting changes need review.'};
 }
 function normalized(b,a){return {cx:(b.x+b.width/2-a.x-a.width/2)/a.width,cy:(b.y+b.height/2-a.y)/a.width,width:b.width/a.width,height:b.height/a.width};}
-export async function compareProtectedFront(currentPath,baselinePath,diffPath,triangles){
+export async function compareProtectedFront(currentPath,baselinePath,diffPath,triangles,mode='exclude-glazing'){
  const full=await comparePixels(currentPath,baselinePath,diffPath.replace('.png','-full.png'));
  const a=PNG.sync.read(await readFile(currentPath)),b=PNG.sync.read(await readFile(baselinePath)),{width,height}=a;
  const mask=new Uint8Array(width*height),inside=(p,u,v)=>(p[0]-v[0])*(u[1]-v[1])-(u[0]-v[0])*(p[1]-v[1]);
@@ -34,10 +34,11 @@ export async function compareProtectedFront(currentPath,baselinePath,diffPath,tr
  }
  let glazingPixels=0;
  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-  if(mask[y*width+x]){a.data.set([0,0,0,255],(y*width+x)*4);b.data.set([0,0,0,255],(y*width+x)*4);glazingPixels++;}
+  if(mode==='include-equipment'?!mask[y*width+x]:mask[y*width+x]){a.data.set([0,0,0,255],(y*width+x)*4);b.data.set([0,0,0,255],(y*width+x)*4);glazingPixels++;}
  }
  const diff=new PNG({width,height}),changedPixels=pixelmatch(a.data,b.data,diff.data,width,height,{threshold:.12,includeAA:false});
  await writeFile(diffPath,PNG.sync.write(diff));
+ if(mode==='include-equipment')return {status:'compared',changedPixels,fullFrameChangedPixels:full.changedPixels,structuralEnvelopeAndGlazingChanges:full.changedPixels-changedPixels,protectedPixels:width*height-glazingPixels,method:'Stage 4: actual projected facade and equipment triangles are frozen. Roof and nose corner restructuring is authorized; all full-frame changes are retained. Equipment source hashes and projected geometry must match v84.'};
  return {status:'compared',changedPixels,fullFrameChangedPixels:full.changedPixels,glazingContentChangedPixels:full.changedPixels-changedPixels,glazingPixels,method:'Only the interior of the actual three glazing meshes is excluded. Projected front geometry is required to equal v84 exactly. Source hashes separately freeze all glass, cab equipment and front geometry/materials. Full-frame differences remain available.'};
 }
 export async function compareProtectedSide(currentPath,baselinePath){

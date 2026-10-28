@@ -24,6 +24,12 @@ assert.equal(createHash('sha256').update(v88Fixture).digest('hex'),stage4Base.sh
 const continuityCode=sourceHtml.slice(sourceHtml.indexOf('// Measured structural continuity:'),sourceHtml.indexOf('// End measured structural continuity.')+'// End measured structural continuity.'.length);
 const controlledV88=v88Fixture.replace('const captureMode=',`Object.assign(cameraPresets,${JSON.stringify(stage4Cameras)});\nconst captureMode=`).replace('window.wagonFrontGlassTriangles=',continuityCode+'\nwindow.wagonFrontGlassTriangles=');
 const continuityViews=['side-full','front','quarter-45','roof-overview','cab-roof-join','cab-wall-join'];
+const unchangedRegions=[['saloon','// Longitudinal benches','// Front fascia based'],['passenger windows','function buildPassengerBay(','function doorOutline(']];
+for(const [name,start,end] of unchangedRegions){
+ const extract=text=>text.slice(text.indexOf(start),text.indexOf(end,text.indexOf(start)));
+ assert.equal(moduleHashSafe(extract(sourceHtml)),moduleHashSafe(extract(v88Fixture)),`Stage 4 changed protected ${name}`);
+}
+function moduleHashSafe(text){return createHash('sha256').update(text).digest('hex')}
 const expectedModule=sourceHtml.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
 const moduleHash=text=>createHash('sha256').update(text).digest('hex');
 const photo=await readFile(`tests/reference/${reference.image}`);
@@ -68,7 +74,7 @@ try{
  await page.route('**/__wagon_v88.html*',route=>route.fulfill({body:controlledV88,contentType:'text/html'}));
  await page.goto(new URL('__wagon_v88.html?qa=1',target).href,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.wagonReady&&window.wagonDiagnostics().renderedFrames>=3,null,{timeout:90000});
- report.v88Control={commit:stage4Base.baseCommit,fixtureSha256:stage4Base.sha256,cameraOverrides:stage4Cameras,measurements:await page.evaluate(()=>window.wagonContinuityDiagnostics())};
+ report.v88Control={commit:stage4Base.baseCommit,fixtureSha256:stage4Base.sha256,cameraOverrides:stage4Cameras,measurements:await page.evaluate(()=>window.wagonContinuityDiagnostics()),layout:await page.evaluate(()=>window.wagonSideDiagnostics())};
  await writeFile(path.join(output,'v88-geometry.json'),JSON.stringify(report.v88Control,null,2));
  for(const mode of continuityViews){
   const frame=await page.evaluate(m=>{window.wagonSetCamera(m);return window.wagonDiagnostics().renderedFrames},mode);
@@ -81,6 +87,10 @@ try{
  assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');
  await page.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
  const version=await page.evaluate(()=>window.wagonDiagnostics().modelVersion);
+ const currentLayout=await page.evaluate(()=>window.wagonSideDiagnostics());
+ assert.deepEqual(currentLayout.windows,report.v88Control.layout.windows,'Passenger apertures moved relative to the saloon');
+ const homes=layout=>layout.leaves.map(({side,doorZ,homeZ,x,thickness})=>({side,doorZ,homeZ,x,thickness}));
+ assert.deepEqual(homes(currentLayout),homes(report.v88Control.layout),'Passenger door home positions changed');
  report.continuity=checkContinuity(await page.evaluate(()=>window.wagonContinuityDiagnostics()),version);
  await writeFile(path.join(output,'current-geometry.json'),JSON.stringify(report.continuity,null,2));
  if(await page.evaluate(()=>!!window.wagonAdvanceDoors)){
@@ -128,7 +138,7 @@ try{
   }
   for(const [prefix,count] of [['headlamp-',6],['marker-',2],['window-',3]])assert.equal(Object.keys(data.features).filter(k=>k.startsWith(prefix)).length,count,'Actual registered front meshes: '+prefix);
   const screenshot=path.join(output,`${mode}.png`);
-  await page.screenshot({path:screenshot,timeout:90000,animations:'disabled',timeout:90000});
+  await page.screenshot({path:screenshot,timeout:90000,animations:'disabled'});
   report.views.push({...data,screenshot:`${mode}.png`});
   const old=previous?.views?.find(v=>v.cameraMode===mode);
   if(old?.features)assert.deepEqual(Object.keys(data.features).sort(),Object.keys(old.features).sort(),'A registered feature disappeared');
@@ -145,9 +155,11 @@ try{
    if(version===89)assert.equal(comparison.changedPixels,0,'Diagnostic release must retain v88 geometry');
   }
   if(mode==='front'){
-   assert.deepEqual(data.features,immutableFrontGeometry,'Projected front geometry differs from v84');
-   const glazing=await page.evaluate(()=>window.wagonFrontGlassTriangles?.()||[]);
-   report.frontProtection.pixels=glazing.length?await compareProtectedFront(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'),glazing):await comparePixels(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'));
+   const character=features=>Object.fromEntries(Object.entries(features).filter(([name])=>!frontLock.stage4||name!=='roof'));
+   assert.deepEqual(character(data.features),character(immutableFrontGeometry),'Projected front equipment differs from v84');
+   const triangles=await page.evaluate(stage4=>stage4?window.wagonProtectedFrontTriangles():window.wagonFrontGlassTriangles?.()||[],frontLock.stage4);
+   report.frontProtection.policy=frontLock.stage4?'Stage 4 permits structural roof/corner changes; facade and equipment remain fixed':'Full front outside transparent glazing';
+   report.frontProtection.pixels=triangles.length?await compareProtectedFront(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'),triangles,frontLock.stage4?'include-equipment':'exclude-glazing'):await comparePixels(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'));
    assert.equal(report.frontProtection.pixels.changedPixels,0,'Protected front differs from immutable v84');
   }
   if(mode==='reference')report.photo=await comparePhoto(data.features,reference,screenshot,path.join(output,'reference-geometry-overlay.png'));
@@ -177,8 +189,11 @@ try{
 finally{
  await writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));
  const changes=report.comparisons.map(c=>`| ${c.mode} | ${c.status} | ${c.changedPixels??'—'} | ${c.bounds?JSON.stringify(c.bounds):'—'} |`).join('\n');
+ const geometryFields=[['Cab crown (m)','cabCrown',1],['Main crown (m)','mainCrown',1],['Wall plane mismatch (mm)','cabBodyPlaneDifference',1000],['Lower edge mismatch (mm)','sideBottomDifference',1000],['Roof-wall gap (mm)','roofWallGap',1000],['Brow-root gap (mm)','roofCapGap',1000],['Brow-root tangent angle (deg)','roofCapNormalAngle',1],['Maximum step / 20 mm (mm)','maximumRoofStep20mm',1000],['Samples with multiple roof heights','roofOverlapSamples',1]];
+ const geometryRows=geometryFields.map(([label,key,scale])=>`| ${label} | ${((report.v88Control?.measurements?.[key]??0)*scale).toFixed(4)} | ${((report.continuity?.measurements?.[key]??0)*scale).toFixed(4)} |`).join('\n');
+ const geometrySummary=`\n\n## Structural continuity\n\nStatus: **${report.continuity?.status||'not measured'}**. Geometry is measured from actual transformed triangles.\n\n| Measurement | Immutable v88 | Current |\n| --- | ---: | ---: |\n${geometryRows}\n\nEquipment pixel protection: ${report.frontProtection?.policy||'not captured'}. Source blocks protected: ${frontLock.protectedBlocks.length}; passenger windows and saloon source and placement also remain fixed.\n`;
  const metrics=(report.photo?.measurements||[]).map(m=>`| ${m.name} | ${m.status} | ${m.actual?m.actual.width.toFixed(4):'—'} | ${m.expected?m.expected.width.toFixed(4):'—'} | ${m.actual?m.actual.height.toFixed(4):'—'} | ${m.expected?m.expected.height.toFixed(4):'—'} |`).join('\n');
- const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\nProtected v84 front surfaces: **${report.frontProtection?.pixels?.changedPixels??'not captured'} changed pixels**; seven pinned source regions and identical projected geometry. Full frontal frame: ${report.frontProtection?.pixels?.fullFrameChangedPixels??report.frontProtection?.pixels?.changedPixels??'not captured'} changes; transparent glazing background: ${report.frontProtection?.pixels?.glazingContentChangedPixels??0}. The complete unmasked difference is saved. Doors: ${report.doorMotion?'30/60 Hz and five sampled clearance poses checked':'not available'}.\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. Sampled clearance rays do not replace continuous collision detection. These reports do not prove the absence of visual defects.\n`;
+ const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}${geometrySummary}\n\nProtected front equipment: **${report.frontProtection?.pixels?.changedPixels??'not captured'} changed pixels**; ${frontLock.protectedBlocks.length} pinned source regions and identical equipment projections. Full frontal frame: ${report.frontProtection?.pixels?.fullFrameChangedPixels??report.frontProtection?.pixels?.changedPixels??'not captured'} changes; authorized envelope/glazing changes: ${report.frontProtection?.pixels?.structuralEnvelopeAndGlazingChanges??report.frontProtection?.pixels?.glazingContentChangedPixels??0}. The complete unmasked difference is saved. Doors: ${report.doorMotion?'30/60 Hz and five sampled clearance poses checked':'not available'}.\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. Sampled clearance rays do not replace continuous collision detection. These reports do not prove the absence of visual defects.\n`;
  await writeFile(path.join(output,'report.md'),markdown);
  const images=[...continuityViews.map(m=>'before-v88-'+m),...report.views.map(v=>v.cameraMode),...(report.v88Comparisons||[]).map(c=>'v88-'+c.mode+'-diff'),'mobile-reference','protected-v84-front','protected-front-diff',...(report.frontProtection?.pixels?.fullFrameChangedPixels!==undefined?['protected-front-diff-full']:[]),...(report.parallax?['window-inside-parallax','window-inside-parallax-diff']:[]),'reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
  await writeFile(path.join(output,'index.html'),`<!doctype html><meta charset="utf-8"><title>Wagon visual report</title><style>body{font:16px system-ui;background:#17202b;color:#eee;max-width:1600px;margin:auto;padding:24px}img{width:100%;height:auto}pre{white-space:pre-wrap}</style><h1>Wagon ${report.views[0]?.modelVersion||''} · ${report.commit}</h1><p>Technical result: ${report.result}. Geometry diagnostics require visual review.</p><p>Cyan: model bounds. Amber: photo bounds aligned to fascia.</p>${images.map(i=>`<h2>${i}</h2><img src="${i}.png" alt="${i}">`).join('')}<pre>${JSON.stringify(report,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;')}</pre>`);

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v89</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v89: диагностика единства кузова и контрольные ракурсы v88. Геометрия сохранена.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v90</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v90: единая геометрия крыши и боковых стенок кабины. Лобовое оборудование сохранено.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -79,30 +79,38 @@ function roundedOpening(w,h,r,x,y,z,side){
 }
 
 const L=19.206,W=2.670,half=W/2,F=.95,top=3.47,doorWidth=1.38,doorHeight=2.08;
-const cabSideHeaders=[];
-box(W-.12,.12,L-.08,0,F-.06,0,floor);
-for(const x of [-1,1]){
- box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);
- // Minimal joining exception: taper only the first 0.50 m at the front
- // corner. Keep the entire remaining side header at its original position.
- const headerStart=-L/2+.54,headerEnd=-7.34;
- const cabHeader=box(.08,.30,headerEnd-headerStart,x*(half-.04),top-.15,(headerStart+headerEnd)/2,wall);
- cabSideHeaders.push({side:x,object:cabHeader});
- const v=[],indices=[],steps=20,z0=-L/2+.04;
- for(let j=0;j<=steps;j++){
-  const t=j/steps,z=z0+.50*t;
-  const roofT=Math.max(0,Math.min(1,(z-(-L/2-.11+.24))/(1.56-.24)));
-  const joinT=Math.min(1,roofT/.32),ease=joinT*joinT*(3-2*joinT);
-  const upper=top-.33+.26*(1-roofT)+(.33-.26*(1-roofT))*ease;
-  for(const xx of [-.04,.04])for(const y of [top-.30,upper])v.push(x*(half-.04)+xx,y,z);
- }
- for(let j=0;j<steps;j++){
-  const a=j*4,b=a+4;
-  indices.push(a,a+1,b,a+1,b+1,b,a+2,b+2,a+3,a+3,b+2,b+3,a+1,a+3,b+1,a+3,b+3,b+1);
- }
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(v,3));g.setIndex(indices);g.computeVertexNormals();
- const join=new T.Mesh(g,wall);group.add(join);frontAppearance(join);
+// One measured exterior envelope. Dimensions of front equipment are unchanged.
+const bodyEnvelope={browBase:3.21,frontEave:3.25,frontCrown:3.731743335723877,mainEave:3.17,mainCrown:3.60,bow:.008,rollLength:.235,cornerLength:.205,blendEnd:-6.99,widthBlendEnd:-9.0};
+const noseShellZ=-L/2-.105,cornerJoinZ=noseShellZ+bodyEnvelope.cornerLength,roofStartZ=noseShellZ+bodyEnvelope.rollLength;
+function smooth5(value){const t=T.MathUtils.clamp(value,0,1);return t*t*t*(10+t*(-15+6*t))}
+function outerBodyHalfWidth(z){
+ if(z<cornerJoinZ){const t=T.MathUtils.clamp((z-noseShellZ)/bodyEnvelope.cornerLength,0,1);return 1.20+.135*Math.sqrt(Math.max(0,1-(1-t)*(1-t)))}
+ return T.MathUtils.lerp(half,half-.012,smooth5((z-roofStartZ)/(bodyEnvelope.widthBlendEnd-roofStartZ)));
 }
+function widthSlope(z){const e=.00001;return (outerBodyHalfWidth(z+e)-outerBodyHalfWidth(z-e))/(2*e)}
+function roofBlend(z){return smooth5((z-roofStartZ)/(bodyEnvelope.blendEnd-roofStartZ))}
+function roofEdgeY(z){
+ if(z<roofStartZ){const t=T.MathUtils.clamp((z-noseShellZ)/bodyEnvelope.rollLength,0,1);return bodyEnvelope.browBase+(bodyEnvelope.frontEave-bodyEnvelope.browBase)*Math.sqrt(Math.max(0,1-(1-t)*(1-t)))}
+ return T.MathUtils.lerp(bodyEnvelope.frontEave,bodyEnvelope.mainEave,roofBlend(z));
+}
+function archAt(phi){const s=Math.sin(phi);return Math.sqrt(Math.max(0,1-s*s*s*s))}
+function archSlope(phi){const s=Math.sin(phi);return -2*s*s*s/Math.sqrt(1+s*s)}
+function roofLevel(phi,z){
+ const edge=roofEdgeY(z),crown=T.MathUtils.lerp(bodyEnvelope.frontCrown,bodyEnvelope.mainCrown,roofBlend(z));
+ const bow=bodyEnvelope.bow*Math.pow(Math.sin(Math.PI*(z-roofStartZ)/(L/2-roofStartZ)),2);
+ let seam=0;for(const v of [-6.5,-4.2,-1.9,.4,2.7,5,7.3,9.3])seam+=.0012*Math.exp(-Math.pow((z-v)/.008,2));
+ return edge+(crown-edge+bow-seam)*archAt(phi);
+}
+function roofSlope(phi,z){const e=.00001;return (roofLevel(phi,z+e)-roofLevel(phi,z-e))/(2*e)}
+function passengerRoofY(x,z){return roofLevel(Math.asin(T.MathUtils.clamp(x/outerBodyHalfWidth(z),-1,1)),z)}
+const shellZStations=[roofStartZ,bodyEnvelope.blendEnd,L/2];
+for(let z=roofStartZ;z<bodyEnvelope.blendEnd;z+=.025)shellZStations.push(z);
+for(let z=bodyEnvelope.blendEnd;z<L/2;z+=.24)shellZStations.push(z);
+for(const z of [-6.5,-4.2,-1.9,.4,2.7,5,7.3,9.3])shellZStations.push(z-.015,z-.006,z,z+.006,z+.015);
+shellZStations.sort((a,b)=>a-b);
+
+box(W-.12,.12,L-.08,0,F-.06,0,floor);
+for(const x of [-1,1])box(.075,.20,L-.12,x*(half-.055),F-.08,0,metal);
 // Four identical openings per side. Door modules and window bays occupy disjoint intervals.
 const doors=[-6.30,-1.85,2.55,7.00],ends=[-L/2,...doors.flatMap(z=>[z-doorWidth/2,z+doorWidth/2]),L/2].sort((a,b)=>a-b);
 // Passenger surfaces have independent materials and lighting. Never mutate
@@ -123,16 +131,6 @@ const passengerNodes=[],passengerWindows=[],slidingLeaves=[];
 function passenger(object){object.traverse(o=>{if(o.isMesh)o.layers.set(2)});passengerNodes.push(object);return object;}
 function sideBox(w,h,d,x,y,z,m){return passenger(box(w,h,d,x,y,z,m));}
 function sidePanel(w,h,r,x,y,z,m){return passenger(roundedPanel(w,h,r,x,y,z,m));}
-const cabOutsidePaint=sidePaint.clone();cabOutsidePaint.side=T.FrontSide;
-const cabOutsideBackPaint=sidePaint.clone();cabOutsideBackPaint.side=T.BackSide;
-for(const material of [cabOutsidePaint,cabOutsideBackPaint]){material.polygonOffset=true;material.polygonOffsetFactor=-1;material.polygonOffsetUnits=-4;}
-function refinishCabSide(object,side){
- const geometry=object.geometry.clone(),isBox=geometry.type==='BoxGeometry';
- if(isBox){const range=geometry.groups[side>0?0:1];geometry.clearGroups();geometry.setDrawRange(range.start,range.count)}
- const paint=new T.Mesh(geometry,isBox||side>0?cabOutsidePaint:cabOutsideBackPaint);
- paint.position.copy(object.position);paint.rotation.copy(object.rotation);paint.position.x+=side*.0004;group.add(paint);passenger(paint);
-}
-for(const {side,object} of cabSideHeaders)refinishCabSide(object,side);
 function sideTube(points,radius,material,closed=false,parent=group){
  const curve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p)),closed,'centripetal');
  const mesh=new T.Mesh(new T.TubeGeometry(curve,Math.max(24,points.length*2),radius,8,closed),material);
@@ -233,7 +231,8 @@ function buildPassengerDoors(side,dz){
  const leafW=doorWidth/2-.008,leafH=doorHeight-.030,midY=F+.018+leafH/2,recess=side*(half-.110),glassW=.425,glassH=.94,glassY=F+1.49;
  // Top suspension box and separate jamb lips leave a clear slot for the
  // translating leaves between outer sheet and inner lining.
- sideBox(.022,sideEave-(F+doorHeight),doorWidth+.012,side*(sideWallBase-.01),(sideEave+F+doorHeight)/2,dz,sidePaint);
+ const header=sideBox(.022,sideEave-(F+doorHeight),doorWidth,side*(sideWallBase-.011),(sideEave+F+doorHeight)/2,dz,sidePaint);
+ header.userData.roofEdgeIndices=Array.from({length:header.geometry.attributes.position.count},(_,i)=>i).filter(i=>Math.abs(header.geometry.attributes.position.getX(i)-side*.011)<.000001&&Math.abs(header.geometry.attributes.position.getY(i)-(sideEave-F-doorHeight)/2)<.000001);
  for(const edge of [-1,1]){
   const z=dz+edge*(doorWidth/2+.008);
   sideBox(.025,doorHeight,.027,side*(sideWallBase-.007),F+doorHeight/2,z,sideRubber);
@@ -269,6 +268,58 @@ function buildPassengerDoors(side,dz){
   leaf.traverse(o=>{if(o.isMesh)o.userData.slidingDoor=true});
  }
 }
+// An extruded sheet is partitioned into real exterior and inner/return faces.
+// There is no second painted copy occupying nearly the same surface.
+function cabSheet(shape,side,widthAt,innerAt,tag){
+ const source=new T.ExtrudeGeometry(shape,{depth:1,bevelEnabled:false,curveSegments:20}),p=source.attributes.position,n=source.attributes.normal,outer=[],inside=[];
+ for(let i=0;i<p.count;i+=3){
+  const exterior=n.getZ(i)>.5,target=exterior?outer:inside;
+  const order=side>0?[0,1,2]:[0,2,1];
+  for(const j of order){const k=i+j,z=-p.getX(k),depth=p.getZ(k),x=innerAt(z)+(widthAt(z)-innerAt(z))*depth;target.push(side*x,p.getY(k),z)}
+ }
+ const result=[];
+ for(const [positions,external] of [[outer,true],[inside,false]]){
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.computeVertexNormals();
+  if(external){const normals=geometry.attributes.normal;for(let i=0;i<geometry.attributes.position.count;i++){const z=geometry.attributes.position.getZ(i),e=.00001,slope=(widthAt(z+e)-widthAt(z-e))/(2*e),v=new T.Vector3(side,0,-slope).normalize();normals.setXYZ(i,v.x,v.y,v.z)}}
+  const mesh=new T.Mesh(geometry,external?sidePaint:wall);if(external)mesh.userData.structuralRole='outer-side';mesh.name=tag+(external?'-exterior':'-inner');group.add(mesh);if(external)passenger(mesh);
+  if(external&&tag==='cab-side'){
+   const points=[];for(let i=0;i<geometry.attributes.position.count;i++){const z=geometry.attributes.position.getZ(i),y=geometry.attributes.position.getY(i);if(Math.abs(y-roofEdgeY(z))<.00001)points.push(i)}
+   points.sort((a,b)=>geometry.attributes.position.getZ(a)-geometry.attributes.position.getZ(b));mesh.userData.roofEdgeIndices=points.filter((v,i,a)=>i===0||Math.abs(geometry.attributes.position.getZ(v)-geometry.attributes.position.getZ(a[i-1]))>.000001);
+  }
+  result.push(mesh);
+ }
+ source.dispose();return result;
+}
+function buildCabSide(side,a,b){
+ const cabDoorZ=-8.52,cabDoorW=.74,cabDoorH=1.94,low=F-.018;
+ const shape=new T.Shape();shape.moveTo(-a,low);shape.lineTo(-b,low);
+ const zs=[...new Set([a,b,roofStartZ,...shellZStations.filter(z=>z>a&&z<b)].filter(z=>z>=a&&z<=b))].sort((x,y)=>y-x);
+ for(const z of zs)shape.lineTo(-z,roofEdgeY(z));shape.closePath();
+ const opening=new T.Path(),pts=roundedShape(cabDoorW,cabDoorH,.125).getPoints(20);
+ for(let i=pts.length-1;i>=0;i--){const p=pts[i];if(i===pts.length-1)opening.moveTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y);else opening.lineTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y)}
+ opening.closePath();shape.holes.push(opening);
+ cabSheet(shape,side,outerBodyHalfWidth,()=>half-.0825,'cab-side');
+ const windowW=.48,windowH=.69,windowY=F+1.47,win=roundedShape(windowW,windowH,.08).getPoints(16);
+ const original=roundedShape(cabDoorW-.012,cabDoorH-.010,.12),leaf=new T.Shape(),leafPoints=original.getPoints(20);
+ for(let i=0;i<leafPoints.length;i++){const p=leafPoints[i];if(i===0)leaf.moveTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y);else leaf.lineTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y)}leaf.closePath();
+ const glazingHole=new T.Path();for(let i=win.length-1;i>=0;i--){const p=win[i];if(i===win.length-1)glazingHole.moveTo(-cabDoorZ+p.x,windowY+p.y);else glazingHole.lineTo(-cabDoorZ+p.x,windowY+p.y)}glazingHole.closePath();leaf.holes.push(glazingHole);
+ cabSheet(leaf,side,()=>1.288,()=>1.262,'cab-access-door');
+ const pane=roundedPanel(windowW-.012,windowH-.012,.075,side*1.290,windowY,cabDoorZ,glass);
+ sideRing(cabDoorW+.008,cabDoorH+.008,.125,side*(sideWallBase+.003),F+cabDoorH/2,cabDoorZ,sideRubber,.009);
+ sideRing(windowW,windowH,.08,side*1.296,windowY,cabDoorZ,sideRubber,.009);
+ const recess=side*1.269;box(.024,.018,.09,recess+side*.017,F+1.03,cabDoorZ+.24,metal);
+}
+function buildBodyCorner(side){
+ const vs=[],ns=[],ix=[],around=64,vertical=20;
+ for(let j=0;j<=vertical;j++)for(let i=0;i<=around;i++){
+  const t=i/around*Math.PI/2,z=noseShellZ+bodyEnvelope.cornerLength*(1-Math.cos(t)),x=1.20+.135*Math.sin(t),y=F+.34+(roofEdgeY(z)-F-.34)*j/vertical;
+  vs.push(side*x,y,z);const normal=new T.Vector3(side*bodyEnvelope.cornerLength*Math.sin(t),0,-.135*Math.cos(t)).normalize();ns.push(normal.x,normal.y,normal.z);
+ }
+ for(let j=0;j<vertical;j++)for(let i=0;i<around;i++){const k=j*(around+1)+i,n=k+around+1;if(side>0)ix.push(k,n,k+1,k+1,n,n+1);else ix.push(k,k+1,n,k+1,n+1,n)}
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setAttribute('normal',new T.Float32BufferAttribute(ns,3));geometry.setIndex(ix);
+ const mesh=new T.Mesh(geometry,sidePaint);mesh.name='nose-side-corner';mesh.userData.structuralRole='outer-side';group.add(mesh);passenger(mesh);
+}
+
 let doorProgress=0,doorTarget=0;
 function setDoorProgress(progress){
  doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorProgress*doorProgress*(3-2*doorProgress);
@@ -293,59 +344,7 @@ for(const side of [-1,1]){
   if(doors.some(z=>Math.abs(z-mid)<.01&&Math.abs(len-doorWidth)<.01))continue;
   // Separate exterior access door to the driver's cab, on each side of the head car.
   // IMPORTANT: no continuous lower skirt here: it would cover the recessed door.
-  if(mid < -7.5){
-   const cabSideStart=group.children.length;
-   const cabDoorZ=-8.52,cabDoorW=.74,cabDoorH=1.94;
-   const cabBottom=F,cabTop=F+cabDoorH,bodyTop=top-.28;
-   const leftEdge=cabDoorZ-cabDoorW/2,rightEdge=cabDoorZ+cabDoorW/2;
-   // The original continuous sidewall hid the door. Cut a true aperture:
-   // metal sheet remains only above and on both sides of the access door.
-   const leftLen=leftEdge-a,rightLen=b-rightEdge;
-   if(leftLen>0)box(.085,bodyTop-F,leftLen,x,(bodyTop+F)/2,(a+leftEdge)/2,wall);
-   if(rightLen>0)box(.085,bodyTop-F,rightLen,x,(bodyTop+F)/2,(rightEdge+b)/2,wall);
-   box(.085,bodyTop-cabTop,cabDoorW,x,(bodyTop+cabTop)/2,cabDoorZ,wall);
-   const recess=x-side*.026;
-   const cabShape=roundedShape(cabDoorW-.012,cabDoorH-.010,.12);
-   const windowW=.48,windowH=.69,windowY=F+1.47;
-   const hole=new T.Path(),pts=roundedShape(windowW,windowH,.08).getPoints(16);
-   const offsetY=windowY-(F+cabDoorH/2);
-   for(let i=pts.length-1;i>=0;i--){
-    const p=pts[i];if(i===pts.length-1)hole.moveTo(p.x,p.y+offsetY);
-    else hole.lineTo(p.x,p.y+offsetY);
-   }
-   hole.closePath();cabShape.holes.push(hole);
-   const leaf=new T.Mesh(new T.ShapeGeometry(cabShape,16),wall);
-   leaf.rotation.y=Math.PI/2;
-   leaf.position.set(recess,F+cabDoorH/2,cabDoorZ);group.add(leaf);
-   // Explicit visible BLUE door skin: four opaque sections surround the
-   // window cutout. Position on the OUTER side of the door, not behind it.
-   // This prevents the grey cab interior from bleeding through the surface.
-   const skinX=recess+side*.013;
-   const doorBase=F+.006,doorUpper=F+cabDoorH-.006;
-   const glassBottom=windowY-windowH/2,glassUpper=windowY+windowH/2;
-   box(.012,glassBottom-doorBase,cabDoorW-.018,
-       skinX,(doorBase+glassBottom)/2,cabDoorZ,wall);
-   box(.012,doorUpper-glassUpper,cabDoorW-.018,
-       skinX,(glassUpper+doorUpper)/2,cabDoorZ,wall);
-   const pillar=(cabDoorW-.018-windowW)/2;
-   for(const sign of [-1,1])
-    box(.012,windowH,pillar,skinX,windowY,
-        cabDoorZ+sign*(windowW+pillar)/2,wall);
-   roundedPanel(windowW-.012,windowH-.012,.075,skinX+side*.008,windowY,cabDoorZ,glass);
-   // Narrow dark recessed seal, same visual principle as passenger doors.
-   const cabSeal=mat(0x1b303d);
-   const rim=roundedShape(cabDoorW+.008,cabDoorH+.008,.125).getPoints(12);
-   const rimCurve=new T.CatmullRomCurve3(rim.map(p=>new T.Vector3(x+side*.007,F+cabDoorH/2+p.y,cabDoorZ-p.x)),true);
-   group.add(new T.Mesh(new T.TubeGeometry(rimCurve,72,.009,6,true),cabSeal));
-   const winPts=roundedShape(windowW,windowH,.08).getPoints(12);
-   const winCurve=new T.CatmullRomCurve3(winPts.map(p=>new T.Vector3(skinX+side*.014,windowY+p.y,cabDoorZ-p.x)),true);
-   group.add(new T.Mesh(new T.TubeGeometry(winCurve,64,.009,6,true),cabSeal));
-   // Compact exterior handle, attached to the recessed leaf.
-   box(.024,.018,.09,recess+side*.017,F+1.03,cabDoorZ+.24,metal);
-   // Refinish the side access panel only; its v84 geometry is unchanged.
-   for(const object of group.children.slice(cabSideStart))if(object.material===wall)refinishCabSide(object,side);
-   continue;
-  }
+  if(mid < -7.5){buildCabSide(side,cornerJoinZ,b);continue;}
   buildPassengerBay(side,a,b);
  }
  for(const dz of doors)buildPassengerDoors(side,dz);
@@ -353,24 +352,15 @@ for(const side of [-1,1]){
 
 // Side paint follows the actual metal; raised ribs are part of the shell.
 window.wagonSideBodyVersion='corrugated-pocket-v86';
-function stripeSegment(side,z1,y1,z2,y2,width=.105,onDoor=false){
- // Painted stripe: flat quadrilateral on the actual exterior sheet surface.
- // Preserve the exact z/y endpoints and width of v12; no raised geometry.
- const dz=z2-z1,dy=y2-y1,len=Math.hypot(dz,dy);
- if(len<1e-5)return;
- const nz=-dy/len*width/2,ny=dz/len*width/2;
- const outline=new T.Shape();
- outline.moveTo(-z1-nz,y1+ny);
- outline.lineTo(-z2-nz,y2+ny);
- outline.lineTo(-z2+nz,y2-ny);
- outline.lineTo(-z1+nz,y1-ny);
- outline.closePath();
- const decal=new T.Mesh(new T.ShapeGeometry(outline),cream);
- decal.rotation.y=Math.PI/2;
- // Exterior face of both the sidewall and door leaves is half-.04+.085/2.
- decal.position.x=onDoor ? side*(half-.04-.030+.009) : side*(half+.004);
- decal.renderOrder=3;
- group.add(decal);
+function stripeSegment(side,z1,y1,z2,y2,width=.105){
+ const positions=[],indices=[],steps=Math.max(1,Math.ceil(Math.abs(z2-z1)/.02));
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,z=T.MathUtils.lerp(z1,z2,t),y=T.MathUtils.lerp(y1,y2,t),x=side*(outerBodyHalfWidth(z)+.0045);
+  positions.push(x,y-width/2,z,x,y+width/2,z);
+ }
+ for(let i=0;i<steps;i++){const k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+ const mesh=new T.Mesh(geometry,sideCream);group.add(mesh);passenger(mesh);
 }
 for(const side of [-1,1]){
  // Preserve the cab access-door livery, without extending it onto the nose.
@@ -378,56 +368,46 @@ for(const side of [-1,1]){
  stripeSegment(side,-L/2,beltY,doorStart,beltY,.105);
  stripeSegment(side,doorEnd,beltY,doors[0]-doorWidth/2,beltY,.105);
 }
-// Extruded roof profile in a single metric cross section.
-const profile=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
-const verts=[],idx=[];for(const [x,y] of profile)verts.push(x,y,-L/2,x,y,-L/2+1.45);
-for(let i=0;i<profile.length-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2)}
-const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();group.add(new T.Mesh(geo,roof));
-// Smooth passenger roof starts at the exact rear station of the locked cab
-// shell. The old under-shell portion remains inside the protected nose.
-const roofJoinZ=-L/2+1.45,roofScoops=[];
-const joinProfile=new T.SplineCurve([[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]].map(p=>new T.Vector2(...p)));
-const roofSeams=[-6.5,-4.2,-1.9,.4,2.7,5,7.3,9.3];
-function passengerRoofY(x,z){
- const shoulder=1-T.MathUtils.smoothstep(z,-7.34,-6.79),edge=sideEave+.30*shoulder;
- const arch=Math.sqrt(Math.max(0,1-Math.pow(x/half,2)));
- const bow=.008*Math.pow(Math.sin(Math.PI*(z-roofJoinZ)/(L/2-roofJoinZ)),2);
- let y=edge+(top+.13-edge)*arch+bow*arch;
- for(const seam of roofSeams)y-=.0018*Math.exp(-Math.pow((z-seam)/.008,2));
- return y;
-}
-{
- const columns=64,zs=[roofJoinZ,L/2];
- for(let z=roofJoinZ;z<L/2;z+=.24)zs.push(z);
- for(const z of roofSeams)zs.push(z-.015,z-.006,z,z+.006,z+.015);
- zs.sort((a,b)=>a-b);const rows=[...new Set(zs)],vs=[],ix=[];
- for(const z of rows)for(let i=0;i<=columns;i++){
-  const p=joinProfile.getPoint(i/columns),t=T.MathUtils.smoothstep(z,roofJoinZ,-7.34);
-  const frontY=p.y+.33*Math.pow(Math.abs(p.x)/half,12);
-  vs.push(p.x,T.MathUtils.lerp(frontY,passengerRoofY(p.x,z),t),z);
- }
- for(let j=0;j<rows.length-1;j++)for(let i=0;i<columns;i++){
-  const k=j*(columns+1)+i,n=k+columns+1;ix.push(k,k+1,n,k+1,n+1,n);
- }
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
- const shell=new T.Mesh(geometry,sidePaint);group.add(shell);passenger(shell);
- // The haunch behind the first passenger doorway meets the side skin.
- for(const side of [-1,1]){
-  const v=[],f=[],steps=48;
-  for(let i=0;i<=steps;i++){
-   const z=-7.34+i*.55/steps;v.push(side*sideWallBase,sideEave-.01,z,side*half,passengerRoofY(half,z),z);
+// Upper nose and passenger roof share cross sections, boundary vertices,
+// analytic normals, one material and one light layer. There is no under-roof.
+const roofScoops=[];
+function makeRoofSurface(rows,isBrow){
+ const columns=64,positions=[],normals=[],indices=[];
+ for(const row of rows){
+  const theta=isBrow?row:null,z=isBrow?noseShellZ+bodyEnvelope.rollLength*(1-Math.cos(theta)):row,w=outerBodyHalfWidth(z);
+  for(let i=0;i<=columns;i++){
+   const phi=-Math.PI/2+i*Math.PI/columns,s=Math.sin(phi),c=Math.cos(phi),arch=archAt(phi),da=archSlope(phi),x=w*s;
+   let y,n;
+   if(isBrow){
+    const front=bodyEnvelope.frontEave+(bodyEnvelope.frontCrown-bodyEnvelope.frontEave)*arch;
+    y=bodyEnvelope.browBase+(front-bodyEnvelope.browBase)*Math.sin(theta);
+    const dz=bodyEnvelope.rollLength*Math.sin(theta),dyPhi=(bodyEnvelope.frontCrown-bodyEnvelope.frontEave)*da*Math.sin(theta);
+    const v=new T.Vector3(w*c,dyPhi,0),u=new T.Vector3(widthSlope(z)*dz*s,(front-bodyEnvelope.browBase)*Math.cos(theta),dz);
+    n=u.cross(v);if(n.lengthSq()<1e-18)n.set(0,0,-1);n.normalize();
+   }else{
+    y=roofLevel(phi,z);
+    const edge=roofEdgeY(z),center=roofLevel(0,z),dyPhi=(center-edge)*da;
+    n=new T.Vector3(widthSlope(z)*s,roofSlope(phi,z),1).cross(new T.Vector3(w*c,dyPhi,0)).normalize();
+   }
+   positions.push(x,y,z);normals.push(n.x,n.y,n.z);
   }
-  for(let i=0;i<steps;i++){const k=i*2;f.push(k,k+1,k+2,k+1,k+3,k+2)}
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(v,3));g.setIndex(f);g.computeVertexNormals();
-  const strip=new T.Mesh(g,sidePaint);group.add(strip);passenger(strip);
-  sideTube([[side*1.316,sideEave+.008,-6.79],[side*1.316,sideEave+.008,9.52]],.009,sidePaint);
  }
- // Rear crown closes the roof above the inter-car bulkhead.
- const capShape=new T.Shape();capShape.moveTo(-half,sideEave-.015);
- for(let i=0;i<=96;i++){const x=-half+2*half*i/96;capShape.lineTo(x,passengerRoofY(x,L/2))}
- capShape.lineTo(half,sideEave-.015);capShape.closePath();
- const cap=new T.Mesh(new T.ShapeGeometry(capShape,24),sidePaint);cap.position.z=L/2;group.add(cap);passenger(cap);
+ for(let j=0;j<rows.length-1;j++)for(let i=0;i<columns;i++){const k=j*(columns+1)+i,n=k+columns+1;indices.push(k,n,k+1,k+1,n,n+1)}
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('normal',new T.Float32BufferAttribute(normals,3));geometry.setIndex(indices);
+ const mesh=new T.Mesh(geometry,sidePaint);mesh.name=isBrow?'roof':'body-roof';mesh.userData.structuralRole='outer-roof';mesh.userData.roofColumns=columns;group.add(mesh);passenger(mesh);return mesh;
 }
+const browRows=Array.from({length:49},(_,i)=>i/48*Math.PI/2);
+const frontBrow=makeRoofSurface(browRows,true);feature('roof',frontBrow);
+const coherentRoof=makeRoofSurface([...new Set(shellZStations)],false);
+for(const side of [-1,1])buildBodyCorner(side);
+// The rear crown is a closing end sheet, not an overlapping upper roof.
+{
+ const shape=new T.Shape();shape.moveTo(-sideWallBase,sideEave-.015);
+ for(let i=0;i<=64;i++){const phi=-Math.PI/2+i*Math.PI/64;shape.lineTo(outerBodyHalfWidth(L/2)*Math.sin(phi),roofLevel(phi,L/2))}
+ shape.lineTo(sideWallBase,sideEave-.015);shape.closePath();
+ const mesh=new T.Mesh(new T.ShapeGeometry(shape,16),sidePaint);mesh.position.z=L/2;group.add(mesh);passenger(mesh);
+}
+
 // Thirteen directional pressed-metal ventilation scoops on each side.
 // Opposed mouths follow the real intake/exhaust arrangement; each hood is
 // a curved shell with an open mouth, not a rectangular decorative block.
@@ -454,42 +434,7 @@ for(const side of [-1,1])for(let i=0;i<13;i++){
  for(const dx of [-.06,.06])sideBox(.006,.045,.028,cx+dx,passengerRoofY(cx+dx,mouthZ)+.035,mouthZ-direction*.014,sideRubber);
 }
 
-// Continuous closed cab roof: curved shell plus a blue structural front cap.
-// The cap meets the shell at exactly the same cross-section; no floating slab.
-{
- const stations=[[-half,top-.33],[-1.22,top-.10],[-1.02,top+.06],[-.78,top+.13],[.78,top+.13],[1.02,top+.06],[1.22,top-.10],[half,top-.33]];
- const curve=new T.SplineCurve(stations.map(p=>new T.Vector2(...p)));
- const sections=64,rows=24,vs=[],fs=[],z0=-L/2-.11,z1=-L/2+1.45;
- const frontPoints=[];
- for(let j=0;j<=rows;j++){
-  const t=j/rows;
-  for(let i=0;i<=sections;i++){
-   const p=curve.getPoint(i/sections),crown=Math.max(0,1-Math.pow(Math.abs(p.x)/half,4));
-   const joinT=Math.min(1,t/.32),joinEase=joinT*joinT*(3-2*joinT);
-   const edgeJoin=(.33-.26*(1-t))*joinEase*Math.pow(Math.abs(p.x)/half,12);
-   const y=p.y+.105*Math.pow(1-t,2)*crown+.26*(1-t)*(1-crown)+edgeJoin;
-   vs.push(p.x,y,z0+.24*(1-t)+(z1-z0)*t);
-   if(j===0)frontPoints.push(new T.Vector2(p.x,y));
-  }
- }
- for(let j=0;j<rows;j++)for(let i=0;i<sections;i++){
-  const k=j*(sections+1)+i,n=k+sections+1;fs.push(k,k+1,n,k+1,n+1,n);
- }
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(fs);geometry.computeVertexNormals();
- const shell=new T.Mesh(geometry,roof);group.add(shell);frontAppearance(shell);
- // A quarter-ellipse rolls the vertical brow back into the roof crown.
- // Dense surface rows provide real curvature and continuous reflected bands.
- const cv=[],cf=[],vertical=28,base=top-.26;
- for(let j=0;j<=vertical;j++){
-  const theta=j/vertical*Math.PI/2;
-  for(const p of frontPoints)cv.push(p.x,base+(p.y-base)*Math.sin(theta),.24*(1-Math.cos(theta)));
- }
- for(let j=0;j<vertical;j++)for(let i=0;i<sections;i++){
-  const k=j*(sections+1)+i,n=k+sections+1;cf.push(k,n,k+1,k+1,n,n+1);
- }
- const capGeometry=new T.BufferGeometry();capGeometry.setAttribute('position',new T.Float32BufferAttribute(cv,3));capGeometry.setIndex(cf);capGeometry.computeVertexNormals();
- const cap=new T.Mesh(capGeometry,roof);cap.position.z=z0;group.add(cap);frontAppearance(cap);feature('roof',cap);
-}
+
 // Longitudinal benches between doors, with an unobstructed central aisle.
 // Reuse the existing longitudinal bench layout; refine it into forty seats.
 // The original little bench inside the locked cab is retained verbatim.
@@ -630,24 +575,8 @@ function faceCircle(x,y,z,r,m){
  const apron=new T.Mesh(new T.ExtrudeGeometry(outline,{depth:.19,bevelEnabled:true,bevelSize:.014,bevelThickness:.014,bevelSegments:4}),wall);
  apron.position.z=faceZ+.045;group.add(apron);
 }
-// One continuous elliptical sheet at each cab corner. It replaces the
-// overlapping pillar boxes and competing corner patches, which caused folds.
-function cabCorner(sign){
- const around=48,vertical=28,vertices=[],indices=[];
- for(let j=0;j<=vertical;j++)for(let i=0;i<=around;i++){
-  const u=j/vertical,theta=i/around*Math.PI/2;
-  const x=sign*(1.20+.135*Math.sin(theta));
-  const z=faceZ+.030+.205*(1-Math.cos(theta));
-  const upper=top-.06-.22*Math.pow(Math.sin(theta),2);
-  vertices.push(x,F+.34+(upper-F-.34)*u,z);
- }
- for(let j=0;j<vertical;j++)for(let i=0;i<around;i++){
-  const a=j*(around+1)+i,b=a+around+1;indices.push(a,b,a+1,a+1,b,b+1);
- }
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();
- group.add(new T.Mesh(geometry,wall));
-}
-for(const sign of [-1,1])cabCorner(sign);
+// One continuous elliptical sheet at each cab corner is now built from the
+// same exterior envelope as the roof, before the fixed front equipment.
 // One unified fascia with narrow metal rim, not floating individual panels.
 // The upper edge must sit BELOW the curved roof profile (top+.13).
 // Earlier fascia reached above the actual roof and broke the silhouette.
@@ -1042,7 +971,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=89,lightingPreset='station-softboxes-v2';
+const modelVersion=90,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
@@ -1146,11 +1075,13 @@ window.wagonContinuityDiagnostics=()=>{
  }
  const opaque=all.filter(o=>!Array.isArray(o.material)&&!o.material.transparent);
  const ray=new T.Raycaster();ray.layers.enable(1);ray.layers.enable(2);
- function sideHits(z,y){
-  ray.set(new T.Vector3(2,y,z),new T.Vector3(-1,0,0));ray.near=0;ray.far=.80;
-  return ray.intersectObjects(opaque,false).filter(h=>h.point.x>1.30);
+ function sideHits(z,y,side=1){
+  ray.set(new T.Vector3(side*2,y,z),new T.Vector3(-side,0,0));ray.near=0;ray.far=.80;
+  return ray.intersectObjects(opaque,false).filter(h=>h.point.x*side>1.30);
  }
  const cabHits=sideHits(-7.5,2.4),bodyHits=sideHits(-5.5,2.4),cabX=cabHits[0]?.point.x,bodyX=bodyHits[0]?.point.x;
+ const leftCabHits=sideHits(-7.5,2.4,-1),leftBodyHits=sideHits(-5.5,2.4,-1),leftCabX=-leftCabHits[0]?.point.x,leftBodyX=-leftBodyHits[0]?.point.x;
+ const nearLeft=leftCabHits.filter(h=>leftCabX+h.point.x<.003).map(h=>h.point.x).filter((v,i,a)=>i===0||Math.abs(v-a[i-1])>1e-5);
  const nearCab=cabHits.filter(h=>cabX-h.point.x<.003).map(h=>h.point.x).filter((v,i,a)=>i===0||Math.abs(v-a[i-1])>1e-5);
  const blue=all.filter(o=>!Array.isArray(o.material)&&!o.material.transparent&&o.material.color&&o.material.color.b>o.material.color.r*1.4&&o.material.color.b>o.material.color.g*1.05);
  function lowerLine(z){for(let i=0;i<=130;i++){const y=.90+i*.001;ray.set(new T.Vector3(2,y,z),new T.Vector3(-1,0,0));ray.near=0;ray.far=.70;if(ray.intersectObjects(blue,false).length)return y}return null}
@@ -1163,9 +1094,10 @@ window.wagonContinuityDiagnostics=()=>{
    const g=mesh.geometry;for(let i=0;i<g.attributes.position.count;i++){const p=worldPoint(mesh,i);if(Math.abs(p.y-sideEave)<1e-5&&p.x>0)points.push(p)}
    points.sort((a,b)=>a.z-b.z);points=points.filter((p,i,a)=>i===0||Math.abs(p.z-a[i-1].z)>1e-6);
   }
+  points.sort((a,b)=>a.z-b.z);points=points.filter((p,i,a)=>i===0||p.distanceTo(a[i-1])>.000001);
   for(let i=0;i<points.length-1;i++)if(points[i].x>0)edgeLines.push(new T.Line3(points[i],points[i+1]));
  }
- let roofWallGap=0,roofCapGap=0;
+ let roofWallGap=0,roofCapGap=0,roofCapNormalAngle=0;
  const columns=main?.userData.roofColumns||64;
  if(main&&edgeLines.length){
   const g=main.geometry;
@@ -1176,17 +1108,23 @@ window.wagonContinuityDiagnostics=()=>{
   }
  }
  const brow=qaObjects.get('roof');
- if(main&&main.userData.roofColumns&&brow){
+ const joinedAtBrow=main?.userData.roofColumns?main:roofs.find(o=>o.geometry.attributes.position.count===1625);
+ if(joinedAtBrow&&brow){
   const browColumns=brow.userData.roofColumns||64,start=brow.geometry.attributes.position.count-(browColumns+1);
-  for(let i=0;i<=columns;i++)roofCapGap=Math.max(roofCapGap,worldPoint(main,i).distanceTo(worldPoint(brow,start+i)));
+  for(let i=0;i<=columns;i++){
+   roofCapGap=Math.max(roofCapGap,worldPoint(joinedAtBrow,i).distanceTo(worldPoint(brow,start+i)));
+   const a=new T.Vector3().fromBufferAttribute(joinedAtBrow.geometry.attributes.normal,i).normalize(),b=new T.Vector3().fromBufferAttribute(brow.geometry.attributes.normal,start+i).normalize();
+   roofCapNormalAngle=Math.max(roofCapNormalAngle,T.MathUtils.radToDeg(Math.acos(T.MathUtils.clamp(Math.abs(a.dot(b)),0,1))));
+  }
  }
  let invertedOuterFaces=0;
- for(const mesh of roofs.filter(o=>o.userData.structuralRole==='outer-roof')){
-  const g=mesh.geometry;for(let i=0;i<(g.index?.count||0);i+=24){const ids=[0,1,2].map(j=>g.index.getX(i+j)),p=ids.map(k=>worldPoint(mesh,k)),n=new T.Vector3().fromBufferAttribute(g.attributes.normal,ids[0]);const face=new T.Vector3().subVectors(p[1],p[0]).cross(new T.Vector3().subVectors(p[2],p[0]));if(face.lengthSq()>1e-14&&face.dot(n)<=0)invertedOuterFaces++;}
+ for(const mesh of all.filter(o=>['outer-roof','outer-side'].includes(o.userData.structuralRole))){
+  const g=mesh.geometry;for(let i=0;i<(g.index?.count||g.attributes.position.count);i+=24){const ids=[0,1,2].map(j=>g.index?g.index.getX(i+j):i+j),p=ids.map(k=>worldPoint(mesh,k)),n=new T.Vector3().fromBufferAttribute(g.attributes.normal,ids[0]);const face=new T.Vector3().subVectors(p[1],p[0]).cross(new T.Vector3().subVectors(p[2],p[0]));if(face.lengthSq()>1e-14&&face.dot(n)<=0)invertedOuterFaces++;}
  }
  const cabRoof=roofs.filter(o=>boxOf(o).min.z< -8.0),passengerRoof=roofs.filter(o=>boxOf(o).max.z>9&&o!==brow);
  const maxY=meshes=>Math.max(...meshes.map(o=>boxOf(o).max.y));
- return continuityMeasurements={method:'World-space triangle intersections and side-plane rays; millimetre sampling of body lower edges. No texture or color similarity metric.',roofSurfaceCount:roofs.length,roofOverlapSamples,overlapExamples,maximumRoofStep20mm,roofCapGap,roofWallGap,cabBodyPlaneDifference:Math.abs(cabX-bodyX),cabWallWidth:2*cabX,bodyWallWidth:2*bodyX,sideBottomDifference:Math.abs(cabBottom-bodyBottom),cabBottom,bodyBottom,nearCoincidentCabSkins:nearCab.length,invertedOuterFaces,cabCrown:maxY(cabRoof),mainCrown:maxY(passengerRoof),sideWindowOpeningTop:Math.max(...passengerWindows.map(w=>w.y+w.h/2)),frontWindowTop:boxOf(qaObjects.get('window-center')).max.y,profiles};
+ let actualMainCrown=-Infinity;for(const mesh of passengerRoof)for(let i=0;i<mesh.geometry.attributes.position.count;i++){const p=worldPoint(mesh,i);if(p.z>=-6.99)actualMainCrown=Math.max(actualMainCrown,p.y)}
+ return continuityMeasurements={method:'World-space triangle intersections and side-plane rays; millimetre sampling of body lower edges. No texture or color similarity metric.',roofSurfaceCount:roofs.length,roofOverlapSamples,overlapExamples,maximumRoofStep20mm,roofCapGap,roofCapNormalAngle,roofWallGap,cabBodyPlaneDifference:Math.max(Math.abs(cabX-bodyX),Math.abs(leftCabX-leftBodyX)),cabWallWidth:cabX+leftCabX,bodyWallWidth:bodyX+leftBodyX,sideBottomDifference:Math.abs(cabBottom-bodyBottom),cabBottom,bodyBottom,nearCoincidentCabSkins:Math.max(nearCab.length,nearLeft.length),invertedOuterFaces,cabCrown:maxY(cabRoof),mainCrown:actualMainCrown,sideWindowOpeningTop:Math.max(...passengerWindows.map(w=>w.y+w.h/2)),frontWindowTop:boxOf(qaObjects.get('window-center')).max.y,profiles};
 };
 // End measured structural continuity.
 
@@ -1203,6 +1141,24 @@ window.wagonFrontGlassTriangles=()=>{
    }
    triangles.push(tri);
   }
+ }
+ return triangles;
+};
+window.wagonProtectedFrontTriangles=()=>{
+ const triangles=[];
+ for(const [name,object] of qaObjects){
+  if(name==='roof'||name.startsWith('window-'))continue;
+  for(const root of Array.isArray(object)?object:[object])root.traverse(mesh=>{
+   if(!mesh.isMesh||mesh.material.transparent)return;
+   const geometry=mesh.geometry,p=geometry.attributes.position,index=geometry.index,count=index?.count||p.count;
+   for(let i=0;i<count;i+=3){
+    const triangle=[];for(let j=0;j<3;j++){
+     const point=new T.Vector3().fromBufferAttribute(p,index?index.getX(i+j):i+j).applyMatrix4(mesh.matrixWorld).project(camera);
+     triangle.push([(point.x+1)*innerWidth/2,(1-point.y)*innerHeight/2]);
+    }
+    triangles.push(triangle);
+   }
+  });
  }
  return triangles;
 };
@@ -1251,7 +1207,7 @@ doorButton.onclick=()=>{window.wagonSetDoors(!doorTarget);doorButton.textContent
 if(captureMode)doorButton.style.display='none';
 const controls=document.createElement('nav');controls.id='controls';controls.setAttribute('aria-label','Просмотр вагона');
 const cameraSelect=document.createElement('select');cameraSelect.id='cameraSelect';cameraSelect.setAttribute('aria-label','Ракурс камеры');
-for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Передняя часть v84',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
+for(const [value,label] of Object.entries({outside:'Общий вид',reference:'Эталонный ракурс',front:'Строго спереди','side-full':'Весь вагон сбоку','side-angle':'Боковина под углом','door-close':'Двери крупно','window-close':'Окно крупно','window-inside':'Через окно','door-open':'Дверной проём','roof-side':'Крыша','roof-join':'Стык крыши и стенки',salon:'Внутри салона',driver:'Место машиниста'})){
  const option=document.createElement('option');option.value=value;option.textContent=label;cameraSelect.appendChild(option);
 }
 cameraSelect.onchange=()=>{setCamera(cameraSelect.value);if(cameraSelect.value==='door-open'){window.wagonSetDoors(true);doorButton.textContent='Закрыть двери'}};

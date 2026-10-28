@@ -280,3 +280,38 @@ Uruchcha and real side/oblique photographs; no arbitrary uniform cab scaling.
 For v90+ the new continuity checks become mandatory. Existing source locks
 on structural roof/header/corner code need an explicit stage-4 scope update;
 the immutable v84/v88 historical fixtures and front-equipment locks remain.
+
+## v90: coherent roof, nose corners and real side sheets
+
+Replaced the obsolete inner roof, raised cab roof patch, box headers and
+floating exterior cab-paint copies with compatible surfaces. A broad rounded
+cross section is shared by the rolled nose brow and the main roof; boundary
+positions and analytic tangent planes match. Both render with the same enamel
+and lighting. Roof eaves and sidewall tops use one edge curve. The cap and
+nose corner footprint are coordinated, removing the old holes and horns.
+Cab side sheets are actually extruded between their inner and exterior
+planes, with a real rounded access-door aperture and a thick glazed leaf.
+Exterior paint is a surface material, not a second nearly coincident wall.
+The cab/body outer planes and lower edges now coincide. Passenger aperture,
+door-home and saloon source/placement are separately frozen against v88.
+
+The stage-4 source lock explicitly releases the old structural roof/header
+and blue corner code as authorized by the current task. Six source regions
+still pin fascia, three panes, all front equipment, apron, cab equipment and
+front cameras to v84. Their projected geometry is unchanged. Pixel protection
+covers the actual facade/equipment triangles, while every whole-image change
+(including the authorized blue envelope) is retained in the diffs.
+
+Full local v90 pass: eighteen views, six v88 controls, phone and perspective;
+0 equipment pixel changes; 0 repeated-frame changes; 0 door-pocket contacts
+at five sampled poses; 0 blocked window/open-door sample rays. Continuity:
+roof overlap samples 585 -> 0; maximum rise/drop per 20 mm 13.729 -> 5.520 mm;
+roof/brow positional gap 0; tangent-plane difference 0.000034 degrees;
+roof/wall boundary gap about 0.00012 mm; cab/body plane mismatch 14.900 -> 0 mm;
+lower-body mismatch 18 -> 0 mm; nearly coincident outer cab skins 2 -> 1.
+These values are numerical model measurements, not manufacturing tolerances.
+
+Visual review confirms the box-like roof join and surface holes are removed.
+The crown heights were intentionally left at about 3.732 / 3.608 m in this
+first topology pass. Next: balance only the upper crown against real front
+and side photos. Keep fascia, lights, glazing, doors and saloon in place.

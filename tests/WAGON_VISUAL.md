@@ -100,3 +100,16 @@ consistent outward normals. v89 explicitly reports the existing defects as
 a diagnosis. This sampling does not prove absence of every possible triangle
 collision. Source/position checks independently protect front equipment,
 windows, door motion and the 3D saloon.
+
+For stage 4, `front-stage4-lock.json` releases structural roof/header/corner
+code under the user's current authorization. It retains six immutable front
+source regions; window-bay and complete saloon blocks are independently
+compared against v88. The facade/equipment triangle mask is used only for
+pixel protection, with the entire unmasked front difference kept separately.
+This is an explicit scope change, not a claim that the revised blue roof is
+pixel-identical to v84. Registered front equipment projections must still
+match v84, including the exact six-headlamp layout and blank display.
+
+Cap-to-root tangent planes must agree within 0.1 degrees; both side exterior
+planes are sampled, and the new roof/side face winding is checked. The current
+and v88 world-triangle measurements appear in the run summary and JSON files.
