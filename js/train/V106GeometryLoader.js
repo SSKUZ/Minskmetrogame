@@ -1,6 +1,6 @@
 // Load the actual v106 geometry from its calibrated viewer into the gameplay
 // THREE.Scene. No approximated meshes are constructed here.
-export async function loadV106Geometry({THREE,scene,timeoutMs=30000}){
+export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
  if(!THREE?.ObjectLoader||!scene?.add)throw new TypeError('THREE and scene required');
  const startedAt=performance.now();
  const frame=document.createElement('iframe');
