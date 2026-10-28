@@ -1,3 +1,4 @@
+import {V106_CAR_PITCH,V106_FORMATION} from './train/ConsistIntegration.js';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
 import {createPassengerModelFactory} from './passengers/PassengerModels.js';
@@ -102,7 +103,8 @@ for(const side of [-1,1]){
   box(reflectedTrain,.19,1.6,.07,side*2.19,1.75,z+1.35,cabMetal);
  }
 }
-// Five-car exterior train, visible only from the elevated platform camera.
+// Transitional four-car gameplay exterior, visible from the platform camera.
+// NOT the detailed v106 viewer geometry: that migration remains a separate task.
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
 const extSilver=mat(0xdce3e8,.42),extBlue=trainBodyMat;
 const extWhite=new THREE.MeshBasicMaterial({color:0xf4f5f0});
@@ -138,8 +140,8 @@ const trainDestination=document.createElement('canvas');trainDestination.width=5
 const td=trainDestination.getContext('2d');td.fillStyle='#121e29';td.fillRect(0,0,512,96);td.fillStyle='#ffe077';td.textAlign='center';td.font='bold 40px Arial';td.fillText('МАЛІНАЎКА',256,65);
 const trainDestinationTex=new THREE.CanvasTexture(trainDestination);
 const dest=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.52),new THREE.MeshBasicMaterial({map:trainDestinationTex}));dest.position.set(0,2.06,-.525);dest.rotation.y=Math.PI;trainNose.add(dest);
-for(let car=0;car<5;car++){
- const cz=12+car*21.5;
+for(let car=0;car<V106_FORMATION.length;car++){
+ const cz=12+car*V106_CAR_PITCH;
  roundedTrainPanel(stationTrain,4.32,.44,.21,20.7,0,3.57,cz,extBlue);
  box(stationTrain,4.25,.25,20.7,0,.93,cz,extBlue);
  // Interior geometry seen through the glazing.
