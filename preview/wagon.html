@@ -227,6 +227,39 @@ function doorChevron(leaf,side,z1,y1,z2,y2){
  const mesh=new T.Mesh(new T.ShapeGeometry(q),chevronPaint);mesh.rotation.y=Math.PI/2;mesh.position.x=side*.017;
  leaf.add(mesh);passenger(mesh);
 }
+// Bilingual foot-pinch warning from the Minsk 81-717 side-door reference.
+// Draw once at high resolution; share the texture among all 16 decals.
+function makeDoorCautionTexture(){
+ const c=document.createElement('canvas');c.width=768;c.height=512;
+ const ctx=c.getContext('2d');ctx.clearRect(0,0);
+ ctx.beginPath();ctx.moveTo(28,22);ctx.lineTo(740,22);ctx.lineTo(740,316);
+ ctx.lineTo(384,494);ctx.lineTo(28,316);ctx.closePath();
+ ctx.fillStyle='#f5cc05';ctx.fill();ctx.lineWidth=17;ctx.strokeStyle='#161616';ctx.stroke();
+ ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.font='bold 64px Arial,sans-serif';ctx.fillText('БУДЬТЕ ОСТОРОЖНЫ',384,93,674);
+ ctx.font='bold 65px Arial,sans-serif';ctx.fillText('CAUTION',384,171);
+ // Simplified black boot approaching a platform/door edge, with pinch impact.
+ ctx.save();ctx.translate(360,330);ctx.rotate(-.22);
+ ctx.beginPath();ctx.moveTo(-88,-89);ctx.lineTo(-24,-89);ctx.lineTo(-17,-8);
+ ctx.lineTo(35,18);ctx.lineTo(54,49);ctx.lineTo(44,63);ctx.lineTo(-102,63);
+ ctx.lineTo(-117,44);ctx.lineTo(-117,23);ctx.lineTo(-84,23);ctx.closePath();ctx.fill();
+ ctx.restore();
+ ctx.fillRect(461,240,12,143);ctx.fillRect(480,240,8,143);
+ ctx.beginPath();for(let i=0;i<16;i++){const a=i*Math.PI/8,r=i%2?17:35,x=448+Math.cos(a)*r,y=377+Math.sin(a)*r;if(!i)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath();ctx.fill();
+ const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.anisotropy=8;return tex;
+}
+const doorCautionMaterial=new T.MeshBasicMaterial({map:makeDoorCautionTexture(),transparent:true,side:T.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+function addDoorCautions(side,dz){
+ // Two stickers flank each passenger doorway on both train sides.
+ // Position: low on the blue corrugated waist, below the white belt.
+ for(const direction of [-1,1]){
+  const z=dz+direction*(doorWidth/2+.34),y=F+.45;
+  const x=side*(sideWallBase+.026);
+  const decal=sidePanel(.29,.205,.002,x,y,z,doorCautionMaterial);
+  decal.name='passenger-door-caution';
+  decal.renderOrder=9;decal.userData.warningDecal=true;
+ }
+}
 function buildPassengerDoors(side,dz){
  const leafW=doorWidth/2-.008,leafH=doorHeight-.030,midY=F+.018+leafH/2,recess=side*(half-.110),glassW=.425,glassH=.94,glassY=F+1.49;
  // Top suspension box and separate jamb lips leave a clear slot for the
@@ -239,7 +272,9 @@ function buildPassengerDoors(side,dz){
   sideBox(.012,doorHeight,.025,side*(sideWallInner-.006),F+doorHeight/2,z,sideSteel);
  }
  sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,sideSteel);
- sideBox(.075,.008,doorWidth,side*(half-.037),F+.010,dz,new T.MeshStandardMaterial({color:0xe8ba16,roughness:.6}));
+ // Visible yellow safety-painted threshold along the whole doorway.
+ sideBox(.075,.043,doorWidth,side*(half-.037),F+.016,dz,new T.MeshStandardMaterial({color:0xf4c400,roughness:.54,metalness:.12}));
+ sideBox(.12,.009,doorWidth,side*(half-.034),F+.040,dz,new T.MeshStandardMaterial({color:0xf4c400,roughness:.54,metalness:.12}));
  sideBox(.15,.16,doorWidth+.12,side*(half-.21),F+doorHeight+.04,dz,sideLining);
  const surround=roundedShape(doorWidth+.09,doorHeight+.07,.12),opening=new T.Path(),points=roundedShape(doorWidth,doorHeight,.105).getPoints(20);
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(i===points.length-1)opening.moveTo(p.x,p.y);else opening.lineTo(p.x,p.y)}
@@ -384,7 +419,7 @@ for(const side of [-1,1]){
   if(mid < -7.5){buildCabSide(side,cornerJoinZ,b);continue;}
   buildPassengerBay(side,a,b);
  }
- for(const dz of doors)buildPassengerDoors(side,dz);
+ for(const dz of doors){buildPassengerDoors(side,dz);addDoorCautions(side,dz);}
 }
 
 // Side paint follows the actual metal; raised ribs are part of the shell.
