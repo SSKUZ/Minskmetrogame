@@ -1,0 +1,19 @@
+/* Cab controls stay in 3D. A compact, optional HUD retains the existing slider. */
+#controls{position:fixed;inset:auto 0 0;height:0;pointer-events:none}
+#masterUnit{display:none;position:fixed;left:12px;bottom:60px;width:158px;height:210px}
+.cab-hud-open #masterUnit{display:flex}
+#infoSpeaker,#screenDoorToggle{position:fixed;bottom:9px;width:49px;height:46px;margin:0;border-radius:7px}
+#infoSpeaker{right:67px}#screenDoorToggle{right:12px}
+#infoSpeaker svg,#screenDoorToggle svg{width:25px;height:25px}#infoSpeaker span{font-size:9px}
+#hud{max-width:310px;font-size:11px;line-height:1.4;padding:5px 8px;background:#071219ac;border-color:#62727b77;pointer-events:none}
+#hint{display:none}
+#carCameraToggle,#stationCameraToggle{padding:7px 9px;font-size:11px;border-width:1px;border-radius:6px;right:10px;background:#10202dbc}
+#stationCameraToggle{top:10px}#carCameraToggle{top:47px}
+#cabLookBar{position:fixed;bottom:10px;left:12px;display:flex;gap:4px;z-index:32}
+#cabLookBar button{font:600 11px system-ui;color:#eee8d6;background:#17222dcc;border:1px solid #8d969177;border-radius:5px;padding:9px 12px;cursor:pointer;touch-action:manipulation}
+#cabLookBar button:focus-visible{outline:2px solid #e7ce74}
+#cabControlHint{position:fixed;left:50%;bottom:66px;transform:translateX(-50%);max-width:min(90vw,540px);padding:7px 12px;background:#111b21ed;border:1px solid #a59a6a;border-radius:5px;font:13px system-ui;color:#f4ecd2;pointer-events:none;display:none;z-index:120;text-align:center}
+#cabControlHint.visible{display:block}
+.outside-cab #cabLookBar,.outside-cab #cabControlHint{display:none}
+.cab-capture #hud,.cab-capture #controls,.cab-capture #carCameraToggle,.cab-capture #stationCameraToggle,.cab-capture #cabLookBar,.cab-capture #cabControlHint{visibility:hidden}
+@media(max-width:600px){#hud{max-width:58vw;font-size:10px}#cabLookBar{left:7px;bottom:8px;gap:3px}#cabLookBar button{padding:10px 7px;font-size:10px}#infoSpeaker{right:51px;width:39px;height:39px}#screenDoorToggle{right:7px;width:39px;height:39px}#cabControlHint{bottom:58px;font-size:12px}#infoSpeaker span{display:none}}

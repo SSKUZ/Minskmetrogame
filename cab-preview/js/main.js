@@ -1,16 +1,12 @@
-import {buildReferenceCabPanel} from './cab/CabReferencePanel.js';
-import {detailCabInstrumentDeck} from './cab/CabDeskDetails.js';
-import {buildCabFrontShell,buildCabRearShell} from './cab/CabShell.js';
-import {createCabInstrumentDeck} from './cab/CabInstrumentDeck.js';
-import {createCabDeskButtonFactory} from './cab/CabControls3D.js';
+import {createCabModel} from './cab/CabModel.js?v=cab-r1';
+import {createCabCommands} from './cab/CabCommands.js';
+import {installCabInteraction} from './cab/CabInteraction.js?v=cab-r1';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
 import {createPassengerModelFactory} from './passengers/PassengerModels.js';
 import {buildCarriageDoors} from './carriage/CarriageDoors.js';
 import {buildCarriageInterior} from './carriage/CarriageInterior.js';
-import {createCabDisplayUpdater} from './cab/CabDisplay.js';
 import {smoothstep01,trackDrop as calculateTrackDrop} from './world/TrackProfile.js';
-import {animateCabButtons as animateButtons} from './cab/CabButtons.js';
 import {box as createBox} from './graphics/Geometry.js';
 import {createMaterial} from './graphics/Materials.js';
 import {createCarriageCameraController} from './cameras/CarriageCamera.js?v=20261026-lookat-world-v35';
@@ -21,76 +17,24 @@ import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js?v=20
 import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passengers/PassengerMotion.js';
 
 let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js')}catch(e){THREE=await import('https://esm.sh/three@0.161.0')}
-const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:false,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x11161a);scene.fog=new THREE.Fog(0x11161a,45,190);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,230);const stationCamera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,230);camera.position.set(0,3.15,4.15);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.16));const headlights=[];for(const side of [-1,1]){const beam=new THREE.SpotLight(0xf0f6ff,185,88,Math.PI/9,.34,1.4);beam.position.set(side*1.02,1.48,1.0);beam.target.position.set(side*1.55,1.65,-37);scene.add(beam,beam.target);headlights.push(beam)}const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
+const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x11161a);scene.fog=new THREE.Fog(0x11161a,45,190);const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.045,230);const stationCamera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,230);camera.position.set(0,3.35,4.72);scene.add(new THREE.HemisphereLight(0x708599,0x080b10,.16));const headlights=[];for(const side of [-1,1]){const beam=new THREE.SpotLight(0xf0f6ff,185,88,Math.PI/9,.34,1.4);beam.position.set(side*1.02,1.48,1.0);beam.target.position.set(side*1.55,1.65,-37);scene.add(beam,beam.target);headlights.push(beam)}const ambientStation=new THREE.AmbientLight(0xd7e9ff,.15);scene.add(ambientStation);
 const mat=(c,metal=0)=>createMaterial(THREE,c,metal),concrete=mat(0x4a4d4d),dark=mat(0x25292b),rail=mat(0xa5a6a4,.8),steel=mat(0x697985,.65),wood=mat(0x69584b),yellow=mat(0xeacb40),tile=mat(0xa7a39a),light=new THREE.MeshBasicMaterial({color:0xe5f5ff}),blue=mat(0x1d5d84);
 const box=(...args)=>createBox(THREE,...args);
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
-const cab=new THREE.Group();cab.scale.set(.73,.95,.88);cab.position.z=-.20;scene.add(cab);
-// Read-only inspection bridge for the isolated cab preview; no train physics changes.
-const cabInspect={get scene(){return scene},get cab(){return cab},get camera(){return camera},
- setView(y,p){targetYaw=THREE.MathUtils.clamp(y,-1.35,1.35);targetPitch=THREE.MathUtils.clamp(p,-.7,.7)},
- setZoom(fov){camera.fov=THREE.MathUtils.clamp(fov,30,95);camera.updateProjectionMatrix()},
+const cabModel=createCabModel(THREE,renderer),cab=cabModel.root;scene.add(cab);
+const rearMirrors=cabModel.rearMirrors,cabMetal=cabModel.materials.steel;
+// Bounded inspection bridge reads the actual game, never a separate mock-up.
+const cabInspect={version:cabModel.version,get scene(){return scene},get cab(){return cab},get camera(){return camera},
+ setView(y,p){targetYaw=THREE.MathUtils.clamp(y,-1.04,1.04);targetPitch=THREE.MathUtils.clamp(p,-.68,.35)},
+ setZoom(fov){camera.fov=THREE.MathUtils.clamp(fov,38,82);camera.updateProjectionMatrix()},
  getView(){return {yaw:targetYaw,pitch:targetPitch,fov:camera.fov}},
+ focusControl(id){const c=cabModel.controls.get(id);if(!c)return false;cab.updateMatrixWorld(true);const p=new THREE.Vector3();c.hit.getWorldPosition(p);p.sub(camera.position);targetYaw=THREE.MathUtils.clamp(Math.atan2(-p.x,-p.z),-1.04,1.04);targetPitch=THREE.MathUtils.clamp(Math.atan2(p.y,Math.hypot(p.x,p.z)),-.68,.35);return true;},
+ getLandmarks(){return cabModel.landmarks(camera)},getControls(){return cabInteraction.projected()},pickControl(x,y,touch=false){return cabInteraction.pick(x,y,touch)?.id??null},getState(){return cabCommands.snapshot()},
+ getPerformance(){return {render:{...renderer.info.render},memory:{...renderer.info.memory},frameHistoryMs:cabFrameTimes.slice(),batching:cabModel.batching,version:cabModel.version}},
  setCabVisible(v){cab.visible=Boolean(v)}};
 if(new URLSearchParams(location.search).has('cabInspector'))window.metroCabInspector=cabInspect;
-// Independent cabin illumination: does not spill into the tunnel.
-const cabinFill=new THREE.AmbientLight(0xdbeeff,1.15);cab.add(cabinFill);
-const cabinLamp=new THREE.PointLight(0xf2f5ed,36,8,1.8);cabinLamp.position.set(0,3.7,5.5);cab.add(cabinLamp);
-const cabShell=mat(0x454b50,.35),cabEdge=mat(0x8c8377,.45),cabRubber=mat(0x171d22),cabMetal=mat(0x9ca6ab,.65),cabButton=[mat(0x3d9464),mat(0xa64d42),mat(0xc39b47),mat(0x4479a8),mat(0x787d86)];
-const cabGlow=new THREE.MeshBasicMaterial({color:0x8ac9db});
-buildCabFrontShell({cab,box,cabShell,cabEdge,cabRubber});
-
-// Small square driver ID, separate from the left mirror, on its right side.
-const idCanvas=document.createElement('canvas');idCanvas.width=512;idCanvas.height=512;
-const ic=idCanvas.getContext('2d');
-ic.fillStyle='#14202b';ic.fillRect(0,0,512,512);
-ic.strokeStyle='#bfb29c';ic.lineWidth=18;ic.strokeRect(14,14,484,484);
-ic.strokeStyle='#687780';ic.lineWidth=4;ic.strokeRect(35,35,442,442);
-ic.fillStyle='#f5e8ce';ic.textAlign='center';
-ic.font='bold 65px Arial';ic.fillText('МАШИНИСТ',256,139);
-ic.font='bold 79px Arial';ic.fillText('КУЗНЕЦОВ',256,282);
-ic.font='bold 100px Arial';ic.fillText('ЗАХАР',256,415);
-const idTexture=new THREE.CanvasTexture(idCanvas);
-const idPlaque=new THREE.Group();
-// To the right (towards cab centre) of the LEFT mirror, high on the window frame.
-idPlaque.position.set(-2.25,3.53,2.32);idPlaque.rotation.y=.12;cab.add(idPlaque);
-box(idPlaque,.53,.53,.045,0,0,0,new THREE.MeshStandardMaterial({color:0x252c32,metalness:.55,roughness:.4}));
-const idFace=new THREE.Mesh(new THREE.PlaneGeometry(.51,.51),new THREE.MeshBasicMaterial({map:idTexture,side:THREE.DoubleSide}));
-idFace.position.z=.029;idPlaque.add(idFace);
-
-// Symmetric, narrow side-window rear-view mirrors inspired by metro rolling stock.
-// A rigid two-point steel bracket and articulated joint support each mirror.
-const rearMirrors=[];
-for(const side of [-1,1]){
- const mount=new THREE.Group();
- mount.position.set(side*3.38,3.12,3.20);
- mount.rotation.y=-side*.84; // slightly oblique to driver's eyes
- mount.rotation.x=-.055;
- cab.add(mount);
- // Two attachment plates, bolts, a cantilever arm and the hinge.
- const bracket=mat(0x58636b,.72),boltMat=mat(0xaab5ba,.78);
- for(const y of [-.35,.35]){
-  box(mount,.16,.17,.09,side*.22,y,-.34,bracket);
-  const bolt=new THREE.Mesh(new THREE.SphereGeometry(.037,10,8),boltMat);
-  bolt.position.set(side*.22,y,-.277);mount.add(bolt);
- }
- box(mount,.085,.86,.09,side*.22,0,-.31,bracket);
- const arm=box(mount,.075,.075,.50,side*.12,.04,-.20,bracket);
- arm.rotation.y=side*.16;
- const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.19,14),boltMat);
- hinge.rotation.z=Math.PI/2;hinge.position.set(0,.04,-.06);mount.add(hinge);
- // Approximately 2/3 of the previous width; tall but not oversized.
- box(mount,.68,1.29,.105,0,0,.03,cabRubber);
- box(mount,.63,1.24,.038,0,0,.093,cabMetal);
- const target=new THREE.WebGLRenderTarget(384,672,{depthBuffer:true,stencilBuffer:false});
- target.texture.colorSpace=THREE.SRGBColorSpace;
- const face=new THREE.Mesh(new THREE.PlaneGeometry(.59,1.19),new THREE.MeshBasicMaterial({map:target.texture,side:THREE.DoubleSide}));
- face.position.z=.118;mount.add(face);
- const mirrorCamera=new THREE.PerspectiveCamera(53,.59/1.19,.35,210);
- rearMirrors.push({side,target,mirrorCamera,face});
-}
 // Exterior side of the driver's train, seen in both mirrors looking backwards.
 const reflectedTrain=new THREE.Group();scene.add(reflectedTrain);
 // Shared livery for exterior platform view and the driver's side mirrors.
@@ -216,8 +160,9 @@ for(let car=0;car<5;car++){
 let mirrorFrameNumber=0;
 function renderRearMirrors(){
  // Reduced resolution and 1 mirror per 3 frames keeps Android performance acceptable.
- if(window.metroMirrorsDisabled||++mirrorFrameNumber%2!==0)return;
- const m=rearMirrors[Math.floor(mirrorFrameNumber/2)%2];
+ if(window.metroMirrorsDisabled||++mirrorFrameNumber%3!==0)return;
+ const m=rearMirrors[Math.floor(mirrorFrameNumber/3)%2];
+ if(!m.enabled)return;
  cab.visible=false;
  for(const item of rearMirrors)item.face.visible=false;
  try{
@@ -234,90 +179,11 @@ function renderRearMirrors(){
  }finally{
   renderer.setRenderTarget(null);
   cab.visible=true;
-  for(const item of rearMirrors)item.face.visible=true;
+  for(const item of rearMirrors)item.face.visible=item.enabled;
  }
 }
-const {instrumentDeck,cabScreen}=createCabInstrumentDeck({THREE,cab,box,cabShell,cabEdge});
-buildReferenceCabPanel({THREE,instrumentDeck});
-const leftCabScreen=cabScreen(-1.78,-.17,1.24,.72,0x0b2936);
-const midCabScreen=cabScreen(-.22,-.18,1.46,.92,0x102e48);
-const rightCabScreen=cabScreen(1.44,-.22,.96,.68,0x132d2c);
-function luminousBar(group,x,z,w,c){box(group,w,.03,.045,x,.11,z,new THREE.MeshBasicMaterial({color:c}))}
-for(let i=0;i<6;i++){luminousBar(leftCabScreen,-.4,-.25+i*.095,.75,i%2?0x4fae94:0x69b6cf)}
-for(let i=0;i<5;i++){luminousBar(rightCabScreen,-.25,-.19+i*.1,.48,i%2?0x60b68c:0x93ccdc)}
-const displayCanvas=document.createElement('canvas');displayCanvas.width=512;displayCanvas.height=256;
-const displayCtx=displayCanvas.getContext('2d');const displayTexture=new THREE.CanvasTexture(displayCanvas);
-const speedPlate=new THREE.Mesh(new THREE.PlaneGeometry(1.18,.58),new THREE.MeshBasicMaterial({map:displayTexture,side:THREE.DoubleSide}));
-speedPlate.position.set(0,.115,0);speedPlate.rotation.x=-Math.PI/2;midCabScreen.add(speedPlate);
-// Integrated speed and schematic train-door monitor on the same LCD.
-const renderCabDisplay=createCabDisplayUpdater(displayCtx,displayTexture);
-function updateCabDisplay(v){renderCabDisplay(v,typeof doors!=='undefined'&&doors)}
-// Physical throttle controller and side panels visible in perspective.
-box(cab,1.0,.22,.83,-2.35,1.68,4.12,cabEdge);
-box(cab,.16,.6,.17,-2.35,2.02,4.12,cabMetal);
-box(cab,.4,.19,.24,-2.35,2.37,4.12,cabRubber);
-// Cab sidewalls, door frames, glazed side windows and forward windscreen.
-// Soft moulded cabin glazing: curved rubber gaskets, rounded aluminium surrounds.
-const windowFrame=mat(0x626e76,.52),sideInterior=mat(0x414a51,.18),seal=mat(0x1c252b);
-const glassPane=new THREE.MeshPhysicalMaterial({color:0x9ac4d5,transparent:true,opacity:.018,roughness:.055,metalness:0,depthWrite:false,side:THREE.DoubleSide});
-const softTrim=mat(0x303b43,.25),brightTrim=mat(0x86949b,.55);
-function smoothRail(points,radius,material,segments=30){
- const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
- const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,segments,radius,8,false),material);
- cab.add(mesh);return mesh;
-}
-function roundPost(x,y,z,w,h,d,material,r=.10){
- const shape=new THREE.Shape();const left=-w/2,right=w/2,bottom=-h/2,top=h/2;
- shape.moveTo(left+r,bottom);shape.lineTo(right-r,bottom);shape.quadraticCurveTo(right,bottom,right,bottom+r);
- shape.lineTo(right,top-r);shape.quadraticCurveTo(right,top,right-r,top);
- shape.lineTo(left+r,top);shape.quadraticCurveTo(left,top,left,top-r);
- shape.lineTo(left,bottom+r);shape.quadraticCurveTo(left,bottom,left+r,bottom);
- const geo=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:true,bevelThickness:.035,bevelSize:.035,bevelSegments:3,steps:1,curveSegments:8});
- const mesh=new THREE.Mesh(geo,material);mesh.position.set(x,y,z-d/2);cab.add(mesh);return mesh;
-}
-// Continuous, slightly curved front windshield, without square cross-bars.
-const windTop=[[-3.93,3.93,1.52],[-3.05,4.01,1.43],[0,4.08,1.38],[3.05,4.01,1.43],[3.93,3.93,1.52]];
-const windBottom=[[-3.93,1.79,1.58],[-3.05,1.73,1.50],[0,1.70,1.46],[3.05,1.73,1.50],[3.93,1.79,1.58]];
-smoothRail(windTop,.085,softTrim,48);smoothRail(windBottom,.115,softTrim,48);
-smoothRail(windTop.map(p=>[p[0],p[1]+.045,p[2]+.015]),.024,brightTrim,48);
-for(const side of [-1,1]){
- smoothRail([[side*3.93,1.79,1.58],[side*3.99,2.15,1.52],[side*4.0,3.5,1.49],[side*3.93,3.93,1.52]],.11,softTrim);
- smoothRail([[side*3.92,1.83,1.6],[side*3.92,1.84,2.35],[side*3.94,1.82,3.95],[side*3.93,1.85,5.18]],.09,softTrim);
- smoothRail([[side*3.93,3.91,1.54],[side*3.94,3.83,2.8],[side*3.95,3.65,4.25],[side*3.93,3.54,5.18]],.09,softTrim);
- // One slender swept divider rather than several heavy upright bars.
- smoothRail([[side*3.94,1.84,3.85],[side*3.96,2.56,3.73],[side*3.95,3.63,3.53]],.065,windowFrame);
- box(cab,.035,1.70,3.35,side*3.96,2.72,3.35,glassPane);
- // Upholstered lower side wall with rounded moulded window sill.
- box(cab,.23,.95,4.2,side*4.00,1.17,3.36,sideInterior);
- smoothRail([[side*3.87,1.72,1.55],[side*3.88,1.72,3.25],[side*3.87,1.72,5.35]],.105,softTrim);
- // Compact, rounded side console.
- roundPost(side*3.66,1.80,4.26,.34,.58,.72,cabShell,.14);
-}
-// Clear windshield glazing: no thick bars blocking the driver's view.
-box(cab,7.75,2.13,.024,0,2.83,1.49,glassPane);
-// Curved upper headliner following the front glazing.
-smoothRail([[-3.95,4.08,1.63],[-2.7,4.18,1.58],[0,4.22,1.53],[2.7,4.18,1.58],[3.95,4.08,1.63]],.12,sideInterior,48);
-// More upright illuminated control cluster facing the driver.
-const rearPanel=new THREE.Group();rearPanel.position.set(0,2.05,2.47);rearPanel.rotation.x=-.20;cab.add(rearPanel);
-box(rearPanel,5.65,.78,.18,0,0,0,cabShell);
-for(let i=0;i<4;i++){const x=-2.05+i*1.35;box(rearPanel,1.13,.55,.04,x,.04,.115,cabEdge);box(rearPanel,.98,.42,.055,x,.04,.15,new THREE.MeshBasicMaterial({color:[0x153b4a,0x23445b,0x173d35,0x263f49][i]}))}
-for(let i=0;i<16;i++){const x=-2.48+(i%8)*.71,y=-.26+Math.floor(i/8)*.45;const lamp=new THREE.Mesh(new THREE.SphereGeometry(.055,8,6),new THREE.MeshBasicMaterial({color:i%3===0?0x62cf89:i%3===1?0xf2ae54:0xd75047}));lamp.position.set(x,y,.17);rearPanel.add(lamp)}
-// Solid floor, sealed rear bulkhead and extended car body: no exposed rails
-// or abrupt open end when looking down or turning sideways.
-buildCabRearShell({cab,box,mat,sideInterior,windowFrame,cabMetal});
-const cabLight=new THREE.PointLight(0xb4d8ef,3.2,10);cabLight.position.set(0,3.4,4.0);scene.add(cabLight);
-
-// Three compact controls recessed directly into the sloped instrument desk.
-const cabHitTargets=[],cabRaycaster=new THREE.Raycaster(),cabTapPoint=new THREE.Vector2();
-const deskButton=createCabDeskButtonFactory({THREE,instrumentDeck,cabMetal,cabHitTargets});
-// Control strip near the speedometer, with a cleared area for finger taps.
-const infoControl=deskButton(-1.12,.39,'Info','#1474a7','info');
-const openControl=deskButton(.68,.39,'ОТКР','#237a54','open');
-const closeControl=deskButton(1.23,.39,'ЗАКР','#9c4942','close');
-// Deep, spring-like travel with smooth movement every animation frame.
-const cabButtons=[infoControl,openControl,closeControl];
-function syncDoorButtons(){openControl.target=doors?1:0;closeControl.target=doors?0:1}
-const animateCabButtons=(dt)=>animateButtons(cabButtons,dt);
+const infoControl=cabModel.controls.get('info');
+function syncDoorButtons(){cabModel.controls.get('open').target=doors?1:0;cabModel.controls.get('close').target=doors?0:1}
 // Departure announcements are triggered by the EXISTING INFO switch.
 const departureAudio=new Audio();
 departureAudio.preload='auto';
@@ -392,7 +258,7 @@ function playInfoRecording(path,parts){
 }
 const metroBelarusian=['Малінаўка','Пятроўшчына','Міхалова','Грушаўка','Інстытут культуры','Плошча Леніна','Кастрычніцкая','Плошча Перамогі','Плошча Якуба Коласа','Акадэмія навук','Парк Чалюскінцаў','Маскоўская','Усход','Барысаўскі тракт','Уручча'];
 const metroEnglish=['Malinauka','Piatroushchyna','Mikhalova','Hrushauka','Instytut Kultury','Ploshcha Lenina','Kastrychnitskaya','Ploshcha Peramohi','Ploshcha Yakuba Kolasa','Akademiya Navuk','Park Chalyuskintsau','Maskouskaya','Uschod','Barysawski Trakt','Uruchcha'];
-document.getElementById('infoSpeaker')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();pressInfo()});
+document.getElementById('infoSpeaker')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();cabCommands.command('info')});
 function pressInfo(){
  infoControl.target=1;
  clearTimeout(pressInfo.pressTimer);
@@ -451,46 +317,8 @@ function setCabDoors(open){
  if(doors&&speed>1)reportDriverError('открытие дверей на ходу');
  if(doors&&!stationSkipped&&Math.abs(dist)<=stopTolerance&&speed<.5){stationServiced=true;overrunReported=false;if(!reopening)stopWarning.style.display='none';}
  if(!doors){departureTimes[index%departureTimes.length]=Date.now();if(stationServiced)status.textContent='Двери закрыты — отправляйтесь в тоннель';if(stationDoorReopenPenalty)stopWarning.style.display='none';}
- updateCabDisplay(speed);
  // Do not interrupt the active departure announcement with door TTS.
 }
-// Touch-first picking: use projected button centres, not tiny mesh ray hits.
-// Capture pointerdown before the camera drag handler consumes the gesture.
-// Slim raised instrument rail makes all three switches visible above the dashboard.
-// Buttons are mounted directly into the existing instrument deck: no extra rail.
-// Project the real 3D button faces to the touch screen on every tap.
-// Listen at document level so decorative HUD layers cannot swallow the tap.
-const buttonPickTargets=[{button:infoControl,type:'info'},{button:openControl,type:'open'},{button:closeControl,type:'close'}];
-const pickVector=new THREE.Vector3();
-function cabButtonAt(clientX,clientY){
- scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
- const rect=renderer.domElement.getBoundingClientRect();
- let best=Infinity,nearest=null;
- for(const item of buttonPickTargets){
-  item.button.face.getWorldPosition(pickVector);
-  pickVector.project(camera);
-  if(pickVector.z<=-1||pickVector.z>=1)continue;
-  const px=rect.left+(pickVector.x+1)*rect.width*.5;
-  const py=rect.top+(1-pickVector.y)*rect.height*.5;
-  const d=Math.hypot(clientX-px,clientY-py);
-  if(d<best){best=d;nearest=item}
- }
- // The buttons are small 3D circles; use a comfortable independent touch area.
- // A larger target is important on Android and when the cab is viewed obliquely.
- return best<=Math.max(52,Math.min(rect.width,rect.height)*.14)?nearest:null;
-}
-document.addEventListener('pointerdown',e=>{
- // 3D desk buttons must ONLY intercept touches while the driver cab is
- // actually on screen. The previous global capture handler also stole
- // taps from the new camera switches and the carriage view.
- if(!playing||stationCameraActive||carCameraActive)return;
- if(e.target.closest?.('button,#masterTrack,#masterUnit,#start,#stationCameraToggle,#carCameraToggle'))return;
- const item=cabButtonAt(e.clientX,e.clientY);if(!item)return;
- e.preventDefault();e.stopImmediatePropagation();
- if(item.type==='info')pressInfo();
- else if(item.type==='open')setCabDoors(true);
- else if(item.type==='close')setCabDoors(false);
-},true);
 // Close, dark tunnel with an arched concrete lining, train headlights and wayside signals.
 const tunnelWall=mat(0x171b20),tunnelRib=mat(0x303840,.3),tunnelBallast=mat(0x252628),signalBlack=mat(0x101619,.35);
 const signalGreen=new THREE.MeshBasicMaterial({color:0x26ff73}),signalRed=new THREE.MeshBasicMaterial({color:0xff2828});
@@ -1022,7 +850,7 @@ function updatePlatformPassengers(dt){
  platformLifeTime=next.platformLifeTime;passengerDoorTime=next.passengerDoorTime;passengerExchangeStarted=next.passengerExchangeStarted;people=next.people;
 }
 const {signCanvas,sc,texture,sign}=buildPlatformFurniture({THREE,platform,box,wood,steel});
-const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=0,targetYaw=0,targetPitch=0,last=performance.now();
+const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=-.32,targetYaw=0,targetPitch=-.32,last=performance.now();
 // Development shortcuts: ?preview=station or ?preview=approach.
 const previewMode=new URLSearchParams(location.search).get('preview');
 // Initialize station display only after station names and index exist.
@@ -1058,7 +886,7 @@ function markStationSkipped(){
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0,stationCameraTrainZ=0;
 const screenDoorToggle=document.getElementById('screenDoorToggle');
 function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
-screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
+screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();cabCommands.command('toggleDoors');syncScreenDoorToggle();});
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
 let stationDrag=null;
@@ -1096,7 +924,7 @@ function updateMetroAudio(v,traction){
  for(const [audio,target] of targets){
   // Avoid repeated play attempts on missing files.
   if(audio.paused&&audio.readyState>=2)audio.play().catch(()=>{});
-  audio.volume=Math.max(0,Math.min(1,audio.volume+(target-audio.volume)*.12));
+  audio.volume=Math.max(0,Math.min(1,audio.volume+(target*cabVolume-audio.volume)*.12));
  }
  a.acceleration.playbackRate=Math.max(.82,Math.min(1.2,.86+v/260));
  a.cruise.playbackRate=Math.max(.9,Math.min(1.12,.92+v/440));
@@ -1104,13 +932,46 @@ function updateMetroAudio(v,traction){
 function metroChime(open){/* No synthesized door noise. Add a real door file later. */}
 function speak(t){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.rate=.9;speechSynthesis.speak(u)}
 function startRide(){playing=true;try{initMetroAudio()}catch(e){console.warn('Metro audio unavailable:',e)}}window.addEventListener('metro-start',startRide);if(window.metroStarted)startRide();
-const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');function setMaster(e){const r=masterTrack.getBoundingClientRect();const relative=(e.clientY-r.top)/r.height;lever=Math.max(-1,Math.min(1,(.5-relative)*2));masterHandle.style.top=(50-lever*43)+'%';masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%'}masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
-// HUD door button uses the same validation, animation and passenger logic as cab buttons.
-document.querySelector('#doors')?.addEventListener('click',()=>setCabDoors(!doors));
-let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.006));targetPitch=Math.max(-.42,Math.min(.54,targetPitch-(e.clientY-lookY)*.005));lookX=e.clientX;lookY=e.clientY});view.addEventListener('pointerup',e=>{if(lookPointer===e.pointerId)lookPointer=null});
+const masterTrack=document.querySelector('#masterTrack'),masterHandle=document.querySelector('#masterHandle'),masterValue=document.querySelector('#masterValue');
+function setTrainLever(value){
+ lever=Math.max(-1,Math.min(1,Number(value)||0));
+ masterHandle.style.top=(50-lever*43)+'%';
+ masterValue.textContent=(lever>.04?'ТЯГА':lever<-.04?'ТОРМОЗ':'НЕЙТРАЛЬ')+' · '+Math.round(Math.abs(lever)*100)+'%';
+}
+let cabVolume=.6,hornContext=null,hornGain=null,hornNodes=[];
+function setCabHorn(on){
+ if(on&&!hornContext){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;hornContext=new AudioContext();hornGain=hornContext.createGain();hornGain.gain.value=0;hornGain.connect(hornContext.destination);
+  for(const hz of [330,440]){const o=hornContext.createOscillator();o.type='sine';o.frequency.value=hz;o.connect(hornGain);o.start();hornNodes.push(o);}}
+ if(hornContext){hornContext.resume().catch(()=>{});hornGain.gain.setTargetAtTime(on?.07*cabVolume:0,hornContext.currentTime,.025);}
+ return true;
+}
+const cabCommands=createCabCommands({
+ getTrain:()=>{const leaf=stationDoorLeaves[0],travel=leaf?THREE.MathUtils.clamp((Math.abs(leaf.leaf.position.z-leaf.doorZ)-.53)/1.03,0,1):0;return {speed,lever,doors,info:infoPlaying,stationDistance:dist,doorTravel:travel,doorsClosed:!doors&&travel<.005,doorsMoving:travel>.005&&travel<.995}},setLever:setTrainLever,setDoors:setCabDoors,info:pressInfo,
+ setHeadlights:on=>headlights.forEach(l=>l.visible=on),
+ setMirror:(side,on)=>{const m=rearMirrors.find(m=>m.side===side);m.enabled=on;m.face.visible=on;},
+ camera:id=>{if(id==='carriage'){document.querySelector('#carCameraToggle').click();return true;}
+  if(id==='platform'){const b=document.querySelector('#stationCameraToggle');if(b.style.display==='none'){status.textContent='Камера платформы доступна у станции';return false;}b.click();return true;}
+  if(carCameraActive)document.querySelector('#carCameraToggle').click();if(stationCameraActive)document.querySelector('#stationCameraToggle').click();targetYaw=0;targetPitch=id==='desk'?-.49:-.03;return true;},
+ notify:message=>{status.textContent=message},horn:setCabHorn,setVolume:v=>{cabVolume=v;departureAudio.volume=v;}
+});
+const cabInteraction=installCabInteraction({THREE,canvas:renderer.domElement,camera,cab,controls:cabModel.controls,commands:cabCommands,isActive:()=>playing&&!stationCameraActive&&!carCameraActive,isRunning:()=>playing});
+function setMaster(e){const r=masterTrack.getBoundingClientRect();cabCommands.command('master',(.5-(e.clientY-r.top)/r.height)*2)}
+masterTrack.addEventListener('pointerdown',e=>{e.preventDefault();masterTrack.setPointerCapture(e.pointerId);setMaster(e)});
+masterTrack.addEventListener('pointermove',e=>{if(masterTrack.hasPointerCapture(e.pointerId))setMaster(e)});
+document.querySelector('#doors')?.addEventListener('click',()=>cabCommands.command('toggleDoors'));
+let lookPointer=null,lookX=0,lookY=0;const view=document.querySelector('#scene');
+view.addEventListener('pointerdown',e=>{lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;view.setPointerCapture(e.pointerId)});
+view.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;targetYaw=Math.max(-1.04,Math.min(1.04,targetYaw-(e.clientX-lookX)*.004));targetPitch=Math.max(-.68,Math.min(.35,targetPitch-(e.clientY-lookY)*.004));lookX=e.clientX;lookY=e.clientY});
+for(const type of ['pointerup','pointercancel'])view.addEventListener(type,e=>{if(lookPointer===e.pointerId)lookPointer=null});
+const lookBar=document.createElement('nav');lookBar.id='cabLookBar';lookBar.setAttribute('aria-label','Обзор кабины');
+for(const [id,text,y,p] of [['forward','Путь',0,-.03],['desk','Пульт',0,-.49],['left','Слева',.62,-.33],['right','Справа',-.62,-.33]]){const b=document.createElement('button');b.textContent=text;b.id='cabView-'+id;b.onclick=()=>{if(carCameraActive||stationCameraActive)return;targetYaw=y;targetPitch=p;};lookBar.append(b);}
+const hudButton=document.createElement('button');hudButton.textContent='Рычаг';hudButton.id='cabHudToggle';hudButton.setAttribute('aria-expanded','false');hudButton.onclick=()=>{const open=document.body.classList.toggle('cab-hud-open');hudButton.setAttribute('aria-expanded',String(open));};lookBar.append(hudButton);document.body.append(lookBar);
+if(new URLSearchParams(location.search).has('cabCapture'))document.body.classList.add('cab-capture');
+const cabFrameTimes=[];
 const status=document.querySelector('#status');for(let i=0;i<30;i++){const a=document.createElement('div');a.className='lamp';document.querySelector('#rightPanel').appendChild(a)}
-function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight)}addEventListener('resize',resize);
-function frame(now){requestAnimationFrame(frame);try{const elapsed=Math.max(0,Math.min(.25,(now-last)/1000));const dt=Math.min(.05,elapsed);last=now;animateCabButtons(dt);if(playing){// Keep physics on real elapsed time even when phone renders below 20 FPS.
+function resize(){resizeCameras(renderer,[camera,stationCamera,carriageCamera],innerWidth,innerHeight);camera.fov=innerWidth/innerHeight<.85?74:66;camera.updateProjectionMatrix()}
+resize();addEventListener('resize',resize);
+function frame(now){requestAnimationFrame(frame);try{const frameMs=Math.max(0,now-last);const elapsed=Math.max(0,Math.min(.25,frameMs/1000));const dt=Math.min(.05,elapsed);last=now;if(cabFrameTimes.length>=180)cabFrameTimes.shift();cabFrameTimes.push(frameMs);if(playing){// Keep physics on real elapsed time even when phone renders below 20 FPS.
 if(doors){
  if(lever>.015){reportDriverError('попытка отправления с открытыми дверями');}
  lever=0;speed=0;
@@ -1183,12 +1044,12 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
  if(stationVisible>0){scene.fog.far=THREE.MathUtils.lerp(scene.fog.far,165,stationVisible);}
  sun.intensity=THREE.MathUtils.lerp(.78,.04,underground);
  skyFill.intensity=THREE.MathUtils.lerp(.38,.06,underground);
- updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Driver turns their head: only the outside 3D world changes. The cab and controls remain screen-fixed. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.15+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
+ updateStationClock();}yaw+=(targetYaw-yaw)*Math.min(1,dt*7);pitch+=(targetPitch-pitch)*Math.min(1,dt*7);camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch-0.06*(smoothstep01((depot.position.z-descentStart)/32)-smoothstep01((depot.position.z-descentEnd)/32));/* Rotate the head within the seat; cab geometry remains in world space. */camera.position.x=Math.sin(now*.014)*Math.min(speed/70,1)*.01+Math.sin(yaw)*.045;camera.position.y=3.35+Math.sin(pitch)*.035;updatePlatformPassengers(elapsed);
 animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 // Only expose the interior geometry when viewing from the carriage camera.
 // It must not block the cab windscreen or rear-view mirrors.
 carriage.visible=carCameraActive;
-animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;cabModel.update(elapsed,cabCommands.snapshot());document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
 // Return to the cab only when the whole ~108m train has cleared the shot.
@@ -1235,7 +1096,7 @@ if(carCameraActive){
  cab.visible=true;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
-window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+document.body.classList.toggle('outside-cab',carCameraActive||stationCameraActive);window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
  dist=previewMode==='station'?0:105;
