@@ -5,10 +5,11 @@ import {mkdir} from 'node:fs/promises';
 await mkdir('test-results/v106',{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--disable-dev-shm-usage','--no-sandbox']});
 const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:1});
-const errors=[];
+const errors=[];let renderErrors=0;
 page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
+ await page.evaluate(()=>window.addEventListener('metro-render-error',()=>window.__v106RenderErrors=(window.__v106RenderErrors||0)+1));
  await page.waitForFunction(()=>window.metro3DReady===true,{timeout:90000});
  // Station preview already selects the platform camera. Only toggle it when
  // a future startup path leaves it disabled; blindly clicking here used to
@@ -17,6 +18,8 @@ try{
  if(!stationCameraAlreadyActive)await page.locator('#stationCameraToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,{timeout:90000});
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
+ renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
+ assert.equal(renderErrors,0,'main render loop failed while v106 was active');
  assert.equal(state.loaded,true,JSON.stringify(state));
  assert.equal(state.metrics.doorLeaves,64);
  assert.ok(state.metrics.meshCount>0);
@@ -57,6 +60,8 @@ try{
  assert.equal(restored.metrics.doorLeaves,64);
  // Train departure test is temporarily disabled while its controller timeout is diagnosed.
  // The critical regression here is that the detailed train must actually be in frame.
+ renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
+ assert.equal(renderErrors,0,'main render loop failed during v106 smoke');
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({state,after},null,2));
 }finally{await browser.close()}
