@@ -8,7 +8,7 @@ const page=await browser.newPage({viewport:{width:412,height:915},deviceScaleFac
 const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto('http://127.0.0.1:8765/?preview=station',{waitUntil:'domcontentloaded',timeout:30000});
+ await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>window.metro3DReady===true,{timeout:90000});
  await page.locator('#stationCameraToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,{timeout:90000});
