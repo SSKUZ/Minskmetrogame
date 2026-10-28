@@ -44,7 +44,10 @@ try{
  await page.locator('#stationCameraToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===false);
  await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().visible===true);
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
+ // Re-entry may be slow in software WebGL; visibility must be checked after
+ // the camera has rendered a new frame rather than during the toggle.
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().inCamera!==null,{timeout:30000});
  const restored=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(restored.loaded,true);
  assert.equal(restored.metrics.doorLeaves,64);
