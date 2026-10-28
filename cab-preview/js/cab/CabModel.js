@@ -1,12 +1,12 @@
-import {createCabMaterials} from './CabMaterials.js?v=cab-r1';
-import {createCabGeometry} from './CabGeometry.js?v=cab-r1';
-import {buildCabShell} from './CabShell.js?v=cab-r1';
-import {buildCabDesk} from './CabDesk.js?v=cab-r1';
-import {buildCabEquipment} from './CabEquipment.js?v=cab-r1';
-import {createCabControls} from './CabControls.js?v=cab-r1';
-import {createCabInstruments} from './CabInstruments.js?v=cab-r1';
-import {batchCabStatic} from './CabBatching.js?v=cab-r1';
-import {applyCabEnvironment} from './CabLighting.js?v=cab-r1';
+import {createCabMaterials} from './CabMaterials.js?v=cab-r2';
+import {createCabGeometry} from './CabGeometry.js?v=cab-r2';
+import {buildCabShell} from './CabShell.js?v=cab-r2';
+import {buildCabDesk} from './CabDesk.js?v=cab-r2';
+import {buildCabEquipment} from './CabEquipment.js?v=cab-r2';
+import {createCabControls} from './CabControls.js?v=cab-r2';
+import {createCabInstruments} from './CabInstruments.js?v=cab-r2';
+import {batchCabStatic} from './CabBatching.js?v=cab-r2';
+import {applyCabEnvironment} from './CabLighting.js?v=cab-r2';
 
 export function createCabModel(THREE,renderer){
  const root=new THREE.Group();root.name='Cab81_717_R1';
@@ -17,10 +17,10 @@ export function createCabModel(THREE,renderer){
  const controls=createCabControls(kit),instruments=createCabInstruments(kit);
  buildCabShell(kit,root);
  const desk=buildCabDesk(kit,root,controls,instruments),equipment=buildCabEquipment(kit,root,controls);
- const lamp=new THREE.SpotLight(0xfff5e6,23,5.4,Math.PI*.42,.7,2);lamp.position.set(-.22,1.96,2.01);lamp.target.position.set(.05,.98,1.35);root.add(lamp,lamp.target);
- lamp.castShadow=true;lamp.shadow.mapSize.set(512,512);lamp.shadow.camera.near=.12;lamp.shadow.camera.far=5.4;lamp.shadow.bias=-.0002;lamp.shadow.normalBias=.002;
+ const lamp=new THREE.SpotLight(0xffedd0,19,5.4,Math.PI*.32,.7,2);lamp.position.set(-.62,2.04,1.91);lamp.target.position.set(.18,.98,1.25);root.add(lamp,lamp.target);
+ lamp.castShadow=true;lamp.shadow.mapSize.set(1024,1024);lamp.shadow.camera.near=.2;lamp.shadow.camera.far=5.4;lamp.shadow.bias=-.00002;lamp.shadow.normalBias=.006;
  lamp.shadow.autoUpdate=false;lamp.shadow.needsUpdate=true;
- const fill=new THREE.PointLight(0xcbdbe0,6,3.8,2);fill.position.set(.93,1.70,1.9);root.add(fill);
+ const fill=new THREE.PointLight(0xcbdbe0,1.8,3.8,2);fill.position.set(.93,1.82,1.95);root.add(fill);
  const rearMirrors=[];
  for(const side of [-1,1]){
   const g=new THREE.Group();g.position.set(side*1.268,1.68,.73);g.rotation.y=-side*.56;root.add(g);
@@ -41,7 +41,7 @@ export function createCabModel(THREE,renderer){
   controls.controls.get('info').target=state.info?1:0;
   controls.controls.get('open').target=state.doors?1:0;controls.controls.get('close').target=state.doors?0:1;
   for(const [id,value] of Object.entries(state.switches??{})){const c=controls.controls.get(id);if(c)c.value=value;}
-  lamp.intensity=state.switches?.cabLight===0?0:23;fill.intensity=state.switches?.cabLight===0?0:6;
+  lamp.intensity=state.switches?.cabLight===0?0:19;fill.intensity=state.switches?.cabLight===0?0:1.8;
   equipment.wipers.forEach((o,i)=>{o.rotation.z=state.switches?.[i===0?'wiperLeft':'wiperRight']?(Math.sin(clock*2.6)*.45+.45)*(i===0?1:-1):0;});
   const pose=[controls.controls.get('master').handle.position.y,controls.controls.get('brake').handle.rotation.y,...equipment.wipers.map(o=>o.rotation.z)].map(n=>Math.round(n*100)).join(',');
   if(pose!==lastShadowPose){lamp.shadow.needsUpdate=true;lastShadowPose=pose;}
@@ -52,5 +52,5 @@ export function createCabModel(THREE,renderer){
   for(const [name,id] of Object.entries({lighting:'cabLight',wiper:'wiperLeft',check:'lampTest',doorOpen:'open',controller:'master',brakeValve:'brake',brakeRelease:'release',emergency:'emergency'}))points[name]=[controls.controls.get(id).hit,0,0,0];
   return Object.fromEntries(Object.entries(points).map(([name,[o,x,y,z]])=>{const p=o.localToWorld(new THREE.Vector3(x,y,z)).project(camera);return [name,{u:(p.x+1)/2,v:(1-p.y)/2}];}));
  }
- return {root,kit,materials,controls:controls.controls,desk,equipment,rearMirrors,update,batching,environment,landmarks,version:'cab-r1'};
+ return {root,kit,materials,controls:controls.controls,desk,equipment,rearMirrors,update,batching,environment,landmarks,version:'cab-r2'};
 }

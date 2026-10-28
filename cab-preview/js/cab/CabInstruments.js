@@ -15,7 +15,7 @@ export function createCabInstruments(kit){
   q.font='bold 46px Arial';q.fillText(unit,384,540);q.font='18px Arial';q.fillText('ЭЛЕКТРОИЗМЕРИТЕЛЬ',384,602);
   q.fillStyle='#893d26';q.font='bold 26px Arial';q.fillText('НЕТ ДАННЫХ',384,667);
   const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4;
-  mesh(g,new THREE.CircleGeometry(.112,64),new THREE.MeshBasicMaterial({map:tex}),0,0,.041);
+  mesh(g,new THREE.CircleGeometry(.112,64),new THREE.MeshStandardMaterial({map:tex,color:0xfff8df,roughness:.9,metalness:0,envMap:m.ivory.envMap,envMapIntensity:.35}),0,0,.041);
   const pivot=new THREE.Group();pivot.position.z=.046;g.add(pivot);
   const s=new THREE.Shape();s.moveTo(-.027,-.003);s.lineTo(.087,-.0013);s.lineTo(.087,.0013);s.lineTo(-.027,.003);s.closePath();
   mesh(pivot,new THREE.ExtrudeGeometry(s,{depth:.0015,bevelEnabled:false}),m.black);

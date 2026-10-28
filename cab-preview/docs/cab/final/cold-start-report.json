@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "Start works before the engine finishes; the old one-second crash is absent",
+    "A delayed engine enables a separate 2D surface without claiming the WebGL canvas",
+    "Late 3D takes over, preserves early Start, removes the fallback and drives the real train"
+  ],
+  "errors": [],
+  "status": "passed",
+  "durationMs": 45695
+}

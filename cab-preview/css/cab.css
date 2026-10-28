@@ -2,6 +2,7 @@
 #controls{position:fixed;inset:auto 0 0;height:0;pointer-events:none}
 #masterUnit{display:none;position:fixed;left:12px;bottom:60px;width:158px;height:210px}
 .cab-hud-open #masterUnit{display:flex}
+.metro-fallback #masterUnit{display:flex}
 #infoSpeaker,#screenDoorToggle{position:fixed;bottom:9px;width:49px;height:46px;margin:0;border-radius:7px}
 #infoSpeaker{right:67px}#screenDoorToggle{right:12px}
 #infoSpeaker svg,#screenDoorToggle svg{width:25px;height:25px}#infoSpeaker span{font-size:9px}
@@ -16,4 +17,4 @@
 #cabControlHint.visible{display:block}
 .outside-cab #cabLookBar,.outside-cab #cabControlHint{display:none}
 .cab-capture #hud,.cab-capture #controls,.cab-capture #carCameraToggle,.cab-capture #stationCameraToggle,.cab-capture #cabLookBar,.cab-capture #cabControlHint{visibility:hidden}
-@media(max-width:600px){#hud{max-width:58vw;font-size:10px}#cabLookBar{left:7px;bottom:8px;gap:3px}#cabLookBar button{padding:10px 7px;font-size:10px}#infoSpeaker{right:51px;width:39px;height:39px}#screenDoorToggle{right:7px;width:39px;height:39px}#cabControlHint{bottom:58px;font-size:12px}#infoSpeaker span{display:none}}
+@media(max-width:600px){#carCameraToggle,#stationCameraToggle{box-sizing:border-box;max-width:174px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hud{box-sizing:border-box;max-width:calc(100vw - 198px);font-size:10px}#cabLookBar{left:7px;bottom:8px;gap:3px}#cabLookBar button{padding:10px 7px;min-height:40px;font-size:10px}#infoSpeaker{right:51px;width:39px;height:39px}#screenDoorToggle{right:7px;width:39px;height:39px}#cabControlHint{bottom:58px;font-size:12px}#infoSpeaker span{display:none}}

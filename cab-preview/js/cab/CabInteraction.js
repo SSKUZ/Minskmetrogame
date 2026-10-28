@@ -52,10 +52,12 @@ export function installCabInteraction({THREE,canvas,camera,cab,controls,commands
  document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);
  const keymap={KeyO:'open',KeyP:'close',KeyD:'toggleDoors',KeyI:'info',KeyN:'release',KeyB:'service',Space:'emergency',KeyL:'cabLight',KeyF:'headlights',KeyH:'horn',KeyT:'lampTest',KeyC:'carriage',KeyV:'platform',Home:'forward',End:'desk'};
  function key(e,release=false){
+  const id=keymap[e.code];
+  // Release a held command even if its key-up occurs after changing cameras or
+  // focusing an input. The horn and lamp test must never remain latched on.
+  if(release){if(id==='horn'||id==='lampTest')commands.command(id,undefined,'release');return;}
   if(e.target.closest?.('input,textarea,select,[contenteditable="true"]')||!isRunning())return;
   if(!isActive()&&!['KeyC','KeyV','Home'].includes(e.code))return;
-  const id=keymap[e.code];
-  if(release){if(id==='horn'||id==='lampTest')commands.command(id,undefined,'release');return;}
   if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='ArrowDown'||e.code==='KeyS'){
    e.preventDefault();commands.command('master',commands.snapshot().lever+(['ArrowUp','KeyW'].includes(e.code)?.2:-.2));
   }else if(/^Digit[1-5]$/.test(e.code)){e.preventDefault();commands.command('master',Number(e.code.slice(-1))*.2);}
