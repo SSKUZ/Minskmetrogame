@@ -13,10 +13,12 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
  try{
   await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(new Error('v106 viewer load timed out')),timeoutMs);
-   const finish=(error)=>{clearTimeout(timer);error?reject(error):resolve()};
+   let settled=false;
+   const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve()};
    frame.addEventListener('load',()=>{
     const started=performance.now();
     const poll=()=>{
+     if(settled)return;
      try{
       if(frame.contentWindow?.wagonReady&&typeof frame.contentWindow.wagonGetLiveConsist==='function')return finish();
       if(performance.now()-started>timeoutMs)return finish(new Error('v106 geometry not ready'));
