@@ -1,0 +1,40 @@
+name: V106 integration browser smoke
+on:
+  pull_request:
+    branches: [testing]
+    paths:
+      - 'js/**'
+      - 'preview/**'
+      - 'index.html'
+      - 'tests/v106-browser-smoke.mjs'
+      - '.github/workflows/v106-browser-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v106-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local game
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/v106-server.log 2>&1 &
+      - name: Verify station model and doors
+        run: node tests/v106-browser-smoke.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v106-browser-smoke
+          path: |
+            test-results/v106/
+            /tmp/v106-server.log
+          retention-days: 14
