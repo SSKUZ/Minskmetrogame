@@ -24,6 +24,13 @@ const box=(...args)=>createBox(THREE,...args);
 // Actual world-space 3D driver's cab: head turns around a stationary dashboard.
 // Unlike a HUD overlay, its screens, buttons and housing change perspective.
 const cab=new THREE.Group();cab.scale.set(.73,.95,.88);cab.position.z=-.20;scene.add(cab);
+// Read-only inspection bridge for the isolated cab preview; no train physics changes.
+const cabInspect={get scene(){return scene},get cab(){return cab},get camera(){return camera},
+ setView(y,p){targetYaw=THREE.MathUtils.clamp(y,-1.35,1.35);targetPitch=THREE.MathUtils.clamp(p,-.7,.7)},
+ setZoom(fov){camera.fov=THREE.MathUtils.clamp(fov,30,95);camera.updateProjectionMatrix()},
+ getView(){return {yaw:targetYaw,pitch:targetPitch,fov:camera.fov}},
+ setCabVisible(v){cab.visible=Boolean(v)}};
+if(new URLSearchParams(location.search).has('cabInspector'))window.metroCabInspector=cabInspect;
 // Independent cabin illumination: does not spill into the tunnel.
 const cabinFill=new THREE.AmbientLight(0xdbeeff,1.15);cab.add(cabinFill);
 const cabinLamp=new THREE.PointLight(0xf2f5ed,36,8,1.8);cabinLamp.position.set(0,3.7,5.5);cab.add(cabinLamp);
