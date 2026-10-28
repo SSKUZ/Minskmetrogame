@@ -23,9 +23,14 @@ try{
  assert.ok(Math.abs(state.trainPosition[0]+.31)<.001,'incorrect v106 track lateral alignment');
  assert.ok(Math.abs(state.trainPosition[1]-state.platformPosition[1])<.001,'v106 and platform elevation differ');
  await page.screenshot({path:'test-results/v106/station-closed.png'});
+ // Also capture the full desktop camera framing; mobile-only images can hide clipping.
+ await page.setViewportSize({width:1365,height:768});
+ await page.waitForTimeout(450);
+ await page.screenshot({path:'test-results/v106/station-desktop-closed.png'});
  await page.locator('#screenDoorToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,{timeout:12000});
  await page.screenshot({path:'test-results/v106/station-open.png'});
+ await page.screenshot({path:'test-results/v106/station-desktop-open.png'});
  const after=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(after.doorsOpen,true);
  // Reversing the door command must close all animated leaves, not only open them.
