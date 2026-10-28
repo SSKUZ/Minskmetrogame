@@ -1083,7 +1083,7 @@ function markStationSkipped(){
 }
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0,stationCameraTrainZ=0;
 const screenDoorToggle=document.getElementById('screenDoorToggle');
-function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
+function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');window.dispatchEvent(new CustomEvent('metro-consist-doors',{detail:{open:Boolean(doors)}}));}
 screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
