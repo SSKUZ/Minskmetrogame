@@ -25,8 +25,12 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=30000}){
    },{once:true});
    frame.addEventListener('error',()=>finish(new Error('v106 iframe failed')),{once:true});
   });
-  const serialized=frame.contentWindow.wagonExportConsist();
-  const root=new THREE.ObjectLoader().parse(serialized);
+  const exported=frame.contentWindow.wagonExportConsist();
+  const root=new THREE.ObjectLoader().parse(exported.geometry);
+  const byUuid=new Map();root.traverse(o=>byUuid.set(o.uuid,o));
+  const leaves=exported.doors.flatMap(car=>car.leaves.map(d=>({...d,object:byUuid.get(d.uuid)})));
+  if(leaves.length!==64||leaves.some(d=>!d.object))throw new Error('v106 door leaves missing from imported geometry');
+  root.userData.doorActuators=leaves;
   root.name='game-v106-four-car-consist';
   root.traverse(object=>{
    // The standalone viewer uses four special camera/render layers.
