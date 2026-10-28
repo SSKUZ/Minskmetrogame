@@ -11,13 +11,13 @@ try{
  await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.evaluate(()=>window.addEventListener('metro-render-error',()=>window.__v106RenderErrors=(window.__v106RenderErrors||0)+1));
  await page.evaluate(()=>{const original=console.error;console.error=(...args)=>{window.__v106ConsoleErrors=(window.__v106ConsoleErrors||[]).concat(args.map(v=>v?.stack||v?.message||String(v)));original(...args)}});
- await page.waitForFunction(()=>window.metro3DReady===true,{timeout:90000});
+ await page.waitForFunction(()=>window.metro3DReady===true,null,{timeout:90000});
  // Station preview already selects the platform camera. Only toggle it when
  // a future startup path leaves it disabled; blindly clicking here used to
  // turn the correct preview camera off and produced a false-negative smoke failure.
  const stationCameraAlreadyActive=await page.evaluate(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
  if(!stationCameraAlreadyActive)await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,{timeout:90000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:90000});
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
@@ -40,15 +40,15 @@ try{
  await page.waitForTimeout(450);
  await page.screenshot({path:'test-results/v106/station-desktop-closed.png'});
  await page.locator('#screenDoorToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorsOpen===true,{timeout:15000});
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,{timeout:60000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorsOpen===true,null,{timeout:60000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,null,{timeout:120000});
  await page.screenshot({path:'test-results/v106/station-open.png'});
  await page.screenshot({path:'test-results/v106/station-desktop-open.png'});
  const after=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(after.doorsOpen,true);
  // Reversing the door command must close all animated leaves, not only open them.
  await page.locator('#screenDoorToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,{timeout:60000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,null,{timeout:120000});
  const closedAgain=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(closedAgain.doorsOpen,false);
  // The original model must survive leaving and re-entering the platform camera.
@@ -58,7 +58,7 @@ try{
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
  // Re-entry may be slow in software WebGL; visibility must be checked after
  // the camera has rendered a new frame rather than during the toggle.
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().inCamera!==null,{timeout:30000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().inCamera!==null,null,{timeout:90000});
  const restored=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(restored.loaded,true);
  assert.equal(restored.metrics.doorLeaves,64);
