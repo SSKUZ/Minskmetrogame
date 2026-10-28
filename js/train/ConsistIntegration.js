@@ -28,3 +28,32 @@ export function validateV106Consist(consist){
  }
  return true;
 }
+
+/**
+ * Project the game's train motion onto all four v106 car roots.
+ * The game's camera looks toward -Z, while the original viewer assembles
+ * cars toward +Z. This changes placement only, never geometry or physics.
+ */
+export function updateConsistPose(consist,{frontZ=0,lateral=0,railY=0}={}){
+ validateV106Consist(consist);
+ for(let i=0;i<4;i++){
+  const pose=consistCarPose(i,frontZ);
+  const root=consist.cars[i].root;
+  root.position.set(lateral,railY,pose.z);
+  root.rotation.y=pose.yaw;
+  root.scale.setScalar(1);
+ }
+ consist.root?.updateMatrixWorld?.(true);
+ return consist;
+}
+/**
+ * Set door animation on the original v106 leaf registries.
+ * The geometry's original leaf.home is deliberately untouched.
+ * Caller supplies the factory's own door update function.
+ */
+export function synchronizeConsistDoors(consist,open,applyDoorState){
+ validateV106Consist(consist);
+ if(typeof applyDoorState!=='function')throw new TypeError('A v106 door actuator is required');
+ for(const car of consist.cars)applyDoorState(car,Boolean(open));
+ return 16*consist.cars.length;
+}
