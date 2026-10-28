@@ -107,6 +107,9 @@ for(const side of [-1,1]){
 // Transitional four-car gameplay exterior, visible from the platform camera.
 // NOT the detailed v106 viewer geometry: that migration remains a separate task.
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
+// Keep the proven exterior as the default while the v106 camera alignment is under review.
+// Opt in to the experimental consist with ?v106=1; never replace the legacy model silently.
+const useExperimentalV106=new URLSearchParams(location.search).get('v106')==='1';
 let detailedV106Train=null;
 let detailedV106Loading=null;
 let detailedV106DoorProgress=0;
@@ -1122,7 +1125,7 @@ let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;ensureDetailedV106();}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;if(useExperimentalV106)ensureDetailedV106();}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -1266,7 +1269,7 @@ if(stationCameraActive){
  stationTrain.position.set(-.31,platform.position.y,stationCameraTrainZ);
  // Original v106 front is at -L/2; shift its first car centre to keep
  // the front at the old station-camera reference plane.
- if(detailedV106Train){
+ if(useExperimentalV106&&detailedV106Train){
   detailedV106Train.position.set(-.31,platform.position.y,stationCameraTrainZ+19.206/2);
   detailedV106Train.visible=true;
   stationTrain.visible=false;
@@ -1299,7 +1302,7 @@ if(carCameraActive){
  cab.visible=true;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
-window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
  dist=previewMode==='station'?0:105;
