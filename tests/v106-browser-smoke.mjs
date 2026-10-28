@@ -38,6 +38,26 @@ try{
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,{timeout:12000});
  const closedAgain=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(closedAgain.doorsOpen,false);
+ // Departure: move the real master controller and verify that the station
+ // scrolls past a world-stationary consist (the game's established motion model).
+ const beforeDeparture=await page.evaluate(()=>({
+  state:window.metroV106Diagnostics(),game:window.metroDiagnostics()
+ }));
+ const throttle=page.locator('#masterTrack');
+ const rect=await throttle.boundingBox();
+ assert.ok(rect,'master controller not rendered');
+ await page.mouse.click(rect.x+rect.width/2,rect.y+Math.max(2,rect.height*.12));
+ await page.waitForFunction(start=>window.metroDiagnostics?.().dist<start-0.35,beforeDeparture.game.dist,{timeout:15000});
+ const moving=await page.evaluate(()=>({
+  state:window.metroV106Diagnostics(),game:window.metroDiagnostics()
+ }));
+ assert.ok(moving.game.speed>0,'traction did not accelerate train');
+ assert.ok(moving.state.platformPosition[2]>beforeDeparture.state.platformPosition[2]+.35,'station did not scroll past train');
+ assert.ok(Math.abs(moving.state.trainPosition[2]-beforeDeparture.state.trainPosition[2])<.001,'train unexpectedly moved in stationary-cab world');
+ assert.ok(moving.state.relativeToPlatformZ<beforeDeparture.state.relativeToPlatformZ-.35,'train/platform relative displacement incorrect');
+ await page.screenshot({path:'test-results/v106/station-departing.png'});
+ // Neutralize controller so later camera checks remain deterministic.
+ await page.mouse.click(rect.x+rect.width/2,rect.y+rect.height*.5);
  // The original model must survive leaving and re-entering the platform camera.
  await page.locator('#stationCameraToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===false);
