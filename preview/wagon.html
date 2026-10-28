@@ -275,7 +275,11 @@ function addDoorCautions(side,dz){
   geo.setIndex(side>0?[0,2,1,0,3,2]:[0,1,2,0,2,3]);
   geo.computeVertexNormals();
   const decal=new T.Mesh(geo,doorCautionMaterial);
-  decal.layers.set(2);
+  // Warning decals must remain visible in both the standalone viewer and the
+  // gameplay renderer. Layer 0 is included in the game's normal render pass;
+  // layer 2 alone could disappear when the imported consist is rendered.
+  decal.layers.enable(0);
+  decal.layers.enable(2);
   decal.renderOrder=2;
   decal.name='passenger-door-caution';
   decal.userData.warningDecal=true;decal.userData.side=side;decal.userData.doorZ=dz;decal.userData.direction=direction;
