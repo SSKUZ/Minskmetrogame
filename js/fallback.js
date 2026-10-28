@@ -51,7 +51,7 @@
   surface.style.cssText='position:fixed;inset:0;width:100%;height:100%;z-index:0;touch-action:none';scene.after(surface);
   context=surface.getContext('2d');if(!context){surface.remove();surface=null;return;}
   attachLook(surface);active=true;last=performance.now();document.body.classList.add('metro-fallback');
-  status('Режим совместимости — 3D пока недоступен');frameId=requestAnimationFrame(frame);
+  status('Режим совместимости · 3D недоступен');frameId=requestAnimationFrame(frame);
  }
  function frame(now){
   if(!active||ready()){stop();return;}
@@ -76,5 +76,7 @@
  const timer=setTimeout(()=>{if(!ready()){available=true;start();}},10000);
  window.addEventListener('metro-start',start);
  window.addEventListener('metro-3d-ready',()=>{clearTimeout(timer);stop();});
- window.addEventListener('metro-render-error',()=>{available=true;start();});
+ function unavailable(){clearTimeout(timer);available=true;if(active)status('Режим совместимости · 3D недоступен');else start();}
+ window.addEventListener('metro-3d-unavailable',unavailable);
+ window.addEventListener('metro-render-error',unavailable);
 })();

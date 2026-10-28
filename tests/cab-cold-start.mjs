@@ -20,7 +20,12 @@ try{
  report.checks.push('Start works before the engine finishes; the old one-second crash is absent');
  await p.locator('#fallbackScene').waitFor({state:'visible',timeout:20000});
  assert.equal(await p.evaluate(()=>window.cabStartupCanvasClaims.includes('2d')),false);
- await p.screenshot({path:out+'/cold-start-fallback.png'});report.checks.push('A delayed engine enables a separate 2D surface without claiming the WebGL canvas');
+ await p.waitForFunction(()=>{const c=document.querySelector('#fallbackScene');return c?.width===innerWidth&&c?.height===innerHeight;});
+ // Chromium 141 keeps document.fonts.ready pending while this deliberately
+ // blocked module is loading. Export the rendered 2D canvas directly here;
+ // the full-page capture below happens after releasing the engine import.
+ const fallback=await p.locator('#fallbackScene').evaluate(c=>c.toDataURL('image/png').split(',')[1]);
+ await writeFile(out+'/cold-start-fallback-canvas.png',Buffer.from(fallback,'base64'));report.checks.push('A delayed engine enables a separate 2D surface without claiming the WebGL canvas');
  release();
  await p.waitForFunction(()=>window.metro3DReady&&window.metroLastRendered&&window.metroCabInspector,null,{timeout:120000});
  await p.locator('#fallbackScene').waitFor({state:'detached'});
