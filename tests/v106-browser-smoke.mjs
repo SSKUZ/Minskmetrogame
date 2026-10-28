@@ -38,6 +38,14 @@ try{
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress<.05,{timeout:12000});
  const closedAgain=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(closedAgain.doorsOpen,false);
+ // The original model must survive leaving and re-entering the platform camera.
+ await page.locator('#stationCameraToggle').click();
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===false);
+ await page.locator('#stationCameraToggle').click();
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().visible===true);
+ const restored=await page.evaluate(()=>window.metroV106Diagnostics());
+ assert.equal(restored.loaded,true);
+ assert.equal(restored.metrics.doorLeaves,64);
  // Departure: move the real master controller and verify that the station
  // scrolls past a world-stationary consist (the game's established motion model).
  const beforeDeparture=await page.evaluate(()=>({
@@ -58,14 +66,7 @@ try{
  await page.screenshot({path:'test-results/v106/station-departing.png'});
  // Neutralize controller so later camera checks remain deterministic.
  await page.mouse.click(rect.x+rect.width/2,rect.y+rect.height*.5);
- // The original model must survive leaving and re-entering the platform camera.
- await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().stationCameraActive===false);
- await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().visible===true);
- const restored=await page.evaluate(()=>window.metroV106Diagnostics());
- assert.equal(restored.loaded,true);
- assert.equal(restored.metrics.doorLeaves,64);
+
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({state,after},null,2));
 }finally{await browser.close()}
