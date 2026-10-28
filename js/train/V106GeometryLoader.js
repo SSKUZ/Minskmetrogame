@@ -61,6 +61,16 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
    // Game cameras use layer zero, so enable it on imported geometry.
    object.layers.enable(0);
   });
+  // Reuse the viewer's original calibrated light rig, including its distinct
+  // front/cab layers. Do not substitute generic game lights for this model.
+  const lighting=new THREE.Group();
+  lighting.name='v106-original-viewer-lighting';
+  for(const json of exported.lighting||[]){
+   const light=new THREE.ObjectLoader().parse(json);
+   lighting.add(light);
+  }
+  scene.add(lighting);
+  Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
   scene.add(root);
   const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length};
