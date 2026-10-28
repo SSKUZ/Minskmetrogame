@@ -10,6 +10,7 @@ page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.evaluate(()=>window.addEventListener('metro-render-error',()=>window.__v106RenderErrors=(window.__v106RenderErrors||0)+1));
+ await page.evaluate(()=>{const original=console.error;console.error=(...args)=>{window.__v106ConsoleErrors=(window.__v106ConsoleErrors||[]).concat(args.map(v=>v?.stack||v?.message||String(v)));original(...args)}});
  await page.waitForFunction(()=>window.metro3DReady===true,{timeout:90000});
  // Station preview already selects the platform camera. Only toggle it when
  // a future startup path leaves it disabled; blindly clicking here used to
@@ -19,7 +20,7 @@ try{
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,{timeout:90000});
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
- assert.equal(renderErrors,0,'main render loop failed while v106 was active');
+ assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
  assert.equal(state.loaded,true,JSON.stringify(state));
  assert.equal(state.metrics.doorLeaves,64);
  assert.ok(state.metrics.meshCount>0);
