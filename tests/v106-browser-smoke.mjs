@@ -10,7 +10,11 @@ page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>window.metro3DReady===true,{timeout:90000});
- await page.locator('#stationCameraToggle').click();
+ // Station preview already selects the platform camera. Only toggle it when
+ // a future startup path leaves it disabled; blindly clicking here used to
+ // turn the correct preview camera off and produced a false-negative smoke failure.
+ const stationCameraAlreadyActive=await page.evaluate(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
+ if(!stationCameraAlreadyActive)await page.locator('#stationCameraToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,{timeout:90000});
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(state.loaded,true,JSON.stringify(state));
