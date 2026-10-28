@@ -56,3 +56,21 @@ does not claim coverage of every surface hidden from that camera.
 An additional 412 × 915 portrait capture checks that the front fascia fits
 on a phone. It uses responsive framing and is separate from the six fixed
 1536 × 934 comparison views.
+
+## Stage 3: side work with a locked v84 front
+
+The latest scope allows passenger sides/interior/roof work and freezes the
+front. `tests/reference/wagon-v84.html` is the immutable original source
+(e08bd05). `front-v84-lock.json` pins its hash and seven protected source
+regions, including cab equipment, front roof and calibrated cameras.
+`v84-control/` contains actual pre-work Chromium captures.
+
+Every run renders the immutable v84 and candidate with the same browser,
+resolution and GPU and requires zero changed pixels in the frontal view.
+This replaces the earlier protected-side check, whose scope is now obsolete.
+The previous-run diffs and front photo geometry diagnostics remain.
+
+Eight additional deterministic presets: side-full, side-angle, door-close,
+window-close, window-inside, door-open, roof-side, roof-join. The door-open
+preset becomes a true open-door capture when moving leaves land in stage 3.
+Camera presets are for inspection, not a factory dimensional survey.

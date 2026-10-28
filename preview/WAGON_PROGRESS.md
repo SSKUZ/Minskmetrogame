@@ -119,3 +119,21 @@ To resume, fetch current testing and verify its actual published module hash;
 use the successful Actions artifact for that model commit as the baseline.
 Publication evidence is in the commit-linked reports, not implied by this
 checkpoint. Continue external front-only changes and inspect every PNG.
+
+## Stage 3 supersedes the earlier front-only scope
+
+Latest user request (2026-10-28): rebuild passenger sides, doors, windows,
+visible 3D saloon and side roof; freeze the complete front of v84. Keep main
+untouched and preserve all existing game mechanics. AI collage is a livery
+hint only. Use supplied real photos 5350/5353/5356 and the mechanical manual:
+https://81-717.ru/Конспект%20Механика%2081.717.pdf (pages 12–15): four
+sliding doorways each side, 1380 mm structural / 1208 mm clear opening,
+leaves entering wall pockets. Existing model envelope remains unchanged to
+respect the v84 front; it is not a new factory dimensional certification.
+
+v85 establishes immutable v84 source + actual reference/front/mobile PNGs,
+source hashes for seven front/cab blocks and runtime same-renderer front
+regression. Extends the existing workflow to fourteen views. No front node
+or gameplay module is changed. Next: thick corrugated side shells with real
+apertures, doors sliding in pockets, transparent glazing with opening lights,
+refine existing saloon, smooth side roof and directional ventilation scoops.

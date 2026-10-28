@@ -4,7 +4,8 @@ import {mkdir,readFile,writeFile,access} from 'node:fs/promises';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {comparePixels,comparePhoto,compareProtectedSide} from './wagon-image-compare.mjs';
+import {comparePixels,comparePhoto} from './wagon-image-compare.mjs';
+import {verifyFrontProtection} from './wagon-front-protection.mjs';
 
 const output=process.env.WAGON_RESULTS_DIR||'test-results/wagon';
 const baseline=process.env.WAGON_BASELINE_DIR||'test-results/wagon-baseline';
@@ -12,6 +13,7 @@ const target=process.env.WAGON_TARGET_URL||'http://127.0.0.1:8765/preview/wagon.
 await mkdir(output,{recursive:true});
 const reference=JSON.parse(await readFile('tests/reference/uruchcha-81-717.json','utf8'));
 const sourceHtml=await readFile('preview/wagon.html','utf8');
+const frontLock=await verifyFrontProtection(sourceHtml);
 const expectedModule=sourceHtml.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
 const moduleHash=text=>createHash('sha256').update(text).digest('hex');
 const photo=await readFile(`tests/reference/${reference.image}`);
@@ -43,12 +45,19 @@ const report={result:'running',commit:process.env.GITHUB_SHA||execFileSync('git'
 report.sourceModuleSha256=moduleHash(expectedModule);
 report.workingTreeDirty=!process.env.GITHUB_ACTIONS&&!!execFileSync('git',['status','--porcelain','--untracked-files=no'],{encoding:'utf8'}).trim();
 try{
+ // Render the immutable v84 in this exact Chromium/GPU, avoiding false
+ // regressions caused by historical screenshots from another renderer.
+ await page.route('**/__wagon_v84.html*',route=>route.fulfill({body:frontLock.fixture,contentType:'text/html'}));
+ await page.goto(new URL('__wagon_v84.html?qa=1&view=front',target).href,{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>window.wagonReady&&window.wagonDiagnostics().renderedFrames>=3,null,{timeout:90000});
+ await page.screenshot({path:path.join(output,'protected-v84-front.png'),animations:'disabled'});
+ report.frontProtection={baseCommit:frontLock.baseCommit,protectedBlocks:frontLock.protectedBlocks};
  const url=new URL(target);url.searchParams.set('qa','1');
  await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:60000});
  report.renderedModuleSha256=moduleHash(await page.locator('script[type="module"]').textContent());
  assert.equal(report.renderedModuleSha256,report.sourceModuleSha256,'Served model differs from the checked-out source: stale publication or wrong target');
  await page.waitForFunction(()=>window.wagonReady===true&&window.wagonDiagnostics?.().renderedFrames>=3,null,{timeout:90000});
- for(const mode of ['reference','front','side','outside','driver','salon']){
+ for(const mode of ['reference','front','side','outside','driver','salon','side-full','side-angle','door-close','window-close','window-inside','door-open','roof-side','roof-join']){
   await page.evaluate(m=>window.wagonSetCamera(m),mode);
   const start=await page.evaluate(()=>window.wagonDiagnostics().renderedFrames);
   await page.waitForFunction(frame=>window.wagonDiagnostics().renderedFrames>=frame+3,start,{timeout:30000});
@@ -73,9 +82,9 @@ try{
    comparison={mode,...await comparePixels(screenshot,path.join(baseline,`${mode}.png`),path.join(output,`${mode}-diff.png`)),lightingChanged:!!old&&old.lightingPreset!==data.lightingPreset,cameraChanged:!!old&&JSON.stringify(old.camera)!==JSON.stringify(data.camera)};
   }catch(error){if(error.code!=='ENOENT')throw error;}
   report.comparisons.push(comparison);
-  if(mode==='side'&&comparison.status==='compared'){
-   report.protectedSide=await compareProtectedSide(screenshot,path.join(baseline,'side.png'));
-   assert.equal(report.protectedSide.changedPixels,0,'Protected rear body changed outside the permitted front work');
+  if(mode==='front'){
+   report.frontProtection.pixels=await comparePixels(screenshot,path.join(output,'protected-v84-front.png'),path.join(output,'protected-front-diff.png'));
+   assert.equal(report.frontProtection.pixels.changedPixels,0,'Protected front differs from immutable v84');
   }
   if(mode==='reference')report.photo=await comparePhoto(data.features,reference,screenshot,path.join(output,'reference-geometry-overlay.png'));
  }
@@ -102,7 +111,7 @@ finally{
  const metrics=(report.photo?.measurements||[]).map(m=>`| ${m.name} | ${m.status} | ${m.actual?m.actual.width.toFixed(4):'—'} | ${m.expected?m.expected.width.toFixed(4):'—'} | ${m.actual?m.actual.height.toFixed(4):'—'} | ${m.expected?m.expected.height.toFixed(4):'—'} |`).join('\n');
  const markdown=`# Wagon visual report\n\nTechnical result: **${report.result}**. Photo likeness requires visual review.\n\nCommit: ${report.commit}\n\nBaseline: ${report.baselineCommit||'none / older incompatible report'}\n\n${report.runUrl||'Local run'}\n\n## Previous render\n\n| View | Status | Changed pixels | Bounds |\n| --- | --- | ---: | --- |\n${changes}\n\n## Photo geometry diagnostics\n\nDimensions are fractions of fascia width, not similarity percentages. Cyan: geometry; amber: photo.\n\n| Feature | Flag | Model width | Photo width | Model height | Photo height |\n| --- | --- | ---: | ---: | ---: | ---: |\n${metrics}\n\n## Limits\n\n${reference.limitations.map(s=>'- '+s).join('\n')}\n\nPixel differences can be intentional. These reports do not prove the absence of visual defects.\n`;
  await writeFile(path.join(output,'report.md'),markdown);
- const images=['reference','front','side','mobile-reference','reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
+ const images=[...report.views.map(v=>v.cameraMode),'mobile-reference','protected-v84-front','protected-front-diff','reference-geometry-overlay',...report.comparisons.filter(c=>c.status==='compared').map(c=>c.mode+'-diff')];
  await writeFile(path.join(output,'index.html'),`<!doctype html><meta charset="utf-8"><title>Wagon visual report</title><style>body{font:16px system-ui;background:#17202b;color:#eee;max-width:1600px;margin:auto;padding:24px}img{width:100%;height:auto}pre{white-space:pre-wrap}</style><h1>Wagon ${report.views[0]?.modelVersion||''} · ${report.commit}</h1><p>Technical result: ${report.result}. Geometry diagnostics require visual review.</p><p>Cyan: model bounds. Amber: photo bounds aligned to fascia.</p>${images.map(i=>`<h2>${i}</h2><img src="${i}.png" alt="${i}">`).join('')}<pre>${JSON.stringify(report,null,2).replaceAll('&','&amp;').replaceAll('<','&lt;')}</pre>`);
  await browser.close();
 }
