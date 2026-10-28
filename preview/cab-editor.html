@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Кабина 81-717 — инспектор существующей модели</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101820;color:#edf5fb;font:15px system-ui,sans-serif}header{padding:12px 18px;background:#182734}h1{font-size:18px;margin:0}small{color:#a8c2d1}main{display:grid;grid-template-columns:minmax(0,1fr) 245px;height:calc(100dvh - 64px)}iframe{border:0;width:100%;height:100%;background:#070b10}aside{padding:16px;background:#1b2d3c;overflow:auto}button{background:#325775;color:white;border:1px solid #547b96;border-radius:7px;padding:10px;cursor:pointer}button:focus-visible{outline:2px solid white}.row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}label{display:block;margin:14px 0}input{width:100%}#status{font-size:13px;color:#b8d6e5}#viewport{position:relative;min-height:0;overflow:hidden}#drag{position:absolute;inset:0;touch-action:none;cursor:grab}#drag:active{cursor:grabbing}.hint{font-size:12px;color:#9bb7c8}@media(max-width:700px){main{grid-template-columns:1fr;grid-template-rows:minmax(320px,1fr) auto}aside{padding:10px;max-height:35dvh}header{padding:8px 12px}}
+</style></head><body><header><h1>Кабина машиниста · инспектор</h1><small>Исходная 3D-кабина игры; ветка cab-development · просмотр без изменения модели</small></header>
+<main><div id="viewport"><iframe id="game" title="Существующая кабина" src="../?preview=station&amp;cabInspector=1"></iframe><div id="drag" aria-label="Перетаскивайте для поворота камеры"></div></div>
+<aside><strong>Осмотр кабины</strong><p id="status">Ожидание загрузки игры…</p>
+<div class="row"><button id="front">Вперёд</button><button id="left">Влево</button><button id="right">Вправо</button><button id="up">Пульт</button></div>
+<label>Приближение <input id="zoom" type="range" min="30" max="95" value="75"></label>
+<button id="reset">Сбросить обзор</button>
+<p class="hint">Потяните пальцем или мышью по изображению для осмотра. Кнопки игры не изменены; эта страница только управляет камерой существующей сцены.</p>
+<p class="hint">Ограничение: это инспектор камеры, а не полноценный редактор геометрии. Сохранение 3D-модели пока не предусмотрено.</p></aside></main>
+<script>
+const frame=document.querySelector('#game'),status=document.querySelector('#status'),drag=document.querySelector('#drag');
+let api=null,yaw=0,pitch=0,down=false,lastX=0,lastY=0;
+function apply(){if(api)api.setView(yaw,pitch)}
+function preset(y,p){yaw=y;pitch=p;apply()}
+frame.addEventListener('load',()=>{
+ const timer=setInterval(()=>{try{const w=frame.contentWindow;if(w.metro3DReady&&w.metroCabInspector){api=w.metroCabInspector;status.textContent='3D-сцена загружена. Можно осматривать кабину.';apply();clearInterval(timer)}else if(w.metro3DReady===false){status.textContent='Ошибка загрузки 3D-сцены';clearInterval(timer)}}catch(e){status.textContent='Ошибка доступа к сцене: '+e.message;clearInterval(timer)}},400);
+ setTimeout(()=>{if(!api){clearInterval(timer);status.textContent='Загрузка заняла слишком много времени. Проверьте консоль браузера.'}},45000);
+});
+document.querySelector('#front').onclick=()=>preset(0,0);
+document.querySelector('#left').onclick=()=>preset(-.75,.12);
+document.querySelector('#right').onclick=()=>preset(.75,.12);
+document.querySelector('#up').onclick=()=>preset(0,-.48);
+document.querySelector('#reset').onclick=()=>{preset(0,0);document.querySelector('#zoom').value=75;if(api)api.setZoom(75)};
+document.querySelector('#zoom').oninput=e=>{if(api)api.setZoom(Number(e.target.value))};
+drag.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;lastY=e.clientY;drag.setPointerCapture(e.pointerId)});
+drag.addEventListener('pointermove',e=>{if(!down)return;yaw=Math.max(-1.35,Math.min(1.35,yaw+(e.clientX-lastX)*.006));pitch=Math.max(-.7,Math.min(.7,pitch+(e.clientY-lastY)*.005));lastX=e.clientX;lastY=e.clientY;apply()});
+drag.addEventListener('pointerup',()=>down=false);drag.addEventListener('pointercancel',()=>down=false);
+</script></body></html>
