@@ -116,19 +116,22 @@ function animateDetailedV106Doors(dt){
  const step=Math.min(Math.max(dt,0),.1)/1.55;
  detailedV106DoorProgress+=Math.sign(target-detailedV106DoorProgress)*Math.min(Math.abs(target-detailedV106DoorProgress),step);
  const p=detailedV106DoorProgress,t=p*p*(3-2*p);
- for(const d of detailedV106Train.userData.doorActuators||[])
+ for(const d of detailedV106Train.v106DoorActuators||[])
   d.object.position.z=d.homeZ+d.half*d.travel*t;
 }
 
 function ensureDetailedV106(){
- if(detailedV106Train||detailedV106Loading)return detailedV106Loading;
+ if(detailedV106Train)return Promise.resolve(detailedV106Train);
+ if(detailedV106Loading)return detailedV106Loading;
  detailedV106Loading=loadV106Geometry({THREE,scene}).then(root=>{
   detailedV106Train=root;
   window.metroV106GeometryLoaded=true;
+  window.metroV106GeometryError=null;
   return root;
  }).catch(error=>{
   console.warn('v106 geometry unavailable; retaining playable legacy exterior',error);
   window.metroV106GeometryError=String(error);
+  detailedV106Loading=null; // Allow retry after a transient network/GPU failure.
   return null;
  });
  return detailedV106Loading;
@@ -1296,7 +1299,7 @@ if(carCameraActive){
  cab.visible=true;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
-window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,visible:!!detailedV106Train?.visible});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
  dist=previewMode==='station'?0:105;
