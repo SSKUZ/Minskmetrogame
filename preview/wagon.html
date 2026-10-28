@@ -299,6 +299,7 @@ function buildCabSide(side,a,b){
  for(let i=pts.length-1;i>=0;i--){const p=pts[i];if(i===pts.length-1)opening.moveTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y);else opening.lineTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y)}
  opening.closePath();shape.holes.push(opening);
  cabSheet(shape,side,outerBodyHalfWidth,()=>half-.0825,'cab-side');
+ addCabCorrugation(side,a,b);
  const windowW=.48,windowH=.69,windowY=F+1.47,win=roundedShape(windowW,windowH,.08).getPoints(16);
  const original=roundedShape(cabDoorW-.012,cabDoorH-.010,.12),leaf=new T.Shape(),leafPoints=original.getPoints(20);
  for(let i=0;i<leafPoints.length;i++){const p=leafPoints[i];if(i===0)leaf.moveTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y);else leaf.lineTo(-cabDoorZ+p.x,F+cabDoorH/2+p.y)}leaf.closePath();
@@ -308,6 +309,42 @@ function buildCabSide(side,a,b){
  sideRing(cabDoorW+.008,cabDoorH+.008,.125,side*(sideWallBase+.003),F+cabDoorH/2,cabDoorZ,sideRubber,.009);
  sideRing(windowW,windowH,.08,side*1.296,windowY,cabDoorZ,sideRubber,.009);
  const recess=side*1.269;box(.024,.018,.09,recess+side*.017,F+1.03,cabDoorZ+.24,metal);
+}
+// Extend the passenger body's pressed horizontal corrugations onto the cab
+// side sheets. Ribs are curved surface strips, not cylindrical trim bars;
+// the driver's access-door aperture remains unobstructed.
+function addCabCorrugation(side,a,b){
+ const doorZ=-8.52,doorHalf=.74/2+.022;
+ const sections=[[a,Math.min(b,doorZ-doorHalf)],[Math.max(a,doorZ+doorHalf),b]];
+ for(const center of [.18,.40,.62,.84,1.31,1.61,1.89]){
+  const cy=F+center,halfBand=.032;
+  for(const [start,end] of sections){
+   if(end-start<.045)continue;
+   const zSteps=Math.max(2,Math.ceil((end-start)/.065)),ySteps=10;
+   const vertices=[],indices=[];
+   for(let iz=0;iz<=zSteps;iz++){
+    const z=start+(end-start)*iz/zSteps;
+    // The front corner is curved: blend the ribs gently into its boundary.
+    const fade=Math.min(1,Math.max(0,(z-a)/.12));
+    const width=outerBodyHalfWidth(z);
+    for(let iy=0;iy<=ySteps;iy++){
+     const y=cy-halfBand+2*halfBand*iy/ySteps;
+     vertices.push(side*(width+.0015+fade*ribDepth(y)),y,z);
+    }
+   }
+   for(let iz=0;iz<zSteps;iz++)for(let iy=0;iy<ySteps;iy++){
+    const k=iz*(ySteps+1)+iy,n=k+ySteps+1;
+    if(side>0)indices.push(k,k+1,n,k+1,n+1,n);
+    else indices.push(k,n,k+1,k+1,n,n+1);
+   }
+   const geometry=new T.BufferGeometry();
+   geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
+   geometry.setIndex(indices);geometry.computeVertexNormals();
+   const mesh=new T.Mesh(geometry,sidePaint);
+   mesh.name='cab-side-pressed-rib';mesh.userData.structuralRole='outer-side';
+   group.add(mesh);passenger(mesh);
+  }
+ }
 }
 function buildBodyCorner(side){
  const vs=[],ns=[],ix=[],around=64,vertical=20;
