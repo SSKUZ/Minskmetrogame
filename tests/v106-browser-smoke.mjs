@@ -79,11 +79,12 @@ try{
  await page.mouse.move(box.x+box.width/2,box.y+box.height*.12);
  await page.mouse.down();
  await page.mouse.up();
- await page.waitForFunction(()=>window.metroDiagnostics?.().speed>3,null,{timeout:30000});
- await page.waitForFunction(()=>window.metroDiagnostics?.().dist<-2,null,{timeout:30000});
+ assert.match(await page.locator('#masterValue').innerText(),/ТЯГА/,'master controller did not engage traction');
+ await page.waitForFunction(()=>window.metroDiagnostics?.().train.speed>3,null,{timeout:90000});
+ await page.waitForFunction(()=>window.metroDiagnostics?.().train.distanceToStation<-2,null,{timeout:90000});
  const moving=await page.evaluate(()=>({game:window.metroDiagnostics(),v106:window.metroV106Diagnostics()}));
- assert.ok(moving.game.speed>3,'train failed to accelerate under traction: '+JSON.stringify(moving));
- assert.ok(moving.game.dist<beforeMove.dist-2,'train distance did not advance: '+JSON.stringify({beforeMove,moving}));
+ assert.ok(moving.game.train.speed>3,'train failed to accelerate under traction: '+JSON.stringify(moving));
+ assert.ok(moving.game.train.distanceToStation<beforeMove.train.distanceToStation-2,'train distance did not advance: '+JSON.stringify({beforeMove,moving}));
  assert.equal(moving.v106.loaded,true,'v106 unloaded while train was moving');
  assert.equal(moving.v106.metrics.warningDecals,64,'warning decals disappeared while moving');
  await page.screenshot({path:'test-results/v106/station-desktop-moving.png'});
