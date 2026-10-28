@@ -19,3 +19,12 @@ test('cab shell and mirrors remain present',()=>{
  assert.match(main,/const rearMirrors=\[\]/);
  assert.match(main,/const instrumentDeck=new THREE\.Group\(\)/);
 });
+
+test('inspection page loads the real game cab and exposes bounded camera API',()=>{
+ const html=readFileSync(new URL('../preview/cab-editor.html',import.meta.url),'utf8');
+ assert.match(html,/cabInspector=1/);
+ assert.match(html,/metroCabInspector/);
+ assert.match(main,/window\.metroCabInspector=cabInspect/);
+ assert.match(main,/setView\(y,p\)/);
+ assert.match(main,/setZoom\(fov\)/);
+});
