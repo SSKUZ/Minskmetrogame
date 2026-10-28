@@ -129,6 +129,7 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
     }
    }
   });
+  metrics.lightCount=source.lighting.length;
   metrics.textureCount=textures.size;
   metrics.physicalMaterialUses=physicalMaterials;
   metrics.missingTextureImages=missingImages;
@@ -148,7 +149,11 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   if(metrics.gpuOnlyEnvironmentMaps)console.warn('v106: GPU-only environment maps require browser visual verification',metrics.gpuOnlyEnvironmentMaps);
   // Commit to the game scene only after the source passes integrity checks.
   // Failed loads must not leave orphaned lights or partial train geometry.
-  scene.add(lighting);
+  // Viewer light positions are expressed in the original consist's local
+  // coordinates. The gameplay train is translated every frame; parenting the
+  // rig to the consist keeps its short-range saloon lamps aligned with the
+  // same windows and seats instead of leaving them at the viewer origin.
+  root.add(lighting);
   scene.add(root);
   // Keep the source document alive: its canvas-backed textures and PMREM
   // resources may be invalidated when navigating the iframe to about:blank.
