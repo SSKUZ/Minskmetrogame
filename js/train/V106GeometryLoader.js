@@ -111,8 +111,8 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   for(const sourceLight of source.lighting)lighting.add(localLight(sourceLight));
   Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
-  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,rehomedAttributes};
-  root.traverse(o=>{if(o.isMesh){metrics.meshCount++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
+  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,warningDecals:0,rehomedAttributes};
+  root.traverse(o=>{if(o.isMesh){metrics.meshCount++;if(o.userData?.warningDecal)metrics.warningDecals++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
   // Inspect the actual in-memory source assets before the first game render.
   // Report broken resources rather than silently removing their maps.
   const textures=new Set();let physicalMaterials=0,missingImages=0;
