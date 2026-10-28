@@ -28,6 +28,27 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   });
   const exported=frame.contentWindow.wagonExportConsist();
   const root=new THREE.ObjectLoader().parse(exported.geometry);
+  // Object3D JSON cannot reliably round-trip every canvas/video texture from
+  // the standalone viewer. An imported texture with no image crashes the
+  // Three.js renderer ("Cannot read properties of null (reading 'height')").
+  // Remove only broken maps; preserve all meshes, materials and valid textures.
+  let invalidTextureMaps=0;
+  const textureSlots=['map','alphaMap','aoMap','bumpMap','normalMap','roughnessMap','metalnessMap','emissiveMap','lightMap','displacementMap','envMap'];
+  root.traverse(object=>{
+   if(!object.isMesh)return;
+   for(const material of (Array.isArray(object.material)?object.material:[object.material])){
+    if(!material)continue;
+    for(const slot of textureSlots){
+     const texture=material[slot];
+     if(texture?.isTexture&&!texture.image&&!texture.source?.data){
+      material[slot]=null;
+      invalidTextureMaps++;
+      material.needsUpdate=true;
+     }
+    }
+   }
+  });
+  window.metroV106InvalidTextureMaps=invalidTextureMaps;
   const byUuid=new Map();root.traverse(o=>byUuid.set(o.uuid,o));
   const leaves=exported.doors.flatMap(car=>car.leaves.map(d=>({...d,object:byUuid.get(d.uuid)})));
   if(leaves.length!==64||leaves.some(d=>!d.object))throw new Error('v106 door leaves missing from imported geometry');
