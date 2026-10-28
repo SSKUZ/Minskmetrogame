@@ -17,7 +17,7 @@ test('all existing cab control actions remain bound to 3D hit targets',()=>{
 test('cab shell and mirrors remain present',()=>{
  assert.match(main,/const cab=new THREE\.Group\(\)/);
  assert.match(main,/const rearMirrors=\[\]/);
- assert.match(main,/const instrumentDeck=new THREE\.Group\(\)/);
+ assert.match(main,/createCabInstrumentDeck\(\{THREE,cab,box,cabShell,cabEdge\}\)/);
 });
 
 test('inspection page loads the real game cab and exposes bounded camera API',()=>{
@@ -36,4 +36,12 @@ test('instrument deck factory retains original measurements and screen creation'
  assert.match(deck,/box\(instrumentDeck,6\.0,\.13,1\.32,0,0,0,cabShell\)/);
  assert.match(deck,/return \{instrumentDeck,cabScreen\}/);
  for(const name of ['leftCabScreen','midCabScreen','rightCabScreen'])assert.ok(main.includes(name));
+});
+
+test('original front and rear cab shell geometry is modular',()=>{
+ const shell=readFileSync(new URL('../js/cab/CabShell.js',import.meta.url),'utf8');
+ assert.match(main,/buildCabFrontShell\(\{cab,box,cabShell,cabEdge,cabRubber\}\)/);
+ assert.match(main,/buildCabRearShell\(\{cab,box,mat,sideInterior,windowFrame,cabMetal\}\)/);
+ assert.match(shell,/box\(cab,6\.8,\.25,2\.3,0,1\.37,3\.55,cabShell\)/);
+ assert.match(shell,/box\(cab,8\.25,\.23,9\.8,0,\.53,4\.5,floorRubber\)/);
 });
