@@ -129,7 +129,7 @@ function animateDetailedV106Doors(dt){
 function ensureDetailedV106(){
  if(detailedV106Train)return Promise.resolve(detailedV106Train);
  if(detailedV106Loading)return detailedV106Loading;
- detailedV106Loading=loadV106Geometry({THREE,scene}).then(root=>{
+ detailedV106Loading=loadV106Geometry({THREE,scene,renderer}).then(root=>{
   detailedV106Train=root;
   window.metroV106GeometryLoaded=true;
   window.metroV106GeometryError=null;
