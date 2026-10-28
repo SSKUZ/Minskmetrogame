@@ -12,7 +12,7 @@ test('v106 formation matches actual reusable train factory',()=>{
 });
 test('all four car transforms are unscaled and outward-ended',()=>{
  const p=V106_FORMATION.map((_,i)=>consistCarPose(i));
- assert.deepEqual(p.map(x=>x.z),[0,20.006,40.012,60.018].map(x=>Number(x.toFixed(3))));
+ assert.deepEqual(p.map(x=>Number(x.z.toFixed(3))),[0,20.006,40.012,60.018]);
  assert.equal(p[3].yaw,Math.PI);
  assert.ok(p.every(x=>x.scale===1));
  assert.throws(()=>consistCarPose(4),RangeError);
