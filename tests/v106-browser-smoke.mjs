@@ -24,6 +24,7 @@ try{
  assert.equal(state.loaded,true,JSON.stringify(state));
  assert.equal(state.metrics.doorLeaves,64);
  assert.equal(state.metrics.warningDecals,64,'all original v106 door warning decals must survive gameplay import');
+ assert.equal(state.metrics.warningTexturesRehomed,1,'warning decal canvas texture must be transferred into gameplay renderer realm');
  assert.ok(state.metrics.rehomedAttributes>1000,'v106 buffers were not transferred to the game THREE realm');
  assert.ok(state.metrics.lightCount>0,'original v106 lighting rig was not imported');
  assert.ok(state.metrics.rehomedEnvironmentMaterials>0,'original studio reflections were not rebuilt in the gameplay WebGL context');
