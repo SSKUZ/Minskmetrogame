@@ -1321,6 +1321,22 @@ if(carCameraActive){
  if(detailedV106Train)detailedV106Train.visible=false;
  renderer.render(scene,carriageCamera);
  cab.visible=true;
+}else if(stationCameraActive&&useExperimentalV106&&detailedV106Train?.visible){
+ // Reproduce the original v106 viewer's four render passes. In particular,
+ // its front surfaces use ACES tone mapping on layers 2/1/3, not the game's
+ // single layer-0 pass. Keep the depth buffer between passes.
+ const originalTone=renderer.toneMapping,originalExposure=renderer.toneMappingExposure;
+ const originalAutoClear=renderer.autoClear,originalMask=stationCamera.layers.mask;
+ renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
+ stationCamera.layers.set(0);renderer.render(scene,stationCamera);
+ renderer.autoClear=false;
+ for(const layer of [2,1,3]){
+  stationCamera.layers.set(layer);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+  renderer.render(scene,stationCamera);
+ }
+ stationCamera.layers.mask=originalMask;renderer.autoClear=originalAutoClear;
+ renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
 window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
