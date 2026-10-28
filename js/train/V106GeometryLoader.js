@@ -50,10 +50,8 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   const lighting=new THREE.Group();
   lighting.name='v106-original-viewer-lighting';
   for(const light of source.lighting)lighting.add(light);
-  scene.add(lighting);
   Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
-  scene.add(root);
   const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length};
   root.traverse(o=>{if(o.isMesh){metrics.meshCount++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
   // Inspect the actual in-memory source assets before the first game render.
@@ -85,6 +83,10 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   // reject an otherwise complete train before the game renderer tries it.
   window.metroV106InvalidTextureMaps=metrics.invalidTextures;
   window.metroV106Metrics=metrics;
+  // Commit to the game scene only after the source passes integrity checks.
+  // Failed loads must not leave orphaned lights or partial train geometry.
+  scene.add(lighting);
+  scene.add(root);
   // Keep the source document alive: its canvas-backed textures and PMREM
   // resources may be invalidated when navigating the iframe to about:blank.
   // The viewer animation loop is disabled in gameExport mode.
