@@ -40,6 +40,40 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   })));
   if(leaves.length!==64||leaves.some(d=>!d.object||!root.getObjectById(d.object.id)))throw new Error('v106 live door leaves missing from source scene graph');
   Object.defineProperty(root,'v106DoorActuators',{value:leaves,configurable:true});
+  // Objects created inside the iframe belong to a different JavaScript realm.
+  // Three's WebGLAttributes uses instanceof checks for typed arrays, so passing
+  // the iframe's BufferAttributes directly to the game renderer makes valid
+  // geometry fail as "Unsupported buffer data format". Re-home every geometry
+  // attribute/index into this window while keeping the exact numeric mesh data.
+  let rehomedAttributes=0;
+  const rehomeAttribute=attribute=>{
+   if(!attribute)return attribute;
+   if(attribute.isInterleavedBufferAttribute){
+    const data=attribute.data,array=new data.array.constructor(data.array);
+    const localArray=new array.constructor(array);
+    const localData=new THREE.InterleavedBuffer(localArray,data.stride);
+    localData.setUsage?.(data.usage);
+    const local=new THREE.InterleavedBufferAttribute(localData,attribute.itemSize,attribute.offset,attribute.normalized);
+    local.name=attribute.name||'';
+    rehomedAttributes++;
+    return local;
+   }
+   const sourceArray=attribute.array;
+   if(!sourceArray)return attribute;
+   const LocalArray=globalThis[sourceArray.constructor?.name];
+   if(typeof LocalArray!=='function')throw new Error('v106 unsupported attribute array '+sourceArray.constructor?.name);
+   const local=new THREE.BufferAttribute(new LocalArray(sourceArray),attribute.itemSize,attribute.normalized);
+   local.name=attribute.name||'';
+   local.setUsage?.(attribute.usage);
+   rehomedAttributes++;
+   return local;
+  };
+  root.traverse(object=>{
+   const geometry=object.geometry;
+   if(!object.isMesh||!geometry?.isBufferGeometry)return;
+   for(const name of Object.keys(geometry.attributes))geometry.setAttribute(name,rehomeAttribute(geometry.getAttribute(name)));
+   if(geometry.index)geometry.setIndex(rehomeAttribute(geometry.index));
+  });
   window.metroV106InvalidTextureMaps=0;
   root.name='game-v106-four-car-consist';
   // Preserve the exact four original viewer layers. The game renders the
@@ -52,7 +86,7 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   for(const light of source.lighting)lighting.add(light);
   Object.defineProperty(root,'v106Lighting',{value:lighting,configurable:true});
   root.visible=false;
-  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length};
+  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length,rehomedAttributes};
   root.traverse(o=>{if(o.isMesh){metrics.meshCount++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
   // Inspect the actual in-memory source assets before the first game render.
   // Report broken resources rather than silently removing their maps.
