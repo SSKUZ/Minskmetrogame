@@ -1476,7 +1476,12 @@ const controlStyle=document.createElement('style');controlStyle.textContent='#co
 if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);else setCamera(formationMode==='train'?'train-angle':formationMode==='intermediate'?'intermediate-angle':'outside');
-document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
+document.getElementById('status').textContent='3D загружено';// Export the original batched v106 geometry to the running game, not a redraw.
+window.wagonExportConsist=()=>{
+ if(!consist?.root||consist.cars.length!==4)throw new Error('v106 consist unavailable');
+ return consist.root.toJSON();
+};
+window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
 // Construct before the first frame; a texture error must fail browser checks.
 window.wagonWarningDecals=activeCars.reduce((n,car)=>{car.root.traverse(o=>{if(o.userData.warningDecal)n++});return n},0);
