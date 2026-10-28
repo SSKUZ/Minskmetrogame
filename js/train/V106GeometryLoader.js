@@ -49,9 +49,10 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   const rehomeAttribute=attribute=>{
    if(!attribute)return attribute;
    if(attribute.isInterleavedBufferAttribute){
-    const data=attribute.data,array=new data.array.constructor(data.array);
-    const localArray=new array.constructor(array);
-    const localData=new THREE.InterleavedBuffer(localArray,data.stride);
+    const data=attribute.data;
+    const LocalArray=globalThis[data.array.constructor?.name];
+    if(typeof LocalArray!=='function')throw new Error('v106 unsupported interleaved array '+data.array.constructor?.name);
+    const localData=new THREE.InterleavedBuffer(new LocalArray(data.array),data.stride);
     localData.setUsage?.(data.usage);
     const local=new THREE.InterleavedBufferAttribute(localData,attribute.itemSize,attribute.offset,attribute.normalized);
     local.name=attribute.name||'';
@@ -72,6 +73,8 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
    const geometry=object.geometry;
    if(!object.isMesh||!geometry?.isBufferGeometry)return;
    for(const name of Object.keys(geometry.attributes))geometry.setAttribute(name,rehomeAttribute(geometry.getAttribute(name)));
+   for(const [name,attributes] of Object.entries(geometry.morphAttributes||{}))
+    geometry.morphAttributes[name]=attributes.map(rehomeAttribute);
    if(geometry.index)geometry.setIndex(rehomeAttribute(geometry.index));
   });
   window.metroV106InvalidTextureMaps=0;
