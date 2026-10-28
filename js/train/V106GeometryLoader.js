@@ -2,6 +2,7 @@
 // THREE.Scene. No approximated meshes are constructed here.
 export async function loadV106Geometry({THREE,scene,timeoutMs=30000}){
  if(!THREE?.ObjectLoader||!scene?.add)throw new TypeError('THREE and scene required');
+ const startedAt=performance.now();
  const frame=document.createElement('iframe');
  frame.setAttribute('aria-hidden','true');
  frame.tabIndex=-1;
@@ -30,7 +31,9 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=30000}){
   const byUuid=new Map();root.traverse(o=>byUuid.set(o.uuid,o));
   const leaves=exported.doors.flatMap(car=>car.leaves.map(d=>({...d,object:byUuid.get(d.uuid)})));
   if(leaves.length!==64||leaves.some(d=>!d.object))throw new Error('v106 door leaves missing from imported geometry');
-  root.userData.doorActuators=leaves;
+  // Keep live Object3D references outside userData to avoid circular JSON
+  // serialization and costly recursive inspection by debugging tools.
+  Object.defineProperty(root,'v106DoorActuators',{value:leaves,configurable:true});
   root.name='game-v106-four-car-consist';
   root.traverse(object=>{
    // The standalone viewer uses four special camera/render layers.
@@ -39,6 +42,9 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=30000}){
   });
   root.visible=false;
   scene.add(root);
+  const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length};
+  root.traverse(o=>{if(o.isMesh){metrics.meshCount++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
+  window.metroV106Metrics=metrics;
   return root;
  }finally{
   frame.src='about:blank';
