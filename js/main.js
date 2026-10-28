@@ -119,7 +119,7 @@ const useExperimentalV106=v106Query==='1'||(v106Query!=='0'&&new URLSearchParams
 let detailedV106Train=null;
 let detailedV106Loading=null;
 let detailedV106DoorProgress=0;
-const V106_PLATFORM_GAP=.025;
+const V106_PLATFORM_GAP=.010;
 const V106_WHEEL_CONTACT_X=.90;
 // Source v106 threshold: sideBox(.17,.025,doorWidth,side*(half-.082),...).
 // Measure its OUTER face (centre minus half the .17m thickness), not its centre.
@@ -157,7 +157,7 @@ function ensureDetailedV106(){
   detailedV106ThresholdCount=platformSideThresholds.length;
   detailedV106ThresholdMinX=Math.min(...platformSideThresholds);
   // Keep the consist on the rail centreline: the platform, not the train,
-  // moves sideways to achieve 25mm clearance.
+  // moves sideways to achieve 10mm clearance.
   detailedV106TrackX=0;
   window.metroV106GeometryLoaded=true;
   window.metroV106GeometryError=null;
