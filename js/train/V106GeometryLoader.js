@@ -54,6 +54,26 @@ export async function loadV106Geometry({THREE,scene,timeoutMs=90000}){
   scene.add(root);
   const metrics={loadMs:Math.round(performance.now()-startedAt),meshCount:0,triangles:0,doorLeaves:leaves.length};
   root.traverse(o=>{if(o.isMesh){metrics.meshCount++;const g=o.geometry;if(g)metrics.triangles+=g.index?g.index.count/3:(g.attributes.position?.count||0)/3;}});
+  // Inspect the actual in-memory source assets before the first game render.
+  // Report broken resources rather than silently removing their maps.
+  const textures=new Set();let physicalMaterials=0,missingImages=0;
+  root.traverse(object=>{
+   if(!object.isMesh)return;
+   for(const material of (Array.isArray(object.material)?object.material:[object.material])){
+    if(!material)continue;
+    if(material.isMeshPhysicalMaterial)physicalMaterials++;
+    for(const key of ['map','alphaMap','normalMap','roughnessMap','metalnessMap','emissiveMap','envMap']){
+     const texture=material[key];
+     if(!texture?.isTexture)continue;
+     textures.add(texture);
+     if(!texture.image&&!texture.source?.data)missingImages++;
+    }
+   }
+  });
+  metrics.textureCount=textures.size;
+  metrics.physicalMaterialUses=physicalMaterials;
+  metrics.missingTextureImages=missingImages;
+  if(missingImages)console.warn('v106: some original texture sources are unavailable',missingImages);
   window.metroV106Metrics=metrics;
   // Keep the source document alive: its canvas-backed textures and PMREM
   // resources may be invalidated when navigating the iframe to about:blank.
