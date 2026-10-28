@@ -65,3 +65,16 @@ test('v106 car transforms follow the train position with original geometry scale
  assert.equal(calls.length,4);
  assert.ok(calls.every(c=>c.open===true));
 });
+
+test('original v106 meshes are exported and rendered in gameplay scene',()=>{
+ const viewer=readFileSync(new URL('../preview/wagon.html',import.meta.url),'utf8');
+ const loader=readFileSync(new URL('../js/train/V106GeometryLoader.js',import.meta.url),'utf8');
+ const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
+ assert.match(viewer,/wagonExportConsist/);
+ assert.match(viewer,/consist\.root\.toJSON\(\)/);
+ assert.match(loader,/new THREE\.ObjectLoader\(\)\.parse\(serialized\)/);
+ assert.match(loader,/scene\.add\(root\)/);
+ assert.match(main,/ensureDetailedV106\(\)/);
+ assert.match(main,/detailedV106Train\.visible=true/);
+ assert.match(main,/stationTrain\.visible=false/);
+});
