@@ -33,12 +33,12 @@ try{
  // The detailed model's first car is centered half a car behind the front anchor.
  assert.ok(Math.abs(state.trainPosition[2]-(state.trainAnchorZ+19.206/2))<.001,'incorrect v106 longitudinal placement');
  assert.ok(Math.abs(state.platformGap-state.targetPlatformGap)<.001,'v106 platform clearance is not calibrated: '+JSON.stringify(state));
- assert.ok(state.platformGap>=.02&&state.platformGap<=.03,'v106 doorway/body edge must remain 2-3 cm from platform: '+state.platformGap);
+ assert.ok(state.platformGap>=.008&&state.platformGap<=.012,'v106 doorway/body edge must remain about 1 cm from platform: '+state.platformGap);
  assert.equal(state.measuredThresholdCount,16,'platform gap must be measured from all 16 real door-threshold meshes');
  assert.ok(Math.abs(state.trainPosition[0]-state.railCentreX)<.001,'v106 bogies are displaced sideways from the rails: '+JSON.stringify(state));
  assert.deepEqual(state.railPositions,[-.9,.9],'station rails must use v106 wheel-contact centres');
  assert.ok(state.wheelContactPositions.every((x,i)=>Math.abs(x-state.railPositions[i])<.001),'v106 wheel contacts do not sit on rail centres: '+JSON.stringify(state));
- assert.ok(Math.abs(state.platformEdgeX-(-1.363))<.001,'island slab edge is not aligned with the original 81-717 threshold: '+state.platformEdgeX);
+ assert.ok(Math.abs(state.platformEdgeX-(-1.348))<.001,'island slab edge is not aligned with the original 81-717 threshold: '+state.platformEdgeX);
  assert.ok(Math.abs(state.trainPosition[1]-state.platformPosition[1])<.001,'v106 and platform elevation differ');
  await page.screenshot({path:'test-results/v106/station-closed.png'});
  // Also capture the full desktop camera framing; mobile-only images can hide clipping.
