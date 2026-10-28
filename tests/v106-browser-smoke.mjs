@@ -23,6 +23,9 @@ try{
  assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
  assert.equal(state.loaded,true,JSON.stringify(state));
  assert.equal(state.metrics.doorLeaves,64);
+ assert.ok(state.metrics.rehomedAttributes>1000,'v106 buffers were not transferred to the game THREE realm');
+ assert.ok(state.metrics.lightCount>0,'original v106 lighting rig was not imported');
+ assert.ok(state.metrics.rehomedEnvironmentMaterials>0,'original studio reflections were not rebuilt in the gameplay WebGL context');
  assert.ok(state.metrics.meshCount>0);
  assert.ok(state.metrics.triangles>0);
  assert.equal(state.stationCameraActive,true);
