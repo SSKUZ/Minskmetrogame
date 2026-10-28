@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v95</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v95: безопасная загрузка 3D, наклейки и жёлтые пороги.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+<title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Головной вагон 81-717 · v96</b><br>Кузов 19,206 × 2,670 м · 4 двери на сторону · 8 проёмов всего<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v96: наклейки возле дверей и окраска существующих порогов.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
@@ -256,9 +256,9 @@ function addDoorCautions(side,dz){
  // Two stickers flank each passenger doorway on both train sides.
  // Position: low on the blue corrugated waist, below the white belt.
  for(const direction of [-1,1]){
-  const z=dz+direction*(doorWidth/2+.34),y=F+.45;
-  const x=side*(sideWallBase+.026);
-  const decal=sidePanel(.29,.205,.002,x,y,z,doorCautionMaterial);
+  const z=dz+direction*(doorWidth/2+.20),y=F+.47;
+  const x=side*(half+.035);
+  const decal=sidePanel(.38,.265,.002,x,y,z,doorCautionMaterial);
   decal.name='passenger-door-caution';
   decal.renderOrder=9;decal.userData.warningDecal=true;
  }
@@ -274,10 +274,8 @@ function buildPassengerDoors(side,dz){
   sideBox(.025,doorHeight,.027,side*(sideWallBase-.007),F+doorHeight/2,z,sideRubber);
   sideBox(.012,doorHeight,.025,side*(sideWallInner-.006),F+doorHeight/2,z,sideSteel);
  }
- sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,sideSteel);
- // Visible yellow safety-painted threshold along the whole doorway.
- sideBox(.075,.043,doorWidth,side*(half-.037),F+.016,dz,new T.MeshStandardMaterial({color:0xf4c400,roughness:.54,metalness:.12}));
- sideBox(.12,.009,doorWidth,side*(half-.034),F+.040,dz,new T.MeshStandardMaterial({color:0xf4c400,roughness:.54,metalness:.12}));
+ // Paint the existing metal threshold, without adding yellow overlay plates.
+ sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
  sideBox(.15,.16,doorWidth+.12,side*(half-.21),F+doorHeight+.04,dz,sideLining);
  const surround=roundedShape(doorWidth+.09,doorHeight+.07,.12),opening=new T.Path(),points=roundedShape(doorWidth,doorHeight,.105).getPoints(20);
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(i===points.length-1)opening.moveTo(p.x,p.y);else opening.lineTo(p.x,p.y)}
@@ -290,7 +288,16 @@ function buildPassengerDoors(side,dz){
   const outline=doorOutline(leafW,leafH,.10,halfDoor===-1),hole=new T.Path(),pts=roundedShape(glassW,glassH,.085).getPoints(20),shift=glassY-midY;
   for(let i=pts.length-1;i>=0;i--){const p=pts[i];if(i===pts.length-1)hole.moveTo(p.x,p.y+shift);else hole.lineTo(p.x,p.y+shift)}
   hole.closePath();outline.holes.push(hole);
-  const shell=new T.Mesh(new T.ExtrudeGeometry(outline,{depth:.032,bevelEnabled:false,curveSegments:20}),sidePaint);
+  // The original door metal is painted yellow at its bottom edge, not covered.
+  const paintedDoor=sidePaint.clone();
+  paintedDoor.onBeforeCompile=shader=>{
+   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\n varying float vDoorY;');
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n vDoorY=position.y;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\n varying float vDoorY;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n if(vDoorY < '+(-leafH/2+.15).toFixed(5)+') diffuseColor.rgb=vec3(0.956,0.769,0.0);');
+  };
+  paintedDoor.customProgramCacheKey=()=> 'painted-original-door-bottom-v96';
+  const shell=new T.Mesh(new T.ExtrudeGeometry(outline,{depth:.032,bevelEnabled:false,curveSegments:20}),paintedDoor);
   shell.rotation.y=Math.PI/2;shell.position.x=-.016;leaf.add(shell);passenger(shell);
   const innerSkin=new T.Mesh(new T.ShapeGeometry(outline,20),doorInnerLining);innerSkin.rotation.y=Math.PI/2;innerSkin.position.x=-side*.018;leaf.add(innerSkin);passenger(innerSkin);
   const pane=new T.Mesh(new T.ShapeGeometry(roundedShape(glassW-.018,glassH-.018,.079),16),sideGlass);
@@ -1046,7 +1053,7 @@ for(const z of [-6.50,6.50]){
 }
 const grid=new T.GridHelper(28,28,0x607080,0x394655);grid.position.y=.005;scene.add(grid);
 // Camera height is measured from the passenger floor F, not world origin.
-const modelVersion=95,lightingPreset='station-softboxes-v2';
+const modelVersion=96,lightingPreset='station-softboxes-v2';
 const cameraPresets={
  reference:{position:[3.85,2.25,-25.80],target:[.08,2.13,-9.50],fov:11.8},
  front:{position:[0,2.22,-17.75],target:[0,2.22,cabFront],fov:30},
