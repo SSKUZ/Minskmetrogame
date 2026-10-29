@@ -762,6 +762,17 @@ for(const z of [saloonStart+.06,saloonEnd-.06]){
  for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
 }
 
+// End bulkheads: layered lining, central service-door surround, kick plate and compact latch hardware.
+for(const z of [saloonStart+.075,saloonEnd-.075]){
+ fixtureBox(1.56,1.88,.028,0,F+1.08,z,sideLining);
+ fixtureBox(1.28,1.66,.032,0,F+1.08,z+(z<0?.010:-.010),saloonPaper);
+ for(const x of [-.66,.66])fixtureBox(.035,1.78,.040,x,F+1.08,z,saloonTrim);
+ fixtureBox(1.38,.045,.040,0,F+1.94,z,saloonTrim);
+ fixtureBox(1.30,.13,.045,0,F+.18,z,saloonTrim);
+ fixtureBox(.060,.22,.055,.52,F+1.05,z,saloonDark);
+ fixtureBox(.070,.055,.060,.52,F+1.13,z,saloonTrim);
+}
+// Door and window information equipment stays sparse and mechanically mounted.
 // Layered vestibule signage and emergency hardware, kept shallow so nothing intrudes into passenger clearance.
 for(const side of [-1,1])for(const z of doors){
  const panelZ=z+doorWidth/2+.23;
