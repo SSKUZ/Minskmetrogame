@@ -695,6 +695,32 @@ for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
  detailBox(.30,.025,.16,0,3.285,z,saloonDark);
  for(const x of [-.09,-.03,.03,.09])detailBox(.018,.006,.10,x,3.268,z,sideRubber);
 }
+// Passenger-facing route strips above the windows and compact equipment
+// covers near the door bays. Their shallow depth keeps the approved aisle.
+for(const side of [-1,1]){
+ for(const z of [-4.10,.65,5.08]){
+  detailBox(.020,.145,.92,side*(sideWallInner-.042),F+2.28,z,saloonDark);
+  detailBox(.022,.112,.87,side*(sideWallInner-.055),F+2.28,z,saloonPaper);
+  for(let i=0;i<6;i++){
+   const marker=i%2?saloonNoticeBlue:saloonNoticeRed;
+   detailBox(.024,.034,.060,side*(sideWallInner-.068),F+2.28,z-.31+i*.124,marker);
+  }
+ }
+ for(const z of doors){
+  detailBox(.055,.43,.28,side*(sideWallInner-.030),F+1.90,z-doorWidth/2-.19,sideLining);
+  detailBox(.058,.085,.20,side*(sideWallInner-.046),F+2.035,z-doorWidth/2-.19,saloonNoticeBlue);
+  detailBox(.058,.18,.20,side*(sideWallInner-.046),F+1.865,z-doorWidth/2-.19,saloonPaper);
+ }
+}
+// Seat-number/service plaques and small lower-wall access panels add scale
+// cues that remain visible from the gameplay saloon camera.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const z=(a+b)/2;
+ detailBox(.025,.105,.26,side*(sideWallInner-.045),F+1.28,z,saloonDark);
+ detailBox(.027,.075,.22,side*(sideWallInner-.058),F+1.28,z,saloonPaper);
+ detailBox(.020,.24,.34,side*(sideWallInner-.035),F+.34,a+.20,sideLining);
+ detailBox(.022,.018,.25,side*(sideWallInner-.050),F+.40,a+.20,saloonDark);
+}
 
 // Front fascia based on the supplied 81-717 reference.
 const frontMeshStart=group.children.length;
