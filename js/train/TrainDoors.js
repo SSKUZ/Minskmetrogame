@@ -11,6 +11,9 @@ function slideDoors(leaves,open,dt,openingOffset,baseOffset=0){
   d.leaf.position.z=(d.doorZ??d.leafZ)+d.half*(baseOffset+openingOffset*eased);
  }
 }
-export function animateDoorLeaves(leaves,open,dt){slideDoors(leaves,open,dt,1.03,.53)}
+export function animateDoorLeaves(leaves,open,dt){
+ slideDoors(leaves,open,dt,1.03,.53);
+ for(const d of leaves)if(d.portalBacking)d.portalBacking.visible=(doorProgress.get(d.leaf)||0)<.02;
+}
 export function animateCarriageDoors(leaves,open,dt){slideDoors(leaves,open,dt,.92)}
 export function canOpenDoors(speed,dist){return speed<1.5&&Math.abs(dist)<32}

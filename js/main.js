@@ -135,9 +135,10 @@ for(let car=0;car<5;car++){
   for(const dz of [-5.25,5.25]){
    const doorZ=cz+dz;
    // Dark interior beyond the doorway, recessed inside the carriage.
-   box(stationTrain,.08,2.12,2.18,side*1.95,2.15,doorZ,extDark);
+   const portalBacking=box(stationTrain,.08,2.12,2.18,side*1.95,2.15,doorZ,extDark);
+   portalBacking.name='PassengerPortalBacking';
    for(const half of [-1,1]){
-    const leaf=new THREE.Group();stationTrain.add(leaf);
+    const leaf=new THREE.Group();leaf.name='PassengerExteriorDoorLeaf';stationTrain.add(leaf);
     leaf.position.set(side*2.19,2.15,doorZ+half*.53);
     // Door shell with softly rounded perimeter and flush glass aperture.
  // Door skin built around a genuine window opening, not a solid plate.
@@ -151,7 +152,7 @@ for(let car=0;car<5;car++){
     box(leaf,.028,.11,.92,side*.040,-.03,0,extWhite);
     // No opaque black backing behind the door glass either.
     roundedTrainPanel(leaf,.61,.70,.13,.008,side*.030,.34,0,extGlass,side*Math.PI/2);
-    stationDoorLeaves.push({leaf,half,doorZ});
+    stationDoorLeaves.push({leaf,half,doorZ,portalBacking});
    }
   }
  }

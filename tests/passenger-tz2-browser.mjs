@@ -34,7 +34,8 @@ try{
  assert.ok(report.carriage.grips.length,'real scene must contain a physically supported standing passenger');
  assert.ok(report.carriage.grips.every(g=>g.error<.005));
  const grip=report.carriage.grips[0],agent=report.carriage.agents.find(a=>a.id===grip.id);
- await p.evaluate(id=>window.metroPassengerInspector.focus(id,2.5),agent.id);
+ const insideStandingView=()=>p.evaluate(id=>{const i=window.metroPassengerInspector,a=i.system.simulation.agents.find(a=>a.id===id),pos=i.system.worldPosition(a);i.view([.30,pos.y+1.4,pos.z+2.3],[pos.x,pos.y+1.0,pos.z],52);},agent.id);
+ await insideStandingView();
  await shot('05-standing');
  const [x,y,z]=grip.point;
  const side=grip.side==='Right'?-1:1;
@@ -52,7 +53,7 @@ try{
  await p.locator('#carCameraToggle').click();await p.setViewportSize({width:412,height:915});await shot('10-mobile');
  await p.setViewportSize(desktop);await p.locator('#carCameraToggle').click();
  // Drive through the existing physical controller. No fake acceleration input.
- await p.evaluate(id=>{const i=window.metroPassengerInspector;i.train({doors:false,speed:20,dist:-70});i.focus(id,2.6);},agent.id);
+ await p.evaluate(()=>window.metroPassengerInspector.train({doors:false,speed:20,dist:-70}));await insideStandingView();
  await p.keyboard.press('Digit5');await p.locator('#carCameraToggle').click();
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.acceleration>.5);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('11-acceleration');

@@ -15,4 +15,14 @@ test('doors open and close progressively in 1.55 seconds',()=>{
  assert.equal(canOpenDoors(0,0),true);assert.equal(canOpenDoors(3,0),false);
 });
 test('passenger movement',()=>{assert.equal(nearestDoor(-3,[-10,0,10]),0);assert.equal(smoothProgress(-1,4),0);assert.equal(smoothProgress(6,4),1);assert.ok(Math.abs(facingDirection(0,-1))<1e-12);assert.ok(Math.abs(shortestTurn(3,-3))<1)});
+test('exterior doorway backing is hidden while leaves open and restored only when closed',()=>{
+ const portalBacking={visible:true},leaves=[-1,1].map(half=>({leaf:{position:{z:10+half*.53}},doorZ:10,half,portalBacking}));
+ animateDoorLeaves(leaves,false,0);assert.equal(portalBacking.visible,true);
+ animateDoorLeaves(leaves,true,.1);assert.equal(portalBacking.visible,false);
+ for(let i=0;i<16;i++)animateDoorLeaves(leaves,true,.1);
+ assert.equal(portalBacking.visible,false);assert.ok(leaves.every(d=>Math.abs(d.leaf.position.z-10)>1.55));
+ animateDoorLeaves(leaves,false,.1);assert.equal(portalBacking.visible,false,'no opaque panel behind partially closing leaves');
+ for(let i=0;i<16;i++)animateDoorLeaves(leaves,false,.1);
+ assert.equal(portalBacking.visible,true);assert.equal(leaves[0].leaf.position.z,9.47);
+});
 test('game state snapshot',()=>{const s=gameSnapshot({speed:0,doors:true,dist:0,index:0,playing:true,camera:'cab'});assert.equal(s.train.doorsOpen,true);assert.equal(s.station.stopped,true);assert.ok(Object.isFrozen(s.train))});

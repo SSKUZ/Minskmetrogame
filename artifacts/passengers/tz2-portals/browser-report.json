@@ -1,0 +1,23 @@
+{
+  "closed": {
+    "count": 20,
+    "leaves": 40,
+    "visible": 20,
+    "aperture": 2.1557728633498186e-16
+  },
+  "open": {
+    "count": 20,
+    "leaves": 40,
+    "visible": 0,
+    "aperture": 1
+  },
+  "reclosed": {
+    "count": 20,
+    "leaves": 40,
+    "visible": 20,
+    "aperture": 2.1557728633498186e-16
+  },
+  "passed": true,
+  "errors": [],
+  "requests": []
+}

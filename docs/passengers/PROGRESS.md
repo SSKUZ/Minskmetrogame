@@ -156,3 +156,17 @@ published as `f8a953ccdc31649a957a055b68b3710465e5e368`.
   no duplicate reopening events. Seed 717 maximum 148.17 s; regression deadline
   tightened from 300 to 150 s. This is not yet a realistic short metro dwell.
 - Full current details and remaining browser/mobile acceptance: RESUME-20261029.md.
+
+### Browser review and exterior portals
+
+Extended run on `b927be1` passed functional assertions and eight station/GC cycles.
+Heap stayed between 58.26 and 60.36 MB; journal/counting sets stayed at 512,
+shared textures at 47. The 960×600 SwiftShader sample (0.172 FPS) is not mobile
+acceptance or a comparable FPS improvement measurement.
+
+Visual review rejected the black braking image: the inspection camera was outside
+the carriage. An inside-camera retake with a pixel check is being recorded.
+The other finding, opaque backing behind open exterior doors, is fixed through
+visibility tied to actual leaf progress, preserving geometry and dimensions.
+The targeted closed/open/reclosed browser test passed for all 20 portals / 40 leaves.
+`npm run check` after the portal fix: 51/51. No branches have been merged.
