@@ -12,6 +12,9 @@ try{
  await p.evaluate(()=>window.metroPassengerInspector.pause());
  report.initial=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
  assert.equal(report.initial.modelsLoaded,24);assert.deepEqual(report.initial.errors,[]);
+ assert.equal(report.initial.platform,50);assert.equal(report.initial.service.cars,4);assert.equal(report.initial.service.normal,true);
+ const expectedBoardings=report.initial.agents.filter(a=>a.space==='platform'&&a.wantsBoard).length;
+ const expectedAlightings=report.initial.agents.filter(a=>a.space==='train'&&a.destination<=report.initial.station).length;
  console.log('24 textured model variants loaded');
  await p.evaluate(()=>window.metroPassengerInspector.focus(4,2.7));
  await p.screenshot({path:output+'/portrait.png',timeout:120000});
@@ -23,11 +26,14 @@ try{
  assert.ok(report.boarding.events.some(e=>e.kind==='alight'));
  await p.screenshot({path:output+'/exchange.png',timeout:120000});
  console.log('Actual door exchange captured',report.boarding.events.length);
- await p.evaluate(()=>window.metroPassengerInspector.step(112));
+ // Functional rendering check on the unmodified eight-door temporary stand.
+ // The 30 s primary timing contract is tested separately on 4x4 door anchors.
+ report.temporaryStandDwell=await p.evaluate(()=>{const i=window.metroPassengerInspector;let elapsed=8;while(elapsed<90&&!i.snapshot().passengerExchangeComplete){i.step(1);elapsed++;}return elapsed;});
  report.completed=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
  assert.ok(report.completed.doors.every(q=>!q.waiting&&!q.exiting));
- assert.equal(report.completed.events.filter(e=>e.kind==='alight').length,8);
- assert.equal(report.completed.events.filter(e=>e.kind==='board').length,51);
+ assert.equal(report.completed.events.filter(e=>e.kind==='alight').length,expectedAlightings);
+ assert.equal(report.completed.events.filter(e=>e.kind==='board').length,expectedBoardings);
+ assert.equal(report.completed.passengerExchangeComplete,true);assert.equal(report.completed.doorsSafeToClose,true);
  assert.equal(new Set(report.completed.events.map(e=>e.kind+':'+e.id)).size,report.completed.events.length);
  await p.evaluate(()=>window.metroPassengerInspector.resetView());
  await p.locator('#carCameraToggle').click();

@@ -3,6 +3,7 @@ import {platformPath as layoutPath} from './PassengerNavigation.js';
 import {beginSitting,beginStanding,seatApproach} from './PassengerSeating.js';
 import {reservePassengerSeat,familyCompanions} from './PassengerPlaces.js';
 import {choosePlatformDoors,chooseExitDoors} from './PassengerDoorChoice.js';
+import {passengerDoorObstructions} from './PassengerDoorZones.js';
 
 function departurePath(a,layout){
  const platformPath=(from,to,radius)=>layoutPath(from,to,radius,layout),PLATFORM=layout.platform;
@@ -12,7 +13,7 @@ function departurePath(a,layout){
 }
 
 export class PassengerBoardingController{
- constructor(layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.layout=layout;this.normal=normal;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];}
+ constructor(layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.layout=layout;this.normal=normal;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];this.resetCompletion();}
  clearPlatformLanes(agents,dist){
   const DOORS=this.layout.doors,platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
   // People who are not boarding make room for the doorway and alighting lane.
@@ -36,8 +37,25 @@ export class PassengerBoardingController{
     const a=agents.find(a=>a.id===id);a.state='queueing';a.activity='wait';
     const edge=q.edge;
     a.queuePoint={x:q.queueX-(edge?rank%2:Math.floor(rank/2)%2)*.72,z:q.z+dist+(edge?-1:rank%2?1:-1)*(1.28+Math.floor(rank/(edge?2:4))*.76)};
+    if(this.normal){a.doorReady=false;a.queueSide=rank%2?1:-1;const laneRank=Math.floor(rank/2);a.queuePoint={x:q.queueX-Math.min(laneRank,2)*.35,z:q.z+dist+a.queueSide*(1.28+laneRank*.65)};}
     a.path=platformPath(a,a.queuePoint,a.radius);
    });
+   for(const id of q.exit)this.scheduledExit.add(id);
+   for(const id of q.enter)this.scheduledBoard.add(id);
+  }
+ }
+ advanceQueue(q,byId,dist){
+  if(!this.normal||q.exit.length)return;
+  const ranks={[-1]:0,[1]:0};
+  const active=byId.get(q.active),front=q.enter.find(id=>id!==q.active);
+  for(const id of q.enter){
+   const a=byId.get(id);if(!a||id===q.active||!['queueing','queued'].includes(a.state))continue;
+   if(id===front&&active?.state==='boarding'&&active.x>q.thresholdX-.55)a.doorReady=true;
+   const side=a.queueSide??1,rank=ranks[side],point=a.doorReady?{x:q.approachX,z:q.z+dist}:{x:q.queueX-Math.min(rank,2)*.35,z:q.z+dist+side*(1.28+rank*.65)};
+   if(!a.doorReady)ranks[side]++;
+   if(!a.queuePoint||Math.hypot(point.x-a.queuePoint.x,point.z-a.queuePoint.z)>.01){
+    a.queuePoint=point;a.state='queueing';a.path=layoutPath(a,point,a.radius,this.layout);
+   }
   }
  }
  stageAlighters(q,byId){
@@ -51,6 +69,22 @@ export class PassengerBoardingController{
    // Until their turn, they may only approach a waiting place INSIDE the train.
    if(a.state==='seated'){beginStanding(a);continue;}
    if(['seatTurning','sittingDown','standingUp','seatStabilizing','returning'].includes(a.state))continue;
+   if(this.normal){
+    // With closely spaced doors, invented side-queue points from adjacent
+    // doorways overlap. Finish rising at the passenger's own place and wait
+    // there until this door releases them; all doors still act concurrently.
+    const active=byId.get(q.active),next=q.exit.find(id=>id!==q.active);
+    if(a.exitQueuePoint?.preparedDoor===q.id)continue;
+    const activeClearedAisle=active?.state==='alighting'&&!active.path.some(p=>Math.abs(p.x-TRAIN.aisleX)<.01&&Math.abs(p.z-q.z)<.01);
+    if(a.id===next&&activeClearedAisle&&active.x<TRAIN.aisleX-.65){
+     const point={x:TRAIN.aisleX,z:q.z,preparedDoor:q.id};
+     a.state='exitApproaching';a.activity='wait';a.seat=null;a.railGrip=null;a.exitQueuePoint=point;a.path=[point];
+    }else if(a.state!=='exitQueued'){
+     a.state='exitQueued';a.activity='wait';a.path=[];a.seat=null;a.reservedSeat=null;a.railGrip=null;a.assignedRailId=null;
+     a.targetHeading=Math.atan2(TRAIN.aisleX-a.x,q.z-a.z);
+    }
+    continue;
+   }
    if(!['exitApproaching','exitQueued'].includes(a.state)||!a.exitQueuePoint||Math.abs(a.exitQueuePoint.z-point.z)>.01){
     a.state='exitApproaching';a.activity='wait';a.seat=null;a.reservedSeat=null;
     a.railGrip=null;a.assignedRailId=null;a.exitQueuePoint=point;
@@ -76,6 +110,7 @@ export class PassengerBoardingController{
     return ready(a)-ready(b)||Math.hypot(a.x-TRAIN.aisleX,a.z-q.z)-Math.hypot(b.x-TRAIN.aisleX,b.z-q.z)||a.id-b.id;
    });
    if(this.opened&&stopped&&doorsOpen)this.stageAlighters(q,byId);
+   if(this.opened&&stopped&&doorsOpen)this.advanceQueue(q,byId,dist);
    let active=byId.get(q.active);
    if(active&&!['boarding','alighting','returning'].includes(active.state)){q.active=null;active=null;}
    if(!stopped||!doorsOpen){
@@ -131,6 +166,7 @@ export class PassengerBoardingController{
    a.space='platform';a.z+=dist;for(const p of a.path)p.z+=dist;
    if(!a.exitCounted){a.exitCounted=true;this.events.push({kind:'alight',id:a.id,door:q.id,station,x:a.x});}
   }
+  if(this.normal&&a.state==='boarding'&&a.space==='train'&&a.x>q.thresholdX+(a.safetyRadius??a.radius+.18)+.20)a.path=[];
   // Once the whole body has cleared the sill, continue leaving independently.
   // The next alighter need not wait for a walk across the whole platform bay.
   if(a.state==='alighting'&&a.space==='platform'&&a.x<q.thresholdX-.70){
@@ -174,6 +210,28 @@ export class PassengerBoardingController{
    a.targetHeading=a.seat?a.seat.heading:a.heading;
   }else if(a.state==='leaving'){a.state='gone';}
  }
- reset(){this.opened=false;for(const q of this.queues){q.active=null;q.exit=[];q.enter=[];q.phase='closed';}}
+ resetCompletion(){this.scheduledExit=new Set();this.scheduledBoard=new Set();this.missed=new Set();this.admissionClosed=false;this.passengerExchangeComplete=false;this.doorsSafeToClose=false;this.obstructions=[];}
+ updateCompletion(agents,context){
+  this.obstructions=passengerDoorObstructions(agents,this.layout,context.dist);
+  this.doorsSafeToClose=this.obstructions.length===0;
+  const byId=new Map(agents.map(a=>[a.id,a]));
+  const exited=[...this.scheduledExit].every(id=>{const a=byId.get(id);return a&&(a.state==='gone'||a.space==='platform')&&a.state!=='alighting'&&a.state!=='returning';});
+  const boarded=[...this.scheduledBoard].every(id=>{const a=byId.get(id);return this.missed.has(id)||(a?.space==='train'&&!['boarding','returning'].includes(a.state));});
+  const crossing=agents.some(a=>['boarding','alighting','returning'].includes(a.state));
+  this.passengerExchangeComplete=this.opened&&exited&&boarded&&!crossing&&this.doorsSafeToClose;
+ }
+ requestFinishBoarding(agents){
+  if(!this.opened)return false;
+  this.admissionClosed=true;
+  const protectedGroups=new Set(agents.filter(a=>this.scheduledBoard.has(a.id)&&(a.space==='train'||a.state==='boarding')).map(a=>a.groupId).filter(id=>id!==null));
+  for(const a of agents)if(this.scheduledBoard.has(a.id)&&!this.missed.has(a.id)&&a.space==='platform'&&a.state!=='boarding'&&!protectedGroups.has(a.groupId)){
+   this.missed.add(a.id);a.missedTrain=true;a.wantsBoard=false;a.state='waitingNextTrain';a.activity='wait';
+   const d=this.layout.door(a.doorId);a.path=layoutPath(a,{x:Math.min(a.x,d.queueX-.15),z:a.z},a.radius,this.layout);
+   const q=this.queueById.get(a.doorId);q.enter=q.enter.filter(id=>id!==a.id);
+  }
+  return true;
+ }
+ exchangeSnapshot(){return {passengerExchangeComplete:this.passengerExchangeComplete,doorsSafeToClose:this.doorsSafeToClose,scheduledBoard:this.scheduledBoard.size,scheduledExit:this.scheduledExit.size,missed:this.missed.size,admissionClosed:this.admissionClosed,obstructions:this.obstructions};}
+ reset(){this.opened=false;this.resetCompletion();for(const q of this.queues){q.active=null;q.exit=[];q.enter=[];q.phase='closed';}}
  snapshot(){return this.queues.map(q=>({id:q.id,phase:q.phase,active:q.active,exiting:q.exit.length,waiting:q.enter.length,served:q.served}));}
 }

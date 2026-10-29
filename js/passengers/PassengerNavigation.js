@@ -124,6 +124,10 @@ export class PassengerNavigation{
   const next=a.path[0];if(!next){a.velocity=0;return false;}
   if(a.navigationGoal!==next){a.navigationGoal=next;a.navigationBest=Infinity;a.navigationStall=0;}
   const dx=next.x-a.x,dz=next.z-a.z,dist=Math.hypot(dx,dz);
+  const following=a.path[1],fx=following?following.x-next.x:0,fz=following?following.z-next.z:0;
+  const cosine=following&&dist>1e-8?(dx*fx+dz*fz)/(dist*Math.hypot(fx,fz)):-1;
+  const throughSpeed=a.flowThrough&&['boarding','alighting'].includes(a.state)&&cosine>=0?a.walkSpeed*(.35+.65*cosine):0;
+  const through=throughSpeed>0;
   if(dist<a.navigationBest-.04){a.navigationBest=dist;a.navigationStall=0;}else a.navigationStall+=dt;
   if(a.navigationStall>1.5){
    a.navigationStall=0;
@@ -143,10 +147,10 @@ export class PassengerNavigation{
   if(dist<.045){
    const neighbors=this.neighbors(a,next.x,next.z).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');
    if(dist<1e-8||clearPassengerStep(a,next.x,next.z,neighbors,COLUMNS)){
-    a.x=next.x;a.z=next.z;a.distance+=dist;a.path.shift();a.velocity=0;return !a.path.length;
+    a.x=next.x;a.z=next.z;a.distance+=dist;a.path.shift();a.velocity=through?Math.min(a.velocity,throughSpeed):0;return !a.path.length;
    }
   }
-  const speed=Math.min(a.walkSpeed,a.velocity+dt*1.8,Math.max(.16,dist*3));
+  const speed=Math.min(a.walkSpeed,a.velocity+dt*1.8,Math.max(.16,dist*3,throughSpeed));
   const step=Math.min(dist,speed*dt);let nx=a.x+dx/dist*step,nz=a.z+dz/dist*step;
   const clearingPlatform=a.space==='platform'&&a.state==='leaving'&&a.x>PLATFORM.maxX;
   const neighbors=this.neighbors(a,nx,nz).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');

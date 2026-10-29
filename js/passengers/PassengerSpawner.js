@@ -34,6 +34,7 @@ export class PassengerSpawner{
   const rng=randomSource(this.seed+index*91771),agents=[];
   for(let i=0;i<count;i++){
    const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
+   a.flowThrough=this.normal;
    Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count),{doorId:door.id});
    a.targetHeading=a.heading;
    if(i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
@@ -76,6 +77,7 @@ export class PassengerSpawner{
   const rng=randomSource(this.seed^0x81_717),agents=[];
   for(let i=0;i<count;i++){
    const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
+   a.flowThrough=this.normal;
    a.space='train';a.doorId=door.id;a.car=door.car;a.wantsBoard=false;
    a.destination=i%3===0?index:index+1+Math.floor(rng()*3);
    const car=layout.car(door.car),seats=[...car.seatAnchors].sort((p,b)=>Math.abs(p.z-door.z)-Math.abs(b.z-door.z));

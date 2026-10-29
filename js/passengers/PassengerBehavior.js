@@ -61,10 +61,11 @@ export class PassengerSimulation{
   }
   for(const event of this.boarding.events.splice(0))this.events.push({...event,sequence:++this.eventSequence});
   if(this.events.length>512)this.events.splice(0,this.events.length-512);
+  this.boarding.updateCompletion(this.agents,context);
  }
  snapshot(){
   const counts={};for(const a of this.agents)counts[a.state]=(counts[a.state]??0)+1;
-  return {seed:this.seed,station:this.station,time:this.time,counts,service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
+  return {seed:this.seed,station:this.station,time:this.time,counts,...this.boarding.exchangeSnapshot(),service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
    onboard:this.agents.filter(a=>a.space==='train'&&a.state!=='gone').length,
    platform:this.agents.filter(a=>a.space==='platform'&&a.state!=='gone').length,
    doors:this.boarding.snapshot(),events:this.events.slice(-200),

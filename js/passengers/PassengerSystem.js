@@ -35,6 +35,9 @@ export class PassengerSystem{
   const y=(a.space==='train'?TRAIN.floorY:PLATFORM.y+(TRAIN.floorY-PLATFORM.y)*lift)+this.platform.position.y;
   return out.set(a.x,y,z);
  }
+ get passengerExchangeComplete(){return this.simulation.boarding.passengerExchangeComplete;}
+ get doorsSafeToClose(){return this.simulation.boarding.doorsSafeToClose;}
+ requestFinishBoarding(){return this.simulation.boarding.requestFinishBoarding(this.simulation.agents);}
  update(dt,context,camera,{mirrorCameras=[],volume=1,inCab=false,playing=true}={}){
   this.time+=dt;this.context=context;this.motion.update(dt,context);
   if(!this.paused)this.simulation.update(dt,context);

@@ -34,3 +34,23 @@ Current measurements still FAIL the new timing target: first 40-person runs take
 Completion/safe-to-close signals and 8-stop primary acceptance are not implemented
 in this WIP checkpoint. Next: advancing queues, release of safe door zones,
 precise completion/late-passenger policy and primary tests. Do not claim success.
+
+## Next WIP stage: completion semantics and pipelined flow
+
+Implemented separate body-zone safety and exchange-complete signals, an explicit
+end-of-boarding command with next-train waiting and parent/child protection,
+advancing two-sided queues, preparation behind an already-cleared doorway, and
+continuous walking through portal route markers at or below each person's own
+walking speed. Sit/rise clips and doorway crossing counts are retained.
+
+Six completion/safety tests plus aisle and existing transition checks pass
+(17 focused checks). Eight-stop timing is still in development and is NOT passed.
+Repeated-stop probes exposed overlapping invented alighter waiting points at
+closely spaced doors; normal flow now waits at each rider's place and only
+prepares the next alighter after the active rider has consumed the aisle marker.
+
+The future-service contract fixture uses 4 cars x 4 door offsets/width from the
+saved preview model, with explicit nonoverlapping seat/standing anchor zones.
+It does not change or integrate V106 geometry. The actual temporary scene still
+has 4 logical cars x 2 existing doors; its rendering check is functional evidence
+only and must not be presented as the 16-door 30-second acceptance result.
