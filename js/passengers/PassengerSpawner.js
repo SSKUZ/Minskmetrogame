@@ -14,7 +14,7 @@ function freePoint(rng,agents,door){
 export function createPassenger(id,rng,station){
  const profile=id%12,child=profile===6||profile===7,elder=profile===4||profile===5;
  return {id,profile,child,elder,radius:child?.18:.25,scale:.95+rng()*.10,width:.94+rng()*.12,
-  tint:Math.floor(rng()*5),phase:rng()*13,heading:rng()*Math.PI*2,targetHeading:0,
+  railPreference:id%3===1,tint:Math.floor(rng()*5),phase:rng()*13,heading:rng()*Math.PI*2,targetHeading:0,
   walkSpeed:child?.76:elder?.64+rng()*.14:.86+rng()*.48,
   state:'waiting',space:'platform',x:0,z:0,velocity:0,distance:0,path:[],
   activity:rng()<.28?'phone':'wait',nextDecision:2+rng()*9,createdAt:station,
@@ -39,15 +39,16 @@ export class PassengerSpawner{
   for(let i=0;i<agents.length;i++){
    const a=agents[i];
    if(a.child){
-    const parent=agents.slice(Math.max(0,i-5),i).find(p=>!p.child&&!p.elder&&!p.groupId);
+    const parent=agents.slice(Math.max(0,i-5),i).find(p=>!p.child&&!p.elder&&p.groupId===null);
     if(parent){a.parentId=parent.id;a.groupId=parent.id;parent.groupId=parent.id;
      a.x=parent.x-.55;a.z=parent.z+.12;a.doorId=parent.doorId;a.wantsBoard=parent.wantsBoard;
      a.state=parent.state='waiting';a.path=[];parent.path=[];
-     a.walkSpeed=parent.walkSpeed=Math.min(a.walkSpeed,parent.walkSpeed);
+     a.walkSpeed=parent.walkSpeed=Math.min(a.walkSpeed,parent.walkSpeed);a.destination=parent.destination;
     }
-   }else if(i%12===0&&agents[i+1]&&!a.groupId){
+   }else if(i%12===0&&agents[i+1]&&a.groupId===null){
     const b=agents[i+1];if(b.child)continue;
     a.activity=b.activity='talk';a.groupId=b.groupId=a.id;
+    b.wantsBoard=a.wantsBoard;b.destination=a.destination;
     b.x=a.x-.92;b.z=a.z+.08;b.doorId=a.doorId;
     a.heading=a.targetHeading=-Math.PI/2;b.heading=b.targetHeading=Math.PI/2;
     a.state=b.state='waiting';a.path=[];b.path=[];

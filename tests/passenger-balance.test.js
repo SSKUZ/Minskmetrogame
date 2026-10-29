@@ -60,13 +60,21 @@ test('real carriage rail grips stay fixed while the shipped skeleton compensates
   }
   observed.add(Math.abs(animator.grip.tangent.y)>.8?'vertical':'horizontal');
   // Exercise a real horizontal section too, not an artificial IK marker.
-  animator.grip=null;animator.gripAttempted=false;animator.rails=rails.filter(r=>Math.abs(r.points[60].y-r.points[62].y)<.001);
+  animator.grip=null;a.railGrip=null;animator.gripAttempted=false;animator.rails=rails.filter(r=>Math.abs(r.points[60].y-r.points[62].y)<.001);
   animator.update(1/60,5);
   if(animator.grip){observed.add('horizontal');assert.ok(animator.grip.error<.002);}
-  a.activity='wait';animator.update(1/60,6);assert.equal(animator.grip,null);
+  a.activity='wait';a.velocity=.3;animator.update(1/60,6);assert.equal(animator.grip,null);
   animator.dispose();
  }
- assert.ok(observed.has('vertical')); // horizontal selection covered separately below
+ assert.ok(observed.has('vertical'));
+ const horizontal=rails.map(r=>({...r,points:r.points.filter((p,i,points)=>i&&Math.abs(p.clone().sub(points[i-1]).normalize().y)<.18)})).filter(r=>r.points.length>2);
+ const childView=await poseAsset('boy-low.glb',1.31),child={...person(),child:true};
+ childView.root.position.set(-1.49441332,1.135,32.64642857);
+ const animator=new PassengerAnimator(childView,child,{rails:horizontal,motion:{speed:45,acceleration:-2}});
+ for(let n=0;n<180;n++)animator.update(1/60,n/60);
+ assert.ok(animator.grip,'a child can hold a real lower horizontal bar');
+ assert.ok(Math.abs(animator.grip.tangent.y)<.18&&animator.grip.error<.002);
+ animator.dispose();
 });
 
 test('unreachable physical rails leave the passenger with relaxed arms',async()=>{

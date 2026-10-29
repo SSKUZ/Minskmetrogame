@@ -99,3 +99,16 @@ Parent verified on GitHub: `7d2613fe428ca1ebe2ac8ee3ed60190bf932b552`.
 - Grip candidates are sampled from the actual TubeGeometry paths after the existing carriage transform. Unreachable rails are rejected; the chosen world-space wrist anchor stays fixed while the torso compensates motion. No carriage geometry or train physics has changed.
 - Automated checks: 39/39 pass, including exact shipped adult, elderly and child skeletons, train acceleration/braking signs, asynchronous cruising sway, support attenuation and wrist lock within 2 mm.
 - Browser baseline is running separately. This is an intermediate checkpoint, not completed TZ2. Next: timed sit/stand clips, social actions, accessories, long station cycles and complete fresh screenshot/performance review.
+
+## TZ2 checkpoint 2 — seat transitions, activities and repeated stations
+
+Verified repair parent: `1a74d13d4146e51a861d7a5e1803d64a3d9a31da`. The complete `js/main.js` blob is `719bee5a75a58dca04b42d3c89f60e1a9c3aa78f`; an earlier transport truncation was repaired immediately. Future uploads must verify every blob SHA against `git hash-object` before advancing the branch.
+
+- Added explicit turn / 2 s sit-down / chair idle / 2 s stand-up / stabilization states using the shipped full clips. Approach points are in front of reserved seats; root motion cannot push the pelvis through the backrest. Children use the actual bench height.
+- Added short independent phone/window/display/neighbor/group/parent attention and weight-shift actions separated by quiet intervals. Backpacks stay part of the same passenger and move onto the lap while seated.
+- Families and companions retain a common destination; boarding no longer overwrites their assigned destination. Twelve consecutive station cycles retain the same passenger objects and appearance, exit due passengers, finish their queues, and do not duplicate crossings when doors reopen.
+- The 12-station test exposes a known capacity limit: later crowds need more than 120 simulated seconds with the existing serial door controller; a finite 300 s deadline is checked. The existing initial-scene 120 s tests remain unchanged and pass.
+- Crossing journals and render de-duplication sets are bounded. Accessory and cloned-skeleton resources are released. Duplicate GLB texture instances and per-material cloned skeleton palettes are shared within safe ownership boundaries.
+- Tests: 43/43 passed; exact physical vertical and lower horizontal rails tested. A fresh browser run is still required for the new transitions / accessory / resource changes.
+
+Next: inspect modern/seasonal clothing (several legacy profile names do not match their actual garment), fresh browser screenshots including locked grips and real acceleration/braking, warm long performance/memory samples and final report. Hardware/mobile GPU performance is not verified.

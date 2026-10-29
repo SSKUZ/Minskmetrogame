@@ -5,7 +5,7 @@ import {PASSENGER_ASSETS,PROFILES} from './PassengerConfig.js';
 
 const tones=[0xffffff,0xbbbfc9,0xb8c5ba,0xc9b6a9,0xaeb8c5];
 export class PassengerModelLibrary{
- constructor(){this.sources=new Map();this.pending=new Map();this.errors=[];this.materials=new Map();this.loader=new GLTFLoader();THREE.Cache.enabled=true;}
+ constructor(){this.sources=new Map();this.pending=new Map();this.errors=[];this.materials=new Map();this.textures=new Map();this.loader=new GLTFLoader();THREE.Cache.enabled=true;}
  async load(profile,detail='medium'){
   const key=`${profile}:${detail}`;if(this.sources.has(key))return this.sources.get(key);
   if(this.pending.has(key))return this.pending.get(key);
@@ -14,6 +14,17 @@ export class PassengerModelLibrary{
     gltf.scene.updateMatrixWorld(true);
     const bounds=new THREE.Box3();
     gltf.scene.traverse(o=>{if(o.isMesh){o.geometry.computeBoundingBox();bounds.union(o.geometry.boundingBox);}});
+    // GLTFLoader otherwise creates a GPU texture per GLB for the same external image.
+    const textureSlots=['map','normalMap','roughnessMap','metalnessMap','aoMap','emissiveMap','alphaMap'];
+    gltf.scene.traverse(o=>{if(!o.isMesh)return;for(const m of [].concat(o.material))for(const slot of textureSlots){
+     const tex=m[slot];if(!tex)continue;
+     const index=gltf.parser.associations.get(tex)?.textures;
+     const image=gltf.parser.json.images?.[gltf.parser.json.textures?.[index]?.source];
+     if(!image?.uri)continue;
+     const key=JSON.stringify([image.uri,tex.colorSpace,tex.flipY,tex.wrapS,tex.wrapT,tex.channel]);
+     if(this.textures.has(key)){m[slot]=this.textures.get(key);if(m[slot]!==tex)tex.dispose();}
+     else this.textures.set(key,tex);
+    }});
     const source={...gltf,height:bounds.max.y-bounds.min.y,floor:bounds.min.y};
     gltf.scene.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;
      o.material.roughness=Math.max(.65,o.material.roughness);
@@ -35,11 +46,17 @@ export class PassengerModelLibrary{
   const desired=agent.child?(agent.profile===6?1.31:1.38):agent.elder?(agent.profile===4?1.70:1.59):(agent.profile%2?1.68:1.79);
   const scale=desired/source.height;
   model.scale.setScalar(scale);model.position.y=-source.floor*scale;
+  // All outfit primitives use the same cloned bone palette. Share one skeleton
+  // inside this actor instead of allocating a bone texture for every material.
+  const skeletons=new Map();model.traverse(o=>{if(!o.isSkinnedMesh)return;
+   const key=o.skeleton.bones.map(b=>b.uuid).join(':');
+   if(skeletons.has(key)){o.skeleton.dispose();o.skeleton=skeletons.get(key);}else skeletons.set(key,o.skeleton);
+  });
   const bones={};model.traverse(o=>{
    if(o.isBone)bones[o.name]=o;
    if(o.isSkinnedMesh){o.frustumCulled=true;o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,source.height*.50,0),source.height*.77);}
    if(o.isMesh&&o.material.name==='Outfit'){
-    const key=`${agent.profile}:${detail}:${agent.tint}`;
+    const key=`${agent.profile}:${agent.tint}`;
     if(!this.materials.has(key)){const material=o.material.clone();material.color.multiply(new THREE.Color(tones[agent.tint]));this.materials.set(key,material);}
     o.material=this.materials.get(key);
    }
@@ -55,6 +72,7 @@ export class PassengerModelLibrary{
      if(o.geometry)geometries.add(o.geometry);
      for(const m of [].concat(o.material??[]))if(!shared.has(m))materials.add(m);
     });
+    for(const skeleton of skeletons.values())skeleton.dispose();
     for(const g of geometries)g.dispose();for(const m of materials)m.dispose();
    }};
  }
@@ -72,7 +90,7 @@ function roundedBox(w,h,d,color){
 }
 function createAccessories(model,bones,a,height){
  const props={};model.updateMatrixWorld(true);
- if(a.accessory&&a.state!=='seated'){
+ if(a.accessory){
   const group=new THREE.Group();model.add(group);
   if(a.accessory==='backpack'){
    const bag=roundedBox(.25,.34,.13,a.tint%2?0x3c4650:0x5a4a3c);bag.position.set(0,height*.64,-.18);group.add(bag);
@@ -83,7 +101,11 @@ function createAccessories(model,bones,a,height){
     const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(side*.09,height*.64+.15,-.16),new THREE.Vector3(side*.16,height*.64+.13,.01),new THREE.Vector3(side*.14,height*.64-.13,.035),new THREE.Vector3(side*.09,height*.64-.13,-.16)]);
     group.add(new THREE.Mesh(new THREE.TubeGeometry(curve,10,.012,5,false),material(0x30343b)));
    }
-   bones.Spine2?.attach(group);
+   // Rebase the backpack around its own centre before attaching it to the spine.
+   const pivot=new THREE.Vector3(0,height*.64,-.18);
+   for(const child of group.children)child.position.sub(pivot);group.position.copy(pivot);
+   bones.Spine2?.attach(group);group.updateMatrix();
+   group.userData.carried={parent:group.parent,matrix:group.matrix.clone()};
   }else{
    const shopping=a.accessory==='shopping';
    const bag=roundedBox(shopping?.27:.29,shopping?.34:.23,.12,shopping?0xbda98c:0x5a4233);
