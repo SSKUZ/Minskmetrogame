@@ -7,11 +7,11 @@ import {updateSeating} from './PassengerSeating.js';
 import {updateCarriageActivity} from './PassengerActivities.js';
 
 export class PassengerSimulation{
- constructor({seed=Date.now(),platformCount=64,onboardCount=24,layout=TEST_PASSENGER_LAYOUT}={}){
+ constructor({seed=Date.now(),platformCount=64,onboardCount=24,layout=TEST_PASSENGER_LAYOUT,normal=false}={}){
   this.layout=layout;
-  this.seed=seed;this.random=randomSource(seed);this.spawner=new PassengerSpawner(seed,layout);
+  this.normal=normal;this.seed=seed;this.random=randomSource(seed);this.spawner=new PassengerSpawner(seed,layout,{normal});
   this.platformCount=platformCount;this.onboardCount=onboardCount;this.agents=[];
-  this.navigation=new PassengerNavigation(layout);this.boarding=new PassengerBoardingController(layout);
+  this.navigation=new PassengerNavigation(layout);this.boarding=new PassengerBoardingController(layout,{normal});
   this.station=-1;this.time=0;this.accumulator=0;this.events=[];this.eventSequence=0;
  }
  enterStation(index){
@@ -64,11 +64,11 @@ export class PassengerSimulation{
  }
  snapshot(){
   const counts={};for(const a of this.agents)counts[a.state]=(counts[a.state]??0)+1;
-  return {seed:this.seed,station:this.station,time:this.time,counts,
+  return {seed:this.seed,station:this.station,time:this.time,counts,service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
    onboard:this.agents.filter(a=>a.space==='train'&&a.state!=='gone').length,
    platform:this.agents.filter(a=>a.space==='platform'&&a.state!=='gone').length,
    doors:this.boarding.snapshot(),events:this.events.slice(-200),
-   agents:this.agents.map(a=>({id:a.id,profile:a.profile,state:a.state,activity:a.activity,space:a.space,x:a.x,z:a.z,heading:a.heading,velocity:a.velocity,distance:a.distance,parentId:a.parentId,groupId:a.groupId,doorId:a.doorId,scale:a.scale,destination:a.destination,seat:a.seat,seatTime:a.seatTime,accessory:a.accessory,tint:a.tint})),
+   agents:this.agents.map(a=>({id:a.id,profile:a.profile,state:a.state,activity:a.activity,space:a.space,x:a.x,z:a.z,heading:a.heading,velocity:a.velocity,distance:a.distance,parentId:a.parentId,groupId:a.groupId,doorId:a.doorId,car:a.car,wantsBoard:a.wantsBoard,scale:a.scale,destination:a.destination,seat:a.seat,seatTime:a.seatTime,accessory:a.accessory,tint:a.tint})),
   };
  }
 }

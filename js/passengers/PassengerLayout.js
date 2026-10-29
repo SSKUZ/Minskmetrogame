@@ -32,8 +32,8 @@ export function createPassengerLayout({train,platform,doors,cars,collisionZones=
  };
 }
 
-export function createTestPassengerLayout({gripAnchors=[]}={}){
- const cars=Array.from({length:5},(_,id)=>{
+export function createTestPassengerLayout({gripAnchors=[],carCount=5}={}){
+ const cars=Array.from({length:carCount},(_,id)=>{
   const centerZ=-88+id*21.5,aisleX=TRAIN.aisleX;
   const seatAnchors=trainSeatPositions(id).map((s,i)=>({...s,id:`test-${id}-seat-${i}`,hipHeight:.53,
    heading:s.x<aisleX?Math.PI/2:-Math.PI/2,approach:{x:s.x+(s.x<aisleX?.43:-.43),z:s.z}}));
@@ -42,7 +42,7 @@ export function createTestPassengerLayout({gripAnchors=[]}={}){
   return {id,centerZ,aisleX,seatAnchors,standingZones,
    bounds:{minX:-1.82,maxX:1.25},navigationZone:{minX:aisleX-.94,maxX:aisleX+.94,minZ:-100+id*21.5+.5,maxZ:-100+(id+1)*21.5-.5}};
  });
- const doors=DOORS.map(d=>({...d,thresholdX:TRAIN.thresholdX,entryX:-2.56,insideX:-1.65,
+ const doors=DOORS.filter(d=>d.car<carCount).map(d=>({...d,thresholdX:TRAIN.thresholdX,entryX:-2.56,insideX:-1.65,
   exitInnerX:-2.42,exitOuterX:-3.8,exitClearX:-4.45,approachX:-3.55,queueX:-3.65,
   initialStanding:[{x:-1.02,z:d.z-1.3},{x:.40,z:d.z+1.3}],
   edge:d.z>1,yieldBoundaryX:-5.3,yieldX:-7.8,

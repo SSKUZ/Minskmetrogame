@@ -1,12 +1,13 @@
 import {randomSource,clamp} from './PassengerConfig.js';
 import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {platformPath} from './PassengerNavigation.js';
+import {choosePlatformDoors} from './PassengerDoorChoice.js';
 
-function freePoint(rng,agents,door,layout){
+function freePoint(rng,agents,door,layout,normal=false,index=0,count=1){
  const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
  for(let n=0;n<200;n++){
-  const x=n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
-  const z=Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
+  const x=normal?PLATFORM.maxX-.3-rng()*4.2:n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
+  const z=normal?PLATFORM.minZ+2+(index+rng())/count*(PLATFORM.maxZ-PLATFORM.minZ-4):Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
   if(COLUMNS.some(c=>Math.hypot(x-c.x,z-c.z)<c.radius+.5))continue;
   if(agents.some(a=>a.space==='platform'&&Math.hypot(x-a.x,z-a.z)<.72))continue;
   return {x,z};
@@ -27,13 +28,13 @@ export function createPassenger(id,rng,station){
 }
 
 export class PassengerSpawner{
- constructor(seed,layout=TEST_PASSENGER_LAYOUT){this.seed=seed;this.nextId=0;this.layout=layout;}
+ constructor(seed,layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.seed=seed;this.nextId=0;this.layout=layout;this.normal=normal;}
  station(index,count=64,existing=[]){
   const layout=this.layout,DOORS=layout.doors,PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
   const rng=randomSource(this.seed+index*91771),agents=[];
   for(let i=0;i<count;i++){
    const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
-   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout),{doorId:door.id});
+   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count),{doorId:door.id});
    a.targetHeading=a.heading;
    if(i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
    agents.push(a);
@@ -67,6 +68,7 @@ export class PassengerSpawner{
     if(d<r){a.x=c.x+dx/(d||1)*r;a.z=c.z+dz/(d||1)*r;}}
    a.x=clamp(a.x,PLATFORM.minX,PLATFORM.maxX);a.z=clamp(a.z,PLATFORM.minZ,PLATFORM.maxZ);
   }
+  if(this.normal)choosePlatformDoors(agents,layout);
   return agents;
  }
  onboard(index,count=24){

@@ -2,6 +2,7 @@ import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {platformPath as layoutPath} from './PassengerNavigation.js';
 import {beginSitting,beginStanding,seatApproach} from './PassengerSeating.js';
 import {reservePassengerSeat,familyCompanions} from './PassengerPlaces.js';
+import {choosePlatformDoors,chooseExitDoors} from './PassengerDoorChoice.js';
 
 function departurePath(a,layout){
  const platformPath=(from,to,radius)=>layoutPath(from,to,radius,layout),PLATFORM=layout.platform;
@@ -11,7 +12,7 @@ function departurePath(a,layout){
 }
 
 export class PassengerBoardingController{
- constructor(layout=TEST_PASSENGER_LAYOUT){this.layout=layout;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];}
+ constructor(layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.layout=layout;this.normal=normal;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];}
  clearPlatformLanes(agents,dist){
   const DOORS=this.layout.doors,platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
   // People who are not boarding make room for the doorway and alighting lane.
@@ -22,6 +23,7 @@ export class PassengerBoardingController{
  }
  prepare(agents,station,dist){
   const platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
+  if(this.normal){chooseExitDoors(agents,this.layout,station);choosePlatformDoors(agents,this.layout,{dist,station});}
   this.opened=true;this.clearPlatformLanes(agents,dist);
   for(const q of this.queues){
    q.active=null;q.phase='alighting';q.served=0;
