@@ -597,12 +597,15 @@ function grainTexture(size,repeatX,repeatY){
  const texture=new T.DataTexture(data,size,size,T.RGBAFormat);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(repeatX,repeatY);texture.needsUpdate=true;return texture;
 }
 const floorFinish=new T.MeshStandardMaterial({color:0x707576,roughness:.89,metalness:.012,bumpMap:grainTexture(64,5,28),bumpScale:.00125});
-const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.58,clearcoat:.06,clearcoatRoughness:.68,envMap:frontEnvironment,envMapIntensity:.22,bumpMap:grainTexture(64,2,3),bumpScale:.00045});
+const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.64,clearcoat:.045,clearcoatRoughness:.76,envMap:frontEnvironment,envMapIntensity:.25,bumpMap:grainTexture(128,3,4),bumpScale:.00065});
 const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.08,roughness:.64,envMap:frontEnvironment,envMapIntensity:.14});
 const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
-const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
+const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.82,side:T.DoubleSide});
 // Final saloon material family: painted lining, brushed metal, rubber, vinyl and floor remain visually distinct.
-sideLining.roughness=.78; sideLining.metalness=.015;
+sideLining.roughness=.83; sideLining.metalness=.012;
+// Subtle moulded-plastic microtexture: no extra seams or artificial ribs.
+sideLining.bumpMap=grainTexture(64,2,7);sideLining.bumpScale=.00022;
+doorInnerLining.bumpMap=sideLining.bumpMap;doorInnerLining.bumpScale=.00018;
 sideSteel.roughness=.34; sideSteel.metalness=.88; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.46;
 sideRubber.roughness=.94; sideRubber.metalness=0;
 doorInnerLining.roughness=.72; doorInnerLining.metalness=.025;
@@ -618,7 +621,7 @@ for(const side of [-1,1])sideBox(.035,.018,saloonLength-.16,side*1.145,F+.018,(s
 const floorWear=new T.MeshStandardMaterial({color:0x777c7c,transparent:true,opacity:.12,roughness:.82,metalness:0,depthWrite:false});
 for(const [x,w] of [[-.24,.18],[.18,.22]])sideBox(w,.001,saloonLength-.70,x,F+.016,(saloonStart+saloonEnd)/2,floorWear);
 function saloonCushion(w,h,d,x,y,z,material){
- const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
+ const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.029),{depth:d,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:3,curveSegments:16});
  const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);group.add(mesh);return passenger(mesh);
 }
 const seatBays=[[-5.52,-2.67,6],[-1.08,1.78,6],[3.37,6.22,6],[8.38,9.25,2]];
@@ -733,12 +736,16 @@ for(const side of [-1,1])for(const z of doors){
 }
 
 // Final pre-freeze physical cues: doorway contact shade and metal threshold lip.
-const saloonContactShade=new T.MeshBasicMaterial({color:0x111315,transparent:true,opacity:.09,depthWrite:false});
+const saloonContactShade=new T.MeshBasicMaterial({color:0x111315,transparent:true,opacity:.13,depthWrite:false});
 for(const side of [-1,1])for(const z of doors){
  sideBox(.11,.002,doorWidth-.20,side*1.045,F+.017,z,saloonContactShade);
  sideBox(.035,.035,doorWidth-.10,side*1.155,F+.035,z,sideSteel);
 }
-for(const side of [-1,1])for(const [a,b] of seatBays)sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
+ // Low-cost local contact shade beneath the upholstered seat and seat plinth.
+ sideBox(.34,.001,b-a-.16,side*.96,F+.0195,(a+b)/2,new T.MeshBasicMaterial({color:0x14191c,transparent:true,opacity:.065,depthWrite:false}));
+}
 // No unverified repetitive vertical wall seams.
 // Saloon detail pass: keep the approved dimensions and seating coordinates,
 // but add the small fixtures that make the interior read as a working 81-717.
@@ -750,7 +757,7 @@ const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,e
 const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
-const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.82,roughness:.36,envMap:frontEnvironment,envMapIntensity:.42});
+const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.84,roughness:.32,envMap:frontEnvironment,envMapIntensity:.52});
 // End-door hardware is supplied by the actual intercar door assembly.
 const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roughness:.91});
 const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
@@ -776,6 +783,8 @@ for(const side of [-1,1])for(const [a,b] of seatBays){
  for(const z of [a+.20,b-.20])fixtureBox(.055,.075,.12,side*.925,F+.055,z,saloonDark);
 }
 // Use the original ceiling lights; no supplementary fake speaker or light boxes.
+// Fine door-mechanism cover fasteners, positioned away from moving leaves.
+for(const side of [-1,1])for(const z of doors)for(const dz of [-.56,.56])fixtureBox(.012,.012,.006,side*1.189,F+2.07,z+dz,saloonTrim);
 // No provisional end-wall information boards or coloured blocks.
 
 // Seat upholstery piping and mounting hardware are built with each seat module above.
@@ -789,6 +798,9 @@ for(const side of [-1,1])for(const z of doors){
 for(const z of [saloonStart+.06,saloonEnd-.06]){
  fixtureBox(2.12,.055,.025,0,F+.12,z,saloonTrim);
  for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
+ // Fine upper trim line and unobtrusive bulkhead fastening points.
+ fixtureBox(2.06,.016,.017,0,F+2.07,z,saloonTrim);
+ for(const x of [-.91,.91])for(const y of [F+.18,F+1.97])fixtureBox(.015,.015,.008,x,y,z,saloonDark);
 }
 
 // Preserve original end-wall shell and door geometry; avoid covering it with solid panels.
