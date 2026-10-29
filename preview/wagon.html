@@ -1472,7 +1472,35 @@ const componentLibrary={
   sideBox(.014,.045,w.w+.12,w.side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
  })
 };
+// Two landscape Goodmix Duo posters per car: one on each side, in the
+// solid wall bay between a passenger door and its adjacent window.
+// Keep a single texture shared by all eight poster meshes in the consist.
+const goodmixPosterTexture=new T.TextureLoader().load('./assets/goodmix-duo-zakhar.jpg',()=>{qaFramesRemaining=3},undefined,err=>console.warn('Goodmix Duo poster asset missing',err));
+goodmixPosterTexture.colorSpace=T.SRGBColorSpace;
+goodmixPosterTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+const goodmixPosterMaterial=new T.MeshBasicMaterial({map:goodmixPosterTexture,side:T.DoubleSide,toneMapped:false});
+const goodmixFrameMaterial=new T.MeshStandardMaterial({color:0x929595,metalness:.75,roughness:.32});
+function installGoodmixPosters(carRoot){
+ const posterWidth=.43,posterHeight=.304,posterZ=-6.42,posterY=F+1.62;
+ for(const side of [-1,1]){
+  const faceX=side*(sideWallInner-.032);
+  const poster=new T.Mesh(new T.PlaneGeometry(posterWidth,posterHeight),goodmixPosterMaterial);
+  poster.name='goodmix-duo-poster-'+(side<0?'left':'right');
+  poster.rotation.y=side*Math.PI/2;
+  poster.position.set(faceX-side*.005,posterY,posterZ);
+  poster.userData.advertisement='goodmix-duo';poster.userData.keepRenderObject=true;
+  carRoot.add(poster);
+  const frame=new T.Mesh(new T.BoxGeometry(.014,posterHeight+.018,posterWidth+.018),goodmixFrameMaterial);
+  frame.name='goodmix-duo-frame-'+(side<0?'left':'right');
+  frame.position.set(faceX+side*.009,posterY,posterZ);
+  frame.userData.keepRenderObject=true;carRoot.add(frame);
+  // The image sits just in front of the frame surface, avoiding z-fighting.
+  poster.position.x=faceX+side*.019;
+ }
+}
+installGoodmixPosters(group);
 const intermediateTemplate=createIntermediateCar(componentLibrary);
+installGoodmixPosters(intermediateTemplate.root);
 scene.add(intermediateTemplate.root);
 const headTemplate={root:group,type:'81-717',windows:passengerWindows,leaves:slidingLeaves,doorCenters:doors,length:L,hasCab:true};
 for(const [name,value] of qaObjects)if(name!=='roof')for(const node of Array.isArray(value)?value:[value])node.userData.keepRenderObject=true;
