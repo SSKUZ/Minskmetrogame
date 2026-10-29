@@ -65,27 +65,28 @@ export class PassengerAnimator{
    const hips=v.bones.Hips;
    if(hips){
     const p=new THREE.Vector3();hips.getWorldPosition(p);v.root.worldToLocal(p);
-    this.sitOffset+=(.43-p.y)*.55;
-    v.model.position.y+=this.sitOffset;
-    this.sitOffset=0;
+    // The source chair clip translates the pelvis ~0.55m backwards. Remove
+    // that root motion so the reserved seat is the actual pelvis position.
+    v.model.position.x-=p.x;v.model.position.z-=p.z;
+    v.model.position.y+=.53-p.y;
    }
-  }else v.model.position.y=0;
+  }else v.model.position.set(0,0,0);
   if(!walking){
    const seated=a.state==='seated',hips=new THREE.Vector3();
    v.model.updateWorldMatrix(true,true);v.bones.Hips?.getWorldPosition(hips);v.model.worldToLocal(hips);
    const y=seated?hips.y+.13:v.height/v.scale*.45;
    const bodyHeight=v.height/v.scale;
    for(const [side,sign] of [['Left',1],['Right',-1]]){
-    const target=new THREE.Vector3(sign*.215,y,seated?.28:.035);
-    if(side==='Right'&&phone)target.set(-.13,seated?hips.y+.36:bodyHeight*.68,.27);
+    const target=new THREE.Vector3(sign*.215+(seated?hips.x:0),y,seated?hips.z+.28:.035);
+    if(side==='Right'&&phone)target.set((seated?hips.x:0)-.13,seated?hips.y+.36:bodyHeight*.68,(seated?hips.z:0)+.27);
     if(side==='Right'&&a.activity==='rail'&&a.space==='train'&&!seated)target.set(-.18,bodyHeight*1.08,.045);
     if(side==='Left'&&a.activity==='talk'){target.z+=.07+.06*Math.sin(time+a.phase);target.y+=.07*Math.max(0,Math.sin(time*.87+a.phase));}
-    solveArm(v,side,target,new THREE.Vector3(sign*.55,bodyHeight*.57,-.22));
+    solveArm(v,side,target,new THREE.Vector3(sign*.55+(seated?hips.x:0),seated?hips.y+.25:bodyHeight*.57,(seated?hips.z:0)-.22));
    }
    if(phone&&v.bones.RightHand){
     const hand=new THREE.Vector3();v.bones.RightHand.getWorldPosition(hand);v.model.worldToLocal(hand);
     v.props.phone.position.copy(hand);v.props.phone.position.y+=.035;
-    v.props.phone.lookAt(v.model.localToWorld(new THREE.Vector3(0,bodyHeight*.87,.04)));
+    const head=new THREE.Vector3();v.bones.Head?.getWorldPosition(head);v.props.phone.lookAt(head);
    }
   }
   this.lastTime=time;

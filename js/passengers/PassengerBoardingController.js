@@ -33,6 +33,18 @@ export class PassengerBoardingController{
    if(active&&!['boarding','alighting','returning'].includes(active.state)){q.active=null;active=null;}
    if(!stopped||!doorsOpen){
     if(active&&active.state!=='returning'){
+     // A completed threshold crossing stays completed when the leaves close.
+     // In particular an alighter already on the platform must never walk back
+     // through the doorway just to finish an obsolete train-space route.
+     if(active.state==='alighting'&&active.space==='platform'){
+      q.exit=q.exit.filter(id=>id!==active.id);q.active=null;
+      active.state='leaving';active.wantsBoard=false;
+      active.path=platformPath(active,{x:-13,z:active.z<-55?-114:3},active.radius);
+      continue;
+     }
+     if(active.state==='boarding'&&active.space==='train'){
+      active.path=[];this.afterMove(active,context,agents);continue;
+     }
      if(active.space==='train'){
       // If already inside, finish walking away from the leaves. Otherwise retreat.
       active.path=[{x:TRAIN.aisleX,z:q.z}];active.state='returning';

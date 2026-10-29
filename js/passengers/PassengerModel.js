@@ -46,7 +46,17 @@ export class PassengerModelLibrary{
   });
   const props=createAccessories(model,bones,agent,source.height);
   wrapper.name=`Passenger-${agent.id}-${detail}`;
-  return {root:wrapper,model,bones,props,height:desired,scale,animations:source.animations};
+  return {root:wrapper,model,bones,props,height:desired,scale,animations:source.animations,
+   dispose(){
+    // Skeleton clones share the source mesh/materials. Only accessories belong
+    // to this passenger; freeing shared geometry would break everybody else.
+    const geometries=new Set(),materials=new Set(),shared=new Set(propMaterials.values());
+    for(const prop of Object.values(props))prop.traverse(o=>{
+     if(o.geometry)geometries.add(o.geometry);
+     for(const m of [].concat(o.material??[]))if(!shared.has(m))materials.add(m);
+    });
+    for(const g of geometries)g.dispose();for(const m of materials)m.dispose();
+   }};
  }
 }
 

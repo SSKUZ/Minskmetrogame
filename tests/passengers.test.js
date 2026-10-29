@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync,existsSync} from 'node:fs';
 import {PassengerSimulation} from '../js/passengers/PassengerBehavior.js';
-import {COLUMNS,PLATFORM,trainSeatPositions} from '../js/passengers/PassengerConfig.js';
+import {COLUMNS,PLATFORM,PROFILES,trainSeatPositions} from '../js/passengers/PassengerConfig.js';
 import {selectPassengerLOD} from '../js/passengers/PassengerLOD.js';
 import {platformPath,crowdDetour} from '../js/passengers/PassengerNavigation.js';
 
@@ -65,6 +65,11 @@ test('LOD has hysteresis and every demographic ships textured rigged models',()=
  assert.equal(selectPassengerLOD(56,'medium'),'medium');assert.equal(selectPassengerLOD(56,'far'),'far');
  const manifest=JSON.parse(readFileSync(new URL('../assets/passengers/manifest.json',import.meta.url)));
  assert.equal(manifest.models.length,24);assert.ok(manifest.textureBytes<9_000_000);
+ for(const profile of PROFILES)for(const pose of ['','-seated']){
+  const png=readFileSync(new URL(`../assets/passengers/${profile}${pose}-atlas.png`,import.meta.url));
+  assert.equal(png.readUInt32BE(16),1536);assert.equal(png.readUInt32BE(20),352);
+  assert.ok(png.length>5000,'far silhouettes must contain actual rendered people');
+ }
  for(const m of manifest.models){
   assert.ok(m.bones>=25);assert.ok(m.animations.includes('Walk')&&m.animations.includes('Sit idle (chair)'));
   assert.ok(m.triangles<50000);assert.ok(existsSync(new URL('../assets/passengers/'+m.file,import.meta.url)));
@@ -103,5 +108,26 @@ test('exchange drains across varied crowds and reopening never duplicates a cros
   advance(s,120,open);
   assert.ok(s.boarding.queues.every(q=>!q.exit.length&&!q.enter.length),`${closeAt}: reopening must finish`);
   assert.equal(new Set(s.events.map(e=>e.kind+':'+e.id)).size,s.events.length);
+ }
+});
+
+test('closing after a threshold crossing sends alighters away and boarders to their place',()=>{
+ const open={...context,doorsOpen:true,aperture:1};
+ for(const kind of ['alighting','boarding']){
+  const s=new PassengerSimulation({seed:717});let a;
+  for(let n=0;n<1800&&!a;n++){
+   s.update(1/30,open);
+   a=s.agents.find(a=>a.state===kind&&a.space===(kind==='alighting'?'platform':'train'));
+  }
+  assert.ok(a,kind+': test must reach a real crossing');
+  s.update(1/30,context);
+  if(kind==='alighting'){
+   assert.equal(a.state,'leaving');assert.ok(a.path.every(p=>p.x<=PLATFORM.maxX));
+   assert.ok(!s.boarding.queues[a.doorId].exit.includes(a.id));
+  }else{
+   assert.equal(a.state,'settling');assert.equal(a.car,s.boarding.queues[a.doorId].car);
+   assert.ok(!s.boarding.queues[a.doorId].enter.includes(a.id));
+  }
+  advance(s,30,context);assert.equal(a.space,kind==='alighting'?'platform':'train');
  }
 });

@@ -21,6 +21,8 @@ export class PassengerAudio{
  }
  update(agents,cameraPosition,worldPosition,{volume=1,playing=true,inCab=false,doorsOpen=false},dt){
   if(!this.context||!this.gain)return;
+  const live=new Set(agents.filter(a=>a.state!=='gone').map(a=>a.id));
+  for(const id of this.stepClock.keys())if(!live.has(id))this.stepClock.delete(id);
   let density=0;const nearby=[];
   for(const a of agents){
    if(a.state==='gone')continue;

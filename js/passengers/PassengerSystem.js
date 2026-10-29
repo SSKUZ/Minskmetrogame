@@ -35,7 +35,7 @@ export class PassengerSystem{
   if(!this.paused)this.simulation.update(dt,context);
   const live=new Set(this.simulation.agents.filter(a=>a.state!=='gone').map(a=>a.id));
   for(const [id,actor] of this.actors)if(!live.has(id)){
-   for(const view of actor.views.values()){view.animator.dispose();this.root.remove(view.root);}
+   for(const view of actor.views.values()){view.animator.dispose();view.dispose();this.root.remove(view.root);}
    this.root.remove(actor.shadow);this.actors.delete(id);
   }
   for(const event of this.simulation.events.slice(this.eventCursor)){
@@ -58,8 +58,9 @@ export class PassengerSystem{
    }
    const position=this.worldPosition(a),distance=Math.min(...cameraPositions.map(p=>p.distanceTo(position)));
    let lod=selectPassengerLOD(distance,actor.lod);
-   // Seated silhouettes keep their skeletal pose at distance; doorway actions retain depth.
-   if(lod==='far'&&(a.space==='train'||['boarding','alighting'].includes(a.state)))lod='medium';
+   // Separate seated atlases retain the pose without animating the entire train
+   // at full depth. Doorway actions continue to use real skeletal geometry.
+   if(lod==='far'&&['boarding','alighting'].includes(a.state))lod='medium';
    if(distance>155)lod='hidden';actor.lod=lod;this.lodStats[lod]++;
    for(const view of actor.views.values())view.root.visible=false;
    actor.shadow.visible=lod!=='hidden'&&lod!=='far';actor.shadow.position.copy(position);actor.shadow.position.y+=.009;

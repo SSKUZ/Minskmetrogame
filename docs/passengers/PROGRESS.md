@@ -65,3 +65,29 @@ Implemented after recovery:
 Validation: `npm run check`: 32/32 pass. Includes all 14 seeds (0–9, 42, 106, 717, 10677) fully exchanging within 120 simulated seconds, six close/reopen timings, unique crossing counts, and collision-free column routing. Actual Chromium loaded all 24 models without JS errors or failed requests. Baseline screenshots manually reviewed: textured people, families/groups and accessories present; the first close-up is partially occluded, so a clearer portrait is still needed.
 
 Remaining: automated browser exchange/carriage/mirror/mobile coverage, clearer faces and pose/seat QA, LOD/performance comparison and wardrobe refinement. Full specification is not complete. Resume with `tests/passenger-capture.mjs`, `PassengerAnimator.js`, `PassengerSystem.js` and the above browser scenarios. Cab and v106 files have not been changed.
+
+## Checkpoint 3 — verified seating, closure, distant poses and browser coverage
+
+Last verified remote parent: `17654ce5a3ae0954197e3c1893021c4a9968ce1f`.
+
+Implemented:
+- Chair clips no longer translate the pelvis backwards into the backrest. Pelvis height matches the detailed carriage; hand IK is relative to the seated pelvis. Verified using the actual shipped adult, elderly and child skeletons, then in game screenshots.
+- Closing after a crossing preserves the completed crossing: alighters already on the platform leave without walking back through the train; boarders already inside continue to their allocated place.
+- Separate standing/seated 8-direction atlases for all 12 profiles; distant seated passengers retain their silhouette without keeping every distant skeleton animated.
+- Passenger-owned accessory geometry/materials are disposed on despawn; shared source meshes/materials are retained. Footstep bookkeeping drops removed agents.
+- Automated browser scenarios: complete exchange, persistent identities after switching to carriage camera, desktop/mobile screenshots, both mirror render targets, all local model requests and JS errors, software-renderer measurements.
+
+Final validation:
+- `npm run check`: 34/34 pass. Includes 14 complete seed variations, six closure/reopening timings, exact crossing counts, real skeletal chair pose tests and all existing cab/physics regressions.
+- `tests/passenger-browser.mjs`: pass. Seed 717, 8 alightings + 51 boardings, 67 onboard after exchange, unchanged identities in carriage/mobile view, 24 model variants loaded, no JS errors or failed requests.
+- Current screenshots are in `artifacts/passengers/verified/`; portrait, exchange, corrected seated passengers and mobile carriage manually inspected. Both mirrors captured; left mirror includes platform pedestrians.
+- Same carriage scenario: rendered triangle count reduced from 1,555,458 before distant seated atlases to 1,096,694 after. Software-renderer sample ~1.22 FPS, 212 MB reported JS heap; the no-passenger sample was slower (~0.72 FPS). These noisy short SwiftShader samples do NOT establish a reliable FPS gain or real-device suitability.
+
+Remaining / exact continuation:
+1. Real-rail grip anchors: current rail pose is a generic IK target, not an exact attachment to each physical rail. Start in `PassengerConfig.js`, `PassengerSpawner.js`, `PassengerBoardingController.js`, `PassengerAnimator.js`; derive anchors from the existing `CarriageRails.js` without altering accepted geometry.
+2. Sitting/standing transitions still switch/crossfade to the idle chair pose instead of using the full sit-down/stand-up clips. Add a timed transition and recheck baggage/clothing intersections.
+3. Clothing is textured but mostly casual/sports/suits, not a complete seasonal wardrobe. Faces, hands, bags and social gestures need additional visual refinement.
+4. Performance remains unapproved: measure longer warmed runs and real mobile hardware, audit texture/draw-call budget, LOD transitions, mirror/window visibility and per-station memory retention.
+5. Remove unused legacy passenger modules only after completing the remaining coverage. New implementation is isolated; no merges or changes to cab/v106 branches have been performed.
+
+Reproduce: `npm run check`; `CAB_CHROMIUM=/path/to/chromium node tests/passenger-browser.mjs`; atlases: `CAB_CHROMIUM=/path/to/chromium node tools/passengers/bake-atlas.mjs`. Full specification is still work in progress.
