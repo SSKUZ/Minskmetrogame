@@ -618,11 +618,13 @@ for(const side of [-1,1]){
  const ceilingRail=sideTube([[side*.74,F+2.12,saloonStart+.18],[side*.74,F+2.12,saloonEnd-.12]],.0135,sideSteel);saloonRails.push(ceilingRail);
  // Rigid brackets physically tie the longitudinal rail into the ceiling shell.
  for(let z=saloonStart+.45;z<saloonEnd-.25;z+=1.42){
-  const bracket=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.22,z],[side*.82,F+2.30,z]],.010,sideSteel);saloonRails.push(bracket);
+  const bracket=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.22,z],[side*.82,F+2.30,z]],.011,sideSteel);saloonRails.push(bracket);
  }
- // Positive end anchors: the long tube does not stop in open space.
+ // Positive end anchors: each long tube turns into a rigid ceiling socket instead of ending in air.
  for(const z of [saloonStart+.18,saloonEnd-.12]){
-  const endAnchor=sideTube([[side*.74,F+2.12,z],[side*.84,F+2.20,z],[side*.84,F+2.29,z]],.011,sideSteel);saloonRails.push(endAnchor);
+  const endAnchor=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.20,z],[side*.82,F+2.30,z]],.011,sideSteel);saloonRails.push(endAnchor);
+  const socket=new T.Mesh(new T.CylinderGeometry(.028,.028,.025,16),sideSteel);
+  socket.position.set(side*.82,F+2.292,z);group.add(socket);passenger(socket);saloonRails.push(socket);
  }
  // Door-zone stanchions join floor/seat structure directly to the same longitudinal rail.
  for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
