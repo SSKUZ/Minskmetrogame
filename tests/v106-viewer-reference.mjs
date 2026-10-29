@@ -19,7 +19,10 @@ try{
  // Independent saloon advertisement evidence: does not wait for the slow station/door smoke.
  const ad=await page.evaluate(()=>{const cars=window.wagonGetLiveConsist().cars;return cars.map((car,i)=>{let posters=0;car.root.traverse(o=>{if(o.userData.advertisement==='goodmix-duo')posters++});return {car:i+1,posters}})});
  console.log('GOODMIX_POSTER_COUNTS',JSON.stringify(ad));
- if(ad.length!==4||ad.some(x=>x.posters!==2))throw new Error('Expected two Goodmix posters on each of four cars');
+ if(ad.length!==4||ad.some(x=>x.posters!==2))throw new Error('Expected two side Goodmix posters on each of four cars');
+ const banners=await page.evaluate(()=>window.wagonGetLiveConsist().cars.map((car,i)=>{let count=0;car.root.traverse(o=>{if(o.userData.advertisement==='goodmix-duo-banner')count++});return {car:i+1,count}}));
+ console.log('GOODMIX_BULKHEAD_BANNERS',JSON.stringify(banners));
+ if(banners.filter(x=>x.count===1).length!==2||banners.some(x=>x.count>1))throw new Error('Expected exactly two head-car bulkhead banners');
  for(const [mode,file] of [['salon','saloon-overview'],['goodmix-closeup-left','goodmix-left'],['goodmix-closeup-right','goodmix-right']]){
   const before=await page.evaluate(v=>{window.wagonSetCamera(v);return window.wagonDiagnostics().renderedFrames},mode);
   await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+2,before,{timeout:90000});
