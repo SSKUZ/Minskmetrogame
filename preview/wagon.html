@@ -797,11 +797,7 @@ for(const side of [-1,1])for(const z of doors){
  fixtureBox(.32,.010,doorWidth-.08,side*1.03,F+.024,z,saloonTrim);
  for(const dz of [-doorWidth/2-.20,doorWidth/2+.20])fixtureBox(.018,.74,.16,side*1.195,F+.76,z+dz,saloonTrim);
 }
-// Ceiling longitudinal service channels and small fastener heads.
-for(const side of [-1,1]){
- fixtureBox(.08,.012,saloonLength-.35,side*.53,F+2.292,(saloonStart+saloonEnd)/2,saloonTrim);
- for(let z=saloonStart+.70;z<saloonEnd-.35;z+=1.85)fixtureBox(.018,.010,.018,side*.53,F+2.300,z,saloonDark);
-}
+// Original ceiling lighting and ventilation remain; no duplicate full-length service strips.
 // End-wall perimeter trims and low kick protection complete the visible bulkheads.
 for(const z of [saloonStart+.06,saloonEnd-.06]){
  fixtureBox(2.12,.055,.025,0,F+.12,z,saloonTrim);
@@ -849,17 +845,7 @@ for(const side of [-1,1])for(const z of doors){
  fixtureBox(.018,.075,.22,side*1.230,F+.24,z,saloonWear);
 }
 
-// End bulkheads receive restrained real-service cues: kick protection, compact
-// lock hardware and information holders instead of decorative geometry.
-for(const z of [saloonStart+.082,saloonEnd-.082]){
- const face=z<0?z+.004:z-.004;
- fixtureBox(.74,.24,.010,-.48,F+1.45,face,saloonLabel);
- fixtureBox(.64,.024,.012,-.48,F+1.53,face,saloonLabelInk);
- fixtureBox(.40,.18,.012,-.48,F+1.36,face,saloonLabel);
- fixtureBox(.075,.16,.018,.50,F+1.04,face,saloonTrim);
- fixtureBox(.035,.035,.020,.50,F+1.12,face,saloonDark);
- fixtureBox(1.20,.16,.012,0,F+.20,face,saloonWear);
-}
+// Keep original end-wall surfaces clear of provisional information holders.
 
 // Seat modules: small underside brackets and a subdued front-edge wear band.
 // The accepted cushion/back dimensions remain unchanged.
