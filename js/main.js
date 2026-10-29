@@ -1111,8 +1111,17 @@ for(let i=0;i<platformPassengers.length;i++){
 }
 let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
-carCameraButton.addEventListener('click',()=>{
+carCameraButton.addEventListener('click',async()=>{
  carCameraActive=!carCameraActive;
+ if(carCameraActive&&useExperimentalV106){
+  await ensureDetailedV106();
+  // The carriage camera now lives inside the same imported v106 consist used
+  // by the platform view. Legacy CarriageInterior is retained only as fallback.
+  if(detailedV106Train){
+   detailedV106Train.add(carriageCamera);
+   carriageCamera.position.set(.42,2.15,V106_CAR_PITCH+1.0);
+  }
+ }
  if(carCameraActive){carriageCameraController.reset();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
@@ -1292,7 +1301,8 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
 animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 // Only expose the interior geometry when viewing from the carriage camera.
 // It must not block the cab windscreen or rear-view mirrors.
-carriage.visible=carCameraActive;
+// Never render the old mock interior when the real v106 is available.
+carriage.visible=carCameraActive&&(!useExperimentalV106||!detailedV106Train);
 animateDoorLeaves(stationDoorLeaves,doors,elapsed);animateDetailedV106Doors(elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
@@ -1368,8 +1378,27 @@ if(carCameraActive){
  // Keep the driver's cab out of the carriage view; all station objects remain.
  cab.visible=false;
  stationTrain.visible=false;
- if(detailedV106Train)detailedV106Train.visible=false;
- renderer.render(scene,carriageCamera);
+ if(useExperimentalV106&&detailedV106Train){
+  // Keep the authentic consist visible around the camera and reproduce the
+  // viewer's calibrated multipass materials from inside the saloon.
+  detailedV106Train.position.set(detailedV106TrackX,platform.position.y,stationCameraTrainZ+19.206/2);
+  detailedV106Train.visible=true;
+  const originalTone=renderer.toneMapping,originalExposure=renderer.toneMappingExposure;
+  const originalAutoClear=renderer.autoClear,originalMask=carriageCamera.layers.mask;
+  const originalBackground=scene.background;
+  renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
+  carriageCamera.layers.set(0);renderer.render(scene,carriageCamera);
+  renderer.autoClear=false;scene.background=null;
+  for(const layer of [2,1,3]){
+   carriageCamera.layers.set(layer);
+   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+   renderer.render(scene,carriageCamera);
+  }
+  scene.background=originalBackground;
+  carriageCamera.layers.mask=originalMask;renderer.autoClear=originalAutoClear;
+  renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
+  detailedV106Train.visible=false;
+ }else renderer.render(scene,carriageCamera);
  cab.visible=true;
 }else if(stationCameraActive&&useExperimentalV106&&detailedV106Train?.visible){
  // Reproduce the original v106 viewer's four render passes. In particular,
