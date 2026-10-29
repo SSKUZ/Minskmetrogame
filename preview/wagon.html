@@ -127,9 +127,22 @@ const chevronPaint=sideCream.clone();chevronPaint.polygonOffset=true;chevronPain
 const doorInnerLining=sideLining.clone();doorInnerLining.polygonOffset=false;
 const sideGlass=new T.MeshPhysicalMaterial({color:0xe1ecec,transparent:true,opacity:.13,roughness:.12,metalness:0,envMap:frontEnvironment,envMapIntensity:.20,clearcoat:.18,depthWrite:false,side:T.DoubleSide});
 const sideAmbient=new T.HemisphereLight(0xfff6e6,0x343b47,.95);sideAmbient.layers.set(2);scene.add(sideAmbient);
+const saloonExteriorLights=[];
 for(const [x,y,z,power] of [[7,10,3,2.4],[-6,5,-4,1.0]]){
- const lamp=new T.DirectionalLight(0xfff6e9,power);lamp.position.set(x,y,z);lamp.layers.set(2);scene.add(lamp);
+ const lamp=new T.DirectionalLight(0xfff6e9,power);lamp.position.set(x,y,z);lamp.layers.set(2);scene.add(lamp);saloonExteriorLights.push({lamp,power});
 }
+// Environment response for gameplay integration. Station keeps glazing clear;
+// tunnel strengthens interior reflections and lowers exterior spill without changing geometry.
+window.wagonSetVisualEnvironment=(mode='station')=>{
+ const tunnel=mode==='tunnel',transition=mode==='transition';
+ sideGlass.opacity=tunnel?.19:transition?.15:.115;
+ sideGlass.roughness=tunnel?.10:transition?.13:.16;
+ sideGlass.envMapIntensity=tunnel?.52:transition?.39:.28;
+ sideGlass.clearcoat=tunnel?.18:.10;
+ sideAmbient.intensity=tunnel?.68:transition?.82:.95;
+ for(const {lamp,power} of saloonExteriorLights)lamp.intensity=power*(tunnel?.20:transition?.58:1);
+ qaFramesRemaining=3;
+};
 const passengerNodes=[],passengerWindows=[],slidingLeaves=[];
 function passenger(object){object.traverse(o=>{if(o.isMesh)o.layers.set(2)});passengerNodes.push(object);return object;}
 function sideBox(w,h,d,x,y,z,m){return passenger(box(w,h,d,x,y,z,m));}
@@ -421,8 +434,14 @@ function buildBodyCorner(side){
 }
 
 let doorProgress=0,doorTarget=0;
+// Mechanical door travel: soft motor take-up, steady middle travel and cushioned final seating.
+// This changes only the visual leaf interpolation; calibrated clear width/end positions stay exact.
+function doorTravelCurve(p){
+ p=T.MathUtils.clamp(p,0,1);
+ return p*p*p*(p*(p*6-15)+10);
+}
 function setDoorProgress(progress){
- doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorProgress*doorProgress*(3-2*doorProgress);
+ doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorTravelCurve(doorProgress);
  for(const car of activeCars)for(const d of car.leaves)d.leaf.position.z=d.homeZ+d.half*d.travel*t;
  qaFramesRemaining=3;
 }
@@ -1624,6 +1643,17 @@ function carMeasurements(car){
  });
  return {type:car.type,hasCab:car.hasCab,cabDirection:car.hasCab?new T.Vector3(0,0,-1).transformDirection(car.root.matrixWorld).toArray():null,position:car.root.position.toArray(),rotationY:car.root.rotation.y,scale:car.root.scale.toArray(),windows:car.windows.length,leaves:car.leaves.length,openLeaves:car.leaves.filter(d=>Math.abs(d.leaf.position.z-d.homeZ)>.001).length,doorClearWidth:.008+1.2*(doorProgress*doorProgress*(3-2*doorProgress)),body:{min:body.min.toArray(),max:body.max.toArray()},contacts,...counts};
 }
+// Stable integration points for the later passenger branch and audio/environment layer.
+// They expose geometry already present in the v106 instead of duplicating passenger-specific meshes.
+window.wagonSaloonIntegration=()=>({
+ seats:activeCars.reduce((n,c)=>{c.root.traverse(o=>{if(o.userData.passengerSeat)n++});return n},0),
+ rails:saloonRails.length,
+ windows:activeCars.reduce((n,c)=>n+c.windows.length,0),
+ doors:activeCars.reduce((n,c)=>n+c.leaves.length,0),
+ doorProgress,
+ visualEnvironment:{glassOpacity:sideGlass.opacity,glassRoughness:sideGlass.roughness,reflection:sideGlass.envMapIntensity},
+ audioEvents:['door-motor-start','door-travel','door-lock','ventilation','rail-roll','bogie-joint','brake']
+});
 window.wagonTrainDiagnostics=()=>{
  const cars=activeCars.map(carMeasurements),joints=[];
  for(let i=0;i<cars.length-1;i++){
