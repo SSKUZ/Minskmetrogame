@@ -741,12 +741,6 @@ for(const side of [-1,1])for(const z of doors){
  sideBox(.035,.035,doorWidth-.10,side*1.155,F+.035,z,sideSteel);
 }
 for(const side of [-1,1])for(const [a,b] of seatBays)sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
-// End-door service hardware: restrained kick protection and latch surround.
-for(const z of [saloonStart+.10,saloonEnd-.10]){
- sideBox(1.08,.19,.010,0,F+.18,z,saloonTrim);
- sideBox(.070,.19,.014,.47,F+1.02,z,sideSteel);
- sideBox(.035,.035,.016,.47,F+1.10,z,sideRubber);
-}
 // Final lining refinement: sparse construction joints follow structural bays rather than forming a decorative grid.
 for(const side of [-1,1])for(const z of [-7.42,-5.18,-2.92,-.68,1.56,3.80,6.04,8.28]){
  sideBox(.006,.86,.010,side*(sideWallInner-.010),F+1.20,z,floorSeam);
@@ -762,6 +756,12 @@ const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
 const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.82,roughness:.36,envMap:frontEnvironment,envMapIntensity:.42});
+// End-door service hardware: restrained kick protection and latch surround.
+for(const z of [saloonStart+.10,saloonEnd-.10]){
+ sideBox(1.08,.19,.010,0,F+.18,z,saloonTrim);
+ sideBox(.070,.19,.014,.47,F+1.02,z,sideSteel);
+ sideBox(.035,.035,.016,.47,F+1.10,z,sideRubber);
+}
 const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roughness:.91});
 const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
 const saloonFixtureNodes=[];
