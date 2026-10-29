@@ -791,13 +791,7 @@ for(const z of [-5.15,-.15,4.85,8.45]){
  fixtureBox(.48,.018,.72,0,F+2.265,z,saloonLens);
  for(let k=-2;k<=2;k++)fixtureBox(.012,.020,.035,k*.055,F+2.252,z+.44,saloonDark);
 }
-// Torso-height end-wall service hardware visible from the approved saloon camera.
-for(const z of [saloonStart+.075,saloonEnd-.075]){
- fixtureBox(.62,.78,.035,-.58,F+1.25,z,saloonPaper);
- fixtureBox(.57,.035,.030,-.58,F+1.60,z+(z<0?.020:-.020),saloonNoticeBlue);
- fixtureBox(.30,.22,.040,.63,F+1.48,z,saloonJoint);
- fixtureBox(.22,.055,.045,.63,F+1.50,z+(z<0?.025:-.025),saloonAmber);
-}
+// No provisional end-wall information boards or coloured blocks.
 
 // Seat upholstery piping and mounting hardware are built with each seat module above.
 // Door threshold plates and narrow side-wall protection panels reinforce the vestibule geometry.
@@ -816,16 +810,7 @@ for(const z of [saloonStart+.06,saloonEnd-.06]){
  for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
 }
 
-// End bulkheads: layered lining, central service-door surround, kick plate and compact latch hardware.
-for(const z of [saloonStart+.075,saloonEnd-.075]){
- fixtureBox(1.56,1.88,.028,0,F+1.08,z,sideLining);
- fixtureBox(1.28,1.66,.032,0,F+1.08,z+(z<0?.010:-.010),saloonPaper);
- for(const x of [-.66,.66])fixtureBox(.035,1.78,.040,x,F+1.08,z,saloonTrim);
- fixtureBox(1.38,.045,.040,0,F+1.94,z,saloonTrim);
- fixtureBox(1.30,.13,.045,0,F+.18,z,saloonTrim);
- fixtureBox(.060,.22,.055,.52,F+1.05,z,saloonDark);
- fixtureBox(.070,.055,.060,.52,F+1.13,z,saloonTrim);
-}
+// Preserve original end-wall shell and door geometry; avoid covering it with solid panels.
 // Door and window information equipment stays sparse and mechanically mounted.
 // Omit temporary coloured vestibule placards; keep authentic door hardware.
 // Add shallow seat-back mounting brackets and under-seat cable/service covers.
