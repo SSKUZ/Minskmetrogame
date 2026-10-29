@@ -1119,10 +1119,18 @@ carCameraButton.addEventListener('click',async()=>{
   // by the platform view. Legacy CarriageInterior is retained only as fallback.
   if(detailedV106Train){
    detailedV106Train.add(carriageCamera);
-   carriageCamera.position.set(.42,2.15,V106_CAR_PITCH+1.0);
+   // Local v106 coordinates: centre aisle, normal standing eye height,
+   // looking longitudinally through the second car instead of out through
+   // the body shell. The controller owns this pose so reset cannot restore
+   // the obsolete mock-carriage coordinates.
+   carriageCameraController.setPose(
+    new THREE.Vector3(0,2.30,V106_CAR_PITCH),
+    new THREE.Vector3(0,-.02,1)
+   );
   }
  }
- if(carCameraActive){carriageCameraController.reset();}
+ if(carCameraActive&&!useExperimentalV106){carriageCameraController.useLegacyPose();}
+ else if(carCameraActive&&!detailedV106Train){carriageCameraController.reset();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
