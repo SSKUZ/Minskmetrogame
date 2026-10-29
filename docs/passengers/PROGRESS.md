@@ -241,3 +241,30 @@ Expanded permanent regression verified locally: all three 12-stop tests pass
 source is identical to the successful 621747f browser run. The suite now contains
 57 cases (the original 55, replacing one 12-stop case with three seeded cases).
 No runtime performance/throughput change was accepted in this evidence checkpoint.
+
+## Aisle recovery checkpoint — 29 October 2026
+
+Verified parent: `33c275fce6d263c5d40b8f18f5d63bc134bbe839`.
+
+- Reproduced a navigation defect: a passenger circles an occupied intermediate
+  aisle marker even though the real destination farther down the aisle is free.
+  The old two-agent case is still blocked at 60 simulated seconds; recovery
+  completes it in 7.67 s at the same walking speed and >=0.525 m body separation.
+- On a failed detour, navigation can bypass an intermediate aisle marker through
+  the adapter's navigation rectangle. The real destination remains reserved;
+  doorway/seat entry legs outside that rectangle cannot be skipped. All new legs
+  retain swept obstacle checks. Impossible occupied targets stop exhausting A*.
+- Closed a separate collision gap in the final 4.5 cm waypoint-completion branch.
+  It now checks the same people/static obstacles as ordinary steps; distance-based
+  gait includes those final centimetres. No speed/door/counting rule changed.
+- Six new regression cases passed. `npm run check`: **63/63**, zero skipped cases,
+  including the existing 36 dense station cycles (3 seeds x 12) under the same
+  150 s deadline, families, identity, close/reopen and all prior checks.
+- Only passenger navigation, its regression tests and reports are changed. No
+  carriage, cab, V106 or other branch changes. Full explanation and limits:
+  `docs/passengers/AISLE-RECOVERY-20261029.md`.
+
+Fresh actual-game browser validation follows checkpoint publication. This entry
+is not yet a claim that its new source passed browser rendering. The previous
+continuous-waypoint speed experiment remains rejected, and realistic short dwell,
+accessory/clothing refinement and real Android GPU testing remain outstanding.

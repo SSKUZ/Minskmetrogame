@@ -32,6 +32,9 @@ export function crowdDetour(agent,target,agents,layout=TEST_PASSENGER_LAYOUT){
   return Math.hypot(from.x+dx*t-o.x,from.z+dz*t-o.z)>=o.r;
  });
  if(clear(agent,target))return [target];
+ // No collision-free route can enter an occupied destination from outside its
+ // exclusion circle. Avoid exhausting the grid before trying another marker.
+ if(obstacles.some(o=>Math.hypot(target.x-o.x,target.z-o.z)<o.r&&Math.hypot(agent.x-o.x,agent.z-o.z)>=o.r))return null;
  const spacing=inTrain?.16:.32,minX=Math.max(bounds.minX,Math.min(agent.x,target.x)-3.2),
   maxX=Math.min(bounds.maxX,Math.max(agent.x,target.x)+3.2),
   minZ=Math.max(bounds.minZ,Math.min(agent.z,target.z)-3.2),
@@ -74,6 +77,30 @@ export function crowdDetour(agent,target,agents,layout=TEST_PASSENGER_LAYOUT){
  return path;
 }
 
+// An aisle route marker is not a reserved place. If another passenger occupies
+// it, plan to the following marker instead of endlessly orbiting the occupied
+// point. Every replacement leg stays within the adapter's aisle rectangle and
+// uses the same swept obstacle checks as an ordinary detour. Door/seat entry
+// legs outside that rectangle cannot be bypassed this way.
+function bypassAisleMarker(agent,agents,layout){
+ if(agent.space!=='train'||agent.path.length<2)return null;
+ const bounds=layout.car(agent.car).navigationZone;
+ const inside=p=>p.x>=bounds.minX&&p.x<=bounds.maxX&&p.z>=bounds.minZ&&p.z<=bounds.maxZ;
+ const goal=agent.path[0].detourGoal??agent.path[0],index=agent.path.indexOf(goal);
+ if(index<0)return null;
+ const following=agent.path[index+1];
+ if(!following||!inside(agent)||!inside(goal)||!inside(following))return null;
+ const route=crowdDetour(agent,following,agents,layout);
+ return route?{route,following,remove:index+2}:null;
+}
+
+function clearPassengerStep(a,x,z,neighbors,obstacles){
+ return neighbors.every(o=>{
+  const min=a.radius+o.radius+.025,old=Math.hypot(a.x-o.x,a.z-o.z),d=Math.hypot(x-o.x,z-o.z);
+  return d>=min||d>old+.00001;
+ })&&obstacles.every(c=>Math.hypot(x-c.x,z-c.z)>=c.radius+a.radius-1e-7);
+}
+
 export class PassengerNavigation{
  constructor(layout=TEST_PASSENGER_LAYOUT){this.layout=layout;this.buckets=new Map();this.cellSize=1.2;}
  rebuild(agents){
@@ -100,21 +127,30 @@ export class PassengerNavigation{
   if(dist<a.navigationBest-.04){a.navigationBest=dist;a.navigationStall=0;}else a.navigationStall+=dt;
   if(a.navigationStall>1.5){
    a.navigationStall=0;
-   const goal=next.detourGoal??next,detour=crowdDetour(a,goal,[...this.buckets.values()].flat(),layout);
+   const agents=[...this.buckets.values()].flat(),goal=next.detourGoal??next,detour=crowdDetour(a,goal,agents,layout);
    if(detour&&detour.length>1){
     const end=a.path.indexOf(goal);for(const p of detour)if(p!==goal)p.detourGoal=goal;
     a.path.splice(0,end>=0?end+1:1,...detour);return this.move(a,dt);
    }
+   if(!detour){
+    const bypass=bypassAisleMarker(a,agents,layout);
+    if(bypass){
+     for(const p of bypass.route)if(p!==bypass.following)p.detourGoal=bypass.following;
+     a.path.splice(0,bypass.remove,...bypass.route);return this.move(a,dt);
+    }
+   }
   }
-  if(dist<.045){a.x=next.x;a.z=next.z;a.path.shift();a.velocity=0;return !a.path.length;}
+  if(dist<.045){
+   const neighbors=this.neighbors(a,next.x,next.z).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');
+   if(dist<1e-8||clearPassengerStep(a,next.x,next.z,neighbors,COLUMNS)){
+    a.x=next.x;a.z=next.z;a.distance+=dist;a.path.shift();a.velocity=0;return !a.path.length;
+   }
+  }
   const speed=Math.min(a.walkSpeed,a.velocity+dt*1.8,Math.max(.16,dist*3));
   const step=Math.min(dist,speed*dt);let nx=a.x+dx/dist*step,nz=a.z+dz/dist*step;
   const clearingPlatform=a.space==='platform'&&a.state==='leaving'&&a.x>PLATFORM.maxX;
   const neighbors=this.neighbors(a,nx,nz).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');
-  const clear=(x,z)=>neighbors.every(o=>{
-   const min=a.radius+o.radius+.025,old=Math.hypot(a.x-o.x,a.z-o.z),d=Math.hypot(x-o.x,z-o.z);
-   return d>=min||d>old+.00001;
-  })&&COLUMNS.every(c=>Math.hypot(x-c.x,z-c.z)>=c.radius+a.radius-1e-7);
+  const clear=(x,z)=>clearPassengerStep(a,x,z,neighbors,COLUMNS);
   if(!clear(nx,nz)){
    const heading=Math.atan2(dx,dz);let best=null,bestScore=-Infinity;
    for(const angle of [.55,-.55,1.05,-1.05,1.55,-1.55,2.15,-2.15]){
