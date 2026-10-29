@@ -20,5 +20,6 @@ export function createSaloonMotionModel(){
   return {phaseOffset:seed*Math.PI*2,amplitude:.72+seed*.34,response:.78+seed*.30};
  }
  function reset(){phase=roll=heave=surge=0}
- return {update,passenger,reset};
+ function acousticProfile(view='saloon',speed=0){const m=Math.max(0,Math.min(1,(Number(speed)||0)/18));return view==='saloon'?{ventilation:1,railRoll:.45+.55*m,bodyRumble:.38+.44*m,tunnelExterior:.34}:{ventilation:.56,railRoll:.30+.32*m,bodyRumble:.30+.30*m,tunnelExterior:.22};}
+ return {update,passenger,acousticProfile,reset};
 }
