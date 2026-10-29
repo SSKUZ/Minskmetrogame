@@ -207,10 +207,10 @@ function buildPassengerBay(side,a,b){
  // Clear glazing and three-dimensional opening-light frame, never a photo.
  const pane=sidePanel(w-.042,h-.042,r-.02,side*(half-.067),y,z,sideGlass);
  passengerWindows.push({side,z,w,h,y,pane});
+ // Authentic 81-717 passenger window: one short upper vent section over one large lower pane.
+ // Keep only the single horizontal transom; no vertical bars, latches or grille-like strips across the glass.
  const transom=y+h/2-.23;
- sideBox(.027,.022,w-.034,side*(half-.059),transom,z,sideSteel);
- sideBox(.025,.20,.016,side*(half-.059),transom+.11,z,sideSteel);
- for(const dz of [-w*.22,w*.22])sideBox(.025,.018,.10,side*(half-.08),transom+.025,z+dz,sideRubber);
+ sideBox(.022,.018,w-.034,side*(half-.059),transom,z,sideSteel);
  // Belt and a narrow lower sill are attached to the formed shell.
  sideBox(.003,.105,len-.012,side*(sideWallBase+.003),F+.94,bayMid,sideCream);
  sideBox(.024,.045,len,side*(sideWallBase-.006),F+.006,bayMid,sidePaint);
@@ -683,10 +683,10 @@ for(const side of [-1,1]){
   sideBox(.012,.012,1.90,side*(.53+.082),3.238,z,sideLining);
  }
  for(const w of passengerWindows.filter(w=>w.side===side)){
-  // Layered interior reveal: painted surround, compressed rubber gasket and a slim stainless sill.
-  sideRing(w.w+.05,w.h+.05,.15,side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
-  sideRing(w.w+.012,w.h+.012,.142,side*(sideWallInner-.014),w.y,w.z,sideRubber,.008);
-  sideBox(.012,.032,w.w+.10,side*(sideWallInner-.021),w.y-w.h/2-.024,w.z,sideSteel);
+  // Clean interior surround: one perimeter gasket and a slim sill, matching the simple two-section window.
+  sideRing(w.w+.032,w.h+.032,.148,side*(sideWallInner-.010),w.y,w.z,sideLining,.016);
+  sideRing(w.w+.006,w.h+.006,.140,side*(sideWallInner-.014),w.y,w.z,sideRubber,.006);
+  sideBox(.010,.026,w.w+.07,side*(sideWallInner-.020),w.y-w.h/2-.020,w.z,sideSteel);
  }
  // Narrow longitudinal ceiling ventilation slots, on actual 3D trim.
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
