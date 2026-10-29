@@ -677,8 +677,8 @@ for(const side of [-1,1]){
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
  for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
 }
-for(const z of [-5.4,-.4,4.6,8.6]){
- const lamp=new T.PointLight(0xffeed7,1.3,4.2,2);lamp.position.set(0,3.09,z);lamp.layers.set(2);scene.add(lamp);
+for(const z of [-6.0,-2.8,.4,3.6,6.8]){
+ const lamp=new T.PointLight(0xffeed7,1.05,4.0,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);
 }
 // Floor inlays mark the threshold without blocking the 3D doorway.
 for(const side of [-1,1])for(const z of doors){
@@ -813,12 +813,11 @@ for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
  for(const dx of [-.075,.075])for(const dz of [-.115,.115])fixtureBox(.016,.007,.016,side*.54+dx,F+.018,z+dz,saloonTrim);
 }
 
-// Lighting housings: lens surrounds and longitudinal ceiling trims give the fixtures physical depth.
-for(const z of [-5.15,-.15,4.85,8.45]){
- fixtureBox(.56,.025,.80,0,F+2.278,z,saloonTrim);
- fixtureBox(.50,.030,.74,0,F+2.258,z,saloonLens);
+// Longitudinal edge trims finish the ceiling-to-wall transition around the rebuilt luminaires.
+for(const side of [-1,1]){
+ fixtureBox(.045,.020,saloonLength-.42,side*.98,F+2.205,(saloonStart+saloonEnd)/2,saloonTrim);
+ for(let z=saloonStart+.65;z<saloonEnd-.35;z+=2.25)fixtureBox(.065,.025,.12,side*.98,F+2.205,z,saloonJoint);
 }
-for(const side of [-1,1])fixtureBox(.045,.020,saloonLength-.42,side*.98,F+2.205,(saloonStart+saloonEnd)/2,saloonTrim);
 // Side intake channels complement the central grilles without duplicating them.
 for(const side of [-1,1])for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
  fixtureBox(.18,.012,.20,side*.30,F+2.304,z,saloonJoint);
