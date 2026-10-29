@@ -114,6 +114,29 @@ try{
  assert.equal(moving.v106.metrics.warningDecals,64,'warning decals disappeared while moving');
  // Software WebGL may need over 30s to deliver a full frame while the train moves.
  await page.screenshot({path:'test-results/v106/station-desktop-moving.png',timeout:120000,animations:'disabled'});
+ // Full saloon visual inspection: use the standalone v106 viewer so QA cameras
+ // can walk the entire car without changing the approved gameplay carriage camera.
+ await page.goto('http://127.0.0.1:8765/preview/wagon.html?capture=1',{waitUntil:'domcontentloaded',timeout:30000});
+ await page.setViewportSize({width:1365,height:768});
+ await page.waitForFunction(()=>typeof window.wagonSetCamera==='function',null,{timeout:90000});
+ const auditViews=['audit-front-end','audit-front-door','audit-front-window','audit-centre','audit-rear-window','audit-rear-door','audit-rear-end','audit-ceiling-rails'];
+ for(const view of auditViews){
+  await page.evaluate(v=>window.wagonSetCamera(v),view);
+  await page.waitForTimeout(220);
+  await page.screenshot({path:`test-results/v106/saloon-${view}.png`,timeout:120000,animations:'disabled'});
+ }
+ const auditIntegration=await page.evaluate(()=>window.wagonSaloonIntegration?.());
+ assert.ok(auditIntegration?.seats>0,'saloon audit lost passenger seat anchors');
+ assert.ok(auditIntegration?.rails>0,'saloon audit lost handrail anchors');
+ assert.ok(auditIntegration?.windows>0,'saloon audit lost passenger windows');
+ assert.ok(auditIntegration?.doors>0,'saloon audit lost passenger doors');
+ assert.ok(auditIntegration.audioEvents.includes('door-lock'),'saloon audio integration events missing');
+ await page.evaluate(()=>window.wagonSetVisualEnvironment('tunnel'));
+ const tunnelGlass=await page.evaluate(()=>window.wagonSaloonIntegration().visualEnvironment);
+ await page.evaluate(()=>window.wagonSetVisualEnvironment('station'));
+ const stationGlass=await page.evaluate(()=>window.wagonSaloonIntegration().visualEnvironment);
+ assert.ok(tunnelGlass.reflection>stationGlass.reflection,'tunnel glass must strengthen saloon reflections');
+ await page.screenshot({path:'test-results/v106/saloon-audit-station-final.png',timeout:120000,animations:'disabled'});
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed during v106 smoke');
  assert.deepEqual(errors,[]);
