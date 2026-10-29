@@ -798,6 +798,38 @@ for(const side of [-1,1])for(const z of [-5.35,4.18]){
  fixtureBox(.052,.030,.055,side*(sideWallInner-.082),F+.94,z,saloonDark);
 }
 
+// Interior door-leaf furniture follows the animated leaves themselves.
+for(const entry of slidingLeaves){
+ const {leaf,side,half}=entry;
+ const innerX=-side*.031;
+ const grab=new T.Mesh(new T.BoxGeometry(.020,.42,.018),saloonTrim);grab.position.set(innerX,F+1.02-(F+1.03),half*.26);leaf.add(grab);passenger(grab);saloonDetail(grab);saloonFixtureNodes.push(grab);
+ const guard=new T.Mesh(new T.BoxGeometry(.022,.16,.20),saloonJoint);guard.position.set(innerX,F+.28-(F+1.03),-half*.20);leaf.add(guard);passenger(guard);saloonDetail(guard);saloonFixtureNodes.push(guard);
+ for(const yy of [-.58,.58]){
+  const cap=new T.Mesh(new T.BoxGeometry(.024,.035,.14),saloonTrim);cap.position.set(innerX,yy,half*.10);leaf.add(cap);passenger(cap);saloonDetail(cap);saloonFixtureNodes.push(cap);
+ }
+}
+// Seat-end protective caps and underside brackets make each bench read as an assembled unit.
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ for(const z of [a+.055,b-.055]){
+  fixtureBox(.030,.48,.075,side*1.13,F+.78,z,saloonTrim);
+  fixtureBox(.055,.20,.085,side*.93,F+.32,z,saloonJoint);
+ }
+}
+// Extra pole-to-ceiling mounting shoes, deliberately compact to preserve head clearance.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ fixtureBox(.12,.035,.12,side*.76,F+2.225,z,saloonTrim);
+ fixtureBox(.055,.025,.055,side*.76,F+2.242,z,saloonDark);
+}
+// Ceiling panel perimeter rails visually separate the curved shell from service panels.
+for(const side of [-1,1])fixtureBox(.030,.018,saloonLength-.28,side*1.08,F+2.155,(saloonStart+saloonEnd)/2,saloonJoint);
+// Low-profile service labels and inspection covers around the end bulkheads.
+for(const z of [saloonStart+.085,saloonEnd-.085]){
+ for(const x of [-.82,.82]){
+  fixtureBox(.22,.16,.030,x,F+.72,z,saloonJoint);
+  fixtureBox(.17,.11,.033,x,F+.72,z,saloonPaper);
+ }
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
