@@ -813,17 +813,93 @@ for(let z=saloonStart+.36;z<saloonEnd-.24;z+=.34){
  for(const side of [-1,1])fixtureBox(.20,.008,.018,side*.30,F+2.304,z,saloonDark);
 }
 
-// Window reveals and sill hardware: shallow inner frames preserve the exact exterior apertures.
-for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
- fixtureBox(.022,.035,.88,side*(sideWallInner-.020),F+1.235,z,saloonTrim);
- fixtureBox(.024,.040,.82,side*(sideWallInner-.030),F+2.075,z,saloonTrim);
- for(const dz of [-.43,.43])fixtureBox(.024,.82,.035,side*(sideWallInner-.025),F+1.655,z+dz,saloonTrim);
- fixtureBox(.065,.055,.78,side*(sideWallInner-.060),F+1.205,z,sideLining);
- for(const dz of [-.31,.31])fixtureBox(.026,.025,.055,side*(sideWallInner-.095),F+1.215,z+dz,saloonDark);
- fixtureBox(.018,.030,.84,side*(sideWallInner-.044),F+1.255,z,sideRubber);
- fixtureBox(.030,.025,.80,side*(sideWallInner-.072),F+1.190,z,saloonTrim);
- for(const dz of [-.405,.405])fixtureBox(.018,.76,.022,side*(sideWallInner-.045),F+1.655,z+dz,sideRubber);
+// Window interiors stay deliberately simple on the 81-717: one perimeter gasket,
+// one sill and the single transom created with the glazing above. Do not add
+// vertical inner bars or decorative latch strips that read as a grille.
+for(const w of passengerWindows){
+ fixtureBox(.014,.026,w.w+.045,w.side*(sideWallInner-.022),w.y-w.h/2-.018,w.z,saloonTrim);
 }
+// Final 81-717 saloon refinement block. These fixtures are intentionally shallow
+// and independent from the accepted shell/camera geometry so they remain portable.
+const saloonWear=new T.MeshStandardMaterial({color:0x626666,roughness:.96,metalness:.015,transparent:true,opacity:.42});
+const saloonSeal=new T.MeshStandardMaterial({color:0x171a1b,roughness:.90,metalness:.01});
+const saloonLabel=new T.MeshStandardMaterial({color:0xe8e4d5,roughness:.94});
+const saloonLabelInk=new T.MeshStandardMaterial({color:0x263d55,roughness:.82});
+
+// Sliding-door saloon faces: compressed perimeter seals, lower guide/wear hardware
+// and compact service fasteners. Nothing projects into the passenger doorway.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.028,doorWidth/2+.028]){
+  fixtureBox(.010,1.74,.016,side*1.226,F+1.02,z+dz,saloonSeal);
+  for(const yy of [F+.32,F+1.58])fixtureBox(.016,.018,.018,side*1.232,yy,z+dz,saloonDark);
+ }
+ fixtureBox(.020,.020,doorWidth-.10,side*1.228,F+.115,z,saloonTrim);
+ fixtureBox(.018,.075,.22,side*1.230,F+.24,z,saloonWear);
+}
+
+// End bulkheads receive restrained real-service cues: kick protection, compact
+// lock hardware and information holders instead of decorative geometry.
+for(const z of [saloonStart+.082,saloonEnd-.082]){
+ const face=z<0?z+.004:z-.004;
+ fixtureBox(.74,.24,.010,-.48,F+1.45,face,saloonLabel);
+ fixtureBox(.64,.024,.012,-.48,F+1.53,face,saloonLabelInk);
+ fixtureBox(.40,.18,.012,-.48,F+1.36,face,saloonLabel);
+ fixtureBox(.075,.16,.018,.50,F+1.04,face,saloonTrim);
+ fixtureBox(.035,.035,.020,.50,F+1.12,face,saloonDark);
+ fixtureBox(1.20,.16,.012,0,F+.20,face,saloonWear);
+}
+
+// Seat modules: small underside brackets and a subdued front-edge wear band.
+// The accepted cushion/back dimensions remain unchanged.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ for(let i=0;i<count;i++){
+  const z=a+(i+.5)*len/count;
+  fixtureBox(.026,.12,.040,side*1.055,F+.50,z,saloonTrim);
+ }
+ fixtureBox(.010,.018,len-.16,side*.785,F+.535,(a+b)/2,saloonWear);
+}
+
+// Handrail audit hardware: slim sockets at every seat-bay end and ceiling bracket.
+// These are small collars only; there are no hanging loops or floating rail ends.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.72,F+1.90]){
+  const collar=new T.Mesh(new T.CylinderGeometry(.0185,.0185,.036,12),saloonTrim);
+  collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);
+  group.add(collar);passenger(collar);saloonDetail(collar);saloonFixtureNodes.push(collar);
+ }
+}
+
+// Ceiling access covers and sparse fasteners break the perfect CGI surface without
+// creating a grid. Existing luminaires and ventilation geometry remain untouched.
+for(const z of [-6.55,-3.65,-.75,2.15,5.05,7.95]){
+ fixtureBox(.62,.008,.38,0,F+2.302,z,ceilingWhite);
+ for(const x of [-.27,.27])for(const dz of [-.15,.15])
+  fixtureBox(.012,.009,.012,x,F+2.307,z+dz,saloonTrim);
+}
+
+// Subtle service wear: threshold scuffing, a faint central walking band and darker
+// corners. Keep opacity low so the carriage looks used, not dirty.
+fixtureBox(.72,.003,saloonLength-.55,0,F+.016,(saloonStart+saloonEnd)/2,saloonWear);
+for(const z of doors)for(const side of [-1,1]){
+ fixtureBox(.48,.003,.82,side*.78,F+.019,z,saloonWear);
+}
+for(const side of [-1,1])fixtureBox(.08,.004,saloonLength-.50,side*1.03,F+.018,(saloonStart+saloonEnd)/2,saloonWear);
+
+// Sparse mounted information cards near door zones. They are shallow, readable as
+// real fixtures at saloon scale and do not invent extra window framing.
+for(const side of [-1,1])for(const z of [-4.95,-.20,4.25]){
+ fixtureBox(.012,.20,.31,side*(sideWallInner-.048),F+1.86,z,saloonLabel);
+ fixtureBox(.014,.022,.25,side*(sideWallInner-.056),F+1.91,z,saloonLabelInk);
+}
+
+// Slight glass/environment response helps windows read differently in tunnel and
+// station lighting while retaining a clear view through the large lower pane.
+sideGlass.opacity=.115;
+sideGlass.roughness=.16;
+sideGlass.clearcoat=.10;
+sideGlass.envMapIntensity=.28;
+
 // Wall-panel seams and discreet screw heads reduce the single-piece plastic look.
 // Keep the lower panels broad and calm; vertical joints align to actual opening edges instead of a repetitive grid.
 for(const side of [-1,1]){
