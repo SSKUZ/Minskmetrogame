@@ -620,6 +620,15 @@ for(const side of [-1,1]){
  for(let z=saloonStart+.45;z<saloonEnd-.25;z+=1.42){
   const bracket=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.22,z],[side*.82,F+2.30,z]],.010,sideSteel);saloonRails.push(bracket);
  }
+ // Positive end anchors: the long tube does not stop in open space.
+ for(const z of [saloonStart+.18,saloonEnd-.12]){
+  const endAnchor=sideTube([[side*.74,F+2.12,z],[side*.84,F+2.20,z],[side*.84,F+2.29,z]],.011,sideSteel);saloonRails.push(endAnchor);
+ }
+ // Door-zone stanchions join floor/seat structure directly to the same longitudinal rail.
+ for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
+  const doorPole=sideTube([[side*.74,F+.10,z+dz],[side*.74,F+2.12,z+dz]],.0115,sideSteel);saloonRails.push(doorPole);
+  const wallTie=sideTube([[side*.74,F+1.04,z+dz],[side*1.12,F+1.04,z+dz]],.0105,sideSteel);saloonRails.push(wallTie);
+ }
  for(const z of doors){
   // Inner door head and floor seam are fixed, outside the sliding channel.
   sideBox(.10,.18,doorWidth+.06,side*(half-.20),3.13,z,sideLining);
