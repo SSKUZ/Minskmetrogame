@@ -751,12 +751,7 @@ const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
 const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.82,roughness:.36,envMap:frontEnvironment,envMapIntensity:.42});
-// End-door service hardware: restrained kick protection and latch surround.
-for(const z of [saloonStart+.10,saloonEnd-.10]){
- sideBox(1.08,.19,.010,0,F+.18,z,saloonTrim);
- sideBox(.070,.19,.014,.47,F+1.02,z,sideSteel);
- sideBox(.035,.035,.016,.47,F+1.10,z,sideRubber);
-}
+// End-door hardware is supplied by the actual intercar door assembly.
 const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roughness:.91});
 const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
 const saloonFixtureNodes=[];
@@ -780,12 +775,7 @@ for(const side of [-1,1])for(const [a,b] of seatBays){
  fixtureBox(.012,.028,b-a-.12,side*.754,F+.145,(a+b)/2,saloonJoint);
  for(const z of [a+.20,b-.20])fixtureBox(.055,.075,.12,side*.925,F+.055,z,saloonDark);
 }
-// Ceiling panel joints, compact speaker grilles and richer diffuser lenses.
-// Ceiling panel joints are intentionally sparse; access covers below carry the service detail.
-for(const z of [-5.15,-.15,4.85,8.45]){
- fixtureBox(.48,.018,.72,0,F+2.265,z,saloonLens);
- for(let k=-2;k<=2;k++)fixtureBox(.012,.020,.035,k*.055,F+2.252,z+.44,saloonDark);
-}
+// Use the original ceiling lights; no supplementary fake speaker or light boxes.
 // No provisional end-wall information boards or coloured blocks.
 
 // Seat upholstery piping and mounting hardware are built with each seat module above.
@@ -961,14 +951,7 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
 }
 // Ceiling panel perimeter rails visually separate the curved shell from service panels.
 for(const side of [-1,1])fixtureBox(.030,.018,saloonLength-.28,side*1.08,F+2.155,(saloonStart+saloonEnd)/2,saloonJoint);
-// Low-profile service labels and inspection covers around the end bulkheads.
-for(const z of [saloonStart+.085,saloonEnd-.085]){
- for(const x of [-.82,.82]){
-  fixtureBox(.22,.16,.030,x,F+.72,z,saloonJoint);
-  fixtureBox(.17,.11,.033,x,F+.72,z,saloonPaper);
- }
-}
-
+// End bulkheads remain free of all placeholder information labels.
 // Final restrained wear cues: narrow scuff strips only at real high-contact zones.
 for(const side of [-1,1])for(const z of doors){
  fixtureBox(.010,.035,doorWidth+.08,side*1.165,F+.055,z,saloonDark);
@@ -976,12 +959,7 @@ for(const side of [-1,1])for(const z of doors){
 }
 // Recessed floor-edge strips help the aisle/seat boundary read under warm saloon lighting.
 for(const side of [-1,1])fixtureBox(.035,.004,saloonLength-.32,side*.70,F+.011,(saloonStart+saloonEnd)/2,saloonJoint);
-// Small ceiling junction boxes at lighting transitions.
-for(const z of [-5.55,-.55,4.45,8.05]){
- fixtureBox(.24,.028,.18,0,F+2.245,z,saloonJoint);
- fixtureBox(.16,.032,.10,0,F+2.230,z,saloonTrim);
-}
-
+// Keep the original lighting fixtures; omit additional ceiling boxes.
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
@@ -1012,11 +990,7 @@ for(const side of [-1,1])for(const z of doors){
 }
 // Route sheets omitted until accurate Minsk Metro artwork is available.
 // Preserve the original ceiling ventilation and lighting geometry without duplicate grilles.
-// Small authentic-scale utility details: emergency marker plates and inspection fasteners, kept deliberately sparse.
-for(const side of [-1,1])for(const z of doors){
- fixtureBox(.024,.075,.12,side*(sideWallInner-.070),F+1.47,z+doorWidth/2+.23,saloonNoticeRed);
- fixtureBox(.026,.035,.08,side*(sideWallInner-.078),F+1.40,z+doorWidth/2+.23,saloonAmber);
-}
+// No fabricated emergency marker plates or temporary signage.
 // No fabricated route strips or oversized wall-mounted equipment covers.
 // Keep seat-bay wall lining clean; omit fictional seat-number plaques.
 
