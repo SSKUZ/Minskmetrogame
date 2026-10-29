@@ -824,10 +824,21 @@ for(const side of [-1,1])for(const [a,b] of seatBays){
   fixtureBox(.055,.20,.085,side*.93,F+.32,z,saloonJoint);
  }
 }
-// Extra pole-to-ceiling mounting shoes, deliberately compact to preserve head clearance.
+// Proper compact handrail mounting hardware: round collars at the floor and
+// rigid ceiling sockets centered on the actual chrome stanchion axis.
+function railCollar(x,y,z,r=.035,h=.018){
+ const mesh=new T.Mesh(new T.CylinderGeometry(r,r,h,16),sideSteel);
+ mesh.position.set(x,y,z);group.add(mesh);passenger(mesh);saloonDetail(mesh);saloonFixtureNodes.push(mesh);return mesh;
+}
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
- fixtureBox(.12,.035,.12,side*.76,F+2.225,z,saloonTrim);
- fixtureBox(.055,.025,.055,side*.76,F+2.242,z,saloonDark);
+ railCollar(side*.74,F+.018,z,.034,.020);
+ fixtureBox(.085,.030,.085,side*.74,F+2.285,z,saloonTrim);
+}
+// Door stanchions use the same physical mounting language at floor, wall tie and ceiling rail.
+for(const side of [-1,1])for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
+ railCollar(side*.74,F+.018,z+dz,.036,.022);
+ fixtureBox(.075,.030,.075,side*.74,F+2.285,z+dz,saloonTrim);
+ fixtureBox(.025,.075,.075,side*1.125,F+1.04,z+dz,saloonTrim);
 }
 // Ceiling panel perimeter rails visually separate the curved shell from service panels.
 for(const side of [-1,1])fixtureBox(.030,.018,saloonLength-.28,side*1.08,F+2.155,(saloonStart+saloonEnd)/2,saloonJoint);
@@ -862,7 +873,6 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
   detailBox(.006,.43,.008,side*1.092,F+.80,z,saloonDark);
  }
 }
-// Handrail collars make every pole look mechanically attached rather than
 // floating into the floor/ceiling.
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
  for(const y of [F+.105,F+2.095]){
