@@ -622,12 +622,12 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  }
  for(let i=1;i<count;i++){
   const seamZ=a+i*len/count;
-  sideBox(.012,.075,.010,side*.965,F+.505,seamZ,saloonJoint);
-  sideBox(.012,.34,.010,side*1.178,F+.79,seamZ,saloonJoint);
+  sideBox(.012,.075,.010,side*.965,F+.505,seamZ,floorSeam);
+  sideBox(.012,.34,.010,side*1.178,F+.79,seamZ,floorSeam);
  }
  for(const shoeZ of [a+.22,b-.22]){
   sideBox(.13,.075,.15,side*.91,F+.055,shoeZ,saloonDark);
-  sideBox(.16,.012,.18,side*.91,F+.012,shoeZ,saloonTrim);
+  sideBox(.16,.012,.18,side*.91,F+.012,shoeZ,sideSteel);
  }
  for(const zz of [a+.015,b-.015]){
   // 81-717 style: vertical chrome stanchion grows from the seat/floor zone and
