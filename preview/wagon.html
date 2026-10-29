@@ -725,6 +725,28 @@ for(const z of [saloonStart+.06,saloonEnd-.06]){
  for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
 }
 
+// Layered vestibule signage and emergency hardware, kept shallow so nothing intrudes into passenger clearance.
+for(const side of [-1,1])for(const z of doors){
+ const panelZ=z+doorWidth/2+.23;
+ fixtureBox(.024,.30,.22,side*(sideWallInner-.050),F+1.62,panelZ,saloonDark);
+ fixtureBox(.026,.245,.175,side*(sideWallInner-.063),F+1.62,panelZ,saloonPaper);
+ fixtureBox(.028,.038,.135,side*(sideWallInner-.075),F+1.705,panelZ,saloonNoticeRed);
+ fixtureBox(.032,.095,.095,side*(sideWallInner-.078),F+1.555,panelZ,saloonAmber);
+}
+// Add shallow seat-back mounting brackets and under-seat cable/service covers.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ for(let i=0;i<count;i++){
+  const z=a+(i+.5)*len/count;
+  fixtureBox(.035,.18,.055,side*1.085,F+.665,z,saloonTrim);
+ }
+ fixtureBox(.18,.11,len-.18,side*.88,F+.19,(a+b)/2,saloonJoint);
+}
+// Alternating narrow ceiling ventilation slots add depth without extra lights.
+for(let z=saloonStart+.36;z<saloonEnd-.24;z+=.34){
+ for(const side of [-1,1])fixtureBox(.20,.008,.018,side*.30,F+2.304,z,saloonDark);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
