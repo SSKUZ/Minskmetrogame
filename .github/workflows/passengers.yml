@@ -1,0 +1,38 @@
+name: Passenger system checks
+on:
+  push:
+    branches: ['feature/passengers-realism-20261028']
+    paths:
+      - 'js/passengers/**'
+      - 'tests/passenger*'
+      - 'tests/helpers/passenger*'
+      - '.github/workflows/passengers.yml'
+permissions:
+  contents: read
+jobs:
+  passengers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regression checks
+        run: npm run check
+      - name: Install browser dependencies
+        run: |
+          npm install --no-save --package-lock=false
+          npx playwright install --with-deps chromium
+      - name: Real game passenger exchange, cameras and mobile viewport
+        env:
+          CAB_THREE_FIXTURE: js/vendor/three.module.js
+          PASSENGER_OUTPUT: test-results/passenger-layout
+        run: node tests/passenger-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: passenger-layout-browser
+          path: test-results/passenger-layout/
+          if-no-files-found: warn
+          retention-days: 14

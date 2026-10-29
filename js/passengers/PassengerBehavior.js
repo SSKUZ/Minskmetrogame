@@ -1,4 +1,5 @@
-import {DOORS,PLATFORM,randomSource,turnDelta} from './PassengerConfig.js';
+import {randomSource,turnDelta} from './PassengerConfig.js';
+import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {PassengerSpawner} from './PassengerSpawner.js';
 import {PassengerNavigation,platformPath} from './PassengerNavigation.js';
 import {PassengerBoardingController} from './PassengerBoardingController.js';
@@ -6,10 +7,11 @@ import {updateSeating} from './PassengerSeating.js';
 import {updateCarriageActivity} from './PassengerActivities.js';
 
 export class PassengerSimulation{
- constructor({seed=Date.now(),platformCount=64,onboardCount=24}={}){
-  this.seed=seed;this.random=randomSource(seed);this.spawner=new PassengerSpawner(seed);
+ constructor({seed=Date.now(),platformCount=64,onboardCount=24,layout=TEST_PASSENGER_LAYOUT}={}){
+  this.layout=layout;
+  this.seed=seed;this.random=randomSource(seed);this.spawner=new PassengerSpawner(seed,layout);
   this.platformCount=platformCount;this.onboardCount=onboardCount;this.agents=[];
-  this.navigation=new PassengerNavigation();this.boarding=new PassengerBoardingController();
+  this.navigation=new PassengerNavigation(layout);this.boarding=new PassengerBoardingController(layout);
   this.station=-1;this.time=0;this.accumulator=0;this.events=[];this.eventSequence=0;
  }
  enterStation(index){
@@ -32,19 +34,19 @@ export class PassengerSimulation{
    if(a.space==='platform'&&['waiting','strolling','watching','approaching'].includes(a.state)){
     if(preparing&&a.wantsBoard&&a.state!=='approaching'){
      a.state='approaching';a.activity='wait';
-     const door=DOORS[a.doorId];a.path=platformPath(a,{x:-3.7-(a.id%3)*.60,z:door.z+(a.id%2?1.7:-1.7)},a.radius);
+     const door=this.layout.door(a.doorId);a.path=platformPath(a,{x:door.queueX-.05-(a.id%3)*.60,z:door.z+(a.id%2?1.7:-1.7)},a.radius,this.layout);
     }
     if(a.parentId!==null){
      const parent=this.agents.find(p=>p.id===a.parentId);
      if(parent&&Math.hypot(a.x-parent.x,a.z-parent.z)>1.05)
-      a.path=platformPath(a,{x:parent.x-.52,z:parent.z+.18},a.radius);
+      a.path=platformPath(a,{x:parent.x-.52,z:parent.z+.18},a.radius,this.layout);
     }
     if(!a.path.length){
      if(a.state==='approaching'){a.state='watching';a.targetHeading=Math.PI/2;}
      if(a.state==='strolling'){a.state='waiting';a.nextDecision=this.time+2+this.random()*5;}
      if(this.time>a.nextDecision&&!preparing&&a.groupId===null){
       const n=this.random();a.nextDecision=this.time+5+this.random()*11;
-      if(n<.31){a.state='strolling';a.activity='wait';a.path=platformPath(a,{x:a.x+(this.random()-.5)*3,z:a.z+(this.random()-.5)*16},a.radius);}
+      if(n<.31){a.state='strolling';a.activity='wait';a.path=platformPath(a,{x:a.x+(this.random()-.5)*3,z:a.z+(this.random()-.5)*16},a.radius,this.layout);}
       else a.activity=n<.63?'phone':n<.86?'look':'wait';
      }
      if(a.state==='watching')a.targetHeading=Math.PI/2;

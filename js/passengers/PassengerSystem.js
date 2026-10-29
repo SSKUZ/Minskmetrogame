@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three.module.js';
-import {TRAIN,PLATFORM} from './PassengerConfig.js';
+import {createTestPassengerLayout} from './PassengerLayout.js';
 import {PassengerSimulation} from './PassengerBehavior.js';
 import {PassengerModelLibrary} from './PassengerModel.js';
 import {PassengerAnimator} from './PassengerAnimator.js';
@@ -14,10 +14,11 @@ function contactMaterial(){
  return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
 }
 export class PassengerSystem{
- constructor({scene,platform,seed,onCount,carriage}){
-  this.motion=new PassengerTrainMotion();this.rails=carriage?readCarriageRails(carriage):[];
-  this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed});
-  this.simulation.boarding.railPlaces=railStandingPlaces(this.rails,TRAIN.offsetZ,TRAIN.aisleX);
+ constructor({scene,platform,seed,onCount,carriage,layout}){
+  this.layout=layout??createTestPassengerLayout({gripAnchors:carriage?readCarriageRails(carriage):[]});
+  this.motion=new PassengerTrainMotion();this.rails=this.layout.gripAnchors;
+  this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed,layout:this.layout});
+  this.simulation.boarding.railPlaces=this.layout.cars.flatMap(car=>railStandingPlaces(this.rails,this.layout.train.offsetZ,car.aisleX,{...car.bounds,floorY:this.layout.train.floorY}).filter(p=>p.z>car.navigationZone.minZ&&p.z<car.navigationZone.maxZ).map(p=>({...p,car:car.id})));
   this.models=new PassengerModelLibrary();this.impostors=new PassengerImpostors(scene);this.audio=new PassengerAudio();
   this.actors=new Map();this.root=new THREE.Group();this.root.name='PassengerSystem';scene.add(this.root);
   this.shadowMaterial=contactMaterial();this.shadowGeometry=new THREE.PlaneGeometry(.72,.56);this.shadowGeometry.rotateX(-Math.PI/2);
@@ -27,10 +28,10 @@ export class PassengerSystem{
   window.addEventListener('pointerdown',unlock,{once:true});window.addEventListener('keydown',unlock,{once:true});
  }
  worldPosition(a,out=new THREE.Vector3()){
-  const platformZ=this.platform.position.z;
+  const platformZ=this.platform.position.z,{train:TRAIN,platform:PLATFORM}=this.layout,door=this.layout.door(a.doorId);
   const z=a.z+(a.space==='train'?TRAIN.offsetZ:platformZ);
   // A physical step across the threshold; waiting people always stay behind the safety line.
-  const lift=THREE.MathUtils.smoothstep(a.x,-2.72,-2.30);
+  const lift=THREE.MathUtils.smoothstep(a.x,door.thresholdX-.22,door.thresholdX+.20);
   const y=(a.space==='train'?TRAIN.floorY:PLATFORM.y+(TRAIN.floorY-PLATFORM.y)*lift)+this.platform.position.y;
   return out.set(a.x,y,z);
  }
@@ -72,7 +73,7 @@ export class PassengerSystem{
    if(lod==='far'){this.impostors.add(a,position);continue;}
    if(lod==='hidden')continue;
    const detail=lod==='near'?'medium':'low';let view=actor.views.get(detail);
-   if(!view){view=this.models.create(a,detail);if(!view)continue;view.animator=new PassengerAnimator(view,a,{rails:this.rails,motion:this.motion});actor.views.set(detail,view);this.root.add(view.root);}
+   if(!view){view=this.models.create(a,detail);if(!view)continue;view.animator=new PassengerAnimator(view,a,{rails:this.rails,motion:this.motion,aisleX:this.layout.car(a.car??this.layout.door(a.doorId).car).aisleX});actor.views.set(detail,view);this.root.add(view.root);}
    view.root.visible=true;view.root.position.copy(position);view.root.rotation.y=a.heading;view.root.scale.set(a.scale*a.width,a.scale,a.scale);
    const period=lod==='near'?0:1/15;
    if(this.time-actor.lastAnimationTime>=period){view.animator.update(this.time-actor.lastAnimationTime,this.time);actor.lastAnimationTime=this.time;this.lodStats.animated++;}

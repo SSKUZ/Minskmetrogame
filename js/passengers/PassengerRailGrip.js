@@ -15,20 +15,20 @@ export function readCarriageRails(carriage){
 
 // Navigation candidates beside actual vertical posts. Coordinates stay in the
 // simulation's train frame; the accepted carriage geometry remains untouched.
-export function railStandingPlaces(rails,offsetZ=112,aisleX=-.31){
+export function railStandingPlaces(rails,offsetZ=112,aisleX=-.31,{minX=-1.82,maxX=1.25,floorY=1.135}={}){
  const places=[];
  for(const rail of rails){
   let point=null,error=Infinity;
   for(let i=1;i<rail.points.length;i++){
    const p=rail.points[i],t=p.clone().sub(rail.points[i-1]).normalize();
-   if(Math.abs(t.y)<.94||p.y<2.1||p.y>2.8)continue;
-   if(Math.abs(p.y-2.4)<error){point=p;error=Math.abs(p.y-2.4);}
+   if(Math.abs(t.y)<.94||p.y<floorY+.965||p.y>floorY+1.665)continue;
+   if(Math.abs(p.y-floorY-1.265)<error){point=p;error=Math.abs(p.y-floorY-1.265);}
   }
   if(!point)continue;
   const direction=point.x<aisleX?1:-1;
   for(const zOffset of [-.25,.25]){
    const place={x:point.x+direction*.43,z:point.z-offsetZ+zOffset,railId:rail.id};
-   if(place.x< -1.82||place.x>1.25)continue;
+   if(place.x<minX||place.x>maxX)continue;
    if(!places.some(p=>Math.hypot(p.x-place.x,p.z-place.z)<.4))places.push(place);
   }
  }
@@ -56,8 +56,14 @@ export function chooseRailGrip(view,rails){
    const local=view.root.worldToLocal(target.clone());
    if(local.z<-.27)continue; // no reversed shoulder joint behind the back
    const cost=distance+Math.abs(p.y-shoulder.y-.10)*.25+(side==='Left'?.02:0);
-   if(cost<score){score=cost;best={railId:rail.id,side,point:p.clone(),target,normal,tangent,radius:rail.radius,reach};}
+   if(cost<score){score=cost;best={railId:rail.id,pointIndex:n,side,point:p.clone(),target,normal,tangent,radius:rail.radius,reach};}
   }
  }
  return best;
+}
+
+export function railGripChanged(grip,rails){
+ const rail=rails.find(r=>r.id===grip.railId),p=rail?.points[grip.pointIndex],previous=rail?.points[grip.pointIndex-1];
+ return !p||!previous||rail.radius!==grip.radius||p.distanceToSquared(grip.point)>1e-12||
+  p.clone().sub(previous).normalize().distanceToSquared(grip.tangent)>1e-12;
 }

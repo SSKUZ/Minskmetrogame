@@ -1,6 +1,7 @@
 import * as THREE from '../vendor/three.module.js';
 import {PassengerBalance} from './PassengerBalance.js';
-import {chooseRailGrip} from './PassengerRailGrip.js';
+import {chooseRailGrip,railGripChanged} from './PassengerRailGrip.js';
+import {TRAIN} from './PassengerConfig.js';
 import {SEAT_TIMING} from './PassengerSeating.js';
 import {PassengerHandGrip} from './PassengerHandGrip.js';
 
@@ -27,8 +28,8 @@ function solveArm(view,side,targetLocal,poleLocal){
  pointBone(upper,elbow,desired);pointBone(elbow,hand,target);
 }
 export class PassengerAnimator{
- constructor(view,agent,{rails=[],motion=null}={}){
-  this.handGrip=new PassengerHandGrip(view);this.rails=rails;this.motion=motion;this.balance=new PassengerBalance(agent);this.grip=null;this.gripAttempted=false;
+ constructor(view,agent,{rails=[],motion=null,aisleX=TRAIN.aisleX}={}){
+  this.aisleX=aisleX;this.handGrip=new PassengerHandGrip(view);this.rails=rails;this.motion=motion;this.balance=new PassengerBalance(agent);this.grip=null;this.gripAttempted=false;
   this.view=view;this.agent=agent;this.mixer=new THREE.AnimationMixer(view.model);this.actions={};this.mode=null;
   for(const clip of view.animations)this.actions[clip.name]=this.mixer.clipAction(clip);
   this.rest={};for(const [name,bone] of Object.entries(view.bones))this.rest[name]=bone.quaternion.clone();
@@ -64,7 +65,7 @@ export class PassengerAnimator{
   v.props.phone.visible=phone;
   if(phone)add('Head',.19*actionWeight,-.06);
   if(['window','display','child','talk','bag','weight'].includes(a.activity)&&!walking){
-   if(a.activity==='window')add('Head',0,(a.x<-.31?-.38:.38)*actionWeight);
+   if(a.activity==='window')add('Head',0,(a.x<this.aisleX?-.38:.38)*actionWeight);
    if(a.activity==='display')add('Head',-.12*actionWeight,.23*actionWeight);
    if(a.activity==='child'||a.activity==='talk')add('Head',a.activity==='child'?.12:0,THREE.MathUtils.clamp(Math.atan2(Math.sin(a.attentionAngle??0),Math.cos(a.attentionAngle??0)),-.5,.5)*actionWeight);
    if(a.activity==='bag')add('Head',.12*actionWeight);
@@ -86,21 +87,26 @@ export class PassengerAnimator{
     // The source chair clip translates the pelvis ~0.55m backwards. Remove
     // that root motion so the reserved seat is the actual pelvis position.
     v.model.position.x-=p.x;v.model.position.z-=p.z;
-    if(!transitioning)v.model.position.y+=.53/(a.scale??1)-p.y;
+    if(!transitioning)v.model.position.y+=(a.seat?.hipHeight??.53)/(a.scale??1)-p.y;
     else {
      const track=this.actions[mode]?.getClip().tracks.find(t=>t.name==='Hips.position');
      if(track){
       const endY=track.values[a.state==='sittingDown'?track.values.length-2:1]*v.scale;
       const standingY=track.values[a.state==='sittingDown'?1:track.values.length-2]*v.scale;
       const weight=THREE.MathUtils.clamp((standingY-p.y)/(standingY-endY),0,1);
-      v.model.position.y+=weight*(.53/(a.scale??1)-endY);
+      v.model.position.y+=weight*((a.seat?.hipHeight??.53)/(a.scale??1)-endY);
      }
     }
    }
   }else v.model.position.set(0,0,0);
   const wantsGrip=(a.activity==='rail'||a.railPreference||!!a.railGrip)&&a.space==='train'&&a.state==='riding'&&!walking;
   if(!wantsGrip){this.grip=null;this.gripAttempted=false;a.railGrip=null;}
-  if(wantsGrip&&!this.gripAttempted){this.grip=a.railGrip??chooseRailGrip(v,this.rails);a.railGrip=this.grip;this.gripAttempted=true;}
+  if(wantsGrip&&a.railGrip&&railGripChanged(a.railGrip,this.rails)){this.grip=null;a.railGrip=null;this.gripAttempted=false;}
+  // A moved/removed anchor releases its old target. Failed searches are retried
+  // at a bounded rate, so a newly available rail can be acquired without walking.
+  if(wantsGrip&&(!this.gripAttempted||(!this.grip&&time>=(this.nextGripSearch??0)))){
+   this.grip=a.railGrip??chooseRailGrip(v,this.rails);a.railGrip=this.grip;this.gripAttempted=true;this.nextGripSearch=time+.5;
+  }
   if(!walking){
    const seated=a.state==='seated'||transitioning,hips=new THREE.Vector3();
    v.model.updateWorldMatrix(true,true);v.bones.Hips?.getWorldPosition(hips);v.model.worldToLocal(hips);

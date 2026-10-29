@@ -1,24 +1,27 @@
-import {PLATFORM,COLUMNS,TRAIN,clamp} from './PassengerConfig.js';
+import {clamp} from './PassengerConfig.js';
+import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 
 // Deterministic short detours around the station's actual column footprints.
-export function platformPath(from,to,radius=.24){
+export function platformPath(from,to,radius=.24,layout=TEST_PASSENGER_LAYOUT){
+ const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
  const target={x:clamp(to.x,PLATFORM.minX,PLATFORM.maxX),z:clamp(to.z,PLATFORM.minZ,PLATFORM.maxZ)};
  for(const c of COLUMNS)if(Math.hypot(target.x-c.x,target.z-c.z)<c.radius+radius+.15)
   target.x=c.x+(target.x>=c.x?1:-1)*(c.radius+radius+.20);
- const path=crowdDetour({...from,radius,space:'platform'},target,[])??[target];
+ const path=crowdDetour({...from,radius,space:'platform'},target,[],layout)??[target];
  for(const point of path)if(point!==target)point.detourGoal=target;
  return path;
 }
 
 // Only used after sustained lack of progress. Unlike short steering turns this
 // search can initially walk away from the goal to get behind a stationary queue.
-export function crowdDetour(agent,target,agents){
+export function crowdDetour(agent,target,agents,layout=TEST_PASSENGER_LAYOUT){
+ const PLATFORM=layout.platform,COLUMNS=layout.obstacles(agent.space,agent.car);
  const inTrain=agent.space==='train';
- const bounds=inTrain?{minX:TRAIN.aisleX-.94,maxX:TRAIN.aisleX+.94,minZ:-100+agent.car*21.5+.5,maxZ:-100+(agent.car+1)*21.5-.5}:PLATFORM;
+ const bounds=inTrain?layout.car(agent.car).navigationZone:PLATFORM;
  // Never route an alighter around a door jamb or through a bench. Only the
  // interior aisle legs are replanned; threshold legs retain their fixed path.
  if(inTrain&&(target.x<bounds.minX||target.x>bounds.maxX))return null;
- const obstacles=[...(inTrain?[]:COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035}))),
+ const obstacles=[...COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035})),
   ...agents.filter(o=>o!==agent&&o.space===agent.space&&o.state!=='gone'&&o.state!=='seated')
    .map(o=>({x:o.x,z:o.z,r:o.radius+agent.radius+.045}))];
  const clear=(from,to)=>obstacles.every(o=>{
@@ -72,7 +75,7 @@ export function crowdDetour(agent,target,agents){
 }
 
 export class PassengerNavigation{
- constructor(){this.buckets=new Map();this.cellSize=1.2;}
+ constructor(layout=TEST_PASSENGER_LAYOUT){this.layout=layout;this.buckets=new Map();this.cellSize=1.2;}
  rebuild(agents){
   this.buckets.clear();
   for(const a of agents){
@@ -90,13 +93,14 @@ export class PassengerNavigation{
   return result;
  }
  move(a,dt){
+  const layout=this.layout,PLATFORM=layout.platform,COLUMNS=layout.obstacles(a.space,a.car);
   const next=a.path[0];if(!next){a.velocity=0;return false;}
   if(a.navigationGoal!==next){a.navigationGoal=next;a.navigationBest=Infinity;a.navigationStall=0;}
   const dx=next.x-a.x,dz=next.z-a.z,dist=Math.hypot(dx,dz);
   if(dist<a.navigationBest-.04){a.navigationBest=dist;a.navigationStall=0;}else a.navigationStall+=dt;
   if(a.navigationStall>1.5){
    a.navigationStall=0;
-   const goal=next.detourGoal??next,detour=crowdDetour(a,goal,[...this.buckets.values()].flat());
+   const goal=next.detourGoal??next,detour=crowdDetour(a,goal,[...this.buckets.values()].flat(),layout);
    if(detour&&detour.length>1){
     const end=a.path.indexOf(goal);for(const p of detour)if(p!==goal)p.detourGoal=goal;
     a.path.splice(0,end>=0?end+1:1,...detour);return this.move(a,dt);
@@ -110,7 +114,7 @@ export class PassengerNavigation{
   const clear=(x,z)=>neighbors.every(o=>{
    const min=a.radius+o.radius+.025,old=Math.hypot(a.x-o.x,a.z-o.z),d=Math.hypot(x-o.x,z-o.z);
    return d>=min||d>old+.00001;
-  })&&(a.space!=='platform'||COLUMNS.every(c=>Math.hypot(x-c.x,z-c.z)>=c.radius+a.radius-1e-7));
+  })&&COLUMNS.every(c=>Math.hypot(x-c.x,z-c.z)>=c.radius+a.radius-1e-7);
   if(!clear(nx,nz)){
    const heading=Math.atan2(dx,dz);let best=null,bestScore=-Infinity;
    for(const angle of [.55,-.55,1.05,-1.05,1.55,-1.55,2.15,-2.15]){
@@ -123,10 +127,10 @@ export class PassengerNavigation{
    nx=best?.x??a.x;nz=best?.z??a.z;
   }
   const service=['boarding','alighting','returning'].includes(a.state)||clearingPlatform;
-  if(clearingPlatform)nx=Math.min(nx,TRAIN.thresholdX-a.radius-.05);
-  if(a.space==='train'&&!service)nx=clamp(nx,-1.82,1.25);
+  if(clearingPlatform)nx=Math.min(nx,(a.doorId===undefined?layout.nearestDoor(a.z):layout.door(a.doorId)).thresholdX-a.radius-.05);
+  if(a.space==='train'&&!service){const bounds=layout.car(a.car).bounds;nx=clamp(nx,bounds.minX,bounds.maxX);}
   if(a.space==='platform'&&!service){nx=clamp(nx,PLATFORM.minX,PLATFORM.maxX);nz=clamp(nz,PLATFORM.minZ,PLATFORM.maxZ);}
-  if(a.space==='platform')for(const c of COLUMNS){
+  for(const c of COLUMNS){
    const cx=nx-c.x,cz=nz-c.z,d=Math.hypot(cx,cz),min=c.radius+a.radius;
    if(d<min){nx=c.x+cx/(d||1)*min;nz=c.z+cz/(d||1)*min;}
   }

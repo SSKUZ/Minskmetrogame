@@ -183,3 +183,32 @@ Use `artifacts/passengers/tz2-motion-inside/` for motion evidence; the full-seri
 11–13 images are retained only as rejected/limited historical captures.
 Full TZ2 acceptance still requires wardrobe/accessory refinement, better dense-stop
 throughput, complete-source specification cross-check and real Android GPU testing.
+
+## Passenger-only adapter checkpoint — user amendments applied
+
+Verified remote parent: `96552133a6600cdb151ced562deb1ced1616a2f3`.
+
+- Scope locked to passengers. The temporary carriage is a stand; geometry-only
+  defects are documented, not fixed. V106 integration remains a separate stage.
+- Added an injectable six-part layout contract for doors, seats, standing places,
+  grips, navigation and collisions. Door/car IDs no longer need to be indices.
+- Routed simulation, spawning, thresholds, queues, seating, world positions and
+  navigation through the adapter. Added train collision zones and layout-driven
+  seat approach/facing/pelvis height. No carriage, cab or physics files changed.
+- Rail grips invalidate moved/removed targets and retry unavailable support at
+  a bounded frequency. Actual shipped skeleton tests cover reacquisition.
+- `npm run check`: **55/55**, no skipped tests. New tests cover a different layout
+  over 3 consecutive stations, arbitrary IDs, collision detours, different seat
+  height and moved/deleted/restored rail anchors. Existing 12-station regression
+  and its 150 s deadline remain intact. `git diff --check` passes.
+- Local Chromium is absent; install failed with truncated downloads. Fresh game
+  rendering is not claimed. Added a branch-only CI job for the existing browser
+  passenger exchange/cameras/mobile-viewport script and screenshot artifacts.
+- Contract details and limits: `docs/passengers/LAYOUT-CONTRACT.md`. Current doors
+  use the negative-X platform side; navigation uses aisle rectangles and circular
+  footprints. This does not claim arbitrary rotated geometry or hot-swapped
+  seat/door topology during an active stop.
+
+Continue with actual-game browser results, then dense-stop service throughput and
+accessory/clothing review. Real Android performance is still unverified. Do not
+merge into other branches or change geometry to improve a passenger screenshot.

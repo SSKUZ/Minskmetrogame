@@ -1,15 +1,17 @@
-import {DOORS,PLATFORM,COLUMNS,randomSource,clamp,trainSeatPositions} from './PassengerConfig.js';
+import {randomSource,clamp} from './PassengerConfig.js';
+import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {platformPath} from './PassengerNavigation.js';
 
-function freePoint(rng,agents,door){
+function freePoint(rng,agents,door,layout){
+ const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
  for(let n=0;n<200;n++){
-  const x=n<100?-3.65-rng()*6.9:-10-rng()*8;
-  const z=Math.max(-113,Math.min(2,door.z+(rng()-.5)*8.5));
+  const x=n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
+  const z=Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
   if(COLUMNS.some(c=>Math.hypot(x-c.x,z-c.z)<c.radius+.5))continue;
   if(agents.some(a=>a.space==='platform'&&Math.hypot(x-a.x,z-a.z)<.72))continue;
   return {x,z};
  }
- return {x:-12-rng()*5,z:-112+rng()*112};
+ return {x:PLATFORM.minX+8.3-rng()*5,z:PLATFORM.minZ+3+rng()*(PLATFORM.maxZ-PLATFORM.minZ-6.5)};
 }
 export function createPassenger(id,rng,station){
  const profile=id%12,child=profile===6||profile===7,elder=profile===4||profile===5;
@@ -25,14 +27,15 @@ export function createPassenger(id,rng,station){
 }
 
 export class PassengerSpawner{
- constructor(seed){this.seed=seed;this.nextId=0;}
+ constructor(seed,layout=TEST_PASSENGER_LAYOUT){this.seed=seed;this.nextId=0;this.layout=layout;}
  station(index,count=64,existing=[]){
+  const layout=this.layout,DOORS=layout.doors,PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
   const rng=randomSource(this.seed+index*91771),agents=[];
   for(let i=0;i<count;i++){
    const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
-   Object.assign(a,freePoint(rng,[...existing,...agents],door),{doorId:door.id});
+   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout),{doorId:door.id});
    a.targetHeading=a.heading;
-   if(i%10===2){a.state='strolling';a.path=platformPath(a,{x:-7-rng()*5,z:a.z+9*(rng()-.5)});}
+   if(i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
    agents.push(a);
   }
   // Conversation partners face each other; families keep an adult beside a child.
@@ -67,16 +70,18 @@ export class PassengerSpawner{
   return agents;
  }
  onboard(index,count=24){
+  const layout=this.layout,DOORS=layout.doors;
   const rng=randomSource(this.seed^0x81_717),agents=[];
   for(let i=0;i<count;i++){
    const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
    a.space='train';a.doorId=door.id;a.car=door.car;a.wantsBoard=false;
    a.destination=i%3===0?index:index+1+Math.floor(rng()*3);
-   const seats=trainSeatPositions(door.car).sort((p,b)=>Math.abs(p.z-door.z)-Math.abs(b.z-door.z));
+   const car=layout.car(door.car),seats=[...car.seatAnchors].sort((p,b)=>Math.abs(p.z-door.z)-Math.abs(b.z-door.z));
    a.seat=i%3?seats.find(p=>!agents.some(o=>o.seat&&Math.hypot(o.seat.x-p.x,o.seat.z-p.z)<.58)):null;
-   a.x=a.seat?.x??(-1.02+(i%2)*1.42);a.z=a.seat?.z??door.z+(i%2?1.3:-1.3);
+   const standing=door.initialStanding?.[i%2]??car.standingZones[i%car.standingZones.length]??door.fallback;
+   a.x=a.seat?.x??standing.x;a.z=a.seat?.z??standing.z;
    a.state=a.seat?'seated':'riding';a.activity=i%4===0?'phone':i%4===1?'rail':'window';
-   a.heading=a.targetHeading=a.seat?(a.x<-.31?Math.PI/2:-Math.PI/2):rng()*6.28;
+   a.heading=a.targetHeading=a.seat?a.seat.heading:rng()*6.28;
    agents.push(a);
   }
   return agents;

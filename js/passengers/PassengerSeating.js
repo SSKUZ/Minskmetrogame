@@ -1,11 +1,11 @@
-import {turnDelta} from './PassengerConfig.js';
+import {TRAIN,turnDelta} from './PassengerConfig.js';
 
 export const SEAT_TIMING=Object.freeze({turn:.55,sit:2,stand:2,stabilize:.30});
-export function seatApproach(seat){return {x:seat.x+(seat.x<-.31?.43:-.43),z:seat.z};}
+export function seatApproach(seat){return seat.approach??{x:seat.x+(seat.x<TRAIN.aisleX?.43:-.43),z:seat.z};}
 const eased=t=>{const p=Math.max(0,Math.min(1,t));return p*p*(3-2*p);};
 export function beginSitting(a){
  a.state='seatTurning';a.seatTime=0;a.activity='wait';a.velocity=0;
- a.targetHeading=a.x<-.31?Math.PI/2:-Math.PI/2;
+ a.targetHeading=a.seat?.heading??(a.x<TRAIN.aisleX?Math.PI/2:-Math.PI/2);
 }
 export function beginStanding(a){a.state='standingUp';a.seatTime=0;a.activity='wait';a.velocity=0;a.railGrip=null;}
 export function updateSeating(a,dt){
