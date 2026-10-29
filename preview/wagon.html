@@ -589,6 +589,9 @@ sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
 for(const x of [-.48,.48])sideBox(.012,.003,saloonLength-.18,x,F+.012,(saloonStart+saloonEnd)/2,floorSeam);
 for(let z=saloonStart+2.15;z<saloonEnd-.8;z+=3.25)sideBox(W-.42,.003,.012,0,F+.013,z,floorSeam);
 for(const side of [-1,1])sideBox(.035,.018,saloonLength-.16,side*1.145,F+.018,(saloonStart+saloonEnd)/2,sideRubber);
+// Restrained traffic wear: broad, nearly invisible aisle bands break the perfectly-new procedural floor without making the car dirty.
+const floorWear=new T.MeshStandardMaterial({color:0x777c7c,transparent:true,opacity:.12,roughness:.82,metalness:0,depthWrite:false});
+for(const [x,w] of [[-.24,.18],[.18,.22]])sideBox(w,.001,saloonLength-.70,x,F+.016,(saloonStart+saloonEnd)/2,floorWear);
 function saloonCushion(w,h,d,x,y,z,material){
  const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
  const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);group.add(mesh);return passenger(mesh);
@@ -650,7 +653,7 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  for(const x of [-.98,-.52,0,.52,.98])sideBox(.018,.012,saloonLength-.22,x,3.205+.105*(1-Math.pow(Math.abs(x)/1.20,2.4)),(saloonStart+saloonEnd)/2,sideSteel);
  for(let z=saloonStart+.52;z<saloonEnd-.30;z+=1.18)sideBox(2.18,.012,.018,0,3.185,z,sideLining);
 }
-const diffuser=new T.MeshStandardMaterial({color:0xfff2d5,emissive:0xffecd0,emissiveIntensity:.48,roughness:.65});
+const diffuser=new T.MeshStandardMaterial({color:0xfff1d7,emissive:0xffe9c8,emissiveIntensity:.40,roughness:.74});
 for(const side of [-1,1]){
  const ceilingRail=sideTube([[side*.74,F+2.12,saloonStart+.18],[side*.74,F+2.12,saloonEnd-.12]],.0135,sideSteel);saloonRails.push(ceilingRail);
  // Rigid brackets physically tie the longitudinal rail into the ceiling shell.
@@ -674,8 +677,8 @@ for(const side of [-1,1]){
  }
  for(const z of [-6.9,-4.65,-2.4,-.15,2.1,4.35,6.6,8.75]){
   // Recessed fluorescent-style luminaire: metal tray, warm lens and slim retaining rails.
-  sideBox(.19,.030,1.96,side*.53,3.270,z,sideSteel);
-  sideBox(.155,.026,1.88,side*.53,3.246,z,diffuser);
+  sideBox(.19,.034,1.96,side*.53,3.270,z,sideSteel);
+  sideBox(.151,.022,1.86,side*.53,3.244,z,diffuser);
   sideBox(.012,.012,1.90,side*(.53-.082),3.238,z,sideLining);
   sideBox(.012,.012,1.90,side*(.53+.082),3.238,z,sideLining);
  }
@@ -689,8 +692,8 @@ for(const side of [-1,1]){
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
  for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
 }
-for(const z of [-6.0,-2.8,.4,3.6,6.8]){
- const lamp=new T.PointLight(0xffeed7,1.05,4.0,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);
+for(const [z,power] of [[-6.0,.94],[-2.8,1.00],[.4,.97],[3.6,1.02],[6.8,.93]]){
+ const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);
 }
 // Floor inlays mark the threshold without blocking the 3D doorway.
 for(const side of [-1,1])for(const z of doors){
