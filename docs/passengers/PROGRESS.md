@@ -42,3 +42,12 @@ Asset source: Ara 3D Gen `dd716acd32df44f06b8968ab57c5c54428475b94`.
 Build tools: `tools/passengers/`; gallery/bake harness: `tests/fixtures/passenger-assets.html`.
 
 The commit containing this file is the first remote checkpoint. Its SHA must be verified with `git ls-remote origin refs/heads/feature/passengers-realism-20261028` after pushing. Later verified SHAs should be recorded in subsequent checkpoints.
+
+## Resume verification — 29 October 2026
+
+- Remote checkpoint confirmed: `d5530afd4bbec0a430d940840c3c9949e548b947`; its full tree is identical to local recovery commit `7f8d13a86208606ac96bfca447a26b66864289bd`. All 103 changed paths, models, textures, sounds and tools are preserved remotely.
+- Resumed from that exact remote tree, without merging or changing the cab or v106 branches.
+- Passenger regression tests rerun: 6/7 pass; seed 42 still fails queue drain. This remains an explicit known failure.
+- Next: capture the current passengers in the actual game before changes, then fix pedestrian deadlock and verify multiple seeded exchanges, closure/reopening and browser continuity.
+- Full historical chats are not directly enumerable here. Retrieved requirements cover realism/diversity, natural movement and social activities, persistent boarding/alighting and carriage occupants, sound, mirrors, LOD/performance, modular code, regression/browser checks and screenshots. Completion is not claimed.
+
