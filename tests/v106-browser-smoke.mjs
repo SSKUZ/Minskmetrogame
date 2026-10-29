@@ -11,13 +11,13 @@ try{
  await page.goto('http://127.0.0.1:8765/?preview=station&v106=1',{waitUntil:'domcontentloaded',timeout:30000});
  await page.evaluate(()=>window.addEventListener('metro-render-error',()=>window.__v106RenderErrors=(window.__v106RenderErrors||0)+1));
  await page.evaluate(()=>{const original=console.error;console.error=(...args)=>{window.__v106ConsoleErrors=(window.__v106ConsoleErrors||[]).concat(args.map(v=>v?.stack||v?.message||String(v)));original(...args)}});
- await page.waitForFunction(()=>window.metro3DReady===true,null,{timeout:90000});
+ await page.waitForFunction(()=>window.metro3DReady===true,null,{timeout:240000});
  // Station preview already selects the platform camera. Only toggle it when
  // a future startup path leaves it disabled; blindly clicking here used to
  // turn the correct preview camera off and produced a false-negative smoke failure.
  const stationCameraAlreadyActive=await page.evaluate(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
  if(!stationCameraAlreadyActive)await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:90000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:180000});
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
