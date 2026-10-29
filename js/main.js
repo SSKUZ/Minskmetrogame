@@ -1131,8 +1131,11 @@ carCameraButton.addEventListener('click',async()=>{
    // the body shell. The controller owns this pose so reset cannot restore
    // the obsolete mock-carriage coordinates.
    carriageCameraController.setPose(
-    new THREE.Vector3(0,2.30,V106_CAR_PITCH),
-    new THREE.Vector3(0,-.02,1)
+    // High left-side mount just behind the driver's cab. The initial view
+    // looks diagonally down the saloon toward the platform-side (+X) doors/windows.
+    new THREE.Vector3(-.88,3.03,V106_CAR_PITCH-7.05),
+    new THREE.Vector3(.34,-.105,1),
+    {yawMin:-.28,yawMax:1.28,pitchMin:-.38,pitchMax:.24}
    );
   }
  }
