@@ -1,0 +1,64 @@
+{
+  "motion": [
+    {
+      "name": "acceleration",
+      "speed": 25.538461538461547,
+      "acceleration": 1.9233959936942349,
+      "brightFraction": 0.6326831896551725,
+      "grips": [
+        {
+          "id": 10,
+          "side": "Right",
+          "railId": "17e73cee-fad4-4be8-afd2-044e05cadeeb",
+          "point": [
+            -1.6509052176589714,
+            2.581946869143551,
+            17.49741366386008
+          ],
+          "error": 0.0022583179038700362
+        }
+      ]
+    },
+    {
+      "name": "braking",
+      "speed": 39.43482153846153,
+      "acceleration": -2.90031761265125,
+      "brightFraction": 0.6309913793103449,
+      "grips": [
+        {
+          "id": 10,
+          "side": "Right",
+          "railId": "17e73cee-fad4-4be8-afd2-044e05cadeeb",
+          "point": [
+            -1.6509052176589714,
+            2.581946869143551,
+            17.49741366386008
+          ],
+          "error": 0.0026187988889753004
+        }
+      ]
+    },
+    {
+      "name": "stabilized",
+      "speed": 0,
+      "acceleration": -0.015971637156227764,
+      "brightFraction": 0.6332489224137932,
+      "grips": [
+        {
+          "id": 10,
+          "side": "Right",
+          "railId": "17e73cee-fad4-4be8-afd2-044e05cadeeb",
+          "point": [
+            -1.6509052176589714,
+            2.581946869143551,
+            17.49741366386008
+          ],
+          "error": 0.002515262008208286
+        }
+      ]
+    }
+  ],
+  "passed": true,
+  "errors": [],
+  "requests": []
+}

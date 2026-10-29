@@ -170,3 +170,16 @@ The other finding, opaque backing behind open exterior doors, is fixed through
 visibility tied to actual leaf progress, preserving geometry and dimensions.
 The targeted closed/open/reclosed browser test passed for all 20 portals / 40 leaves.
 `npm run check` after the portal fix: 51/51. No branches have been merged.
+
+### Valid motion retake
+
+`tests/passenger-motion-details.mjs` passed on game source `de0e2bb`: three
+inside-carriage views under the real traction/brake controller, unchanged train
+passenger IDs, nonblack image checks excluding the HUD, zero serious-driver-error
+overlays and no JS/request errors. All three images were visually reviewed.
+The initial distance is 600 m before the station; the earlier -70 m setup invoked
+a permanent overrun warning and placed the inspection camera outside the train.
+Use `artifacts/passengers/tz2-motion-inside/` for motion evidence; the full-series
+11–13 images are retained only as rejected/limited historical captures.
+Full TZ2 acceptance still requires wardrobe/accessory refinement, better dense-stop
+throughput, complete-source specification cross-check and real Android GPU testing.

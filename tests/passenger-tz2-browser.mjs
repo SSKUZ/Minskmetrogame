@@ -53,7 +53,7 @@ try{
  await p.locator('#carCameraToggle').click();await p.setViewportSize({width:412,height:915});await shot('10-mobile');
  await p.setViewportSize(desktop);await p.locator('#carCameraToggle').click();
  // Drive through the existing physical controller. No fake acceleration input.
- await p.evaluate(()=>window.metroPassengerInspector.train({doors:false,speed:20,dist:-70}));await insideStandingView();
+ await p.evaluate(()=>window.metroPassengerInspector.train({doors:false,speed:20,dist:600}));await insideStandingView();
  await p.keyboard.press('Digit5');await p.locator('#carCameraToggle').click();
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.acceleration>.5);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('11-acceleration');

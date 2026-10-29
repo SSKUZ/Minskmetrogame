@@ -17,11 +17,12 @@ try{
  await settlePassengerDoors(p,false);
  await p.evaluate(id=>{
   const i=window.metroPassengerInspector,a=i.system.simulation.agents.find(a=>a.id===id),pos=i.system.worldPosition(a);
-  i.view([.30,pos.y+1.4,pos.z+2.3],[pos.x,pos.y+1.0,pos.z],52);i.train({speed:20,dist:-70});
+  i.view([.30,pos.y+1.4,pos.z+2.3],[pos.x,pos.y+1.0,pos.z],52);i.train({speed:20,dist:600});
  },agent.id);
  await p.keyboard.press('Digit5');await p.locator('#carCameraToggle').click();
  const shot=async name=>{
   const snapshot=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
+  assert.equal(await p.locator('#seriousErrorCount').innerText(),'0','a driver-error overlay must not obscure passenger motion');
   assert.deepEqual(snapshot.agents.filter(a=>a.space==='train').map(a=>a.id),ids);
   const path=output+'/'+name+'.png';await p.screenshot({path,timeout:180000});
   const png=PNG.sync.read(await readFile(path));let bright=0,pixels=0;
