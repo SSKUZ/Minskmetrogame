@@ -596,8 +596,10 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
   saloonSeats.push({side,z:zz,seat:pad,back});
  }
  for(const zz of [a+.015,b-.015]){
-  const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+1.90,zz],[side*.76,F+2.10,zz],[side*.93,F+2.23,zz]],.017,railBlue);saloonRails.push(pole);
-  sideTube([[side*1.16,F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.015,sideSteel);
+  // 81-717 style: vertical chrome stanchion grows from the seat/floor zone and
+  // terminates in a rigid junction with the continuous ceiling handrail.
+  const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+2.12,zz]],.011,sideSteel);saloonRails.push(pole);
+  const seatRail=sideTube([[side*1.16,F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.011,sideSteel);saloonRails.push(seatRail);
  }
 }
 // Curved internal ceiling follows the roof instead of a suspended flat box.
@@ -613,9 +615,12 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
 }
 const diffuser=new T.MeshStandardMaterial({color:0xfff2d5,emissive:0xffecd0,emissiveIntensity:.48,roughness:.65});
 for(const side of [-1,1]){
- sideTube([[side*.72,F+2.12,saloonStart+.30],[side*.72,F+2.12,saloonEnd-.20]],.018,sideSteel);
+ const ceilingRail=sideTube([[side*.74,F+2.12,saloonStart+.18],[side*.74,F+2.12,saloonEnd-.12]],.0135,sideSteel);saloonRails.push(ceilingRail);
+ // Rigid brackets physically tie the longitudinal rail into the ceiling shell.
+ for(let z=saloonStart+.45;z<saloonEnd-.25;z+=1.42){
+  const bracket=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.22,z],[side*.82,F+2.30,z]],.010,sideSteel);saloonRails.push(bracket);
+ }
  for(const z of doors){
-  sideTube([[side*.72,3.08,z],[side*.72,3.24,z]],.012,railBlue);
   // Inner door head and floor seam are fixed, outside the sliding channel.
   sideBox(.10,.18,doorWidth+.06,side*(half-.20),3.13,z,sideLining);
  }
@@ -703,11 +708,6 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
   fixtureBox(.010,.018,len/count-.055,side*.914,F+.535,z,saloonTrim);
   fixtureBox(.010,.018,len/count-.060,side*1.087,F+.585,z,saloonTrim);
  }
-}
-// Overhead hanging grips are deliberately sparse and aligned to the longitudinal rail.
-for(const side of [-1,1])for(let z=saloonStart+.82;z<saloonEnd-.48;z+=.72){
- const stem=sideTube([[side*.72,F+2.11,z],[side*.72,F+1.91,z]],.008,saloonTrim);saloonDetail(stem);saloonFixtureNodes.push(stem);
- const grip=sideTube([[side*.72,F+1.91,z],[side*.67,F+1.82,z],[side*.77,F+1.82,z],[side*.72,F+1.91,z]],.010,railBlue);saloonDetail(grip);saloonFixtureNodes.push(grip);
 }
 // Door threshold plates and narrow side-wall protection panels reinforce the vestibule geometry.
 for(const side of [-1,1])for(const z of doors){
