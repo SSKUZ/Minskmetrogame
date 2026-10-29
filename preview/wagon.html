@@ -601,7 +601,7 @@ sideLining.roughness=.78; sideLining.metalness=.015;
 sideSteel.roughness=.34; sideSteel.metalness=.88; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.46;
 sideRubber.roughness=.94; sideRubber.metalness=0;
 doorInnerLining.roughness=.72; doorInnerLining.metalness=.025;
-const saloonSeats=[],saloonRails=[];
+const saloonSeats=[],saloonRails=[],saloonLightSources=[];
 const floorSeam=new T.MeshStandardMaterial({color:0x555b5c,metalness:.05,roughness:.86});
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
 // Floor finish is laid in broad longitudinal sheets with restrained welded seams and perimeter sealing.
@@ -712,7 +712,7 @@ for(const side of [-1,1]){
  for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
 }
 for(const [z,power] of [[-6.0,.94],[-2.8,1.00],[.4,.97],[3.6,1.02],[6.8,.93]]){
- const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);
+ const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);saloonLightSources.push({lamp,power,phase:z*.71});
 }
 // Floor inlays mark the threshold without blocking the 3D doorway.
 for(const side of [-1,1])for(const z of doors){
