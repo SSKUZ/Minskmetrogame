@@ -767,13 +767,18 @@ for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
  for(const dz of [-.31,.31])fixtureBox(.026,.025,.055,side*(sideWallInner-.095),F+1.215,z+dz,saloonDark);
 }
 // Wall-panel seams and discreet screw heads reduce the single-piece plastic look.
+// Keep the lower panels broad and calm; vertical joints align to actual opening edges instead of a repetitive grid.
 for(const side of [-1,1]){
- for(let z=saloonStart+.30;z<saloonEnd-.20;z+=.78){
+ const panelJoints=[saloonStart+.30,-5.70,-2.48,-1.28,1.98,3.17,6.42,7.42,saloonEnd-.20];
+ for(const z of panelJoints){
   fixtureBox(.014,.88,.009,side*(sideWallInner-.012),F+.73,z,saloonJoint);
-  for(const y of [F+.32,F+.72,F+1.10])fixtureBox(.018,.018,.018,side*(sideWallInner-.024),y,z,saloonTrim);
+  for(const y of [F+.32,F+1.10])fixtureBox(.018,.018,.018,side*(sideWallInner-.024),y,z,saloonTrim);
  }
+ // Continuous lower dado and upper reveal give the wall a believable layered section.
+ fixtureBox(.018,.050,saloonLength-.24,side*(sideWallInner-.018),F+1.16,(saloonStart+saloonEnd)/2,saloonTrim);
+ fixtureBox(.020,.035,saloonLength-.28,side*(sideWallInner-.020),F+2.12,(saloonStart+saloonEnd)/2,saloonJoint);
 }
-// Rail junction sleeves and end caps make the blue handrail system mechanically coherent.
+// Rail junction sleeves and end caps keep the chrome handrail system mechanically coherent.
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
  for(const y of [F+.72,F+1.90,F+2.10]){
   const sleeve=new T.Mesh(new T.CylinderGeometry(.025,.025,.055,14),saloonTrim);
