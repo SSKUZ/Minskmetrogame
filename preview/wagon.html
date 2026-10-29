@@ -889,17 +889,16 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
   collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);group.add(collar);passenger(collar);saloonDetail(collar);
  }
 }
-// Door-area vertical grab poles, threshold anti-slip strips and compact
-// request/intercom housings. They stay clear of the sliding-leaf channels.
+// Door-zone furniture: the structural chrome stanchions are defined once above.
+// Here only wall-mounted hardware and anti-slip threshold ribs are added, avoiding duplicate poles.
 for(const side of [-1,1])for(const z of doors){
- for(const dz of [-doorWidth/2-.105,doorWidth/2+.105]){
-  const pole=sideTube([[side*.80,F+.08,z+dz],[side*.80,F+2.08,z+dz]],.017,railBlue);saloonRails.push(pole);saloonDetail(pole);
-  const collar=new T.Mesh(new T.CylinderGeometry(.035,.035,.020,16),sideSteel);
-  collar.rotation.z=Math.PI/2;collar.position.set(side*.80,F+.085,z+dz);group.add(collar);passenger(collar);saloonDetail(collar);
- }
  detailBox(.026,.18,.12,side*(half-.245),F+1.36,z+.84,saloonDark);
  detailBox(.030,.065,.065,side*(half-.260),F+1.405,z+.84,saloonAmber);
  for(let k=-5;k<=5;k++)detailBox(.205,.002,.012,side*1.115,F+.018,z+k*.10,saloonDark);
+ // Narrow stainless jamb returns visually close the lining around the real doorway.
+ for(const dz of [-doorWidth/2-.035,doorWidth/2+.035]){
+  detailBox(.024,1.86,.040,side*(sideWallInner-.010),F+1.03,z+dz,saloonTrim);
+ }
 }
 // Framed route/information sheets between openings. These are geometry, not
 // camera-facing overlays, so they remain correctly occluded through windows.
