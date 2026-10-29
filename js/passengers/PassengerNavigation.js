@@ -5,22 +5,50 @@ export function platformPath(from,to,radius=.24){
  const target={x:clamp(to.x,PLATFORM.minX,PLATFORM.maxX),z:clamp(to.z,PLATFORM.minZ,PLATFORM.maxZ)};
  for(const c of COLUMNS)if(Math.hypot(target.x-c.x,target.z-c.z)<c.radius+radius+.15)
   target.x=c.x+(target.x>=c.x?1:-1)*(c.radius+radius+.20);
- const path=[];let start={x:from.x,z:from.z};
- for(let attempt=0;attempt<8;attempt++){
-  const dx=target.x-start.x,dz=target.z-start.z,d2=dx*dx+dz*dz;
-  let hit=null,best=Infinity;
-  for(const c of COLUMNS){
-   const t=clamp(((c.x-start.x)*dx+(c.z-start.z)*dz)/(d2||1),0,1);
-   if(t<.015||t>.995)continue;
-   const d=Math.hypot(start.x+dx*t-c.x,start.z+dz*t-c.z);
-   if(d<c.radius+radius+.15&&t<best){best=t;hit=c;}
+ return crowdDetour({...from,radius,space:'platform'},target,[])??[target];
+}
+
+// Only used after sustained lack of progress. Unlike short steering turns this
+// search can initially walk away from the goal to get behind a stationary queue.
+export function crowdDetour(agent,target,agents){
+ const obstacles=[...COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035})),
+  ...agents.filter(o=>o!==agent&&o.space===agent.space&&o.state!=='gone'&&o.state!=='seated')
+   .map(o=>({x:o.x,z:o.z,r:o.radius+agent.radius+.045}))];
+ const clear=(from,to)=>obstacles.every(o=>{
+  const dx=to.x-from.x,dz=to.z-from.z,d2=dx*dx+dz*dz;
+  const t=clamp(((o.x-from.x)*dx+(o.z-from.z)*dz)/(d2||1),0,1);
+  const start=Math.hypot(from.x-o.x,from.z-o.z),end=Math.hypot(to.x-o.x,to.z-o.z);
+  if(start<o.r)return end>start+.00001&&(from.x-o.x)*dx+(from.z-o.z)*dz>=-.00001;
+  return Math.hypot(from.x+dx*t-o.x,from.z+dz*t-o.z)>=o.r;
+ });
+ if(clear(agent,target))return [target];
+ const spacing=.32,minX=Math.max(PLATFORM.minX,Math.min(agent.x,target.x)-3.2),
+  maxX=Math.min(PLATFORM.maxX,Math.max(agent.x,target.x)+3.2),
+  minZ=Math.max(PLATFORM.minZ,Math.min(agent.z,target.z)-3.2),
+  maxZ=Math.min(PLATFORM.maxZ,Math.max(agent.z,target.z)+3.2);
+ const nodes=[{x:agent.x,z:agent.z,g:0,h:Math.hypot(target.x-agent.x,target.z-agent.z),parent:null,key:'start'}];
+ const best=new Map();let found=null;
+ for(let visited=0;nodes.length&&visited<2400;visited++){
+  nodes.sort((a,b)=>(b.g+b.h)-(a.g+a.h));const current=nodes.pop();
+  if(current.key!=='start'&&best.get(current.key)!==current)continue;
+  if(clear(current,target)){found=current;break;}
+  for(let ix=-1;ix<=1;ix++)for(let iz=-1;iz<=1;iz++){
+   if(!ix&&!iz)continue;
+   const gx=Math.round((current.x-minX)/spacing)+ix,gz=Math.round((current.z-minZ)/spacing)+iz,
+    x=minX+gx*spacing,z=minZ+gz*spacing,key=gx+':'+gz;
+   if(x<minX||x>maxX||z<minZ||z>maxZ)continue;
+   const next={x,z,g:current.g+Math.hypot(x-current.x,z-current.z),h:Math.hypot(x-target.x,z-target.z),parent:current,key};
+   if(best.has(key)&&best.get(key).g<=next.g)continue;
+   if(!clear(current,next))continue;best.set(key,next);nodes.push(next);
   }
-  if(!hit)break;
-  const side=start.x>hit.x?1:-1;
-  const p={x:hit.x+side*(hit.radius+radius+.38),z:hit.z};
-  path.push(p);start=p;
  }
- path.push(target);return path;
+ if(!found)return null;
+ const route=[target];for(let n=found;n.parent;n=n.parent)route.unshift({x:n.x,z:n.z});
+ // Retain only turns whose intervening segment is actually clear.
+ const path=[];let from=agent;
+ for(let i=0;i<route.length;){let end=i;while(end+1<route.length&&clear(from,route[end+1]))end++;
+  path.push(route[end]);from=route[end];i=end+1;}
+ return path;
 }
 
 export class PassengerNavigation{
@@ -43,7 +71,17 @@ export class PassengerNavigation{
  }
  move(a,dt){
   const next=a.path[0];if(!next){a.velocity=0;return false;}
+  if(a.navigationGoal!==next){a.navigationGoal=next;a.navigationBest=Infinity;a.navigationStall=0;}
   const dx=next.x-a.x,dz=next.z-a.z,dist=Math.hypot(dx,dz);
+  if(dist<a.navigationBest-.04){a.navigationBest=dist;a.navigationStall=0;}else a.navigationStall+=dt;
+  if(a.space==='platform'&&a.navigationStall>1.5){
+   a.navigationStall=0;
+   const goal=next.detourGoal??next,detour=crowdDetour(a,goal,[...this.buckets.values()].flat());
+   if(detour&&detour.length>1){
+    const end=a.path.indexOf(goal);for(const p of detour)if(p!==goal)p.detourGoal=goal;
+    a.path.splice(0,end>=0?end+1:1,...detour);return this.move(a,dt);
+   }
+  }
   if(dist<.045){a.x=next.x;a.z=next.z;a.path.shift();a.velocity=0;return !a.path.length;}
   const speed=Math.min(a.walkSpeed,a.velocity+dt*1.8,Math.max(.16,dist*3));
   const step=Math.min(dist,speed*dt);let nx=a.x+dx/dist*step,nz=a.z+dz/dist*step;

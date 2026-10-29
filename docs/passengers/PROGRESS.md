@@ -51,3 +51,17 @@ The commit containing this file is the first remote checkpoint. Its SHA must be 
 - Next: capture the current passengers in the actual game before changes, then fix pedestrian deadlock and verify multiple seeded exchanges, closure/reopening and browser continuity.
 - Full historical chats are not directly enumerable here. Retrieved requirements cover realism/diversity, natural movement and social activities, persistent boarding/alighting and carriage occupants, sound, mirrors, LOD/performance, modular code, regression/browser checks and screenshots. Completion is not claimed.
 
+
+## Checkpoint 2 — queue recovery and baseline screenshots
+
+Last verified remote before this checkpoint: `bc0b154f53eb7ad6d21a00d3b0eade758fb27a92`.
+
+Implemented after recovery:
+- Replaced repeated column-corner waypoints with a bounded deterministic route search.
+- Sustained failure to approach a waypoint triggers a route around actual people and columns; ordinary movement and collision checks remain in force. No teleportation or disabled collisions.
+- Nonboarding passengers move out of doorway lanes; end-of-platform waiting positions are now unique.
+- Browser capture harness records actual scene screenshots and asset/request/error diagnostics. Baseline screenshots are under `artifacts/passengers/`.
+
+Validation: `npm run check`: 32/32 pass. Includes all 14 seeds (0–9, 42, 106, 717, 10677) fully exchanging within 120 simulated seconds, six close/reopen timings, unique crossing counts, and collision-free column routing. Actual Chromium loaded all 24 models without JS errors or failed requests. Baseline screenshots manually reviewed: textured people, families/groups and accessories present; the first close-up is partially occluded, so a clearer portrait is still needed.
+
+Remaining: automated browser exchange/carriage/mirror/mobile coverage, clearer faces and pose/seat QA, LOD/performance comparison and wardrobe refinement. Full specification is not complete. Resume with `tests/passenger-capture.mjs`, `PassengerAnimator.js`, `PassengerSystem.js` and the above browser scenarios. Cab and v106 files have not been changed.

@@ -4,6 +4,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {PassengerSimulation} from '../js/passengers/PassengerBehavior.js';
 import {COLUMNS,PLATFORM,trainSeatPositions} from '../js/passengers/PassengerConfig.js';
 import {selectPassengerLOD} from '../js/passengers/PassengerLOD.js';
+import {platformPath,crowdDetour} from '../js/passengers/PassengerNavigation.js';
 
 const context={station:0,dist:0,speed:0,doorsOpen:false,aperture:0};
 function advance(sim,seconds,ctx=context,rate=30){for(let i=0;i<seconds*rate;i++)sim.update(1/rate,ctx);}
@@ -67,5 +68,40 @@ test('LOD has hysteresis and every demographic ships textured rigged models',()=
  for(const m of manifest.models){
   assert.ok(m.bones>=25);assert.ok(m.animations.includes('Walk')&&m.animations.includes('Sit idle (chair)'));
   assert.ok(m.triangles<50000);assert.ok(existsSync(new URL('../assets/passengers/'+m.file,import.meta.url)));
+ }
+});
+
+test('stationary queues can be bypassed and column paths never repeat the same blocked corner',()=>{
+ const a={id:1,x:-6.8,z:-97,radius:.25,space:'platform'},target={x:-3.65,z:-94.53};
+ const route=platformPath(a,target,a.radius);
+ let from=a;
+ for(const p of route){
+  assert.ok(Math.hypot(p.x-from.x,p.z-from.z)>.001);
+  const dx=p.x-from.x,dz=p.z-from.z;
+  for(const c of COLUMNS){
+   const t=Math.max(0,Math.min(1,((c.x-from.x)*dx+(c.z-from.z)*dz)/(dx*dx+dz*dz)));
+   assert.ok(Math.hypot(from.x+t*dx-c.x,from.z+t*dz-c.z)>=c.radius+a.radius-.001);
+  }
+  from=p;
+ }
+ const blocker={id:2,x:-4.3,z:-92.5,radius:.25,space:'platform',state:'queued'};
+ const detour=crowdDetour({...a,x:-4.3,z:-93.5},{x:-4.3,z:-91.5},[blocker]);
+ assert.ok(detour&&detour.length>1,'must find a route around a person, not stop or teleport');
+});
+
+test('exchange drains across varied crowds and reopening never duplicates a crossing',()=>{
+ const open={...context,doorsOpen:true,aperture:1};
+ for(const seed of [0,1,2,3,4,5,6,7,8,9,10677]){
+  const s=new PassengerSimulation({seed});advance(s,120,open);
+  assert.ok(s.boarding.queues.every(q=>!q.exit.length&&!q.enter.length),`${seed}: incomplete door`);
+  assert.equal(s.events.filter(e=>e.kind==='alight').length,8);
+  assert.equal(s.events.filter(e=>e.kind==='board').length,s.agents.filter(a=>a.boardingCounted).length);
+ }
+ for(const closeAt of [1,3,6,9,12,20]){
+  const s=new PassengerSimulation({seed:42});advance(s,closeAt,open);advance(s,10,context);
+  const count=s.events.length;advance(s,5,context);assert.equal(s.events.length,count);
+  advance(s,120,open);
+  assert.ok(s.boarding.queues.every(q=>!q.exit.length&&!q.enter.length),`${closeAt}: reopening must finish`);
+  assert.equal(new Set(s.events.map(e=>e.kind+':'+e.id)).size,s.events.length);
  }
 });

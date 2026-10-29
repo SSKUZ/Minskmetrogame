@@ -5,6 +5,11 @@ export class PassengerBoardingController{
  constructor(){this.queues=DOORS.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.opened=false;this.events=[];}
  prepare(agents,station,dist){
   this.opened=true;
+  // People who are not boarding make room for the doorway and alighting lane.
+  for(const a of agents)if(a.space==='platform'&&!a.wantsBoard&&a.x>-5.3&&DOORS.some(d=>Math.abs(a.z-d.z-dist)<1.0)){
+   const target={x:-7.8,z:a.z};
+   a.state='yielding';a.activity='wait';a.path=platformPath(a,target,a.radius);
+  }
   for(const q of this.queues){
    q.active=null;q.phase='alighting';q.served=0;
    q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id).map(a=>a.id);
@@ -13,7 +18,7 @@ export class PassengerBoardingController{
    q.enter.forEach((id,rank)=>{
     const a=agents.find(a=>a.id===id);a.state='queueing';a.activity='wait';
     const edge=q.z>1;
-    a.queuePoint={x:-3.65-(Math.floor(rank/2)%2)*.72,z:q.z+dist+(edge?-1:rank%2?1:-1)*(1.28+Math.floor(rank/(edge?2:4))*.76)};
+    a.queuePoint={x:-3.65-(edge?rank%2:Math.floor(rank/2)%2)*.72,z:q.z+dist+(edge?-1:rank%2?1:-1)*(1.28+Math.floor(rank/(edge?2:4))*.76)};
     a.path=platformPath(a,a.queuePoint,a.radius);
    });
   }
@@ -67,6 +72,7 @@ export class PassengerBoardingController{
   }
   if(a.path.length)return;
   if(a.state==='queueing'){a.state='queued';return;}
+  if(a.state==='yielding'){a.state='waiting';return;}
   if(a.state==='alighting'){
    q.exit=q.exit.filter(id=>id!==a.id);q.active=null;
    a.state='leaving';a.wantsBoard=false;a.path=platformPath(a,{x:-13,z:a.z<-55?-114:3},a.radius);
