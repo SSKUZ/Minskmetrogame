@@ -680,8 +680,10 @@ for(const side of [-1,1]){
   sideBox(.012,.012,1.90,side*(.53+.082),3.238,z,sideLining);
  }
  for(const w of passengerWindows.filter(w=>w.side===side)){
+  // Layered interior reveal: painted surround, compressed rubber gasket and a slim stainless sill.
   sideRing(w.w+.05,w.h+.05,.15,side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
-  sideBox(.014,.045,w.w+.12,side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
+  sideRing(w.w+.012,w.h+.012,.142,side*(sideWallInner-.014),w.y,w.z,sideRubber,.008);
+  sideBox(.012,.032,w.w+.10,side*(sideWallInner-.021),w.y-w.h/2-.024,w.z,sideSteel);
  }
  // Narrow longitudinal ceiling ventilation slots, on actual 3D trim.
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
@@ -727,6 +729,9 @@ for(const side of [-1,1])for(const z of doors){
  }
  fixtureBox(.035,.19,doorWidth+.18,side*1.205,F+2.06,z,saloonJoint);
  fixtureBox(.038,.035,doorWidth-.12,side*1.208,F+1.985,z,saloonTrim);
+ // Dark compressed seals and a narrow stainless wear edge give the doorway real depth from the saloon.
+ for(const dz of [-doorWidth/2-.035,doorWidth/2+.035])fixtureBox(.014,1.80,.022,side*1.224,F+1.02,z+dz,sideRubber);
+ fixtureBox(.018,.025,doorWidth+.08,side*1.220,F+.105,z,saloonTrim);
 }
 // Seat plinth end caps, mounting feet and a subdued front wear strip.
 for(const side of [-1,1])for(const [a,b] of seatBays){
