@@ -1483,11 +1483,11 @@ goodmixPosterTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotrop
 const goodmixPosterMaterial=new T.MeshBasicMaterial({map:goodmixPosterTexture,side:T.DoubleSide,toneMapped:false});
 const goodmixFrameMaterial=new T.MeshStandardMaterial({color:0x929595,metalness:.75,roughness:.32});
 function installGoodmixPosters(carRoot,{head=false}={}){
- // Centre the compact ad on the actual narrow pier between door and window.
- // Door ends at z=-5.61; neighbouring window begins near z=-4.70.
- // Keep the poster clear of the door jamb and window frame.
- // The old -6.42 placement was INSIDE the moving door opening.
- const posterWidth=.34,posterHeight=.240,posterZ=-5.155,posterY=F+1.62;
+ // Head 81-717 and intermediate 81-714 have DIFFERENT door/window spacing.
+ // Head: door edge -5.61, window edge about -4.91 => pier centre -5.26.
+ // Intermediate: door edge -5.955, window edge about -5.265 => pier centre -5.61.
+ // Use the appropriate local longitudinal coordinate for each car type.
+ const posterWidth=.34,posterHeight=.240,posterZ=head?-5.155:-5.61,posterY=F+1.62;
  for(const side of [-1,1]){
   // Mount on the real interior wall, not on the recessed sliding door.
   const x=side*(sideWallInner-.065);
