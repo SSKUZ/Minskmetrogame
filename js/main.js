@@ -819,10 +819,15 @@ for(const x of [V106_PLATFORM_EDGE_X-.29,-22.39])box(platform,.35,.052,128,x,V10
 // Reference station photo: smooth, uninterrupted pale-grey platform surface.
 // No decorative square grid or tile joints.
 // Right-side station wall, across the player's track: pale ceramic panels, green band and black base.
-box(platform,.25,7.0,128,3.58,3.72,-57,creamWall);
-box(platform,.30,1.18,128,3.39,.79,-57,blackGranite);
-box(platform,.31,.27,128,3.38,1.54,-57,greenBand);
-for(let z=4;z>-120;z-=3.5)box(platform,.035,4.6,.025,3.40,4.25,z,trim);
+// The v106 body is ~1.34m from the track centre. The former wall at x=3.58
+// left an implausible >2m void and made the correctly-scaled train look tiny.
+// Keep a realistic maintenance/safety clearance without rescaling the train.
+const stationTrackWallX=useExperimentalV106?2.38:3.58;
+const stationTrackWallFaceX=stationTrackWallX-.18;
+box(platform,.25,7.0,128,stationTrackWallX,3.72,-57,creamWall);
+box(platform,.30,1.18,128,stationTrackWallFaceX+.01,.79,-57,blackGranite);
+box(platform,.31,.27,128,stationTrackWallFaceX,1.54,-57,greenBand);
+for(let z=4;z>-120;z-=3.5)box(platform,.035,4.6,.025,stationTrackWallFaceX+.02,4.25,z,trim);
 // Painted floral decoration and station names on the wall, facing the cab.
 const floralCanvas=document.createElement('canvas');floralCanvas.width=1024;floralCanvas.height=256;
 const fc=floralCanvas.getContext('2d');fc.fillStyle='#e8e5d6';fc.fillRect(0,0,1024,256);
@@ -830,7 +835,7 @@ fc.fillStyle='#554032';fc.font='bold 89px Georgia,serif';fc.textAlign='center';f
 for(let j=0;j<30;j++){const xx=(j*173+45)%1024,yy=(j*97+37)%220;fc.strokeStyle='#3c7448';fc.lineWidth=3;fc.beginPath();fc.moveTo(xx,yy+35);fc.quadraticCurveTo(xx+13,yy+8,xx+8,yy-18);fc.stroke();for(let k=0;k<3;k++){fc.fillStyle=k===0?'#447c52':'#7b9871';fc.beginPath();fc.ellipse(xx+(k-1)*11,yy+(k-1)*9,7,3.5,(k-1)*.7,0,Math.PI*2);fc.fill();}if(j%4===0){fc.fillStyle='#a85b64';fc.beginPath();fc.arc(xx+8,yy-19,5,0,Math.PI*2);fc.fill();}}
 const floralTexture=new THREE.CanvasTexture(floralCanvas);floralTexture.colorSpace=THREE.SRGBColorSpace;
 const floralMat=new THREE.MeshBasicMaterial({map:floralTexture,side:THREE.DoubleSide});
-for(const z of [-11,-103]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(21,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
+for(const z of [-11,-103]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(21,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(stationTrackWallFaceX-.165,4.1,z);platform.add(wallSign);}
 // High-resolution route diagram: yellow Malinauka, blue subsequent stops.
 // Bilingual wall route diagram, based on the original Malinauka sign.
 // Columns run from Urucca at the left to yellow Malinauka at the right.
