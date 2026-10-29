@@ -747,6 +747,34 @@ for(let z=saloonStart+.36;z<saloonEnd-.24;z+=.34){
  for(const side of [-1,1])fixtureBox(.20,.008,.018,side*.30,F+2.304,z,saloonDark);
 }
 
+// Window reveals and sill hardware: shallow inner frames preserve the exact exterior apertures.
+for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
+ fixtureBox(.022,.035,.88,side*(sideWallInner-.020),F+1.235,z,saloonTrim);
+ fixtureBox(.024,.040,.82,side*(sideWallInner-.030),F+2.075,z,saloonTrim);
+ for(const dz of [-.43,.43])fixtureBox(.024,.82,.035,side*(sideWallInner-.025),F+1.655,z+dz,saloonTrim);
+ fixtureBox(.065,.055,.78,side*(sideWallInner-.060),F+1.205,z,sideLining);
+ for(const dz of [-.31,.31])fixtureBox(.026,.025,.055,side*(sideWallInner-.095),F+1.215,z+dz,saloonDark);
+}
+// Wall-panel seams and discreet screw heads reduce the single-piece plastic look.
+for(const side of [-1,1]){
+ for(let z=saloonStart+.30;z<saloonEnd-.20;z+=.78){
+  fixtureBox(.014,.88,.009,side*(sideWallInner-.012),F+.73,z,saloonJoint);
+  for(const y of [F+.32,F+.72,F+1.10])fixtureBox(.018,.018,.018,side*(sideWallInner-.024),y,z,saloonTrim);
+ }
+}
+// Rail junction sleeves and end caps make the blue handrail system mechanically coherent.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.72,F+1.90,F+2.10]){
+  const sleeve=new T.Mesh(new T.CylinderGeometry(.025,.025,.055,14),saloonTrim);
+  sleeve.rotation.z=Math.PI/2;sleeve.position.set(side*.74,y,z);group.add(sleeve);passenger(sleeve);saloonDetail(sleeve);saloonFixtureNodes.push(sleeve);
+ }
+}
+// Small floor access covers and fasteners, outside the central walking line.
+for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
+ fixtureBox(.20,.006,.30,side*.54,F+.013,z,saloonJoint);
+ for(const dx of [-.075,.075])for(const dz of [-.115,.115])fixtureBox(.016,.007,.016,side*.54+dx,F+.018,z+dz,saloonTrim);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
