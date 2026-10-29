@@ -721,6 +721,13 @@ for(const side of [-1,1])for(const z of doors){
  for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
 }
 
+// Final pre-freeze physical cues: doorway contact shade and metal threshold lip.
+const saloonContactShade=new T.MeshBasicMaterial({color:0x111315,transparent:true,opacity:.09,depthWrite:false});
+for(const side of [-1,1])for(const z of doors){
+ sideBox(.11,.002,doorWidth-.20,side*1.045,F+.017,z,saloonContactShade);
+ sideBox(.035,.035,doorWidth-.10,side*1.155,F+.035,z,sideSteel);
+}
+for(const side of [-1,1])for(const [a,b] of seatBays)sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
 // Final lining refinement: sparse construction joints follow structural bays rather than forming a decorative grid.
 for(const side of [-1,1])for(const z of [-7.42,-5.18,-2.92,-.68,1.56,3.80,6.04,8.28]){
  sideBox(.006,.86,.010,side*(sideWallInner-.010),F+1.20,z,floorSeam);
