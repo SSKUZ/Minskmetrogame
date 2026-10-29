@@ -640,6 +640,62 @@ for(const side of [-1,1])for(const z of doors){
  for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
 }
 
+// Saloon detail pass: keep the approved dimensions and seating coordinates,
+// but add the small fixtures that make the interior read as a working 81-717.
+const saloonDark=new T.MeshStandardMaterial({color:0x252b2d,metalness:.12,roughness:.72});
+const saloonPaper=new T.MeshStandardMaterial({color:0xf2efe2,roughness:.88});
+const saloonNoticeBlue=new T.MeshStandardMaterial({color:0x315d82,roughness:.72});
+const saloonNoticeRed=new T.MeshStandardMaterial({color:0xa73a32,roughness:.70});
+const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,emissiveIntensity:.18,roughness:.55});
+const saloonDetailNodes=[];
+function saloonDetail(object){saloonDetailNodes.push(object);return object;}
+function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
+// Seat-plinth kick strips and discrete cushion seams.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ detailBox(.018,.055,len-.07,side*.756,F+.075,(a+b)/2,sideSteel);
+ for(let i=1;i<count;i++){
+  const z=a+i*len/count;
+  detailBox(.006,.095,.008,side*.934,F+.49,z,saloonDark);
+  detailBox(.006,.43,.008,side*1.092,F+.80,z,saloonDark);
+ }
+}
+// Handrail collars make every pole look mechanically attached rather than
+// floating into the floor/ceiling.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.105,F+2.095]){
+  const collar=new T.Mesh(new T.CylinderGeometry(.034,.034,.018,16),sideSteel);
+  collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);group.add(collar);passenger(collar);saloonDetail(collar);
+ }
+}
+// Door-area vertical grab poles, threshold anti-slip strips and compact
+// request/intercom housings. They stay clear of the sliding-leaf channels.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.105,doorWidth/2+.105]){
+  const pole=sideTube([[side*.80,F+.08,z+dz],[side*.80,F+2.08,z+dz]],.017,railBlue);saloonRails.push(pole);saloonDetail(pole);
+  const collar=new T.Mesh(new T.CylinderGeometry(.035,.035,.020,16),sideSteel);
+  collar.rotation.z=Math.PI/2;collar.position.set(side*.80,F+.085,z+dz);group.add(collar);passenger(collar);saloonDetail(collar);
+ }
+ detailBox(.026,.18,.12,side*(half-.245),F+1.36,z+.84,saloonDark);
+ detailBox(.030,.065,.065,side*(half-.260),F+1.405,z+.84,saloonAmber);
+ for(let k=-5;k<=5;k++)detailBox(.205,.002,.012,side*1.115,F+.018,z+k*.10,saloonDark);
+}
+// Framed route/information sheets between openings. These are geometry, not
+// camera-facing overlays, so they remain correctly occluded through windows.
+for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
+ detailBox(.018,.47,.64,side*(sideWallInner-.030),F+1.76,z,saloonDark);
+ detailBox(.020,.425,.595,side*(sideWallInner-.044),F+1.76,z,saloonPaper);
+ detailBox(.022,.030,.54,side*(sideWallInner-.056),F+1.90,z,saloonNoticeBlue);
+ detailBox(.022,.022,.42,side*(sideWallInner-.057),F+1.70,z,saloonNoticeRed);
+ for(const dz of [-.20,-.07,.06,.19])detailBox(.023,.012,.08,side*(sideWallInner-.058),F+1.79,z+dz,saloonDark);
+}
+// Small ceiling speaker/vent housings break up the otherwise perfectly clean
+// ceiling while remaining lightweight enough for the browser build.
+for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
+ detailBox(.30,.025,.16,0,3.285,z,saloonDark);
+ for(const x of [-.09,-.03,.03,.09])detailBox(.018,.006,.10,x,3.268,z,sideRubber);
+}
+
 // Front fascia based on the supplied 81-717 reference.
 const frontMeshStart=group.children.length;
 // A restrained black inset with three glazed bays, separated upper lamp
@@ -1441,7 +1497,7 @@ window.wagonSideDiagnostics=()=>({
  doorClearWidth:2*(doorWidth/4+slidingLeaves[0].travel*(doorProgress*doorProgress*(3-2*doorProgress))-(doorWidth/2-.008)/2),
  leaves:slidingLeaves.map(d=>({side:d.side,doorZ:d.doorZ,z:d.leaf.position.z,homeZ:d.homeZ,half:d.half,thickness:d.thickness,x:d.leaf.position.x})),
  passengerMeshes:passengerNodes.length,roofScoops:roofScoops.length,invertedWallNormals:invertedWallNormals(),lightingPreset:'passenger-softboxes-warm-v2'
- ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
+ ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,detailNodes:saloonDetailNodes.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
 });
 window.wagonShiftInspectionCamera=dz=>{camera.position.z+=dz;ctl.target.z+=dz;ctl.update();qaFramesRemaining=3};
 window.wagonApertureChecks=()=>{
