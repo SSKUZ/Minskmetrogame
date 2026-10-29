@@ -16,5 +16,15 @@ try{
  const previous=await page.evaluate(()=>{window.wagonSetCamera('front');return window.wagonDiagnostics().renderedFrames});
  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+3,previous,{timeout:90000});
  await page.screenshot({path:'test-results/v106-source/source-viewer-front.png',timeout:90000});
+ // Independent saloon advertisement evidence: does not wait for the slow station/door smoke.
+ const ad=await page.evaluate(()=>{const cars=window.wagonGetLiveConsist().cars;return cars.map((car,i)=>{let posters=0;car.root.traverse(o=>{if(o.userData.advertisement==='goodmix-duo')posters++});return {car:i+1,posters}})});
+ console.log('GOODMIX_POSTER_COUNTS',JSON.stringify(ad));
+ if(ad.length!==4||ad.some(x=>x.posters!==2))throw new Error('Expected two Goodmix posters on each of four cars');
+ for(const [mode,file] of [['salon','saloon-overview'],['goodmix-closeup-left','goodmix-left'],['goodmix-closeup-right','goodmix-right']]){
+  const before=await page.evaluate(v=>{window.wagonSetCamera(v);return window.wagonDiagnostics().renderedFrames},mode);
+  await page.waitForFunction(n=>window.wagonDiagnostics().renderedFrames>=n+2,before,{timeout:90000});
+  await page.screenshot({path:'test-results/v106-source/'+file+'.png',timeout:90000});
+ }
+
  console.log(JSON.stringify({diagnostics:await page.evaluate(()=>window.wagonDiagnostics()),errors},null,2));
 }finally{await browser.close()}
