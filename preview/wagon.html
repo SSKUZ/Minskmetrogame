@@ -599,7 +599,7 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
   // 81-717 style: vertical chrome stanchion grows from the seat/floor zone and
   // terminates in a rigid junction with the continuous ceiling handrail.
   const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+2.12,zz]],.011,sideSteel);saloonRails.push(pole);
-  const seatRail=sideTube([[side*1.16,F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.011,sideSteel);saloonRails.push(seatRail);
+  const seatRail=sideTube([[side*(sideWallInner-.015),F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.011,sideSteel);saloonRails.push(seatRail);
  }
 }
 // Curved internal ceiling follows the roof instead of a suspended flat box.
@@ -627,7 +627,7 @@ for(const side of [-1,1]){
  // Door-zone stanchions join floor/seat structure directly to the same longitudinal rail.
  for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
   const doorPole=sideTube([[side*.74,F+.10,z+dz],[side*.74,F+2.12,z+dz]],.0115,sideSteel);saloonRails.push(doorPole);
-  const wallTie=sideTube([[side*.74,F+1.04,z+dz],[side*1.12,F+1.04,z+dz]],.0105,sideSteel);saloonRails.push(wallTie);
+  const wallTie=sideTube([[side*.74,F+1.04,z+dz],[side*(sideWallInner-.012),F+1.04,z+dz]],.0105,sideSteel);saloonRails.push(wallTie);
  }
  for(const z of doors){
   // Inner door head and floor seam are fixed, outside the sliding channel.
@@ -838,7 +838,7 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
 for(const side of [-1,1])for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
  railCollar(side*.74,F+.018,z+dz,.036,.022);
  fixtureBox(.075,.030,.075,side*.74,F+2.285,z+dz,saloonTrim);
- fixtureBox(.025,.075,.075,side*1.125,F+1.04,z+dz,saloonTrim);
+ fixtureBox(.025,.075,.075,side*(sideWallInner-.006),F+1.04,z+dz,saloonTrim);
  // Compact collars make the rail/vertical and wall-tie junctions read as engineered T joints.
  railCollar(side*.74,F+2.12,z+dz,.024,.030).rotation.z=Math.PI/2;
  const joint=new T.Mesh(new T.SphereGeometry(.024,12,8),sideSteel);joint.position.set(side*.74,F+1.04,z+dz);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
