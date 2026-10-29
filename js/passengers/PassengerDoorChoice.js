@@ -43,11 +43,32 @@ export function choosePlatformDoors(agents,layout,{dist=0,station=-1,preserveAss
   change(record,record.choice,1);
  }
  for(const record of records)for(const a of record.group){
-  if(record.choice)a.doorId=record.choice.door.id;
+  if(record.choice){if(a.doorId!==record.choice.door.id)a.approachPoint=null;a.doorId=record.choice.door.id;}
   else{a.wantsBoard=false;a.state='waitingNextTrain';a.nextTrainReason='noAccessibleCapacity';a.path=[];}
  }
- const ranks=new Map();
- for(const a of waiting)if(a.wantsBoard){const d=layout.door(a.doorId),rank=ranks.get(d.id)??0;ranks.set(d.id,rank+1);a.approachPoint={x:d.queueX-Math.min(Math.floor(rank/2),2)*.35,z:d.z+(rank%2?1:-1)*(1.28+Math.floor(rank/2)*.65)};}
+ const lanes=new Map(doors.map(d=>[d.id,{[-1]:0,[1]:0}])),reserved=[];
+ const kept=new Set();
+ if(preserveAssignments)for(const a of waiting)if(a.wantsBoard&&a.approachPoint&&a.approachDoorId===a.doorId){
+  const door=layout.door(a.doorId),side=a.queueSide??(a.approachPoint.z<door.z?-1:1);
+  lanes.get(door.id)[side]=Math.max(lanes.get(door.id)[side],Math.round((Math.abs(a.approachPoint.z-door.z)-1.28)/.65)+1);
+  reserved.push({...a.approachPoint,radius:a.radius});kept.add(a.id);
+ }
+ for(const record of records){
+  if(!record.choice||record.group.every(a=>kept.has(a.id)))continue;
+  const door=record.choice.door,counts=lanes.get(door.id),side=counts[-1]<=counts[1]?-1:1;
+  for(const a of [...record.group].sort((a,b)=>(a.parentId!==null)-(b.parentId!==null)||a.id-b.id)){
+   const rank=counts[side]++,z=door.z+side*(1.28+rank*.65);let point=null;
+   for(let back=0;back<8;back++){
+    const p={x:door.queueX-Math.min(rank,2)*.35-back*.65,z};
+    if(p.x<layout.platform.minX+a.radius)continue;
+    if(layout.obstacles('platform').some(o=>Math.hypot(p.x-o.x,p.z-o.z)<o.radius+a.radius+.08))continue;
+    if(reserved.some(o=>Math.hypot(p.x-o.x,p.z-o.z)<o.radius+a.radius+.08))continue;
+    point=p;break;
+   }
+   if(!point)point={x:door.queueX-2.8,z};
+   a.approachPoint=point;a.approachDoorId=door.id;a.queueSide=side;reserved.push({...point,radius:a.radius});
+  }
+ }
  return Object.fromEntries(load);
 }
 

@@ -27,19 +27,24 @@ export class PassengerBoardingController{
   if(this.normal){chooseExitDoors(agents,this.layout,station,{preserveAssignments:true});choosePlatformDoors(agents,this.layout,{dist,station,preserveAssignments:true});}
   this.opened=true;this.clearPlatformLanes(agents,dist);
   for(const q of this.queues){
-   q.active=null;q.phase='alighting';q.served=0;
+   q.active=null;q.phase='alighting';q.served=0;q.priorityExitGroup=null;
    q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id)
     .sort((a,b)=>Math.abs(a.z-q.z)-Math.abs(b.z-q.z)||a.id-b.id).map(a=>a.id);
    for(const id of q.exit){const a=agents.find(a=>a.id===id);a.exitSide=a.z<q.z?-1:1;a.exitQueuePoint=null;
-    if(a.state==='exitPreparing'){a.state=a.path.length?'exitApproaching':'exitQueued';a.exitQueuePoint={x:this.layout.car(q.car).aisleX,z:q.z,preparedDoor:q.id};}
+    if(a.state==='exitPreparing'){a.state=a.path.length?'exitApproaching':'exitQueued';const p=a.exitPrepPoint??{x:this.layout.car(q.car).aisleX,z:q.z};a.exitQueuePoint={...p,preparedDoor:q.id,aisle:Math.hypot(p.x-this.layout.car(q.car).aisleX,p.z-q.z)<.05};}
    }
    q.enter=agents.filter(a=>a.space==='platform'&&a.wantsBoard&&a.state!=='leaving'&&a.doorId===q.id)
     .sort((a,b)=>Math.hypot(a.x-q.exitOuterX,a.z-q.z-dist)-Math.hypot(b.x-q.exitOuterX,b.z-q.z-dist)).map(a=>a.id);
+   if(this.normal){
+    const groups=new Map();
+    for(const id of q.enter){const a=agents.find(a=>a.id===id),key=a.groupId===null?'person:'+a.id:'group:'+a.groupId;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(a);}
+    q.enter=[...groups.values()].flatMap(people=>people.sort((a,b)=>(a.parentId!==null)-(b.parentId!==null)||a.id-b.id).map(a=>a.id));
+   }
    q.enter.forEach((id,rank)=>{
     const a=agents.find(a=>a.id===id);a.state='queueing';a.activity='wait';
     const edge=q.edge;
     a.queuePoint={x:q.queueX-(edge?rank%2:Math.floor(rank/2)%2)*.72,z:q.z+dist+(edge?-1:rank%2?1:-1)*(1.28+Math.floor(rank/(edge?2:4))*.76)};
-    if(this.normal){a.doorReady=false;a.queueSide=rank%2?1:-1;const laneRank=Math.floor(rank/2);a.queuePoint={x:q.queueX-Math.min(laneRank,2)*.35,z:q.z+dist+a.queueSide*(1.28+laneRank*.65)};}
+    if(this.normal){a.doorReady=false;const p=a.approachPoint??{x:q.queueX,z:q.z+(rank%2?1:-1)*1.28};a.queueSide=a.queueSide??(p.z<q.z?-1:1);a.queuePoint={x:p.x,z:p.z+dist};}
     a.path=platformPath(a,a.queuePoint,a.radius);
    });
    for(const id of q.exit)this.scheduledExit.add(id);
@@ -50,16 +55,35 @@ export class PassengerBoardingController{
   const due=agents.filter(a=>a.space==='train'&&a.destination<=station);
   for(const d of this.layout.doors){
    const people=due.filter(a=>a.doorId===d.id);if(!people.length)continue;
+   const car=this.layout.car(d.car);
    if(!this.approachFront.has(d.id)){
     people.sort((a,b)=>Math.abs(a.z-d.z)-Math.abs(b.z-d.z)||a.id-b.id);
     const first=people[0],parent=first.parentId===null?null:people.find(a=>a.id===first.parentId);
     this.approachFront.set(d.id,(parent??first).id);
    }
+   people.sort((a,b)=>(a.id===this.approachFront.get(d.id)?0:1)-(b.id===this.approachFront.get(d.id)?0:1)||a.id-b.id);
    for(const a of people){
     if(a.state==='seated'){beginStanding(a);continue;}
     if(['seatTurning','sittingDown','standingUp','seatStabilizing'].includes(a.state))continue;
-    if(a.id===this.approachFront.get(d.id)&&a.state!=='exitPreparing'){
-     a.state='exitPreparing';a.activity='wait';a.seat=null;a.railGrip=null;a.path=[{x:this.layout.car(d.car).aisleX,z:d.z}];
+    if(a.exitPrepStation!==station||a.exitPrepDoor!==d.id){a.exitPrepPoint=null;a.exitPrepStation=station;a.exitPrepDoor=d.id;}
+    if(!a.exitPrepPoint){
+     if(a.id===this.approachFront.get(d.id))a.exitPrepPoint={x:car.aisleX,z:d.z};
+     else{
+      const candidates=car.standingZones.filter(p=>Math.abs(p.z-d.z)<=.8&&
+       (Math.abs(p.z-d.z)>.5||p.x>car.aisleX+.5));
+      candidates.sort((p,q)=>Math.hypot(p.x-a.x,p.z-a.z)-Math.hypot(q.x-a.x,q.z-a.z));
+      const free=candidates.find(p=>!agents.some(o=>{
+       if(o===a||o.space!=='train'||o.state==='gone')return false;
+       const at=o.exitPrepPoint??o.path.at(-1)??o;
+       return Math.hypot(p.x-at.x,p.z-at.z)<a.radius+o.radius+.06;
+      }));
+      if(free)a.exitPrepPoint={x:free.x,z:free.z};
+     }
+    }
+    if(a.exitPrepPoint&&a.state!=='exitPreparing'){
+     a.state='exitPreparing';a.activity='wait';a.seat=null;a.railGrip=null;a.path=[a.exitPrepPoint];
+    }else if(!a.exitPrepPoint&&a.state!=='exitWaiting'){
+     a.state='exitWaiting';a.activity='wait';a.path=[];a.seat=null;a.railGrip=null;
     }
    }
   }
@@ -93,13 +117,15 @@ export class PassengerBoardingController{
     // With closely spaced doors, invented side-queue points from adjacent
     // doorways overlap. Finish rising at the passenger's own place and wait
     // there until this door releases them; all doors still act concurrently.
-    const active=byId.get(q.active),next=q.exit.find(id=>id!==q.active);
-    if(a.exitQueuePoint?.preparedDoor===q.id)continue;
+    const active=byId.get(q.active),pending=q.exit.filter(id=>id!==q.active);
+    const next=active&&active.groupId!==null?(pending.find(id=>byId.get(id)?.groupId===active.groupId)??pending[0]):pending[0];
+    if(a.exitQueuePoint?.preparedDoor===q.id&&a.exitQueuePoint.aisle)continue;
     const activeClearedAisle=active?.state==='alighting'&&!active.path.some(p=>Math.abs(p.x-TRAIN.aisleX)<.01&&Math.abs(p.z-q.z)<.01);
-    if(a.id===next&&activeClearedAisle&&active.x<TRAIN.aisleX-.65){
-     const point={x:TRAIN.aisleX,z:q.z,preparedDoor:q.id};
+    if(a.id===next&&activeClearedAisle&&active.x<q.exitInnerX+.35){
+     const point={x:TRAIN.aisleX,z:q.z,preparedDoor:q.id,aisle:true};
      a.state='exitApproaching';a.activity='wait';a.seat=null;a.railGrip=null;a.exitQueuePoint=point;a.path=[point];
-    }else if(a.state!=='exitQueued'){
+    }else if(a.exitQueuePoint?.preparedDoor===q.id){continue;}
+    else if(a.state!=='exitQueued'){
      a.state='exitQueued';a.activity='wait';a.path=[];a.seat=null;a.reservedSeat=null;a.railGrip=null;a.assignedRailId=null;
      a.targetHeading=Math.atan2(TRAIN.aisleX-a.x,q.z-a.z);
     }
@@ -127,7 +153,8 @@ export class PassengerBoardingController{
    if(q.active===null)q.exit.sort((left,right)=>{
     const a=byId.get(left),b=byId.get(right);if(!a||!b)return 0;
     const ready=a=>['exitApproaching','exitQueued','riding','settling'].includes(a.state)?0:1;
-    return ready(a)-ready(b)||Math.hypot(a.x-TRAIN.aisleX,a.z-q.z)-Math.hypot(b.x-TRAIN.aisleX,b.z-q.z)||a.id-b.id;
+    const priority=a=>this.normal&&q.priorityExitGroup!==null&&a.groupId===q.priorityExitGroup?0:1;
+    return priority(a)-priority(b)||ready(a)-ready(b)||Math.hypot(a.x-TRAIN.aisleX,a.z-q.z)-Math.hypot(b.x-TRAIN.aisleX,b.z-q.z)||a.id-b.id;
    });
    if(this.opened&&stopped&&doorsOpen)this.stageAlighters(q,byId);
    if(this.opened&&stopped&&doorsOpen)this.advanceQueue(q,byId,dist);
@@ -162,6 +189,7 @@ export class PassengerBoardingController{
     if(!['exitApproaching','exitQueued'].includes(a.state))continue;
     // Alighters walk to the doorway through the aisle, then leave into the clear central lane.
     a.state='alighting';a.seat=null;a.activity='wait';
+    if(this.normal&&a.groupId!==null)q.priorityExitGroup=a.groupId;
     a.path=[{x:TRAIN.aisleX,z:q.z},{x:q.exitInnerX,z:q.z},{x:q.exitOuterX,z:q.z},{x:q.exitClearX,z:q.z}];
     q.active=a.id;q.phase='alighting';
    }else if(q.enter.length){
