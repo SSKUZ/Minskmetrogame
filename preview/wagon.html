@@ -572,16 +572,16 @@ function grainTexture(size,repeatX,repeatY){
  }
  const texture=new T.DataTexture(data,size,size,T.RGBAFormat);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(repeatX,repeatY);texture.needsUpdate=true;return texture;
 }
-const floorFinish=new T.MeshStandardMaterial({color:0x6f7475,roughness:.91,metalness:.015,bumpMap:grainTexture(64,5,28),bumpScale:.0016});
-const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.52,clearcoat:.10,clearcoatRoughness:.55,envMap:frontEnvironment,envMapIntensity:.28,bumpMap:grainTexture(64,2,3),bumpScale:.00055});
-const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.12,roughness:.58,envMap:frontEnvironment,envMapIntensity:.18});
+const floorFinish=new T.MeshStandardMaterial({color:0x707576,roughness:.89,metalness:.012,bumpMap:grainTexture(64,5,28),bumpScale:.00125});
+const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.58,clearcoat:.06,clearcoatRoughness:.68,envMap:frontEnvironment,envMapIntensity:.22,bumpMap:grainTexture(64,2,3),bumpScale:.00045});
+const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.08,roughness:.64,envMap:frontEnvironment,envMapIntensity:.14});
 const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
 const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
 // Final saloon material family: painted lining, brushed metal, rubber, vinyl and floor remain visually distinct.
-sideLining.roughness=.72; sideLining.metalness=.02;
-sideSteel.roughness=.28; sideSteel.metalness=.82; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.52;
+sideLining.roughness=.78; sideLining.metalness=.015;
+sideSteel.roughness=.34; sideSteel.metalness=.88; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.46;
 sideRubber.roughness=.94; sideRubber.metalness=0;
-doorInnerLining.roughness=.64; doorInnerLining.metalness=.04;
+doorInnerLining.roughness=.72; doorInnerLining.metalness=.025;
 const saloonSeats=[],saloonRails=[];
 const floorSeam=new T.MeshStandardMaterial({color:0x555b5c,metalness:.05,roughness:.86});
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
@@ -706,9 +706,9 @@ const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,e
 const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
-const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.72,roughness:.30,envMap:frontEnvironment,envMapIntensity:.48});
-const saloonJoint=new T.MeshStandardMaterial({color:0x4d5354,metalness:.05,roughness:.86});
-const saloonLens=new T.MeshPhysicalMaterial({color:0xfff5df,emissive:0xffe8bd,emissiveIntensity:.28,roughness:.34,clearcoat:.12});
+const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.82,roughness:.36,envMap:frontEnvironment,envMapIntensity:.42});
+const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roughness:.91});
+const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
 const saloonFixtureNodes=[];
 function fixtureBox(w,h,d,x,y,z,m){const node=detailBox(w,h,d,x,y,z,m);saloonFixtureNodes.push(node);return node;}
 // Thin lower-wall rub strips and access-panel joints add scale without changing the accepted shell.
