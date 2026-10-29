@@ -766,14 +766,7 @@ const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roug
 const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
 const saloonFixtureNodes=[];
 function fixtureBox(w,h,d,x,y,z,m){const node=detailBox(w,h,d,x,y,z,m);saloonFixtureNodes.push(node);return node;}
-// Thin lower-wall rub strips and access-panel joints add scale without changing the accepted shell.
-for(const side of [-1,1]){
- fixtureBox(.012,.045,saloonLength-.18,side*1.205,F+.38,(saloonStart+saloonEnd)/2,saloonTrim);
- for(let z=saloonStart+.62;z<saloonEnd-.30;z+=1.55){
-  fixtureBox(.014,.32,.008,side*1.207,F+.66,z,saloonJoint);
-  fixtureBox(.016,.018,.11,side*1.209,F+.66,z+.34,saloonTrim);
- }
-}
+// Keep the original broad wall lining free of artificial repeated seams.
 // Door jamb liners, upper mechanism covers and small fasteners make the vestibule zones read as assembled hardware.
 for(const side of [-1,1])for(const z of doors){
  for(const dz of [-doorWidth/2-.055,doorWidth/2+.055]){
@@ -834,14 +827,7 @@ for(const z of [saloonStart+.075,saloonEnd-.075]){
  fixtureBox(.070,.055,.060,.52,F+1.13,z,saloonTrim);
 }
 // Door and window information equipment stays sparse and mechanically mounted.
-// Layered vestibule signage and emergency hardware, kept shallow so nothing intrudes into passenger clearance.
-for(const side of [-1,1])for(const z of doors){
- const panelZ=z+doorWidth/2+.23;
- fixtureBox(.024,.30,.22,side*(sideWallInner-.050),F+1.62,panelZ,saloonDark);
- fixtureBox(.026,.245,.175,side*(sideWallInner-.063),F+1.62,panelZ,saloonPaper);
- fixtureBox(.028,.038,.135,side*(sideWallInner-.075),F+1.705,panelZ,saloonNoticeRed);
- fixtureBox(.032,.095,.095,side*(sideWallInner-.078),F+1.555,panelZ,saloonAmber);
-}
+// Omit temporary coloured vestibule placards; keep authentic door hardware.
 // Add shallow seat-back mounting brackets and under-seat cable/service covers.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
@@ -928,12 +914,7 @@ for(const z of doors)for(const side of [-1,1]){
 }
 for(const side of [-1,1])fixtureBox(.08,.004,saloonLength-.50,side*1.03,F+.018,(saloonStart+saloonEnd)/2,saloonWear);
 
-// Sparse mounted information cards near door zones. They are shallow, readable as
-// real fixtures at saloon scale and do not invent extra window framing.
-for(const side of [-1,1])for(const z of [-4.95,-.20,4.25]){
- fixtureBox(.012,.20,.31,side*(sideWallInner-.048),F+1.86,z,saloonLabel);
- fixtureBox(.014,.022,.25,side*(sideWallInner-.056),F+1.91,z,saloonLabelInk);
-}
+// No placeholder information cards: real route maps require verified artwork and mounts.
 
 // Slight glass/environment response helps windows read differently in tunnel and
 // station lighting while retaining a clear view through the large lower pane.
@@ -942,18 +923,7 @@ sideGlass.roughness=.16;
 sideGlass.clearcoat=.10;
 sideGlass.envMapIntensity=.28;
 
-// Wall-panel seams and discreet screw heads reduce the single-piece plastic look.
-// Keep the lower panels broad and calm; vertical joints align to actual opening edges instead of a repetitive grid.
-for(const side of [-1,1]){
- const panelJoints=[saloonStart+.30,-5.70,-2.48,-1.28,1.98,3.17,6.42,7.42,saloonEnd-.20];
- for(const z of panelJoints){
-  fixtureBox(.014,.88,.009,side*(sideWallInner-.012),F+.73,z,saloonJoint);
-  for(const y of [F+.32,F+1.10])fixtureBox(.018,.018,.018,side*(sideWallInner-.024),y,z,saloonTrim);
- }
- // Continuous lower dado and upper reveal give the wall a believable layered section.
- fixtureBox(.018,.050,saloonLength-.24,side*(sideWallInner-.018),F+1.16,(saloonStart+saloonEnd)/2,saloonTrim);
- fixtureBox(.020,.035,saloonLength-.28,side*(sideWallInner-.020),F+2.12,(saloonStart+saloonEnd)/2,saloonJoint);
-}
+// Preserve uninterrupted original wall panels; no decorative seam grids or dado stripes.
 // Rail junction sleeves and end caps keep the chrome handrail system mechanically coherent.
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
  for(const y of [F+.72,F+1.90,F+2.10]){
@@ -972,11 +942,7 @@ for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
  for(const dx of [-.075,.075])for(const dz of [-.115,.115])fixtureBox(.016,.007,.016,side*.54+dx,F+.018,z+dz,saloonTrim);
 }
 
-// Longitudinal edge trims finish the ceiling-to-wall transition around the rebuilt luminaires.
-for(const side of [-1,1]){
- fixtureBox(.045,.020,saloonLength-.42,side*.98,F+2.205,(saloonStart+saloonEnd)/2,saloonTrim);
- for(let z=saloonStart+.65;z<saloonEnd-.35;z+=2.25)fixtureBox(.065,.025,.12,side*.98,F+2.205,z,saloonJoint);
-}
+// Avoid duplicate longitudinal ceiling-edge strips over the original liner.
 // Side intake channels complement the central grilles without duplicating them.
 for(const side of [-1,1])for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
  fixtureBox(.18,.012,.20,side*.30,F+2.304,z,saloonJoint);
