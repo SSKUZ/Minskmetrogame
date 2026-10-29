@@ -695,6 +695,36 @@ for(const z of [saloonStart+.075,saloonEnd-.075]){
  fixtureBox(.22,.055,.045,.63,F+1.50,z+(z<0?.025:-.025),saloonAmber);
 }
 
+// Passenger touch-points: grab handles, seat-edge piping and subtle anti-wear details.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ for(let i=0;i<count;i++){
+  const z=a+(i+.5)*len/count;
+  fixtureBox(.010,.018,len/count-.055,side*.914,F+.535,z,saloonTrim);
+  fixtureBox(.010,.018,len/count-.060,side*1.087,F+.585,z,saloonTrim);
+ }
+}
+// Overhead hanging grips are deliberately sparse and aligned to the longitudinal rail.
+for(const side of [-1,1])for(let z=saloonStart+.82;z<saloonEnd-.48;z+=.72){
+ const stem=sideTube([[side*.72,F+2.11,z],[side*.72,F+1.91,z]],.008,saloonTrim);saloonDetail(stem);saloonFixtureNodes.push(stem);
+ const grip=sideTube([[side*.72,F+1.91,z],[side*.67,F+1.82,z],[side*.77,F+1.82,z],[side*.72,F+1.91,z]],.010,railBlue);saloonDetail(grip);saloonFixtureNodes.push(grip);
+}
+// Door threshold plates and narrow side-wall protection panels reinforce the vestibule geometry.
+for(const side of [-1,1])for(const z of doors){
+ fixtureBox(.32,.010,doorWidth-.08,side*1.03,F+.024,z,saloonTrim);
+ for(const dz of [-doorWidth/2-.20,doorWidth/2+.20])fixtureBox(.018,.74,.16,side*1.195,F+.76,z+dz,saloonTrim);
+}
+// Ceiling longitudinal service channels and small fastener heads.
+for(const side of [-1,1]){
+ fixtureBox(.08,.012,saloonLength-.35,side*.53,F+2.292,(saloonStart+saloonEnd)/2,saloonTrim);
+ for(let z=saloonStart+.40;z<saloonEnd-.25;z+=.62)fixtureBox(.024,.014,.024,side*.53,F+2.300,z,saloonDark);
+}
+// End-wall perimeter trims and low kick protection complete the visible bulkheads.
+for(const z of [saloonStart+.06,saloonEnd-.06]){
+ fixtureBox(2.12,.055,.025,0,F+.12,z,saloonTrim);
+ for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
