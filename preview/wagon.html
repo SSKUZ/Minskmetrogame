@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Четырёхвагонный состав · v106</b><br>Каждый вагон: 19,206 × 2,670 м · 4 двери на сторону<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v106: четыре вагона, общие компоненты, 64 предупреждающие наклейки.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+window.wagonStartupStage={name:'module-start',at:performance.now()};
+const startupStage=name=>{window.wagonStartupStage={name,at:performance.now()};};
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createIntercarEnd,createIntercarConnection} from './train-components.js?v=106';
@@ -8,6 +10,7 @@ import {createIntermediateCar,cloneCar,assembleConsist} from './train-factory.js
 import {batchStaticCar} from './train-batching.js?v=106';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
+startupStage('renderer-create');
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
 // Preserve the agreed body/interior lighting on layer 0. New front surfaces
 // use layer 1 so material calibration cannot recolor the passenger body.
@@ -16,6 +19,7 @@ const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.ad
 const frontAmbient=new T.HemisphereLight(0xfff5e6,0x3c404a,.65);frontAmbient.layers.set(1);scene.add(frontAmbient);
 const frontKey=new T.DirectionalLight(0xfff3df,2.2);frontKey.position.set(4,8,-17);frontKey.layers.set(1);scene.add(frontKey);
 const fill=new T.DirectionalLight(0xcbdcff,.6);fill.position.set(-6,4,-13);fill.layers.set(1);scene.add(fill);
+startupStage('renderer-ready');
 let frontEnvironment;
 // Procedural light boxes provide physically reflected ceiling bands without
 // painting highlights into the train or adding geometry to the wagon.
@@ -29,6 +33,7 @@ let frontEnvironment;
  softbox(29,.02,49,0,-3.5,0,0x353638);
  for(const x of [-4.0,4.0])softbox(.45,.04,22,x,5.1,0,0xfff6df,4);
  for(const x of [-5.0,5.0])softbox(.40,3.2,.05,x,1.5,-6,0xf7f1e4,2.5);
+ startupStage('viewer-pmrem');
  const generator=new T.PMREMGenerator(renderer);const environment=generator.fromScene(studio,.04,.1,80);
  frontEnvironment=environment.texture;generator.dispose();
  studio.traverse(object=>{if(object.isMesh){object.geometry.dispose();object.material.dispose();}});
@@ -601,6 +606,7 @@ sideLining.roughness=.78; sideLining.metalness=.015;
 sideSteel.roughness=.34; sideSteel.metalness=.88; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.46;
 sideRubber.roughness=.94; sideRubber.metalness=0;
 doorInnerLining.roughness=.72; doorInnerLining.metalness=.025;
+startupStage('saloon-build');
 const saloonSeats=[],saloonRails=[],saloonLightSources=[];
 const floorSeam=new T.MeshStandardMaterial({color:0x555b5c,metalness:.05,roughness:.86});
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
@@ -2004,7 +2010,7 @@ window.wagonExportConsist=()=>{
  const doors=consist.cars.map(car=>({name:car.root.name,leaves:car.leaves.map(d=>({uuid:d.leaf.uuid,homeZ:d.homeZ,half:d.half,travel:d.travel}))}));
  return {geometry:consist.root.toJSON(),lighting:scene.children.filter(o=>o.isLight).map(o=>o.toJSON()),doors};
 };
-window.wagonGetLiveConsist=()=>({root:consist.root,cars:consist.cars,lighting:scene.children.filter(o=>o.isLight)}); window.wagonReady=true;
+window.wagonGetLiveConsist=()=>({root:consist.root,cars:consist.cars,lighting:scene.children.filter(o=>o.isLight)}); startupStage('ready'); window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
 // Construct before the first frame; a texture error must fail browser checks.
 window.wagonWarningDecals=activeCars.reduce((n,car)=>{car.root.traverse(o=>{if(o.userData.warningDecal)n++});return n},0);
