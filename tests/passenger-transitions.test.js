@@ -82,8 +82,8 @@ test('families reserve adjacent seats without duplicate reservations or isolatin
  }
 });
 
-test('twelve consecutive station cycles preserve identities, family destinations and bounded journals',()=>{
- const s=new PassengerSimulation({seed:717}),allEvents=[];let retained=[];
+for(const seed of [717,42,106])test(`twelve station cycles preserve identities, families and bounded journals (seed ${seed})`,()=>{
+ const s=new PassengerSimulation({seed}),allEvents=[];let retained=[];
  for(let station=0;station<12;station++){
   advance(s,2,{...closed,station,dist:900,speed:55});
   for(const a of retained){
@@ -97,7 +97,7 @@ test('twelve consecutive station cycles preserve identities, family destinations
   // finish the same dense scenario within 150 s (previously allowed 300 s).
   advance(s,120,{...open,station});
   for(let extra=0;extra<30&&s.boarding.queues.some(q=>q.enter.length||q.exit.length);extra++)advance(s,1,{...open,station});
-  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length),'station '+station+': exchange exceeded 150 seconds');
+  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length),'seed '+seed+', station '+station+': exchange exceeded 150 seconds');
   for(const a of s.agents)assert.equal(JSON.stringify([a.profile,a.scale,a.width,a.tint,a.accessory,a.destination,a.groupId,a.parentId]),appearances.get(a.id));
   assert.equal(new Set(s.agents.map(a=>a.id)).size,s.agents.length);
   assert.ok(!s.agents.some(a=>a.space==='train'&&a.destination<=station),'due passengers must leave');

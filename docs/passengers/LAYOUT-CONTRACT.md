@@ -64,10 +64,21 @@ The inherited portal-backing visibility change in `de0e2bb` predates these
 amendments. It is not expanded or further tuned. No geometry-only defects will
 be fixed as part of passenger work.
 
-Remaining TZ2 work: dense-stop throughput, visual accessory/clothing intersections,
-fresh browser acceptance after this refactor and actual Android GPU/FPS testing.
-The current environment has no Chromium; its browser download returned truncated
-archives. A branch-specific passenger CI job runs the existing actual-game
-browser test and uploads screenshots. Its outcome must be checked; merely adding
-the job is not a browser pass. Software/desktop mobile viewports never count as
-real Android performance acceptance.
+Browser acceptance for source `621747f` passed in GitHub Actions run
+`40904371987`: 24 models, 51 boardings, 8 alightings and 67 retained onboard
+identities; carriage/mobile views and both mirrors, zero JS/request errors.
+Carriage, portrait and mobile screenshots were visually inspected. Summary:
+`artifacts/passengers/layout-checkpoint/acceptance.json`. The current environment
+has no Chromium and its download failed; actual rendering ran in CI instead.
+
+Remaining TZ2 work: dense-stop throughput, accessory/clothing intersections and
+actual Android GPU/FPS testing. Software/desktop mobile viewports never count as
+real Android performance acceptance. The 0.394 FPS / 5-frame SwiftShader sample
+in this run is a software-renderer diagnostic, not an optimization result.
+
+A proposed intermediate-waypoint walking change improved an isolated 5 m walk
+but introduced a seed-42 station-6 door-3 deadlock. It was rejected and fully
+reverted. Its diagnostic snapshot is saved separately as
+`rejected-walking-seed42.json`; it does not describe the current code. The
+12-station regression now covers seeds 717, 42 and 106 separately, preserving
+the same 150 s deadline. Further throughput work must pass all three.

@@ -1,0 +1,298 @@
+{
+  "codeCommit": "621747f6a951abe711b3fa4c389d05beffdeaf5e",
+  "nodeChecks": {
+    "passed": 55,
+    "failed": 0
+  },
+  "browser": {
+    "status": "success",
+    "runUrl": "https://github.com/SSKUZ/Minskmetrogame/actions/runs/40904371987",
+    "artifactId": 12911965557,
+    "models": 24,
+    "boardings": 51,
+    "alightings": 8,
+    "onboard": 67,
+    "grips": 1,
+    "errors": [],
+    "requests": [],
+    "performance": {
+      "durationMs": 10911.899999999994,
+      "frames": 5,
+      "fps": 0.39410420115078404,
+      "medianFrameMs": 3883.1999999999825,
+      "p95FrameMs": 4549.8000000000175,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "heapBytes": 199000000,
+      "render": {
+        "frame": 94,
+        "calls": 1753,
+        "triangles": 1147510,
+        "points": 0,
+        "lines": 0
+      },
+      "memory": {
+        "geometries": 3578,
+        "textures": 233
+      },
+      "frameHistoryMs": [
+        0,
+        5666.392,
+        83.30000000000018,
+        950.0000000000009,
+        133.39999999999964,
+        33.19999999999891,
+        83.40000000000146,
+        16.599999999998545,
+        16.700000000000728,
+        5349.799999999999,
+        4833.100000000002,
+        8383,
+        21932.5,
+        9033,
+        3666.5,
+        133.29999999999563,
+        1000,
+        199.90000000000146,
+        333.40000000000146,
+        566.5999999999985,
+        316.70000000000437,
+        1916.5,
+        1650,
+        1699.8999999999942,
+        133.40000000000873,
+        16.69999999999709,
+        6233,
+        3066.5999999999913,
+        116.60000000000582,
+        6599.699999999997,
+        3050,
+        116.60000000000582,
+        6616.399999999994,
+        3149.9000000000087,
+        616.6999999999971,
+        9082.899999999994,
+        566.6000000000058,
+        3033.199999999997,
+        6683.100000000006,
+        6016.5,
+        133.29999999998836,
+        7383,
+        3766.5,
+        3516.5,
+        783.3000000000175,
+        12632.899999999994,
+        283.29999999998836,
+        5366.399999999994,
+        3649.9000000000233,
+        13632.799999999988,
+        8283,
+        1616.6000000000058,
+        3883.1999999999825,
+        4549.8000000000175,
+        100
+      ],
+      "batching": {
+        "sourceMeshes": 451,
+        "batches": 29
+      },
+      "version": "cab-r2"
+    },
+    "performanceAcceptance": "Software renderer only; no Android GPU/FPS acceptance"
+  },
+  "denseStationAudits": [
+    {
+      "seed": 42,
+      "stations": [
+        {
+          "station": 0,
+          "dwell": 59.7,
+          "boardings": 53,
+          "alightings": 8,
+          "onboard": 69
+        },
+        {
+          "station": 1,
+          "dwell": 65.76666666666667,
+          "boardings": 51,
+          "alightings": 14,
+          "onboard": 106
+        },
+        {
+          "station": 2,
+          "dwell": 109.56666666666666,
+          "boardings": 56,
+          "alightings": 47,
+          "onboard": 115
+        },
+        {
+          "station": 3,
+          "dwell": 101.6,
+          "boardings": 52,
+          "alightings": 37,
+          "onboard": 130
+        },
+        {
+          "station": 4,
+          "dwell": 124.5,
+          "boardings": 52,
+          "alightings": 51,
+          "onboard": 131
+        },
+        {
+          "station": 5,
+          "dwell": 88.03333333333333,
+          "boardings": 52,
+          "alightings": 40,
+          "onboard": 143
+        },
+        {
+          "station": 6,
+          "dwell": 100.36666666666666,
+          "boardings": 53,
+          "alightings": 56,
+          "onboard": 140
+        },
+        {
+          "station": 7,
+          "dwell": 96.6,
+          "boardings": 52,
+          "alightings": 54,
+          "onboard": 138
+        },
+        {
+          "station": 8,
+          "dwell": 109.6,
+          "boardings": 56,
+          "alightings": 59,
+          "onboard": 135
+        },
+        {
+          "station": 9,
+          "dwell": 94.63333333333334,
+          "boardings": 51,
+          "alightings": 50,
+          "onboard": 136
+        },
+        {
+          "station": 10,
+          "dwell": 108.16666666666667,
+          "boardings": 51,
+          "alightings": 57,
+          "onboard": 130
+        },
+        {
+          "station": 11,
+          "dwell": 77.1,
+          "boardings": 49,
+          "alightings": 44,
+          "onboard": 135
+        }
+      ],
+      "passed": true,
+      "maxDwell": 124.5
+    },
+    {
+      "seed": 106,
+      "stations": [
+        {
+          "station": 0,
+          "dwell": 53.93333333333333,
+          "boardings": 56,
+          "alightings": 8,
+          "onboard": 72
+        },
+        {
+          "station": 1,
+          "dwell": 110.96666666666667,
+          "boardings": 57,
+          "alightings": 23,
+          "onboard": 106
+        },
+        {
+          "station": 2,
+          "dwell": 86.53333333333333,
+          "boardings": 54,
+          "alightings": 38,
+          "onboard": 122
+        },
+        {
+          "station": 3,
+          "dwell": 114,
+          "boardings": 54,
+          "alightings": 46,
+          "onboard": 130
+        },
+        {
+          "station": 4,
+          "dwell": 97.76666666666667,
+          "boardings": 52,
+          "alightings": 56,
+          "onboard": 126
+        },
+        {
+          "station": 5,
+          "dwell": 85.2,
+          "boardings": 51,
+          "alightings": 48,
+          "onboard": 129
+        },
+        {
+          "station": 6,
+          "dwell": 112.2,
+          "boardings": 57,
+          "alightings": 50,
+          "onboard": 136
+        },
+        {
+          "station": 7,
+          "dwell": 106.16666666666667,
+          "boardings": 49,
+          "alightings": 69,
+          "onboard": 116
+        },
+        {
+          "station": 8,
+          "dwell": 91.83333333333333,
+          "boardings": 50,
+          "alightings": 47,
+          "onboard": 119
+        },
+        {
+          "station": 9,
+          "dwell": 83.33333333333333,
+          "boardings": 56,
+          "alightings": 34,
+          "onboard": 141
+        },
+        {
+          "station": 10,
+          "dwell": 116.46666666666667,
+          "boardings": 47,
+          "alightings": 63,
+          "onboard": 125
+        },
+        {
+          "station": 11,
+          "dwell": 108.86666666666666,
+          "boardings": 51,
+          "alightings": 48,
+          "onboard": 128
+        }
+      ],
+      "passed": true,
+      "maxDwell": 116.46666666666667
+    }
+  ],
+  "expandedRegression": {
+    "status": "passed",
+    "seeds": [
+      717,
+      42,
+      106
+    ],
+    "stationsEach": 12,
+    "deadlineSeconds": 150,
+    "checks": 3,
+    "runtimeSourceUnchanged": true
+  }
+}

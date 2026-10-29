@@ -212,3 +212,32 @@ Verified remote parent: `96552133a6600cdb151ced562deb1ced1616a2f3`.
 Continue with actual-game browser results, then dense-stop service throughput and
 accessory/clothing review. Real Android performance is still unverified. Do not
 merge into other branches or change geometry to improve a passenger screenshot.
+
+### Verified CI acceptance and broader dense-stop guard
+
+Source checkpoint `621747f6a951abe711b3fa4c389d05beffdeaf5e` passed actual-game
+browser CI: https://github.com/SSKUZ/Minskmetrogame/actions/runs/40904371987 .
+24 models loaded, 51 boardings / 8 alightings, 67 onboard, unchanged identities
+under carriage/mobile camera changes; both mirrors recorded; zero JS/request
+errors. Carriage, portrait and mobile images were visually inspected. The
+SwiftShader 5-frame sample is not a performance acceptance result.
+
+Additional unchanged-source audits passed 12 stops each for seed 42 (maximum
+124.50 simulated seconds) and 106 (116.47 seconds). Seed 717 remains covered by
+the existing 12-stop regression. This is stability evidence, not realistic short
+metro dwell. Summary: artifacts/passengers/layout-checkpoint/acceptance.json.
+
+Rejected experiment: removing intermediate waypoint braking and exact-position
+tolerance improved an isolated 5 m walk but deadlocked seed 42, station 6, door 3.
+It was fully reverted; runtime JS remains byte-identical to source 621747f.
+The diagnostic snapshot is archived as rejected-walking-seed42.json. The permanent
+12-stop regression is expanded to all three seeds with the original 150 s limit,
+so this failure cannot be accepted after a single-seed test. Further optimization
+must handle shared aisle waypoint conflicts while preserving collisions and
+threshold counting. No new throughput improvement is claimed.
+
+Expanded permanent regression verified locally: all three 12-stop tests pass
+(seeds 717, 42, 106), 36 total station cycles, unchanged 150 s deadline. Runtime
+source is identical to the successful 621747f browser run. The suite now contains
+57 cases (the original 55, replacing one 12-stop case with three seeded cases).
+No runtime performance/throughput change was accepted in this evidence checkpoint.

@@ -1,0 +1,683 @@
+{
+  "status": "rejected experiment; NOT current code",
+  "station": 6,
+  "snapshot": {
+    "station": 6,
+    "time": 1075.9999999996787,
+    "doors": [
+      {
+        "id": 0,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 9
+      },
+      {
+        "id": 1,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 2
+      },
+      {
+        "id": 2,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 7
+      },
+      {
+        "id": 3,
+        "phase": "alighting",
+        "active": 347,
+        "exiting": 4,
+        "waiting": 6,
+        "served": 0
+      },
+      {
+        "id": 4,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 7
+      },
+      {
+        "id": 5,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 5
+      },
+      {
+        "id": 6,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 7
+      },
+      {
+        "id": 7,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 3
+      },
+      {
+        "id": 8,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 2
+      },
+      {
+        "id": 9,
+        "phase": "complete",
+        "active": null,
+        "exiting": 0,
+        "waiting": 0,
+        "served": 5
+      }
+    ],
+    "agents": [
+      {
+        "id": 215,
+        "profile": 11,
+        "state": "exitQueued",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.02,
+        "z": -59.75,
+        "heading": -3.1415926535897905,
+        "velocity": 0,
+        "distance": 13.484934049668444,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0404654433950782,
+        "destination": 6,
+        "seat": null,
+        "accessory": "bag",
+        "tint": 0
+      },
+      {
+        "id": 279,
+        "profile": 3,
+        "state": "seated",
+        "activity": "wait",
+        "space": "train",
+        "x": 1.0899999999999999,
+        "z": -59.13,
+        "heading": -1.570796326794895,
+        "velocity": 0,
+        "distance": 49.39395963248893,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0295798762934283,
+        "destination": 7,
+        "seat": {
+          "x": 1.0899999999999999,
+          "z": -59.13,
+          "id": "test-1-seat-18",
+          "hipHeight": 0.53,
+          "heading": -1.5707963267948966,
+          "approach": {
+            "x": 0.6599999999999999,
+            "z": -59.13
+          }
+        },
+        "seatTime": 0,
+        "accessory": "backpack",
+        "tint": 1
+      },
+      {
+        "id": 282,
+        "profile": 6,
+        "state": "seated",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.71,
+        "z": -64.43,
+        "heading": 1.570796326794895,
+        "velocity": 0,
+        "distance": 20.085542143266164,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 2,
+        "scale": 0.9528871194692328,
+        "destination": 8,
+        "seat": {
+          "x": -1.71,
+          "z": -64.43,
+          "id": "test-1-seat-6",
+          "hipHeight": 0.53,
+          "heading": 1.5707963267948966,
+          "approach": {
+            "x": -1.28,
+            "z": -64.43
+          }
+        },
+        "seatTime": 0,
+        "accessory": "backpack",
+        "tint": 3
+      },
+      {
+        "id": 303,
+        "profile": 3,
+        "state": "seated",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.71,
+        "z": -63.77000000000001,
+        "heading": 1.5707963267948981,
+        "velocity": 0,
+        "distance": 15.09256233788597,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0412168520735576,
+        "destination": 7,
+        "seat": {
+          "x": -1.71,
+          "z": -63.77000000000001,
+          "id": "test-1-seat-7",
+          "hipHeight": 0.53,
+          "heading": 1.5707963267948966,
+          "approach": {
+            "x": -1.28,
+            "z": -63.77000000000001
+          }
+        },
+        "seatTime": 0,
+        "accessory": "shopping",
+        "tint": 2
+      },
+      {
+        "id": 312,
+        "profile": 0,
+        "state": "seated",
+        "activity": "wait",
+        "space": "train",
+        "x": 1.0899999999999999,
+        "z": -64.43,
+        "heading": -1.570796326794895,
+        "velocity": 0,
+        "distance": 21.55590100706497,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 2,
+        "scale": 0.992528458405286,
+        "destination": 7,
+        "seat": {
+          "x": 1.0899999999999999,
+          "z": -64.43,
+          "id": "test-1-seat-16",
+          "hipHeight": 0.53,
+          "heading": -1.5707963267948966,
+          "approach": {
+            "x": 0.6599999999999999,
+            "z": -64.43
+          }
+        },
+        "seatTime": 0,
+        "accessory": "bag",
+        "tint": 1
+      },
+      {
+        "id": 313,
+        "profile": 1,
+        "state": "exitQueued",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.02,
+        "z": -59.07,
+        "heading": 1.6134150231890148,
+        "velocity": 0,
+        "distance": 57.41865077752968,
+        "parentId": null,
+        "groupId": 313,
+        "doorId": 3,
+        "scale": 0.9671475347364321,
+        "destination": 6,
+        "seat": null,
+        "accessory": null,
+        "tint": 1
+      },
+      {
+        "id": 318,
+        "profile": 6,
+        "state": "exitQueued",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.02,
+        "z": -58.39,
+        "heading": 1.2722973952093317,
+        "velocity": 0,
+        "distance": 12.462762767380202,
+        "parentId": 313,
+        "groupId": 313,
+        "doorId": 3,
+        "scale": 0.9750395837472752,
+        "destination": 6,
+        "seat": null,
+        "seatTime": 0,
+        "accessory": "backpack",
+        "tint": 4
+      },
+      {
+        "id": 333,
+        "profile": 9,
+        "state": "riding",
+        "activity": "wait",
+        "space": "train",
+        "x": -1.02,
+        "z": -61.5,
+        "heading": 4.712321571174562,
+        "velocity": 0,
+        "distance": 13.475817442678158,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 0.9709849297069013,
+        "destination": 7,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 4
+      },
+      {
+        "id": 346,
+        "profile": 10,
+        "state": "settling",
+        "activity": "wait",
+        "space": "train",
+        "x": -0.032424764886648555,
+        "z": -61.798277775923225,
+        "heading": 6.199978803107799,
+        "velocity": 0,
+        "distance": 26.077850888950643,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 2,
+        "scale": 1.0045221023960038,
+        "destination": 9,
+        "seat": {
+          "x": 1.0899999999999999,
+          "z": -58.470000000000006,
+          "id": "test-1-seat-19",
+          "hipHeight": 0.53,
+          "heading": -1.5707963267948966,
+          "approach": {
+            "x": 0.6599999999999999,
+            "z": -58.470000000000006
+          }
+        },
+        "accessory": null,
+        "tint": 1
+      },
+      {
+        "id": 347,
+        "profile": 11,
+        "state": "alighting",
+        "activity": "wait",
+        "space": "train",
+        "x": -0.055699900389516804,
+        "z": -60.792401978211544,
+        "heading": 6.826762038355213,
+        "velocity": 1.1344648811221145,
+        "distance": 446.2907058092685,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0149696424603463,
+        "destination": 6,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 2
+      },
+      {
+        "id": 357,
+        "profile": 9,
+        "state": "seated",
+        "activity": "wait",
+        "space": "train",
+        "x": 1.0899999999999999,
+        "z": -63.77000000000001,
+        "heading": -1.570796326794895,
+        "velocity": 0,
+        "distance": 19.568476133694563,
+        "parentId": null,
+        "groupId": 356,
+        "doorId": 2,
+        "scale": 0.9952814508462324,
+        "destination": 7,
+        "seat": {
+          "x": 1.0899999999999999,
+          "z": -63.77000000000001,
+          "id": "test-1-seat-17",
+          "hipHeight": 0.53,
+          "heading": -1.5707963267948966,
+          "approach": {
+            "x": 0.6599999999999999,
+            "z": -63.77000000000001
+          }
+        },
+        "seatTime": 0,
+        "accessory": "backpack",
+        "tint": 3
+      },
+      {
+        "id": 377,
+        "profile": 5,
+        "state": "riding",
+        "activity": "weight",
+        "space": "train",
+        "x": 0.39999999999999997,
+        "z": -61.5,
+        "heading": 1.5708008252405756,
+        "velocity": 0,
+        "distance": 8.893506174674554,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0255560893565416,
+        "destination": 9,
+        "seat": null,
+        "accessory": null,
+        "tint": 2
+      },
+      {
+        "id": 387,
+        "profile": 3,
+        "state": "riding",
+        "activity": "wait",
+        "space": "train",
+        "x": 0.39999999999999997,
+        "z": -59.5,
+        "heading": 1.570746693214744,
+        "velocity": 0,
+        "distance": 13.552236576826427,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0254511296749114,
+        "destination": 8,
+        "seat": null,
+        "accessory": "bag",
+        "tint": 2
+      },
+      {
+        "id": 397,
+        "profile": 1,
+        "state": "settling",
+        "activity": "wait",
+        "space": "train",
+        "x": -0.49694817232967015,
+        "z": -61.553580545864385,
+        "heading": 9.879559082129392,
+        "velocity": 0,
+        "distance": 8.368971004376629,
+        "parentId": null,
+        "groupId": 397,
+        "doorId": 3,
+        "scale": 0.9753632613457739,
+        "destination": 9,
+        "seat": null,
+        "accessory": null,
+        "tint": 2
+      },
+      {
+        "id": 402,
+        "profile": 6,
+        "state": "settling",
+        "activity": "wait",
+        "space": "train",
+        "x": -0.14330923584112287,
+        "z": -61.26494919513752,
+        "heading": 4.216443106123593,
+        "velocity": 0.5999999999997241,
+        "distance": 131.09415909830824,
+        "parentId": 397,
+        "groupId": 397,
+        "doorId": 3,
+        "scale": 0.9553852944402024,
+        "destination": 9,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 1
+      },
+      {
+        "id": 407,
+        "profile": 11,
+        "state": "settling",
+        "activity": "wait",
+        "space": "train",
+        "x": -0.5725000204038015,
+        "z": -61.032048754040744,
+        "heading": 14.899179086149658,
+        "velocity": 0.8999999999999505,
+        "distance": 178.37749450161166,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0432897846214473,
+        "destination": 9,
+        "seat": null,
+        "accessory": "bag",
+        "tint": 3
+      },
+      {
+        "id": 411,
+        "profile": 3,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -3.65,
+        "z": -62.53,
+        "heading": 2.739614155982039,
+        "velocity": 0,
+        "distance": 3.3941196324539846,
+        "parentId": null,
+        "groupId": 411,
+        "doorId": 3,
+        "scale": 1.0155198147520423,
+        "destination": 9,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 4
+      },
+      {
+        "id": 415,
+        "profile": 7,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -3.65,
+        "z": -59.97,
+        "heading": 1.9198926816484856,
+        "velocity": 0,
+        "distance": 1.9984576033026242,
+        "parentId": 411,
+        "groupId": 411,
+        "doorId": 3,
+        "scale": 1.0386740393005311,
+        "destination": 9,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 3
+      },
+      {
+        "id": 431,
+        "profile": 11,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -4.37,
+        "z": -59.97,
+        "heading": 1.4593945562683273,
+        "velocity": 0,
+        "distance": 4.484027748439309,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 0.9646059014834463,
+        "destination": 7,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 0
+      },
+      {
+        "id": 441,
+        "profile": 9,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -3.65,
+        "z": -59.21,
+        "heading": 1.2944985221068834,
+        "velocity": 0,
+        "distance": 9.31968239025807,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 0.9529798050411045,
+        "destination": 8,
+        "seat": null,
+        "accessory": null,
+        "tint": 0
+      },
+      {
+        "id": 461,
+        "profile": 5,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -4.37,
+        "z": -62.53,
+        "heading": 1.0528422955284242,
+        "velocity": 0,
+        "distance": 1.95118618298313,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 1.0041107299504801,
+        "destination": 8,
+        "seat": null,
+        "accessory": null,
+        "tint": 2
+      },
+      {
+        "id": 471,
+        "profile": 3,
+        "state": "queued",
+        "activity": "wait",
+        "space": "platform",
+        "x": -3.65,
+        "z": -63.29,
+        "heading": 1.707862738917163,
+        "velocity": 0,
+        "distance": 6.305898178469619,
+        "parentId": null,
+        "groupId": null,
+        "doorId": 3,
+        "scale": 0.9697629588888957,
+        "destination": 9,
+        "seat": null,
+        "accessory": "backpack",
+        "tint": 1
+      }
+    ]
+  },
+  "paths": [
+    {
+      "id": 346,
+      "path": [
+        {
+          "x": -0.31,
+          "z": -58.470000000000006
+        },
+        {
+          "x": 0.6599999999999999,
+          "z": -58.470000000000006
+        }
+      ]
+    },
+    {
+      "id": 347,
+      "path": [
+        {
+          "x": -0.31,
+          "z": -61.25
+        },
+        {
+          "x": -2.42,
+          "z": -61.25
+        },
+        {
+          "x": -3.8,
+          "z": -61.25
+        },
+        {
+          "x": -4.45,
+          "z": -61.25
+        }
+      ]
+    },
+    {
+      "id": 397,
+      "path": [
+        {
+          "x": -0.31,
+          "z": -63.5
+        },
+        {
+          "x": -1.02,
+          "z": -63.5
+        }
+      ]
+    },
+    {
+      "id": 402,
+      "path": [
+        {
+          "x": -0.31,
+          "z": -61.25
+        },
+        {
+          "x": -0.31,
+          "z": -63.5
+        },
+        {
+          "x": 0.39999999999999997,
+          "z": -63.5
+        }
+      ]
+    },
+    {
+      "id": 407,
+      "path": [
+        {
+          "x": -0.31,
+          "z": -61.25
+        },
+        {
+          "x": -0.31,
+          "z": -65.5
+        },
+        {
+          "x": 0.39999999999999997,
+          "z": -65.5
+        }
+      ]
+    }
+  ],
+  "reproduction": "Removing intermediate waypoint braking/tolerance caused seed 42 station 6 door 3 to deadlock. That experiment was reverted. PassengerNavigation.js in 621747f remains current.",
+  "note": "Reduced local diagnostic: nearby train agents and door-3 queue only. Reproduce the complete crowd with seed 42, station 6; not a standalone simulation restore."
+}
