@@ -676,7 +676,7 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const mesh=new T.Mesh(geometry,ceilingWhite);group.add(mesh);passenger(mesh);
  // Longitudinal ribs and transverse joints make the curved liner read as assembled ceiling panels.
  for(const x of [-.98,-.52,0,.52,.98])sideBox(.018,.012,saloonLength-.22,x,3.205+.105*(1-Math.pow(Math.abs(x)/1.20,2.4)),(saloonStart+saloonEnd)/2,sideSteel);
- for(let z=saloonStart+.52;z<saloonEnd-.30;z+=1.18)sideBox(2.18,.012,.018,0,3.185,z,sideLining);
+ // Keep the broad curved liner calm; service covers below provide the necessary transverse breaks.
 }
 const diffuser=new T.MeshStandardMaterial({color:0xfff1d7,emissive:0xffe9c8,emissiveIntensity:.40,roughness:.74});
 for(const side of [-1,1]){
@@ -715,7 +715,7 @@ for(const side of [-1,1]){
  }
  // Narrow longitudinal ceiling ventilation slots, on actual 3D trim.
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
- for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
+ for(let z=saloonStart+.12;z<saloonEnd;z+=.24)sideBox(.042,.003,.018,side*.23,3.300,z,sideRubber);
 }
 for(const [z,power] of [[-6.0,.94],[-2.8,1.00],[.4,.97],[3.6,1.02],[6.8,.93]]){
  const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);saloonLightSources.push({lamp,power,phase:z*.71});
@@ -793,10 +793,7 @@ for(const side of [-1,1])for(const [a,b] of seatBays){
  for(const z of [a+.20,b-.20])fixtureBox(.055,.075,.12,side*.925,F+.055,z,saloonDark);
 }
 // Ceiling panel joints, compact speaker grilles and richer diffuser lenses.
-for(let z=saloonStart+.55;z<saloonEnd-.25;z+=1.18){
- fixtureBox(.86,.010,.012,0,F+2.285,z,saloonJoint);
- for(const side of [-1,1])fixtureBox(.22,.012,.055,side*.86,F+2.245,z+.28,saloonJoint);
-}
+// Ceiling panel joints are intentionally sparse; access covers below carry the service detail.
 for(const z of [-5.15,-.15,4.85,8.45]){
  fixtureBox(.48,.018,.72,0,F+2.265,z,saloonLens);
  for(let k=-2;k<=2;k++)fixtureBox(.012,.020,.035,k*.055,F+2.252,z+.44,saloonDark);
@@ -818,7 +815,7 @@ for(const side of [-1,1])for(const z of doors){
 // Ceiling longitudinal service channels and small fastener heads.
 for(const side of [-1,1]){
  fixtureBox(.08,.012,saloonLength-.35,side*.53,F+2.292,(saloonStart+saloonEnd)/2,saloonTrim);
- for(let z=saloonStart+.40;z<saloonEnd-.25;z+=.62)fixtureBox(.024,.014,.024,side*.53,F+2.300,z,saloonDark);
+ for(let z=saloonStart+.70;z<saloonEnd-.35;z+=1.85)fixtureBox(.018,.010,.018,side*.53,F+2.300,z,saloonDark);
 }
 // End-wall perimeter trims and low kick protection complete the visible bulkheads.
 for(const z of [saloonStart+.06,saloonEnd-.06]){
@@ -855,8 +852,8 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  fixtureBox(.18,.11,len-.18,side*.88,F+.19,(a+b)/2,saloonJoint);
 }
 // Alternating narrow ceiling ventilation slots add depth without extra lights.
-for(let z=saloonStart+.36;z<saloonEnd-.24;z+=.34){
- for(const side of [-1,1])fixtureBox(.20,.008,.018,side*.30,F+2.304,z,saloonDark);
+for(let z=saloonStart+.55;z<saloonEnd-.30;z+=.72){
+ for(const side of [-1,1])fixtureBox(.16,.006,.014,side*.30,F+2.304,z,saloonDark);
 }
 
 // Window interiors stay deliberately simple on the 81-717: one perimeter gasket,
@@ -910,7 +907,7 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
 // These are small collars only; there are no hanging loops or floating rail ends.
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
  for(const y of [F+.72,F+1.90]){
-  const collar=new T.Mesh(new T.CylinderGeometry(.0185,.0185,.036,12),saloonTrim);
+  const collar=new T.Mesh(new T.CylinderGeometry(.015,.015,.028,12),saloonTrim);
   collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);
   group.add(collar);passenger(collar);saloonDetail(collar);saloonFixtureNodes.push(collar);
  }
@@ -918,10 +915,9 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
 
 // Ceiling access covers and sparse fasteners break the perfect CGI surface without
 // creating a grid. Existing luminaires and ventilation geometry remain untouched.
-for(const z of [-6.55,-3.65,-.75,2.15,5.05,7.95]){
- fixtureBox(.62,.008,.38,0,F+2.302,z,ceilingWhite);
- for(const x of [-.27,.27])for(const dz of [-.15,.15])
-  fixtureBox(.012,.009,.012,x,F+2.307,z+dz,saloonTrim);
+for(const z of [-5.85,-1.55,2.75,7.05]){
+ fixtureBox(.56,.006,.32,0,F+2.302,z,ceilingWhite);
+ for(const x of [-.24,.24])fixtureBox(.009,.007,.009,x,F+2.307,z,saloonTrim);
 }
 
 // Subtle service wear: threshold scuffing, a faint central walking band and darker
