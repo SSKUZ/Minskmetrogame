@@ -848,6 +848,8 @@ for(const entry of slidingLeaves){
  const {leaf,side,half}=entry;
  const innerX=-side*.031;
  const grab=new T.Mesh(new T.BoxGeometry(.020,.42,.018),saloonTrim);grab.position.set(innerX,F+1.02-(F+1.03),half*.26);leaf.add(grab);passenger(grab);saloonDetail(grab);saloonFixtureNodes.push(grab);
+ const innerGasket=new T.Mesh(new T.BoxGeometry(.018,1.72,.020),sideRubber);innerGasket.position.set(innerX,0,-half*.39);leaf.add(innerGasket);passenger(innerGasket);saloonDetail(innerGasket);saloonFixtureNodes.push(innerGasket);
+ const wearRail=new T.Mesh(new T.BoxGeometry(.024,.055,.42),saloonTrim);wearRail.position.set(innerX,-.70,0);leaf.add(wearRail);passenger(wearRail);saloonDetail(wearRail);saloonFixtureNodes.push(wearRail);
  const guard=new T.Mesh(new T.BoxGeometry(.022,.16,.20),saloonJoint);guard.position.set(innerX,F+.28-(F+1.03),-half*.20);leaf.add(guard);passenger(guard);saloonDetail(guard);saloonFixtureNodes.push(guard);
  for(const yy of [-.58,.58]){
   const cap=new T.Mesh(new T.BoxGeometry(.024,.035,.14),saloonTrim);cap.position.set(innerX,yy,half*.10);leaf.add(cap);passenger(cap);saloonDetail(cap);saloonFixtureNodes.push(cap);
