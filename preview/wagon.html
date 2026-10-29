@@ -775,6 +775,29 @@ for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
  for(const dx of [-.075,.075])for(const dz of [-.115,.115])fixtureBox(.016,.007,.016,side*.54+dx,F+.018,z+dz,saloonTrim);
 }
 
+// Lighting housings: lens surrounds and longitudinal ceiling trims give the fixtures physical depth.
+for(const z of [-5.15,-.15,4.85,8.45]){
+ fixtureBox(.56,.025,.80,0,F+2.278,z,saloonTrim);
+ fixtureBox(.50,.030,.74,0,F+2.258,z,saloonLens);
+}
+for(const side of [-1,1])fixtureBox(.045,.020,saloonLength-.42,side*.98,F+2.205,(saloonStart+saloonEnd)/2,saloonTrim);
+// Ventilation grilles use shallow blades rather than dark painted rectangles.
+for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
+ for(let k=-4;k<=4;k++)fixtureBox(.012,.012,.12,k*.026,F+2.315,z,saloonJoint);
+}
+// End-wall corner guards and threshold kick plates protect the high-contact areas.
+for(const z of [saloonStart+.055,saloonEnd-.055]){
+ for(const x of [-1.10,1.10])fixtureBox(.040,1.75,.030,x,F+.94,z,saloonTrim);
+ fixtureBox(1.75,.12,.035,0,F+.13,z,saloonJoint);
+}
+// Compact emergency equipment cabinets add believable service detail without introducing labels that could be wrong.
+for(const side of [-1,1])for(const z of [-5.35,4.18]){
+ fixtureBox(.045,.38,.24,side*(sideWallInner-.050),F+1.04,z,saloonJoint);
+ fixtureBox(.048,.32,.19,side*(sideWallInner-.065),F+1.04,z,saloonPaper);
+ fixtureBox(.052,.045,.12,side*(sideWallInner-.080),F+1.13,z,saloonNoticeRed);
+ fixtureBox(.052,.030,.055,side*(sideWallInner-.082),F+.94,z,saloonDark);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
