@@ -3,6 +3,7 @@
 export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
  if(!THREE?.Group||!scene?.add)throw new TypeError('THREE and scene required');
  const startedAt=performance.now();
+ const stage=name=>{window.metroV106LoadStage={name,elapsedMs:Math.round(performance.now()-startedAt)};};stage('iframe-create');
  const frame=document.createElement('iframe');
  frame.setAttribute('aria-hidden','true');
  frame.tabIndex=-1;
@@ -11,6 +12,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
  let keepFrame=false;
  document.body.appendChild(frame);
  try{
+  stage('iframe-wait-ready');
   await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(new Error('v106 viewer load timed out')),timeoutMs);
    let settled=false;
@@ -32,6 +34,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   // Retain the original live scene graph instead of JSON round-tripping it.
   // This preserves canvas textures, physical materials, environment maps,
   // per-mesh layers and the original calibrated geometry.
+  stage('source-ready');
   const source=frame.contentWindow.wagonGetLiveConsist?.();
   if(!source?.root||source.cars?.length!==4)throw new Error('v106 live consist unavailable');
   const root=source.root;
@@ -69,6 +72,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
    rehomedAttributes++;
    return local;
   };
+  stage('rehome-attributes');
   root.traverse(object=>{
    const geometry=object.geometry;
    if(!object.isMesh||!geometry?.isBufferGeometry)return;
@@ -81,6 +85,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   // Its HTMLCanvasElement belongs to a different realm, and is not a reliable
   // WebGL upload source for the game's renderer. Copy the exact original
   // pixels to a local canvas and use a local THREE material/texture.
+  stage('warning-textures');
   const warningMeshes=[];
   root.traverse(object=>{if(object.isMesh&&object.userData?.warningDecal)warningMeshes.push(object);});
   if(warningMeshes.length!==64)throw new Error('v106 expected 64 original warning decals, got '+warningMeshes.length);
@@ -176,7 +181,9 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   // that *same* softbox studio and PMREM in the gameplay WebGL context, then
   // relink only materials that reference the source GPU-only environment.
   // Do not change their colors, roughness, clearcoat or envMapIntensity.
+  stage('inspect-materials');
   if(metrics.gpuOnlyEnvironmentMaps){
+   stage('rebuild-pmrem');
    if(!renderer)throw new Error('v106 GPU environment requires the gameplay renderer');
    const studio=new THREE.Scene();
    studio.background=new THREE.Color(0x30302e);
@@ -223,6 +230,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   // coordinates. The gameplay train is translated every frame; parenting the
   // rig to the consist keeps its short-range saloon lamps aligned with the
   // same windows and seats instead of leaving them at the viewer origin.
+  stage('commit-scene');
   root.add(lighting);
   scene.add(root);
   // Keep the source document alive: its canvas-backed textures and PMREM
@@ -230,6 +238,7 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
   // The viewer animation loop is disabled in gameExport mode.
   keepFrame=true;
   Object.defineProperty(root,'v106SourceFrame',{value:frame,configurable:true});
+  stage('complete');
   return root;
  }finally{
   if(!keepFrame){frame.src='about:blank';frame.remove();}
