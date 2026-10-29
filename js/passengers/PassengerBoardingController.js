@@ -1,7 +1,7 @@
 import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {platformPath as layoutPath} from './PassengerNavigation.js';
 import {beginSitting,beginStanding,seatApproach} from './PassengerSeating.js';
-import {reservePassengerSeat,familyCompanions} from './PassengerPlaces.js';
+import {reservePassengerSeat,familyCompanions,standingPlaceKeepsDoorsClear} from './PassengerPlaces.js';
 import {choosePlatformDoors,chooseExitDoors} from './PassengerDoorChoice.js';
 import {passengerDoorObstructions} from './PassengerDoorZones.js';
 
@@ -24,13 +24,15 @@ export class PassengerBoardingController{
  }
  prepare(agents,station,dist){
   const platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
-  if(this.normal){chooseExitDoors(agents,this.layout,station);choosePlatformDoors(agents,this.layout,{dist,station});}
+  if(this.normal){chooseExitDoors(agents,this.layout,station,{preserveAssignments:true});choosePlatformDoors(agents,this.layout,{dist,station,preserveAssignments:true});}
   this.opened=true;this.clearPlatformLanes(agents,dist);
   for(const q of this.queues){
    q.active=null;q.phase='alighting';q.served=0;
    q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id)
     .sort((a,b)=>Math.abs(a.z-q.z)-Math.abs(b.z-q.z)||a.id-b.id).map(a=>a.id);
-   for(const id of q.exit){const a=agents.find(a=>a.id===id);a.exitSide=a.z<q.z?-1:1;a.exitQueuePoint=null;}
+   for(const id of q.exit){const a=agents.find(a=>a.id===id);a.exitSide=a.z<q.z?-1:1;a.exitQueuePoint=null;
+    if(a.state==='exitPreparing'){a.state=a.path.length?'exitApproaching':'exitQueued';a.exitQueuePoint={x:this.layout.car(q.car).aisleX,z:q.z,preparedDoor:q.id};}
+   }
    q.enter=agents.filter(a=>a.space==='platform'&&a.wantsBoard&&a.state!=='leaving'&&a.doorId===q.id)
     .sort((a,b)=>Math.hypot(a.x-q.exitOuterX,a.z-q.z-dist)-Math.hypot(b.x-q.exitOuterX,b.z-q.z-dist)).map(a=>a.id);
    q.enter.forEach((id,rank)=>{
@@ -42,6 +44,24 @@ export class PassengerBoardingController{
    });
    for(const id of q.exit)this.scheduledExit.add(id);
    for(const id of q.enter)this.scheduledBoard.add(id);
+  }
+ }
+ prepareApproach(agents,station){
+  const due=agents.filter(a=>a.space==='train'&&a.destination<=station);
+  for(const d of this.layout.doors){
+   const people=due.filter(a=>a.doorId===d.id);if(!people.length)continue;
+   if(!this.approachFront.has(d.id)){
+    people.sort((a,b)=>Math.abs(a.z-d.z)-Math.abs(b.z-d.z)||a.id-b.id);
+    const first=people[0],parent=first.parentId===null?null:people.find(a=>a.id===first.parentId);
+    this.approachFront.set(d.id,(parent??first).id);
+   }
+   for(const a of people){
+    if(a.state==='seated'){beginStanding(a);continue;}
+    if(['seatTurning','sittingDown','standingUp','seatStabilizing'].includes(a.state))continue;
+    if(a.id===this.approachFront.get(d.id)&&a.state!=='exitPreparing'){
+     a.state='exitPreparing';a.activity='wait';a.seat=null;a.railGrip=null;a.path=[{x:this.layout.car(d.car).aisleX,z:d.z}];
+    }
+   }
   }
  }
  advanceQueue(q,byId,dist){
@@ -166,7 +186,7 @@ export class PassengerBoardingController{
    a.space='platform';a.z+=dist;for(const p of a.path)p.z+=dist;
    if(!a.exitCounted){a.exitCounted=true;this.events.push({kind:'alight',id:a.id,door:q.id,station,x:a.x});}
   }
-  if(this.normal&&a.state==='boarding'&&a.space==='train'&&a.x>q.thresholdX+(a.safetyRadius??a.radius+.18)+.20)a.path=[];
+  if(this.normal&&a.state==='boarding'&&a.space==='train'&&a.x>Math.max(q.thresholdX+(a.safetyRadius??a.radius+.18)+.20,TRAIN.bounds.minX+.01))a.path=[];
   // Once the whole body has cleared the sill, continue leaving independently.
   // The next alighter need not wait for a walk across the whole platform bay.
   if(a.state==='alighting'&&a.space==='platform'&&a.x<q.thresholdX-.70){
@@ -188,15 +208,16 @@ export class PassengerBoardingController{
    const car=this.layout.car(q.car),candidates=[...car.seatAnchors];
    candidates.sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
    a.seat=reservePassengerSeat(a,agents,candidates,slot);
-   const standing=[...car.standingZones];
+   const standing=car.standingZones.filter(p=>!this.normal||standingPlaceKeepsDoorsClear(p,this.layout,q.car));
    standing.sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
    if(a.railPreference){
-    const physical=(this.railPlaces??[]).filter(p=>p.car===q.car).sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
+    const physical=(this.railPlaces??[]).filter(p=>p.car===q.car&&(!this.normal||standingPlaceKeepsDoorsClear(p,this.layout,q.car))).sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
     standing.unshift(...physical);
    }
    const companion=familyCompanions(a,agents).find(o=>o.space==='train'&&o.state!=='alighting');
    if(companion&&(a.child||companion.child||!a.railPreference)){const anchor=companion.seat??companion.path.at(-1)??companion;standing.sort((p,b)=>Math.hypot(p.x-anchor.x,p.z-anchor.z)-Math.hypot(b.x-anchor.x,b.z-anchor.z));}
    const place=standing.find(p=>!agents.some(o=>o!==a&&o.space==='train'&&Math.hypot(p.x-(o.path.at(-1)?.x??o.x),p.z-(o.path.at(-1)?.z??o.z))<.60));
+   if(this.normal&&!a.seat&&!place)a.seat=reservePassengerSeat(a,agents,[...candidates],1);
    const target=(a.seat?seatApproach(a.seat):null)??place??q.fallback;
    a.assignedRailId=target.railId??null;
    a.path=[{x:TRAIN.aisleX,z:q.z},{x:TRAIN.aisleX,z:target.z},target];
@@ -210,7 +231,7 @@ export class PassengerBoardingController{
    a.targetHeading=a.seat?a.seat.heading:a.heading;
   }else if(a.state==='leaving'){a.state='gone';}
  }
- resetCompletion(){this.scheduledExit=new Set();this.scheduledBoard=new Set();this.missed=new Set();this.admissionClosed=false;this.passengerExchangeComplete=false;this.doorsSafeToClose=false;this.obstructions=[];}
+ resetCompletion(){this.approachFront=new Map();this.scheduledExit=new Set();this.scheduledBoard=new Set();this.missed=new Set();this.admissionClosed=false;this.passengerExchangeComplete=false;this.doorsSafeToClose=false;this.obstructions=[];}
  updateCompletion(agents,context){
   this.obstructions=passengerDoorObstructions(agents,this.layout,context.dist);
   this.doorsSafeToClose=this.obstructions.length===0;

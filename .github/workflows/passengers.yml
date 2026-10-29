@@ -9,6 +9,9 @@ on:
       - '.github/workflows/passengers.yml'
 permissions:
   contents: read
+concurrency:
+  group: passenger-checks-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   passengers:
     runs-on: ubuntu-24.04
@@ -20,6 +23,21 @@ jobs:
           node-version: '22'
       - name: Regression checks
         run: npm run check
+      - name: Normal flow diagnostics
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          if(fs.existsSync('test-results/normal-flow'))for(const name of fs.readdirSync('test-results/normal-flow')){
+           const report=JSON.parse(fs.readFileSync('test-results/normal-flow/'+name));
+           console.log('NORMAL_FLOW',name,JSON.stringify(report.stations.map(({failure,...s})=>s)));
+           const failure=report.stations.find(s=>s.failure)?.failure;
+           if(failure){
+            const busy=new Set(failure.snapshot.doors.filter(q=>q.waiting||q.exiting).map(q=>q.id));
+            console.log('NORMAL_FAILURE',JSON.stringify({seed:report.seed,doors:failure.snapshot.doors.filter(q=>busy.has(q.id)),agents:failure.snapshot.agents.filter(a=>busy.has(a.doorId)&&a.state!=='gone'),paths:failure.paths.filter(a=>failure.snapshot.agents.some(p=>p.id===a.id&&busy.has(p.doorId)))}));
+           }
+          }
+          JS
       - name: Install browser dependencies
         run: |
           npm install --no-save --package-lock=false
@@ -33,6 +51,8 @@ jobs:
         if: always()
         with:
           name: passenger-layout-browser
-          path: test-results/passenger-layout/
+          path: |
+            test-results/passenger-layout/
+            test-results/normal-flow/
           if-no-files-found: warn
           retention-days: 14

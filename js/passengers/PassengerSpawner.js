@@ -2,6 +2,7 @@ import {randomSource,clamp} from './PassengerConfig.js';
 import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
 import {platformPath} from './PassengerNavigation.js';
 import {choosePlatformDoors} from './PassengerDoorChoice.js';
+import {standingPlaceKeepsDoorsClear} from './PassengerPlaces.js';
 
 function freePoint(rng,agents,door,layout,normal=false,index=0,count=1){
  const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
@@ -82,7 +83,7 @@ export class PassengerSpawner{
    a.destination=i%3===0?index:index+1+Math.floor(rng()*3);
    const car=layout.car(door.car),seats=[...car.seatAnchors].sort((p,b)=>Math.abs(p.z-door.z)-Math.abs(b.z-door.z));
    a.seat=i%3?seats.find(p=>!agents.some(o=>o.seat&&Math.hypot(o.seat.x-p.x,o.seat.z-p.z)<.58)):null;
-   const standing=door.initialStanding?.[i%2]??car.standingZones[i%car.standingZones.length]??door.fallback;
+   const standing=(this.normal?car.standingZones.find(p=>standingPlaceKeepsDoorsClear(p,layout,car.id)&&!agents.some(o=>Math.hypot(o.x-p.x,o.z-p.z)<.6)):null)??door.initialStanding?.[i%2]??car.standingZones[i%car.standingZones.length]??door.fallback;
    a.x=a.seat?.x??standing.x;a.z=a.seat?.z??standing.z;
    a.state=a.seat?'seated':'riding';a.activity=i%4===0?'phone':i%4===1?'rail':'window';
    a.heading=a.targetHeading=a.seat?a.seat.heading:rng()*6.28;

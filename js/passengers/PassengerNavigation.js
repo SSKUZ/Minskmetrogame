@@ -1,5 +1,6 @@
 import {clamp} from './PassengerConfig.js';
 import {TEST_PASSENGER_LAYOUT} from './PassengerLayout.js';
+import {trainNavigationZones,segmentInZones} from './PassengerNavigationZones.js';
 
 // Deterministic short detours around the station's actual column footprints.
 export function platformPath(from,to,radius=.24,layout=TEST_PASSENGER_LAYOUT){
@@ -17,14 +18,16 @@ export function platformPath(from,to,radius=.24,layout=TEST_PASSENGER_LAYOUT){
 export function crowdDetour(agent,target,agents,layout=TEST_PASSENGER_LAYOUT){
  const PLATFORM=layout.platform,COLUMNS=layout.obstacles(agent.space,agent.car);
  const inTrain=agent.space==='train';
- const bounds=inTrain?layout.car(agent.car).navigationZone:PLATFORM;
+ const region=inTrain&&agent.flowThrough?trainNavigationZones(layout,agent.car):null;
+ const bounds=region?.bounds??(inTrain?layout.car(agent.car).navigationZone:PLATFORM);
  // Never route an alighter around a door jamb or through a bench. Only the
  // interior aisle legs are replanned; threshold legs retain their fixed path.
  if(inTrain&&(target.x<bounds.minX||target.x>bounds.maxX))return null;
+ if(region&&!region.contains(target))return null;
  const obstacles=[...COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035})),
   ...agents.filter(o=>o!==agent&&o.space===agent.space&&o.state!=='gone'&&o.state!=='seated')
    .map(o=>({x:o.x,z:o.z,r:o.radius+agent.radius+.045}))];
- const clear=(from,to)=>obstacles.every(o=>{
+ const clear=(from,to)=>(!region||segmentInZones(from,to,region))&&obstacles.every(o=>{
   const dx=to.x-from.x,dz=to.z-from.z,d2=dx*dx+dz*dz;
   const t=clamp(((o.x-from.x)*dx+(o.z-from.z)*dz)/(d2||1),0,1);
   const start=Math.hypot(from.x-o.x,from.z-o.z),end=Math.hypot(to.x-o.x,to.z-o.z);
@@ -154,7 +157,10 @@ export class PassengerNavigation{
   const step=Math.min(dist,speed*dt);let nx=a.x+dx/dist*step,nz=a.z+dz/dist*step;
   const clearingPlatform=a.space==='platform'&&a.state==='leaving'&&a.x>PLATFORM.maxX;
   const neighbors=this.neighbors(a,nx,nz).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');
-  const clear=(x,z)=>clearPassengerStep(a,x,z,neighbors,COLUMNS);
+  const region=a.space==='train'&&a.flowThrough?trainNavigationZones(layout,a.car):null;
+  const door=region&&['boarding','alighting'].includes(a.state)?layout.door(a.doorId):null;
+  const portalPass=(x,z)=>door&&x>=door.thresholdX-.10&&x<=door.thresholdX+.25&&Math.abs(z-door.z)<=(door.halfWidth??1.06)-.26;
+  const clear=(x,z)=>clearPassengerStep(a,x,z,neighbors,COLUMNS)&&(!region||!region.contains(a)||region.contains({x,z})||portalPass(x,z));
   if(!clear(nx,nz)){
    const heading=Math.atan2(dx,dz);let best=null,bestScore=-Infinity;
    for(const angle of [.55,-.55,1.05,-1.05,1.55,-1.55,2.15,-2.15]){
@@ -168,7 +174,7 @@ export class PassengerNavigation{
   }
   const service=['boarding','alighting','returning'].includes(a.state)||clearingPlatform;
   if(clearingPlatform)nx=Math.min(nx,(a.doorId===undefined?layout.nearestDoor(a.z):layout.door(a.doorId)).thresholdX-a.radius-.05);
-  if(a.space==='train'&&!service){const bounds=layout.car(a.car).bounds;nx=clamp(nx,bounds.minX,bounds.maxX);}
+  if(a.space==='train'&&!service){const bounds=region?.bounds??layout.car(a.car).bounds;nx=clamp(nx,bounds.minX,bounds.maxX);}
   if(a.space==='platform'&&!service){nx=clamp(nx,PLATFORM.minX,PLATFORM.maxX);nz=clamp(nz,PLATFORM.minZ,PLATFORM.maxZ);}
   for(const c of COLUMNS){
    const cx=nx-c.x,cz=nz-c.z,d=Math.hypot(cx,cz),min=c.radius+a.radius;

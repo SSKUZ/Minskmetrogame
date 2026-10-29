@@ -4,6 +4,7 @@ import {PassengerBoardingController} from '../js/passengers/PassengerBoardingCon
 import {createPassenger} from '../js/passengers/PassengerSpawner.js';
 import {createTestPassengerLayout} from '../js/passengers/PassengerLayout.js';
 import {randomSource} from '../js/passengers/PassengerConfig.js';
+import {requestPassengerDeparture,consumePassengerDeparture} from '../js/passengers/PassengerDeparture.js';
 
 const layout=createTestPassengerLayout({carCount:4}),door=layout.doors[0];
 const context={station:0,dist:0,speed:0,doorsOpen:true,aperture:1};
@@ -54,4 +55,11 @@ test('ending boarding does not leave a child behind a parent already crossing',(
  parent.state='boarding';parent.space='train';parent.x=door.thresholdX+.1;
  c.requestFinishBoarding([parent,child]);assert.equal(c.missed.size,0);assert.equal(child.wantsBoard,true);
  c.updateCompletion([parent,child],context);assert.equal(c.passengerExchangeComplete,false);assert.equal(c.doorsSafeToClose,false);
+});
+
+test('a driver close request waits for both exchange completion and physical door clearance',()=>{
+ let requests=0;const system={simulation:{boarding:{opened:true}},requestFinishBoarding(){requests++;},passengerExchangeComplete:false,doorsSafeToClose:true};
+ assert.equal(requestPassengerDeparture(system),false);assert.equal(requests,1);assert.equal(consumePassengerDeparture(system),false);
+ system.passengerExchangeComplete=true;system.doorsSafeToClose=false;assert.equal(consumePassengerDeparture(system),false);
+ system.doorsSafeToClose=true;assert.equal(consumePassengerDeparture(system),true);assert.equal(consumePassengerDeparture(system),false);
 });

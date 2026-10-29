@@ -1,4 +1,8 @@
 function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
+export function standingPlaceKeepsDoorsClear(p,layout,carId){
+ const car=layout.car(carId);
+ return !layout.doors.some(d=>d.car===carId&&p.x<car.aisleX+.30&&p.x>d.thresholdX&&Math.abs(p.z-d.z)<(d.halfWidth??1.06)+.40)&&car.seatAnchors.every(s=>Math.hypot(s.approach.x-p.x,s.approach.z-p.z)>=.60);
+}
 export function familyCompanions(a,agents){
  return a.groupId===null?[]:agents.filter(o=>o!==a&&o.groupId===a.groupId&&o.state!=='gone'&&o.state!=='leaving');
 }

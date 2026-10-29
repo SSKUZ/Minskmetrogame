@@ -3,6 +3,7 @@ import {createCabCommands} from './cab/CabCommands.js';
 import {installCabInteraction} from './cab/CabInteraction.js?v=cab-r2';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {PassengerSystem} from './passengers/PassengerSystem.js';
+import {requestPassengerDeparture,consumePassengerDeparture} from './passengers/PassengerDeparture.js';
 import {buildCarriageDoors} from './carriage/CarriageDoors.js';
 import {buildCarriageInterior} from './carriage/CarriageInterior.js';
 import {smoothstep01,trackDrop as calculateTrackDrop} from './world/TrackProfile.js';
@@ -290,12 +291,14 @@ function pressInfo(){
 }
 let stationDoorCycleCompleted=false,stationDoorReopenPenalty=false;
 function setCabDoors(open){
+ if(open)passengerSystem.closeRequested=false;
  if(doors===open)return;
  if(open){
   if(stationSkipped||dist < -stopTolerance){markStationSkipped();if(stopWarning.style.display!=='none')showStopWarning('ГРУБАЯ ОШИБКА! ОБСЛУЖИВАНИЕ СТАНЦИИ ЗАПРЕЩЕНО. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ',true);return;}
   if(speed>=.5){showStopWarning('ОШИБКА МАШИНИСТА: поезд ещё движется — двери заблокированы');return;}
   if(dist>stopTolerance){if(!shortStopErrorRecorded){shortStopErrorRecorded=true;shortStopErrorPosition=dist;reportDriverError('попытка открыть двери до знака остановки');}showStopWarning('ОШИБКА МАШИНИСТА! НЕ ДОЕХАЛИ '+dist.toFixed(1)+' М. ПОДЪЕДЬТЕ БЛИЖЕ (ДОПУСК ±3 М)');return;}
  }
+ if(!open&&!requestPassengerDeparture(passengerSystem)){status.textContent='Завершается пассажирообмен — ожидайте освобождения дверей';return;}
  const reopening=open&&stationDoorCycleCompleted&&Math.abs(dist)<=stopTolerance&&speed<.5;
  if(reopening){
   if(!stationDoorReopenPenalty){stationDoorReopenPenalty=true;reportDriverError('повторное открытие дверей после объявления об отправлении');}
@@ -731,6 +734,7 @@ function updatePlatformPassengers(dt){
  passengerSystem.update(dt,{station:index,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture},activeCamera,
   {mirrorCameras:rearMirrors.filter(m=>m.enabled).map(m=>m.mirrorCamera),volume:cabVolume,inCab:!carCameraActive&&!stationCameraActive,playing});
  people=passengerSystem.simulation.agents.filter(a=>a.space==='train'&&a.state!=='gone').length;
+ if(consumePassengerDeparture(passengerSystem))setCabDoors(false);
 }
 const {signCanvas,sc,texture,sign}=buildPlatformFurniture({THREE,platform,box,wood,steel});
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=-.32,targetYaw=0,targetPitch=-.32,last=performance.now();

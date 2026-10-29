@@ -5,6 +5,7 @@ import {PassengerNavigation,platformPath} from './PassengerNavigation.js';
 import {PassengerBoardingController} from './PassengerBoardingController.js';
 import {updateSeating} from './PassengerSeating.js';
 import {updateCarriageActivity} from './PassengerActivities.js';
+import {choosePlatformDoors,chooseExitDoors} from './PassengerDoorChoice.js';
 
 export class PassengerSimulation{
  constructor({seed=Date.now(),platformCount=64,onboardCount=24,layout=TEST_PASSENGER_LAYOUT,normal=false}={}){
@@ -19,6 +20,7 @@ export class PassengerSimulation{
   for(const a of onboard){a.boardingCounted=false;a.exitCounted=false;}
   this.agents=[...onboard,...this.spawner.station(index,this.platformCount)];
   if(this.station===-1)this.agents.push(...this.spawner.onboard(index,this.onboardCount));
+  if(this.normal){chooseExitDoors(this.agents,this.layout,index);choosePlatformDoors(this.agents,this.layout,{station:index});}
   this.station=index;this.boarding.reset();
  }
  update(elapsed,context){
@@ -29,12 +31,13 @@ export class PassengerSimulation{
  step(dt,context){
   this.time+=dt;this.navigation.rebuild(this.agents);this.boarding.update(this.agents,context);
   const preparing=context.dist<145&&context.dist>-12&&context.speed>1;
+  if(this.normal&&preparing&&!this.boarding.opened)this.boarding.prepareApproach(this.agents,context.station);
   for(const a of this.agents){
    if(a.state==='gone')continue;
    if(a.space==='platform'&&['waiting','strolling','watching','approaching'].includes(a.state)){
-    if(preparing&&a.wantsBoard&&a.state!=='approaching'){
+    if((preparing||this.normal)&&a.wantsBoard&&a.state!=='approaching'){
      a.state='approaching';a.activity='wait';
-     const door=this.layout.door(a.doorId);a.path=platformPath(a,{x:door.queueX-.05-(a.id%3)*.60,z:door.z+(a.id%2?1.7:-1.7)},a.radius,this.layout);
+     const door=this.layout.door(a.doorId),target=this.normal&&a.approachPoint?a.approachPoint:{x:door.queueX-.05-(a.id%3)*.60,z:door.z+(a.id%2?1.7:-1.7)};a.path=platformPath(a,target,a.radius,this.layout);
     }
     if(a.parentId!==null){
      const parent=this.agents.find(p=>p.id===a.parentId);
