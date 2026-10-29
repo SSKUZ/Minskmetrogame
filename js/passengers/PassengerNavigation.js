@@ -5,7 +5,9 @@ export function platformPath(from,to,radius=.24){
  const target={x:clamp(to.x,PLATFORM.minX,PLATFORM.maxX),z:clamp(to.z,PLATFORM.minZ,PLATFORM.maxZ)};
  for(const c of COLUMNS)if(Math.hypot(target.x-c.x,target.z-c.z)<c.radius+radius+.15)
   target.x=c.x+(target.x>=c.x?1:-1)*(c.radius+radius+.20);
- return crowdDetour({...from,radius,space:'platform'},target,[])??[target];
+ const path=crowdDetour({...from,radius,space:'platform'},target,[])??[target];
+ for(const point of path)if(point!==target)point.detourGoal=target;
+ return path;
 }
 
 // Only used after sustained lack of progress. Unlike short steering turns this
@@ -33,6 +35,19 @@ export function crowdDetour(agent,target,agents){
   maxZ=Math.min(bounds.maxZ,Math.max(agent.z,target.z)+3.2);
  const nodes=[{x:agent.x,z:agent.z,g:0,h:Math.hypot(target.x-agent.x,target.z-agent.z),parent:null,key:'start'}];
  const best=new Map();let found=null;
+ // At a tightly packed queue the legal escape can lie between all eight grid
+ // directions. Seed the search with continuous separation bisectors, keeping
+ // the same swept collision check as every other leg of the route.
+ const close=obstacles.filter(o=>Math.hypot(agent.x-o.x,agent.z-o.z)<o.r+.12)
+  .map(o=>{const d=Math.hypot(agent.x-o.x,agent.z-o.z)||1;return {x:(agent.x-o.x)/d,z:(agent.z-o.z)/d};});
+ const escape=[...close];
+ for(let i=0;i<close.length;i++)for(let j=i+1;j<close.length;j++)escape.push({x:close[i].x+close[j].x,z:close[i].z+close[j].z});
+ for(const direction of escape){
+  const length=Math.hypot(direction.x,direction.z);if(length<1e-6)continue;
+  const next={x:agent.x+direction.x/length*spacing,z:agent.z+direction.z/length*spacing,g:spacing,parent:nodes[0],key:'escape:'+best.size};
+  if(next.x<minX||next.x>maxX||next.z<minZ||next.z>maxZ||!clear(agent,next))continue;
+  next.h=Math.hypot(target.x-next.x,target.z-next.z);best.set(next.key,next);nodes.push(next);
+ }
  for(let visited=0;nodes.length&&visited<2400;visited++){
   nodes.sort((a,b)=>(b.g+b.h)-(a.g+a.h));const current=nodes.pop();
   if(current.key!=='start'&&best.get(current.key)!==current)continue;
@@ -90,29 +105,33 @@ export class PassengerNavigation{
   if(dist<.045){a.x=next.x;a.z=next.z;a.path.shift();a.velocity=0;return !a.path.length;}
   const speed=Math.min(a.walkSpeed,a.velocity+dt*1.8,Math.max(.16,dist*3));
   const step=Math.min(dist,speed*dt);let nx=a.x+dx/dist*step,nz=a.z+dz/dist*step;
+  const clearingPlatform=a.space==='platform'&&a.state==='leaving'&&a.x>PLATFORM.maxX;
   const neighbors=this.neighbors(a,nx,nz).filter(o=>o!==a&&o.state!=='gone'&&o.state!=='seated');
   const clear=(x,z)=>neighbors.every(o=>{
    const min=a.radius+o.radius+.025,old=Math.hypot(a.x-o.x,a.z-o.z),d=Math.hypot(x-o.x,z-o.z);
    return d>=min||d>old+.00001;
-  });
+  })&&(a.space!=='platform'||COLUMNS.every(c=>Math.hypot(x-c.x,z-c.z)>=c.radius+a.radius-1e-7));
   if(!clear(nx,nz)){
    const heading=Math.atan2(dx,dz);let best=null,bestScore=-Infinity;
    for(const angle of [.55,-.55,1.05,-1.05,1.55,-1.55,2.15,-2.15]){
     const x=a.x+Math.sin(heading+angle)*step,z=a.z+Math.cos(heading+angle)*step;
     if(!clear(x,z))continue;
-    if(a.space==='platform'&&x>PLATFORM.maxX&&!['boarding','alighting'].includes(a.state))continue;
+    if(a.space==='platform'&&x>PLATFORM.maxX&&!['boarding','alighting'].includes(a.state)&&!clearingPlatform)continue;
     const score=Math.cos(angle)+neighbors.reduce((s,o)=>s+Math.min(1,Math.hypot(x-o.x,z-o.z))*.1,0);
     if(score>bestScore){bestScore=score;best={x,z};}
    }
    nx=best?.x??a.x;nz=best?.z??a.z;
   }
-  const service=['boarding','alighting','returning'].includes(a.state);
+  const service=['boarding','alighting','returning'].includes(a.state)||clearingPlatform;
+  if(clearingPlatform)nx=Math.min(nx,TRAIN.thresholdX-a.radius-.05);
   if(a.space==='train'&&!service)nx=clamp(nx,-1.82,1.25);
   if(a.space==='platform'&&!service){nx=clamp(nx,PLATFORM.minX,PLATFORM.maxX);nz=clamp(nz,PLATFORM.minZ,PLATFORM.maxZ);}
   if(a.space==='platform')for(const c of COLUMNS){
    const cx=nx-c.x,cz=nz-c.z,d=Math.hypot(cx,cz),min=c.radius+a.radius;
    if(d<min){nx=c.x+cx/(d||1)*min;nz=c.z+cz/(d||1)*min;}
   }
+  // Boundary/column correction must never undo the person collision check.
+  if(!clear(nx,nz)){nx=a.x;nz=a.z;}
   const travelled=Math.hypot(nx-a.x,nz-a.z);
   a.velocity=travelled/dt;a.distance+=travelled;
   if(travelled>1e-5)a.targetHeading=Math.atan2(nx-a.x,nz-a.z); // GLB faces +Z.

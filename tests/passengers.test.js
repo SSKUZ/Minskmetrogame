@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync,existsSync} from 'node:fs';
 import {PassengerSimulation} from '../js/passengers/PassengerBehavior.js';
-import {COLUMNS,PLATFORM,PROFILES,trainSeatPositions} from '../js/passengers/PassengerConfig.js';
+import {COLUMNS,DOORS,PLATFORM,PROFILES,TRAIN,trainSeatPositions} from '../js/passengers/PassengerConfig.js';
 import {selectPassengerLOD} from '../js/passengers/PassengerLOD.js';
-import {platformPath,crowdDetour} from '../js/passengers/PassengerNavigation.js';
+import {PassengerNavigation,platformPath,crowdDetour} from '../js/passengers/PassengerNavigation.js';
 
 const context={station:0,dist:0,speed:0,doorsOpen:false,aperture:0};
 function advance(sim,seconds,ctx=context,rate=30){for(let i=0;i<seconds*rate;i++)sim.update(1/rate,ctx);}
@@ -92,6 +92,62 @@ test('stationary queues can be bypassed and column paths never repeat the same b
  const blocker={id:2,x:-4.3,z:-92.5,radius:.25,space:'platform',state:'queued'};
  const detour=crowdDetour({...a,x:-4.3,z:-93.5},{x:-4.3,z:-91.5},[blocker]);
  assert.ok(detour&&detour.length>1,'must find a route around a person, not stop or teleport');
+});
+
+test('a tightly packed queue can escape between grid directions without crossing people',()=>{
+ // Real seed-42 station-8 failure: eight grid headings miss the narrow
+ // collision-free separation direction between these touching passengers.
+ const a={id:544,x:-3.9337345126352936,z:-9.582400233678593,radius:.25,space:'platform'};
+ const blockers=[[554,-3.4506605449972363,-9.7884759586634],[574,-4.37,-9.29],[584,-4.37,-8.53],[585,-4.37,-5.97]]
+  .map(([id,x,z])=>({id,x,z,radius:.25,space:'platform',state:'queued'}));
+ const target={x:-3.55,z:-7.25},route=crowdDetour(a,target,blockers);
+ assert.ok(route&&route.length>1,'a stalled passenger must find a physical escape route');
+ let previous=a;
+ for(const point of route){
+  for(let n=0;n<=100;n++){
+   const x=previous.x+(point.x-previous.x)*n/100,z=previous.z+(point.z-previous.z)*n/100;
+   assert.ok(x<=PLATFORM.maxX+.001);
+   assert.ok(blockers.every(o=>Math.hypot(x-o.x,z-o.z)>=a.radius+o.radius+.025-1e-5));
+   assert.ok(COLUMNS.every(o=>Math.hypot(x-o.x,z-o.z)>=a.radius+o.radius));
+  }
+  previous=point;
+ }
+ assert.deepEqual(route.at(-1),target);
+});
+
+test('a newly occupied column corner is bypassed toward the doorway rather than revisited forever',()=>{
+ const a={id:1,x:-6.5,z:-3.5,radius:.25,space:'platform',state:'boarding',walkSpeed:1,velocity:0,distance:0};
+ const target={x:-3.55,z:-7.25};a.path=platformPath(a,target,a.radius);
+ assert.ok(a.path.length>1,'fixture must need a real column detour');
+ const blocker={id:2,...a.path[0],radius:.25,space:'platform',state:'waiting'},nav=new PassengerNavigation();
+ for(let n=0;n<3600&&a.path.length;n++){
+  nav.rebuild([a,blocker]);nav.move(a,1/30);
+  assert.ok(Math.hypot(a.x-blocker.x,a.z-blocker.z)>=a.radius+blocker.radius+.025-1e-5);
+ }
+ assert.equal(a.path.length,0);assert.ok(Math.hypot(a.x-target.x,a.z-target.z)<.01);
+});
+
+test('an alighter clears the platform edge gradually without jumping into an approaching boarder',()=>{
+ const a={id:261,x:-3.215393735,z:-39.429169976,radius:.25,space:'platform',state:'leaving',walkSpeed:1,velocity:0,distance:0};
+ const blocker={id:349,x:-3.596921635,z:-39.793325799,radius:.25,space:'platform',state:'boarding'};
+ a.path=platformPath(a,{x:-8.5,z:-39.43},a.radius);const nav=new PassengerNavigation();
+ for(let n=0;n<900&&a.path.length;n++){
+  const {x,z}=a;nav.rebuild([a,blocker]);nav.move(a,1/30);
+  assert.ok(Math.hypot(a.x-x,a.z-z)<=Math.max(a.walkSpeed/30+.001,.045),'no jump beyond the existing waypoint tolerance');
+  assert.ok(Math.hypot(a.x-blocker.x,a.z-blocker.z)>=a.radius+blocker.radius+.025-1e-5);
+  assert.ok(a.x<=TRAIN.thresholdX-a.radius-.05);
+ }
+ assert.ok(a.x<PLATFORM.maxX,'alighter must clear the door instead of deadlocking');
+ assert.equal(a.path.length,0);
+});
+
+test('a nonboarder wandering into an open doorway yields even after initial preparation',()=>{
+ const s=new PassengerSimulation({seed:106}),open={...context,doorsOpen:true,aperture:1};
+ advance(s,120,open);
+ const a=s.agents.find(a=>a.space==='platform'&&!a.wantsBoard&&a.state!=='gone');assert.ok(a);
+ a.state='waiting';a.path=[];a.x=-3.7;a.z=DOORS.at(-1).z;
+ s.update(1/30,open);assert.equal(a.state,'yielding');
+ advance(s,20,open);assert.ok(a.x< -5.3,'open doorway lane must stay clear throughout the dwell');
 });
 
 test('exchange drains across varied crowds and reopening never duplicates a crossing',()=>{

@@ -1,0 +1,17 @@
+{
+  "side": "Left",
+  "error": 3.4570422286249206e-8,
+  "materials": [
+    {
+      "name": "Skin",
+      "uniforms": [
+        {
+          "index": 10,
+          "active": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

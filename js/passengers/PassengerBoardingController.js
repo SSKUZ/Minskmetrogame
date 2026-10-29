@@ -11,13 +11,15 @@ function departurePath(a){
 
 export class PassengerBoardingController{
  constructor(){this.queues=DOORS.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.opened=false;this.events=[];}
- prepare(agents,station,dist){
-  this.opened=true;
+ clearPlatformLanes(agents,dist){
   // People who are not boarding make room for the doorway and alighting lane.
-  for(const a of agents)if(a.space==='platform'&&!a.wantsBoard&&a.x>-5.3&&DOORS.some(d=>Math.abs(a.z-d.z-dist)<1.0)){
+  for(const a of agents)if(a.space==='platform'&&!a.wantsBoard&&['waiting','strolling','watching','approaching'].includes(a.state)&&a.x>-5.3&&DOORS.some(d=>Math.abs(a.z-d.z-dist)<1.2)){
    const target={x:-7.8,z:a.z};
    a.state='yielding';a.activity='wait';a.path=platformPath(a,target,a.radius);
   }
+ }
+ prepare(agents,station,dist){
+  this.opened=true;this.clearPlatformLanes(agents,dist);
   for(const q of this.queues){
    q.active=null;q.phase='alighting';q.served=0;
    q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id)
@@ -57,9 +59,10 @@ export class PassengerBoardingController{
   const {station,dist,speed,doorsOpen,aperture}=context;
   const stopped=Math.abs(dist)<=3&&speed<.5;
   if(!this.opened&&stopped&&doorsOpen&&aperture>.80)this.prepare(agents,station,dist);
+  if(this.opened&&stopped&&doorsOpen)this.clearPlatformLanes(agents,dist);
   const byId=new Map(agents.map(a=>[a.id,a]));
   for(const q of this.queues){
-   if(!q.active)q.exit.sort((left,right)=>{
+   if(q.active===null)q.exit.sort((left,right)=>{
     const a=byId.get(left),b=byId.get(right);if(!a||!b)return 0;
     const ready=a=>['exitApproaching','exitQueued','riding','settling'].includes(a.state)?0:1;
     return ready(a)-ready(b)||Math.hypot(a.x-TRAIN.aisleX,a.z-q.z)-Math.hypot(b.x-TRAIN.aisleX,b.z-q.z)||a.id-b.id;

@@ -49,7 +49,8 @@ export function chooseRailGrip(view,rails){
    if(p.y<shoulder.y-reach*.72||p.y>shoulder.y+reach*.90)continue;
    const normal=shoulder.clone().sub(p).addScaledVector(tangent,-shoulder.clone().sub(p).dot(tangent)).normalize();
    const handUp=tangent.clone().cross(normal.clone().multiplyScalar(side==='Left'?-1:1)).normalize();
-   const target=p.clone().addScaledVector(normal,rail.radius+.025).addScaledVector(handUp,-.08);
+   const palmLength=.07*(view.height/1.75)*view.root.scale.y;
+   const target=p.clone().addScaledVector(normal,rail.radius+.025).addScaledVector(handUp,-palmLength);
    const distance=target.distanceTo(shoulder);
    if(distance>reach*.89||distance<reach*.29)continue;
    const local=view.root.worldToLocal(target.clone());

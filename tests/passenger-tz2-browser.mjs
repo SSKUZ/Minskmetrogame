@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,rm} from 'node:fs/promises';
 import {launchCabBrowser,ready} from './helpers/cab-browser-fixture.mjs';
 
 const output=process.env.PASSENGER_OUTPUT??'artifacts/passengers/tz2-final';
+const desktop={width:Number(process.env.PASSENGER_BROWSER_WIDTH??1280),height:Number(process.env.PASSENGER_BROWSER_HEIGHT??800)};
 await mkdir(output,{recursive:true});
-const f=await launchCabBrowser(),report={stations:[],motion:[]};
+const f=await launchCabBrowser(),report={viewport:desktop,stations:[],motion:[]};
 try{
- const p=await f.page({viewport:{width:1280,height:800}});p.setDefaultTimeout(120000);
+ const p=await f.page({viewport:desktop});p.setDefaultTimeout(120000);
  p.on('console',m=>{if(m.type()==='error'&&/Shader Error|VALIDATE_STATUS|WebGLProgram/.test(m.text()))f.errors.push(m.text());});
  const cdp=await p.context().newCDPSession(p);await cdp.send('Performance.enable');
  await ready(p,f.base+'/?preview=station&cabInspector=1&passengerInspector=1&passengerSeed=717');
@@ -49,7 +50,7 @@ try{
   await writeFile(output+`/09-mirror-${side<0?'left':'right'}.png`,Buffer.from(data.split(',')[1],'base64'));
  }
  await p.locator('#carCameraToggle').click();await p.setViewportSize({width:412,height:915});await shot('10-mobile');
- await p.setViewportSize({width:1280,height:800});await p.locator('#carCameraToggle').click();
+ await p.setViewportSize(desktop);await p.locator('#carCameraToggle').click();
  // Drive through the existing physical controller. No fake acceleration input.
  await p.evaluate(id=>{const i=window.metroPassengerInspector;i.train({doors:false,speed:20,dist:-70});i.focus(id,2.6);},agent.id);
  await p.keyboard.press('Digit5');await p.locator('#carCameraToggle').click();
@@ -58,7 +59,7 @@ try{
  await p.locator('#carCameraToggle').click();await p.keyboard.press('Space');await p.locator('#carCameraToggle').click();
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.acceleration<-.5);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('12-braking');
- await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.speed<.1);
+ await p.waitForFunction(()=>{const m=window.metroPassengerInspector.snapshot().motion;return m.speed<.1&&Math.abs(m.acceleration)<.02;});
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('13-stabilized');
  await p.locator('#carCameraToggle').click();await p.keyboard.press('KeyN');await p.locator('#carCameraToggle').click();
  const beforeIds=report.carriage.agents.filter(a=>a.space==='train').map(a=>a.id);
@@ -91,10 +92,13 @@ try{
   result.heapBytes=metrics.metrics.find(m=>m.name==='JSHeapUsedSize')?.value;
   result.render=await p.evaluate(()=>({snapshot:window.metroPassengerInspector.snapshot(),...window.metroPassengerInspector.performance()}));
   assert.ok(result.render.snapshot.resources.journal<=512&&result.render.snapshot.resources.counted<=512);
-  report.stations.push(result);await writeFile(output+'/browser-report.partial.json',JSON.stringify(report,null,2));console.log('Station',station,'dwell',result.dwell,'heap',result.heapBytes,'GPU',result.render.memory);
+  report.stations.push({station,dwell:result.dwell,duplicateReopen:result.duplicateReopen,heapBytes:result.heapBytes,onboard:result.snapshot.onboard,counts:result.snapshot.counts,
+   render:result.render.render,memory:result.render.memory,lod:result.render.snapshot.lod,resources:result.render.snapshot.resources});
+  await writeFile(output+'/browser-report.partial.json',JSON.stringify(report,null,2));console.log('Station',station,'dwell',result.dwell,'heap',result.heapBytes,'GPU',result.render.memory);
  }
  assert.deepEqual(f.errors,[]);assert.deepEqual(f.requests,[]);report.passed=true;
 }finally{
  report.errors=f.errors;report.requests=f.requests;
  await writeFile(output+'/browser-report.json',JSON.stringify(report,null,2));await f.close();
+ if(report.passed)await rm(output+'/browser-report.partial.json',{force:true});
 }

@@ -138,3 +138,21 @@ Verified remote parent: `cc0029759dd8c1defbc5a8296c2a2e04238bc2c3`.
 - Exact hand close-up in R3 remains partially hidden by the passenger's torso; corrected side-view capture and fresh family screenshots are running in `tests/passenger-details.mjs`.
 
 Known remaining work: service throughput is too low at dense later stations (up to 247 simulated seconds in R3). Pre-stage imminent alighters inside the train while preserving full stand-up clips, door priority, collision constraints and single crossing counts; add a regression deadline. Review the corrected hand, wardrobe and family close-ups. Hardware/mobile GPU acceptance is still unavailable in this environment. Do not claim completed TZ2 yet.
+
+## Resume after Work passengers 4
+
+Remote parent `4dfa6664b521d7b31825c7ba2d12916ffdf68967`; intermediate WIP safely
+published as `f8a953ccdc31649a957a055b68b3710465e5e368`.
+
+- Concurrent full stand-up clips, side waiting places, ready-person door priority
+  and release after the whole alighter clears the sill replace serial preparation.
+- Added narrow continuous crowd escapes, train-aisle detours and final-goal
+  preservation when a column corner becomes occupied. Corrected id=0 handling,
+  post-projection collision validation and gradual clearing of the platform edge.
+- Nonboarders keep yielding to open doorways throughout the stop.
+- Corrected wrist axes and actual GPU skin curling. Two dedicated close-up views
+  confirm the improvement; this remains an approximate finger deformation.
+- `npm run check`: 50/50. Three crowds (717/42/106) each finish 12 stations with
+  no duplicate reopening events. Seed 717 maximum 148.17 s; regression deadline
+  tightened from 300 to 150 s. This is not yet a realistic short metro dwell.
+- Full current details and remaining browser/mobile acceptance: RESUME-20261029.md.

@@ -1,0 +1,91 @@
+{
+  "seed": 717,
+  "stations": [
+    {
+      "station": 0,
+      "dwell": 43.46666666666667,
+      "boardings": 51,
+      "alightings": 8,
+      "onboard": 67
+    },
+    {
+      "station": 1,
+      "dwell": 70.93333333333334,
+      "boardings": 57,
+      "alightings": 16,
+      "onboard": 108
+    },
+    {
+      "station": 2,
+      "dwell": 58.5,
+      "boardings": 41,
+      "alightings": 28,
+      "onboard": 121
+    },
+    {
+      "station": 3,
+      "dwell": 148.16666666666666,
+      "boardings": 55,
+      "alightings": 46,
+      "onboard": 130
+    },
+    {
+      "station": 4,
+      "dwell": 117.53333333333333,
+      "boardings": 52,
+      "alightings": 58,
+      "onboard": 124
+    },
+    {
+      "station": 5,
+      "dwell": 107.2,
+      "boardings": 54,
+      "alightings": 49,
+      "onboard": 129
+    },
+    {
+      "station": 6,
+      "dwell": 75.13333333333334,
+      "boardings": 49,
+      "alightings": 49,
+      "onboard": 129
+    },
+    {
+      "station": 7,
+      "dwell": 98.4,
+      "boardings": 52,
+      "alightings": 43,
+      "onboard": 138
+    },
+    {
+      "station": 8,
+      "dwell": 82.23333333333333,
+      "boardings": 50,
+      "alightings": 44,
+      "onboard": 144
+    },
+    {
+      "station": 9,
+      "dwell": 112.13333333333334,
+      "boardings": 51,
+      "alightings": 59,
+      "onboard": 136
+    },
+    {
+      "station": 10,
+      "dwell": 102.46666666666667,
+      "boardings": 50,
+      "alightings": 61,
+      "onboard": 125
+    },
+    {
+      "station": 11,
+      "dwell": 114.3,
+      "boardings": 55,
+      "alightings": 50,
+      "onboard": 130
+    }
+  ],
+  "passed": true,
+  "maxDwell": 148.16666666666666
+}
