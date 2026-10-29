@@ -47,6 +47,19 @@ try{
  await page.setViewportSize({width:1365,height:768});
  await page.waitForTimeout(450);
  await page.screenshot({path:'test-results/v106/station-desktop-closed.png'});
+ // Temporarily steer the existing station camera to a nearly head-on
+ // inspection angle. This is screenshot-only and does not alter game geometry.
+ await page.mouse.move(682,384);
+ await page.mouse.down();
+ await page.mouse.move(790,384,{steps:12});
+ await page.mouse.up();
+ await page.waitForTimeout(350);
+ await page.screenshot({path:'test-results/v106/station-front-wall-clearance.png'});
+ // Restore the normal station view before continuing the behavioural smoke.
+ await page.reload({waitUntil:'domcontentloaded',timeout:30000});
+ await page.waitForFunction(()=>window.metro3DReady===true,null,{timeout:90000});
+ await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:120000});
+ await page.waitForTimeout(450);
  await page.locator('#screenDoorToggle').click();
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorsOpen===true,null,{timeout:60000});
  await page.waitForFunction(()=>window.metroV106Diagnostics?.().doorProgress>.8,null,{timeout:120000});
