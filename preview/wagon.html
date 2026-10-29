@@ -891,21 +891,21 @@ function railCollar(x,y,z,r=.035,h=.018){
  mesh.position.set(x,y,z);group.add(mesh);passenger(mesh);saloonDetail(mesh);saloonFixtureNodes.push(mesh);return mesh;
 }
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
- railCollar(side*.74,F+.018,z,.034,.020);
- fixtureBox(.085,.030,.085,side*.74,F+2.285,z,saloonTrim);
+ railCollar(side*.74,F+.018,z,.029,.016);
+ fixtureBox(.064,.022,.064,side*.74,F+2.285,z,saloonTrim);
 }
 // Door stanchions use the same physical mounting language at floor, wall tie and ceiling rail.
 for(const side of [-1,1])for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
- railCollar(side*.74,F+.018,z+dz,.036,.022);
- fixtureBox(.075,.030,.075,side*.74,F+2.285,z+dz,saloonTrim);
- fixtureBox(.025,.075,.075,side*(sideWallInner-.006),F+1.04,z+dz,saloonTrim);
+ railCollar(side*.74,F+.018,z+dz,.030,.017);
+ fixtureBox(.062,.022,.062,side*.74,F+2.285,z+dz,saloonTrim);
+ fixtureBox(.018,.058,.058,side*(sideWallInner-.006),F+1.04,z+dz,saloonTrim);
  // Compact collars make the rail/vertical and wall-tie junctions read as engineered T joints.
- railCollar(side*.74,F+2.12,z+dz,.024,.030).rotation.z=Math.PI/2;
- const joint=new T.Mesh(new T.SphereGeometry(.024,12,8),sideSteel);joint.position.set(side*.74,F+1.04,z+dz);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
+ railCollar(side*.74,F+2.12,z+dz,.019,.022).rotation.z=Math.PI/2;
+ const joint=new T.Mesh(new T.SphereGeometry(.017,12,8),sideSteel);joint.position.set(side*.74,F+1.04,z+dz);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
 }
 // Matching junction sleeves at every seat-bay stanchion/longitudinal-rail intersection.
 for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
- const joint=new T.Mesh(new T.SphereGeometry(.023,12,8),sideSteel);joint.position.set(side*.74,F+2.12,z);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
+ const joint=new T.Mesh(new T.SphereGeometry(.016,12,8),sideSteel);joint.position.set(side*.74,F+2.12,z);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
 }
 // Ceiling panel perimeter rails visually separate the curved shell from service panels.
 for(const side of [-1,1])fixtureBox(.030,.018,saloonLength-.28,side*1.08,F+2.155,(saloonStart+saloonEnd)/2,saloonJoint);
