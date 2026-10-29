@@ -2,8 +2,7 @@ import {createCabModel} from './cab/CabModel.js?v=cab-r2';
 import {createCabCommands} from './cab/CabCommands.js';
 import {installCabInteraction} from './cab/CabInteraction.js?v=cab-r2';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
-import {updatePassengerMovement} from './passengers/PassengerMovement.js';
-import {createPassengerModelFactory} from './passengers/PassengerModels.js';
+import {PassengerSystem} from './passengers/PassengerSystem.js';
 import {buildCarriageDoors} from './carriage/CarriageDoors.js';
 import {buildCarriageInterior} from './carriage/CarriageInterior.js';
 import {smoothstep01,trackDrop as calculateTrackDrop} from './world/TrackProfile.js';
@@ -14,7 +13,6 @@ import {stepTrainMotion} from './train/TrainPhysics.js?v=20261026-physics-fps-fi
 import {clampView,restoreViewport,resizeCameras,chooseCamera} from './core/CameraManager.js';
 import {gameSnapshot} from './core/GameState.js';
 import {animateDoorLeaves,animateCarriageDoors} from './train/TrainDoors.js?v=20261026-smooth-v16';
-import {nearestDoor,smoothProgress,facingDirection,shortestTurn} from './passengers/PassengerMotion.js';
 
 import * as THREE from './vendor/three.module.js';
 const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,powerPreference:'default',preserveDrawingBuffer:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -101,6 +99,7 @@ for(let car=0;car<5;car++){
  for(let iz=-7.5;iz<=7.5;iz+=5)box(stationTrain,1.1,.018,2.2,0,3.26,cz+iz,interiorLight);
  for(let seat=0;seat<7;seat++){
   const sz=cz-8.2+seat*2.65;
+  if([-5.25,5.25].some(d=>Math.abs(sz-cz-d)<1.15))continue;
   for(const sideSeat of [-1,1]){
    box(stationTrain,.65,.12,1.45,sideSeat*1.48,1.46,sz,interiorSeatLit);
    box(stationTrain,.15,.73,1.45,sideSeat*1.79,1.84,sz,interiorSeatLit);
@@ -698,37 +697,6 @@ const oppositeTrain=new THREE.Group();oppositeTrain.position.set(-25.25,.45,-56)
 for(let car=0;car<5;car++){let z=car*22-44;box(oppositeTrain,2.5,3.15,21,0,1.85,z,stripe);box(oppositeTrain,2.55,1.1,21,0,2.0,z,trainBlue);box(oppositeTrain,2.54,.25,21,0,3.28,z,trainBlue);
 for(let k=0;k<5;k++){let zz=z-8+k*3.7;box(oppositeTrain,.045,1.03,1.7,-1.285,2.55,zz,windowDark);box(oppositeTrain,.045,1.03,1.7,1.285,2.55,zz,windowDark)}
 for(let k=0;k<3;k++){let zz=z-6+k*6;box(oppositeTrain,.065,2.3,1.35,-1.295,1.55,zz,doorMat);box(oppositeTrain,.065,2.3,1.35,1.295,1.55,zz,doorMat)}}
-// Human figures: anatomically proportioned meshes, varied clothing and poses.
-const coats=[mat(0x394c63),mat(0x855648),mat(0x507064),mat(0x77716b),mat(0x46475b),mat(0x977e61)],skins=[mat(0xe1b69b),mat(0xc99576),mat(0xf0c5a8)],hairs=[mat(0x30231e),mat(0x6a4b32),mat(0x191b21),mat(0x9b7956)];
-
-// Six reusable wardrobe textures: subtle cloth weave, seams and pockets.
-const passengerFabricTextures=Array.from({length:6},(_,type)=>{
- const c=document.createElement('canvas');c.width=256;c.height=256;
- const ctx=c.getContext('2d');
- const bases=['#42627c','#80634f','#506b55','#856879','#7b808a','#aa7952'];
- ctx.fillStyle=bases[type];ctx.fillRect(0,0,256,256);
- for(let y=0;y<256;y+=3){ctx.strokeStyle='rgba(255,255,255,.045)';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(256,y);ctx.stroke();}
- for(let x=0;x<256;x+=4){ctx.strokeStyle='rgba(0,0,0,.045)';ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,256);ctx.stroke();}
- ctx.strokeStyle='rgba(20,25,30,.42)';ctx.lineWidth=3;
- ctx.beginPath();ctx.moveTo(128,0);ctx.lineTo(128,255);ctx.stroke();
- for(const px of [38,174]){ctx.strokeRect(px,147,43,37);ctx.beginPath();ctx.moveTo(px,155);ctx.lineTo(px+43,155);ctx.stroke();}
- if(type%2===0){ctx.fillStyle='rgba(210,210,200,.8)';for(let y=32;y<240;y+=28)ctx.fillRect(125,y,5,5);}
- const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.anisotropy=2;return tex;
-});
-const passengerOutfits=passengerFabricTextures.map(map=>new THREE.MeshStandardMaterial({map,roughness:.94}));
-const passengerEyeWhite=new THREE.MeshStandardMaterial({color:0xe3dfd4,roughness:.8});
-const passengerIris=new THREE.MeshStandardMaterial({color:0x394b53,roughness:.42});
-const passengerLip=new THREE.MeshStandardMaterial({color:0x955b59,roughness:.85});
-const passengerSeam=new THREE.MeshStandardMaterial({color:0x333b44,roughness:.95});
-function personDetail(parent,geo,material,x,y,z){const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);parent.add(m);return m;}
-const human=createPassengerModelFactory({THREE,platform,passengerOutfits,skins,hairs,dark,personDetail,passengerLip,passengerEyeWhite,passengerIris,passengerSeam,coats});
-// One shared set of 3D passengers for the cab and external camera.
-// Nobody is duplicated between views. All waiting positions are on OUR
-// boarding side, between the platform edge and its first row of columns.
-// Independent carriage scene: remains visible even while the world/tunnel moves.
-
-const carriageScene=new THREE.Scene();carriageScene.background=new THREE.Color(0x303b42);
-carriageScene.add(new THREE.HemisphereLight(0xffffff,0x728394,2.4));
 const carriageCamera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.08,90);
 carriageCamera.position.set(1.72,2.78,-19.88);
 const carriage=new THREE.Group();
@@ -736,102 +704,11 @@ const carriage=new THREE.Group();
 // parented to it, so the existing local camera controls remain unchanged.
 scene.add(carriage);
 carriage.add(carriageCamera);
-carriage.position.set(0,0,22.2);
+// Align both detailed carriage doorways with the exterior first car.
+carriage.position.set(-.49,.10,32.6785714286);carriage.scale.z=10.5/9.8;
 const {updateCarriageStationDisplay,materials:{carCream,carWhite,carFloor,carSeat,carSteel,carBlack,carDoor,carGlass,carLight}}=buildCarriageInterior({THREE,carriage,box,getStationName:()=>names[index%names.length]});
 
-// Platform is on -X in world space, which is the RIGHT side looking forward along -Z.
-// Carriage view uses the same orientation. Passengers cross the visible doorway, not the wall.
-const carriagePlatform=new THREE.Group();carriageScene.add(carriagePlatform);
-// Legacy mock-up is intentionally NOT rendered: real platform geometry in scene is authoritative.
-// The exterior platform shares the train's station-distance coordinate.
-const platformConcrete=new THREE.MeshStandardMaterial({color:0x9a9b94,roughness:.94});
-const platformYellow=new THREE.MeshBasicMaterial({color:0xe4c54e});
-const platformTiles=new THREE.MeshStandardMaterial({color:0xc2c3ba,roughness:.91});
-box(carriagePlatform,3.7,.22,128,4.16,.84,-57,platformConcrete);
-box(carriagePlatform,.13,.018,128,2.23,.965,-57,platformYellow);
-for(let z=5;z>-120;z-=1.25)box(carriagePlatform,3.48,.012,.025,4.22,.96,z,carSteel);
-for(let z=-1;z>-120;z-=5.0){
- box(carriagePlatform,.36,3.1,.40,5.45,2.43,z,platformTiles);
- box(carriagePlatform,.48,.10,.50,5.45,4.01,z,carCream);
-}
-const platformWall=new THREE.MeshStandardMaterial({color:0xd9dfd8,roughness:.86});
-// Open island platform: columns, opposite track and distant train are visible
-// through the tinted windows instead of being blocked by a solid side wall.
-const oppositeTrack=new THREE.Group();carriagePlatform.add(oppositeTrack);
-const trackDark=new THREE.MeshStandardMaterial({color:0x303438,roughness:.96});
-const railBright=new THREE.MeshStandardMaterial({color:0x9ba6ac,metalness:.72,roughness:.3});
-box(oppositeTrack,4.8,.12,128,9.2,.62,-57,trackDark);
-for(const x of [7.8,10.6])box(oppositeTrack,.11,.15,128,x,.76,-57,railBright);
-for(let z=5;z>-120;z-=1.8)box(oppositeTrack,3.7,.10,.20,9.2,.66,z,platformTiles);
-// The train on the other track is static relative to the station and will
-// pass the carriage windows in the same direction as the platform.
-const carriageOppositeTrain=new THREE.Group();carriagePlatform.add(carriageOppositeTrain);
-const otherBody=new THREE.MeshStandardMaterial({color:0xc8d1d6,metalness:.38,roughness:.48});
-const otherWindows=new THREE.MeshPhysicalMaterial({color:0x2b607c,roughness:.16,transparent:true,opacity:.80});
-box(carriageOppositeTrain,.24,2.85,67,7.18,2.22,-53,otherBody);
-box(carriageOppositeTrain,.24,.55,67,7.17,3.37,-53,new THREE.MeshStandardMaterial({color:0x35576e,roughness:.5}));
-for(let z=-23;z>-86;z-=2.65){
- box(carriageOppositeTrain,.025,1.03,1.55,7.02,2.55,z,otherWindows);
- box(carriageOppositeTrain,.034,1.10,.035,7.00,2.55,z-.79,railBright);
-}
-for(let z=-19;z>-88;z-=13.4){
- box(carriageOppositeTrain,.05,2.65,.09,7.00,2.24,z,railBright);
- box(carriageOppositeTrain,.05,.17,2.0,7.00,1.13,z,new THREE.MeshStandardMaterial({color:0x356b83}));
-}
-// Ceiling beams and light strips emphasize the station's depth.
-for(let z=2;z>-120;z-=8){
- box(carriagePlatform,5.0,.16,.27,4.4,4.16,z,carCream);
- box(carriagePlatform,3.2,.035,.19,4.1,4.05,z,carLight);
-}
 const carSlidingDoorLeaves=buildCarriageDoors({THREE,carriage,box,carSteel,carDoor,carCream,carGlass});
-const carriagePassengers=[];
-const platformPassengers=[];
-const carriagePlatformAvatars=[];
-const doorPositions=[];for(let car=0;car<5;car++)for(const dz of [-5.25,5.25])doorPositions.push(-100+12+car*21.5+dz);
-// Distribute passengers across all ten train doors. Every doorway starts
-// boarding at the same time; only people sharing a doorway form a short queue.
-const boardingQueueByDoor=new Map();
-for(let i=0;i<30;i++){
- const doorIndex=i%doorPositions.length;
- const doorwayZ=doorPositions[doorIndex];
- const queueRank=boardingQueueByDoor.get(doorIndex)||0;
- boardingQueueByDoor.set(doorIndex,queueRank+1);
- const homeZ=doorwayZ+(queueRank-1)*1.35+(i%2)*.24;
- const homeX=-3.48-queueRank*.54-(i%2)*.12;
- const person=human(i,homeX,homeZ);
- const exiting=i%4===0||i%4===1;
- const mode=i%6===0?'walk':i%6===1||i%6===2?'talk':'wait';
- platformPassengers.push({person,homeX,homeZ,doorwayZ,exiting,mode,
-  doorIndex,queueRank,
-  // No train-wide sequential queue: the first person at each door moves
-  // immediately, and the next follows a moment later.
-  offset:queueRank*1.55+(doorIndex%3)*.13,
-  phase:i*1.87,walkingSpeed:.16+(i%4)*.07,
-  conversation:i%6===1||i%6===2,
-  heading:((i*2.39996)%(Math.PI*2))-Math.PI});
-}
-// Clone each existing detailed person into the car; the clone keeps the
-// exact same face, outfit and accessories. Visibility transfers on boarding.
-for(let i=0;i<platformPassengers.length;i++){
- const p=platformPassengers[i],copy=p.person.clone(true);
- // A visual copy in the independent carriage scene follows the same boarding
- // path as the platform avatar; no duplicate passenger is counted.
- const outsideCopy=p.person.clone(true);
- outsideCopy.userData.walkLimbs=[];outsideCopy.userData.fineDetails=[];
- outsideCopy.position.set(-p.person.position.x,p.person.position.y,(i%2===0?-3.2:-13)+(p.person.position.z-p.doorwayZ));
- outsideCopy.visible=true;
- carriagePlatform.add(outsideCopy);
- carriagePlatformAvatars.push(outsideCopy);
- copy.userData.walkLimbs=[];copy.userData.fineDetails=[];
- // Clone preserves visual geometry and materials, not animation references.
- const slot=i,row=Math.floor(slot/2),side=slot%2?-1:1;
- const z=1.3-row*2.18;
- copy.scale.multiplyScalar(1.22);
- copy.position.set(side*(slot%4<2?1.49:.70),.78,z);
- copy.rotation.y=side>0?-Math.PI/2:Math.PI/2;
- copy.visible=false;carriage.add(copy);
- carriagePassengers.push({person:copy,platform:p,slot,z,side,settled:false,walkingIn:false});
-}
 let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
 carCameraButton.addEventListener('click',()=>{
@@ -843,11 +720,16 @@ carCameraButton.addEventListener('click',()=>{
 });
 const stationCanvas=document.querySelector('#scene');
 const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
-let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
-const passengerBoardingRecorded=new Set();
+const passengerParams=new URLSearchParams(location.search);
+const passengerSystem=new PassengerSystem({scene,platform,seed:passengerParams.has('passengerSeed')?Number(passengerParams.get('passengerSeed')):Date.now()});
+let passengerInspectionCamera=null;
 function updatePlatformPassengers(dt){
- const next=updatePassengerMovement(dt,{platformLifeTime,passengerDoorTime,passengerExchangeStarted,stationSkipped,dist,stopTolerance,speed,doors,stationDoorCycleCompleted,platformPassengers,carriagePassengers,index,passengerBoardingRecorded,carriagePlatformAvatars,people,shortestTurn,facingDirection});
- platformLifeTime=next.platformLifeTime;passengerDoorTime=next.passengerDoorTime;passengerExchangeStarted=next.passengerExchangeStarted;people=next.people;
+ const first=stationDoorLeaves[0];
+ const aperture=first?Math.max(0,Math.min(1,((first.leaf.position.z-first.doorZ)*first.half-.53)/1.03)):0;
+ const activeCamera=passengerInspectionCamera??(carCameraActive?carriageCamera:stationCameraActive?stationCamera:camera);
+ passengerSystem.update(dt,{station:index,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture},activeCamera,
+  {mirrorCameras:rearMirrors.filter(m=>m.enabled).map(m=>m.mirrorCamera),volume:cabVolume,inCab:!carCameraActive&&!stationCameraActive,playing});
+ people=passengerSystem.simulation.agents.filter(a=>a.space==='train'&&a.state!=='gone').length;
 }
 const {signCanvas,sc,texture,sign}=buildPlatformFurniture({THREE,platform,box,wood,steel});
 const names=['Малиновка','Петровщина','Михалово','Грушевка','Институт культуры','Площадь Ленина','Октябрьская','Площадь Победы','Площадь Якуба Коласа','Академия наук','Парк Челюскинцев','Московская','Восток','Борисовский тракт','Уручье'];let index=0,dist=1100,speed=0,people=0,lever=0,doors=false,playing=false,yaw=0,pitch=-.32,targetYaw=0,targetPitch=-.32,last=performance.now();
@@ -893,7 +775,7 @@ let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=12;}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -998,10 +880,7 @@ if((stationServiced||stationSkipped)&&dist<platformExitDistance&&index<names.len
  // No camera/train teleport: only the NEXT platform is repositioned
  // ahead after the previous platform has disappeared behind the cab.
  index++;dist+=interstationDistance;
- stationServiced=false;stationDoorCycleCompleted=false;stationDoorReopenPenalty=false;passengerExchangeStarted=false;passengerDoorTime=0;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
- // Keep onboard passengers visible between stations; reset only station-specific boarding state.
- // Boarding records and settled passengers persist until explicit disembarkation.
- for(const cp of carriagePassengers){cp.person.visible=cp.settled;}
+ stationServiced=false;stationDoorCycleCompleted=false;stationDoorReopenPenalty=false;overrunReported=false;stationSkipped=false;skipDepartureSeconds=0;shortStopErrorRecorded=false;shortStopErrorPosition=null;stopWarning.style.display='none';
  infoArrivalPlayed=false;infoStarted=false;infoCompleted=false;
  paintSign();updateCarriageStationDisplay();
  status.textContent='Следующая станция — '+names[index];
@@ -1049,6 +928,7 @@ animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 // Only expose the interior geometry when viewing from the carriage camera.
 // It must not block the cab windscreen or rear-view mirrors.
 carriage.visible=carCameraActive;
+stationTrain.position.set(-.31,platform.position.y,12);stationTrain.visible=!carCameraActive;reflectedTrain.visible=false;
 animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;cabModel.update(elapsed,cabCommands.snapshot());document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
@@ -1094,8 +974,8 @@ if(carCameraActive){
  stationTrain.visible=false;
  renderer.render(scene,carriageCamera);
  cab.visible=true;
-}else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
-if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
+}else renderer.render(scene,passengerInspectionCamera??chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
+if(stationCameraActive){cab.visible=true;}
 document.body.classList.toggle('outside-cab',carCameraActive||stationCameraActive);window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
@@ -1114,5 +994,23 @@ if(previewMode==='station'||previewMode==='approach'){
  playing=true;
  status.textContent=previewMode==='station'?'ПРОСМОТР: Малиновка — у платформы':'ПРОСМОТР: въезд на Малиновку';
  // Remain stopped so station details can be inspected. Traction controls still work.
+}
+
+if(passengerParams.has('passengerInspector')){
+ window.metroPassengerInspector={
+  snapshot:()=>passengerSystem.snapshot(),get system(){return passengerSystem},get scene(){return scene},
+  focus(id,distance=3.0){const a=passengerSystem.simulation.agents.find(a=>a.id===id);if(!a)return false;
+   const p=passengerSystem.worldPosition(a);passengerInspectionCamera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.06,200);
+   passengerInspectionCamera.position.set(p.x+Math.sin(a.heading)*distance,p.y+1.45,p.z+Math.cos(a.heading)*distance);
+   passengerInspectionCamera.lookAt(p.x,p.y+.98,p.z);return true;},
+  view(position,target,fov=58){passengerInspectionCamera=new THREE.PerspectiveCamera(fov,innerWidth/innerHeight,.06,230);passengerInspectionCamera.position.fromArray(position);passengerInspectionCamera.lookAt(...target);},
+  resetView(){passengerInspectionCamera=null;},
+  pause(value=true){passengerSystem.paused=value;},
+  step(seconds){const ctx={station:index,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture:((stationDoorLeaves[0].leaf.position.z-stationDoorLeaves[0].doorZ)*stationDoorLeaves[0].half-.53)/1.03};for(let t=0;t<Math.min(120,seconds);t+=1/30)passengerSystem.simulation.step(1/30,ctx);},
+  train(values){if(Number.isFinite(values.dist))dist=THREE.MathUtils.clamp(values.dist,-200,1200);if(Number.isFinite(values.speed))speed=THREE.MathUtils.clamp(values.speed,0,90);if(typeof values.doors==='boolean')doors=values.doors;if(Number.isInteger(values.station))index=THREE.MathUtils.clamp(values.station,0,names.length-1);},
+  mirrors(){return rearMirrors.map(m=>({side:m.side,enabled:m.enabled,camera:m.mirrorCamera.position.toArray(),size:[m.target.width,m.target.height]}));},
+  mirrorImage(side){const m=rearMirrors.find(m=>m.side===side);if(!m)return null;const pixels=new Uint8Array(m.target.width*m.target.height*4);renderer.readRenderTargetPixels(m.target,0,0,m.target.width,m.target.height,pixels);const c=document.createElement('canvas');c.width=m.target.width;c.height=m.target.height;const ctx=c.getContext('2d'),data=ctx.createImageData(c.width,c.height);for(let y=0;y<c.height;y++)data.data.set(pixels.subarray((c.height-y-1)*c.width*4,(c.height-y)*c.width*4),y*c.width*4);ctx.putImageData(data,0,0);return c.toDataURL();},
+  performance:()=>({render:{...renderer.info.render},memory:{...renderer.info.memory},passengers:passengerSystem.lodStats}),
+ };
 }
 requestAnimationFrame(frame);

@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Passenger asset verification</title></head>
+<body style="margin:0;background:#30383d"><script type="module">
+import * as THREE from '../../js/vendor/three.module.js';
+import {PassengerModelLibrary} from '../../js/passengers/PassengerModel.js';
+import {PassengerAnimator} from '../../js/passengers/PassengerAnimator.js';
+const models=new PassengerModelLibrary();await models.preload();
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.setSize(192,352);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.add(new THREE.HemisphereLight(0xffffff,0x777775,2.2));
+const light=new THREE.DirectionalLight(0xffffff,2.0);light.position.set(-3,5,5);scene.add(light);
+const camera=new THREE.OrthographicCamera(-.60,.60,1.10,-1.10,.1,20);camera.position.set(0,1.1,5);camera.lookAt(0,1.1,0);
+window.passengerAssets={models,renderer,scene,camera,THREE,PassengerAnimator,
+ bake(profile){const agent={id:profile,profile,child:profile===6||profile===7,elder:profile===4||profile===5,tint:0,scale:1,width:1,phase:1,state:'waiting',space:'platform',activity:'wait',velocity:0,distance:0,accessory:null};
+  const view=models.create(agent,'medium');scene.add(view.root);const animator=new PassengerAnimator(view,agent);animator.update(.1,0);
+  const atlas=document.createElement('canvas');atlas.width=1536;atlas.height=352;const ctx=atlas.getContext('2d');
+  for(let i=0;i<8;i++){view.root.rotation.y=-i/8*Math.PI*2;renderer.render(scene,camera);ctx.drawImage(renderer.domElement,i*192,0);}
+  scene.remove(view.root);animator.dispose();return atlas.toDataURL('image/png');},
+ show(profile,state='waiting'){if(window.last)scene.remove(window.last.root);const agent={id:profile,profile,child:profile===6||profile===7,elder:profile===4||profile===5,tint:0,scale:1,width:1,phase:1,state,space:'platform',activity:'wait',velocity:0,distance:0,accessory:null};const view=models.create(agent,'medium');scene.add(view.root);const animator=new PassengerAnimator(view,agent);animator.update(.1,0);renderer.render(scene,camera);window.last=view;return models.errors;}
+};window.assetsReady=true;
+</script></body></html>

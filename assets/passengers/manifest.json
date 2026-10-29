@@ -1,0 +1,654 @@
+{
+  "models": [
+    {
+      "file": "boy-low.glb",
+      "bytes": 817300,
+      "triangles": 14042,
+      "vertices": 8413,
+      "bounds": [
+        [
+          -0.42278337478637695,
+          0,
+          -0.10088378190994263
+        ],
+        [
+          0.42278337478637695,
+          1.3780906200408936,
+          0.2749260663986206
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "boy.glb",
+      "bytes": 1320004,
+      "triangles": 28262,
+      "vertices": 15863,
+      "bounds": [
+        [
+          -0.4225494861602783,
+          0,
+          -0.10088378190994263
+        ],
+        [
+          0.4225494861602783,
+          1.3780906200408936,
+          0.2689736485481262
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "elder-man-low.glb",
+      "bytes": 1167444,
+      "triangles": 22942,
+      "vertices": 13708,
+      "bounds": [
+        [
+          -0.5308283567428589,
+          0,
+          -0.13048341870307922
+        ],
+        [
+          0.5308283567428589,
+          1.6913262605667114,
+          0.3367157280445099
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "elder-man.glb",
+      "bytes": 1661228,
+      "triangles": 36906,
+      "vertices": 21028,
+      "bounds": [
+        [
+          -0.530577540397644,
+          0,
+          -0.13048341870307922
+        ],
+        [
+          0.530577540397644,
+          1.6913262605667114,
+          0.3303164839744568
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "elder-woman-low.glb",
+      "bytes": 1086348,
+      "triangles": 19630,
+      "vertices": 12613,
+      "bounds": [
+        [
+          -0.4842129647731781,
+          0,
+          -0.09701457619667053
+        ],
+        [
+          0.4842129647731781,
+          1.5740045309066772,
+          0.3470986783504486
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "elder-woman.glb",
+      "bytes": 1639184,
+      "triangles": 35176,
+      "vertices": 20817,
+      "bounds": [
+        [
+          -0.484712690114975,
+          0,
+          -0.09701457619667053
+        ],
+        [
+          0.484712690114975,
+          1.5740045309066772,
+          0.34567931294441223
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "girl-low.glb",
+      "bytes": 1022548,
+      "triangles": 16982,
+      "vertices": 11761,
+      "bounds": [
+        [
+          -0.37864527106285095,
+          0,
+          -0.10452897846698761
+        ],
+        [
+          0.37864527106285095,
+          1.2689353227615356,
+          0.2386554479598999
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "girl.glb",
+      "bytes": 1619812,
+      "triangles": 33802,
+      "vertices": 20621,
+      "bounds": [
+        [
+          -0.3788544237613678,
+          0,
+          -0.10452897846698761
+        ],
+        [
+          0.3788544237613678,
+          1.2689353227615356,
+          0.23728521168231964
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-casual-low.glb",
+      "bytes": 863784,
+      "triangles": 14238,
+      "vertices": 9217,
+      "bounds": [
+        [
+          -0.5637758374214172,
+          0,
+          -0.13955536484718323
+        ],
+        [
+          0.5637758374214172,
+          1.741750955581665,
+          0.3680453598499298
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-casual.glb",
+      "bytes": 1366492,
+      "triangles": 28458,
+      "vertices": 16667,
+      "bounds": [
+        [
+          -0.5634451508522034,
+          0,
+          -0.13955536484718323
+        ],
+        [
+          0.5634451508522034,
+          1.741750955581665,
+          0.3615209460258484
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-hoodie-low.glb",
+      "bytes": 914660,
+      "triangles": 14918,
+      "vertices": 10057,
+      "bounds": [
+        [
+          -0.5543617010116577,
+          0,
+          -0.10003554821014404
+        ],
+        [
+          0.5543617010116577,
+          1.72316575050354,
+          0.36680933833122253
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-hoodie.glb",
+      "bytes": 1468336,
+      "triangles": 30578,
+      "vertices": 18263,
+      "bounds": [
+        [
+          -0.5539940595626831,
+          0,
+          -0.10003554821014404
+        ],
+        [
+          0.5539940595626831,
+          1.72316575050354,
+          0.3603568375110626
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-jacket-low.glb",
+      "bytes": 1288164,
+      "triangles": 27208,
+      "vertices": 15400,
+      "bounds": [
+        [
+          -0.5774141550064087,
+          0,
+          -0.12485724687576294
+        ],
+        [
+          0.5774141550064087,
+          1.7615783214569092,
+          0.3821461796760559
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-jacket.glb",
+      "bytes": 1782244,
+      "triangles": 41252,
+      "vertices": 22718,
+      "bounds": [
+        [
+          -0.5770283937454224,
+          0,
+          -0.12485724687576294
+        ],
+        [
+          0.5770283937454224,
+          1.7615783214569092,
+          0.3756082057952881
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-shirt-low.glb",
+      "bytes": 953700,
+      "triangles": 17704,
+      "vertices": 10451,
+      "bounds": [
+        [
+          -0.571049690246582,
+          0,
+          -0.10888014733791351
+        ],
+        [
+          0.571049690246582,
+          1.7578940391540527,
+          0.375565767288208
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "man-shirt.glb",
+      "bytes": 1507384,
+      "triangles": 33364,
+      "vertices": 18657,
+      "bounds": [
+        [
+          -0.5706895589828491,
+          0,
+          -0.10888014733791351
+        ],
+        [
+          0.5706895589828491,
+          1.7578940391540527,
+          0.36903414130210876
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-coat-low.glb",
+      "bytes": 811636,
+      "triangles": 13448,
+      "vertices": 8371,
+      "bounds": [
+        [
+          -0.49092379212379456,
+          0,
+          -0.09271235764026642
+        ],
+        [
+          0.49092379212379456,
+          1.624417781829834,
+          0.30270880460739136
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-coat.glb",
+      "bytes": 1361620,
+      "triangles": 28996,
+      "vertices": 16523,
+      "bounds": [
+        [
+          -0.4913604259490967,
+          0,
+          -0.09271235764026642
+        ],
+        [
+          0.4913604259490967,
+          1.624417781829834,
+          0.3013744652271271
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-longhair-low.glb",
+      "bytes": 932560,
+      "triangles": 15572,
+      "vertices": 10304,
+      "bounds": [
+        [
+          -0.4626832604408264,
+          0,
+          -0.098908431828022
+        ],
+        [
+          0.4626832604408264,
+          1.546446681022644,
+          0.2814597189426422
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-longhair.glb",
+      "bytes": 1529820,
+      "triangles": 32392,
+      "vertices": 19164,
+      "bounds": [
+        [
+          -0.4630530774593353,
+          0,
+          -0.098908431828022
+        ],
+        [
+          0.4630530774593353,
+          1.546446681022644,
+          0.28012344241142273
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-skirt-low.glb",
+      "bytes": 1010496,
+      "triangles": 17804,
+      "vertices": 11459,
+      "bounds": [
+        [
+          -0.48668861389160156,
+          0,
+          -0.11879861354827881
+        ],
+        [
+          0.48668861389160156,
+          1.614119291305542,
+          0.29289135336875916
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-skirt.glb",
+      "bytes": 1622384,
+      "triangles": 35036,
+      "vertices": 20536,
+      "bounds": [
+        [
+          -0.48710718750953674,
+          0,
+          -0.11879861354827881
+        ],
+        [
+          0.48710718750953674,
+          1.614119291305542,
+          0.29157114028930664
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-suit-low.glb",
+      "bytes": 813584,
+      "triangles": 13404,
+      "vertices": 8411,
+      "bounds": [
+        [
+          -0.49253544211387634,
+          0,
+          -0.09342797100543976
+        ],
+        [
+          0.49253544211387634,
+          1.62143874168396,
+          0.31907743215560913
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    },
+    {
+      "file": "woman-suit.glb",
+      "bytes": 1366468,
+      "triangles": 28950,
+      "vertices": 16615,
+      "bounds": [
+        [
+          -0.492994487285614,
+          0,
+          -0.09342797100543976
+        ],
+        [
+          0.492994487285614,
+          1.62143874168396,
+          0.3177104890346527
+        ]
+      ],
+      "bones": 26,
+      "animations": [
+        "Idle",
+        "Walk",
+        "Talk",
+        "Sit idle (chair)",
+        "Sit down (chair)",
+        "Stand up (chair)"
+      ]
+    }
+  ],
+  "textureBytes": 5715156,
+  "generator": "Ara 3D Gen / MakeHuman CC0; +Y up, +Z forward, metres"
+}
