@@ -1,4 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
+import {PassengerBalance} from './PassengerBalance.js';
+import {chooseRailGrip} from './PassengerRailGrip.js';
 
 const delta=new THREE.Quaternion(),euler=new THREE.Euler();
 const v0=new THREE.Vector3(),v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3(),v4=new THREE.Vector3();
@@ -23,7 +25,8 @@ function solveArm(view,side,targetLocal,poleLocal){
  pointBone(upper,elbow,desired);pointBone(elbow,hand,target);
 }
 export class PassengerAnimator{
- constructor(view,agent){
+ constructor(view,agent,{rails=[],motion=null}={}){
+  this.rails=rails;this.motion=motion;this.balance=new PassengerBalance(agent);this.grip=null;this.gripAttempted=false;
   this.view=view;this.agent=agent;this.mixer=new THREE.AnimationMixer(view.model);this.actions={};this.mode=null;
   for(const clip of view.animations)this.actions[clip.name]=this.mixer.clipAction(clip);
   this.rest={};for(const [name,bone] of Object.entries(view.bones))this.rest[name]=bone.quaternion.clone();
@@ -58,7 +61,8 @@ export class PassengerAnimator{
    const gesture=Math.max(0,Math.sin(time*.87+a.phase));
    add('LeftForeArm',-.45*gesture);add('LeftArm',-.11*gesture,0,.06*gesture);
   }
-  if(a.space==='train'&&!walking){add('Spine',Math.sin(time*1.2+a.phase)*.012,0,Math.sin(time*.8+a.phase)*.012);}
+  const lean=this.balance.update(dt,time,this.motion,a,!!this.grip);
+  add('Spine',lean.x*.55,0,lean.z*.55);add('Spine1',lean.x*.35,0,lean.z*.35);add('Head',-lean.x*.15,0,-lean.z*.12);
   if(a.state==='seated'){
    // Fit the hips to the real 81-717 bench, independent of the CMU chair height.
    v.model.updateMatrixWorld(true);
@@ -71,6 +75,9 @@ export class PassengerAnimator{
     v.model.position.y+=.53-p.y;
    }
   }else v.model.position.set(0,0,0);
+  const wantsGrip=a.activity==='rail'&&a.space==='train'&&a.state==='riding'&&!walking;
+  if(!wantsGrip){this.grip=null;this.gripAttempted=false;}
+  if(wantsGrip&&!this.gripAttempted){this.grip=chooseRailGrip(v,this.rails);this.gripAttempted=true;}
   if(!walking){
    const seated=a.state==='seated',hips=new THREE.Vector3();
    v.model.updateWorldMatrix(true,true);v.bones.Hips?.getWorldPosition(hips);v.model.worldToLocal(hips);
@@ -79,9 +86,13 @@ export class PassengerAnimator{
    for(const [side,sign] of [['Left',1],['Right',-1]]){
     const target=new THREE.Vector3(sign*.215+(seated?hips.x:0),y,seated?hips.z+.28:.035);
     if(side==='Right'&&phone)target.set((seated?hips.x:0)-.13,seated?hips.y+.36:bodyHeight*.68,(seated?hips.z:0)+.27);
-    if(side==='Right'&&a.activity==='rail'&&a.space==='train'&&!seated)target.set(-.18,bodyHeight*1.08,.045);
+    if(this.grip?.side===side)target.copy(v.model.worldToLocal(this.grip.target.clone()));
     if(side==='Left'&&a.activity==='talk'){target.z+=.07+.06*Math.sin(time+a.phase);target.y+=.07*Math.max(0,Math.sin(time*.87+a.phase));}
     solveArm(v,side,target,new THREE.Vector3(sign*.55+(seated?hips.x:0),seated?hips.y+.25:bodyHeight*.57,(seated?hips.z:0)-.22));
+   }
+   if(this.grip){
+    const wrist=v.bones[this.grip.side+'Hand'].getWorldPosition(new THREE.Vector3());
+    this.grip.error=wrist.distanceTo(this.grip.target);
    }
    if(phone&&v.bones.RightHand){
     const hand=new THREE.Vector3();v.bones.RightHand.getWorldPosition(hand);v.model.worldToLocal(hand);

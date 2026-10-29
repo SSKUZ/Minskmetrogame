@@ -5,6 +5,8 @@ import {PassengerModelLibrary} from './PassengerModel.js';
 import {PassengerAnimator} from './PassengerAnimator.js';
 import {PassengerImpostors,selectPassengerLOD} from './PassengerLOD.js';
 import {PassengerAudio} from './PassengerAudio.js';
+import {PassengerTrainMotion} from './PassengerBalance.js';
+import {readCarriageRails} from './PassengerRailGrip.js';
 
 function contactMaterial(){
  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;const c=canvas.getContext('2d');
@@ -12,7 +14,8 @@ function contactMaterial(){
  return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
 }
 export class PassengerSystem{
- constructor({scene,platform,seed,onCount}){
+ constructor({scene,platform,seed,onCount,carriage}){
+  this.motion=new PassengerTrainMotion();this.rails=carriage?readCarriageRails(carriage):[];
   this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed});
   this.models=new PassengerModelLibrary();this.impostors=new PassengerImpostors(scene);this.audio=new PassengerAudio();
   this.actors=new Map();this.root=new THREE.Group();this.root.name='PassengerSystem';scene.add(this.root);
@@ -31,7 +34,7 @@ export class PassengerSystem{
   return out.set(a.x,y,z);
  }
  update(dt,context,camera,{mirrorCameras=[],volume=1,inCab=false,playing=true}={}){
-  this.time+=dt;this.context=context;
+  this.time+=dt;this.context=context;this.motion.update(dt,context);
   if(!this.paused)this.simulation.update(dt,context);
   const live=new Set(this.simulation.agents.filter(a=>a.state!=='gone').map(a=>a.id));
   for(const [id,actor] of this.actors)if(!live.has(id)){
@@ -67,7 +70,7 @@ export class PassengerSystem{
    if(lod==='far'){this.impostors.add(a,position);continue;}
    if(lod==='hidden')continue;
    const detail=lod==='near'?'medium':'low';let view=actor.views.get(detail);
-   if(!view){view=this.models.create(a,detail);if(!view)continue;view.animator=new PassengerAnimator(view,a);actor.views.set(detail,view);this.root.add(view.root);}
+   if(!view){view=this.models.create(a,detail);if(!view)continue;view.animator=new PassengerAnimator(view,a,{rails:this.rails,motion:this.motion});actor.views.set(detail,view);this.root.add(view.root);}
    view.root.visible=true;view.root.position.copy(position);view.root.rotation.y=a.heading;view.root.scale.set(a.scale*a.width,a.scale,a.scale);
    const period=lod==='near'?0:1/15;
    if(this.time-actor.lastAnimationTime>=period){view.animator.update(this.time-actor.lastAnimationTime,this.time);actor.lastAnimationTime=this.time;this.lodStats.animated++;}
@@ -75,6 +78,6 @@ export class PassengerSystem{
   this.impostors.end();
   this.audio.update(this.simulation.agents,cameraPosition,a=>this.worldPosition(a),{volume,playing,inCab,doorsOpen:context.doorsOpen},dt);
  }
- snapshot(){return {...this.simulation.snapshot(),ready:this.ready,errors:[...this.errors,...this.models.errors],lod:{...this.lodStats},
+ snapshot(){return {...this.simulation.snapshot(),motion:{speed:this.motion.speed,acceleration:this.motion.acceleration},railCount:this.rails.length,grips:[...this.actors.entries()].flatMap(([id,a])=>[...a.views.values()].filter(v=>v.root.visible&&v.animator.grip).map(v=>({id,side:v.animator.grip.side,railId:v.animator.grip.railId,point:v.animator.grip.point.toArray(),error:v.animator.grip.error}))),ready:this.ready,errors:[...this.errors,...this.models.errors],lod:{...this.lodStats},
   modelsLoaded:this.models.sources.size,actors:this.actors.size,audio:this.audio.snapshot()};}
 }

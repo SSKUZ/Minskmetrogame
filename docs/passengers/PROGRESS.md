@@ -91,3 +91,11 @@ Remaining / exact continuation:
 5. Remove unused legacy passenger modules only after completing the remaining coverage. New implementation is isolated; no merges or changes to cab/v106 branches have been performed.
 
 Reproduce: `npm run check`; `CAB_CHROMIUM=/path/to/chromium node tests/passenger-browser.mjs`; atlases: `CAB_CHROMIUM=/path/to/chromium node tools/passengers/bake-atlas.mjs`. Full specification is still work in progress.
+
+## TZ2 checkpoint 1 — train response and physical grip
+
+Parent verified on GitHub: `7d2613fe428ca1ebe2ac8ee3ed60190bf932b552`.
+- Added a read-only km/h → m/s² adapter and damped, independently phased carriage response. Standing supported / unsupported and seated people have different response amplitudes; platform passengers do not sway with the train.
+- Grip candidates are sampled from the actual TubeGeometry paths after the existing carriage transform. Unreachable rails are rejected; the chosen world-space wrist anchor stays fixed while the torso compensates motion. No carriage geometry or train physics has changed.
+- Automated checks: 39/39 pass, including exact shipped adult, elderly and child skeletons, train acceleration/braking signs, asynchronous cruising sway, support attenuation and wrist lock within 2 mm.
+- Browser baseline is running separately. This is an intermediate checkpoint, not completed TZ2. Next: timed sit/stand clips, social actions, accessories, long station cycles and complete fresh screenshot/performance review.
