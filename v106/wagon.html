@@ -315,11 +315,11 @@ function buildPassengerDoors(side,dz){
   sideBox(.025,doorHeight,.027,side*(sideWallBase-.007),F+doorHeight/2,z,sideRubber);
   sideBox(.012,doorHeight,.025,side*(sideWallInner-.006),F+doorHeight/2,z,sideSteel);
  }
- // Paint the existing metal threshold, without adding yellow overlay plates.
- const threshold=sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
+ // Low-profile integrated sill: flush with the saloon floor, no protruding plate.
+ const threshold=sideBox(.115,.009,doorWidth-.025,side*(half-.092),F+.006,dz,new T.MeshStandardMaterial({color:0x858b89,metalness:.36,roughness:.62}));
  threshold.name='v106-passenger-threshold';threshold.userData.passengerThreshold=true;
- // Recolour the existing vertical lower sill face, not the moving door leaves.
- sideBox(.012,.092,doorWidth,side*(half-.082),F-.055,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
+ // A narrow dark front joint defines the sill without a hanging yellow slab.
+ sideBox(.008,.024,doorWidth-.025,side*(half-.045),F-.012,dz,sideRubber);
  sideBox(.15,.16,doorWidth+.12,side*(half-.21),F+doorHeight+.04,dz,sideLining);
  const surround=roundedShape(doorWidth+.09,doorHeight+.07,.12),opening=new T.Path(),points=roundedShape(doorWidth,doorHeight,.105).getPoints(20);
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(i===points.length-1)opening.moveTo(p.x,p.y);else opening.lineTo(p.x,p.y)}
@@ -728,17 +728,12 @@ window.wagonUpdatePassingLight=(distance=0,speed=0)=>{
  const source=saloonExteriorLights[0];
  if(source)source.lamp.intensity=source.power*(.20+.38*pulse);qaFramesRemaining=2;
 };
-// Floor inlays mark the threshold without blocking the 3D doorway.
-for(const side of [-1,1])for(const z of doors){
- sideBox(.18,.003,doorWidth-.16,side*1.12,F+.012,z,sideSteel);
- for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
-}
+// The doorway already has an integrated sill; do not stack extra metal floor plates.
 
-// Final pre-freeze physical cues: doorway contact shade and metal threshold lip.
+// Soft contact shade only: no raised metal lip in the passenger doorway.
 const saloonContactShade=new T.MeshBasicMaterial({color:0x111315,transparent:true,opacity:.13,depthWrite:false});
 for(const side of [-1,1])for(const z of doors){
  sideBox(.11,.002,doorWidth-.20,side*1.045,F+.017,z,saloonContactShade);
- sideBox(.035,.035,doorWidth-.10,side*1.155,F+.035,z,sideSteel);
 }
 for(const side of [-1,1])for(const [a,b] of seatBays){
  sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
@@ -787,9 +782,8 @@ for(const side of [-1,1])for(const z of doors)for(const dz of [-.56,.56])fixture
 // No provisional end-wall information boards or coloured blocks.
 
 // Seat upholstery piping and mounting hardware are built with each seat module above.
-// Door threshold plates and narrow side-wall protection panels reinforce the vestibule geometry.
+// Retain narrow side-wall protection panels; remove the duplicate raised threshold plates.
 for(const side of [-1,1])for(const z of doors){
- fixtureBox(.32,.010,doorWidth-.08,side*1.03,F+.024,z,saloonTrim);
  for(const dz of [-doorWidth/2-.20,doorWidth/2+.20])fixtureBox(.018,.74,.16,side*1.195,F+.76,z+dz,saloonTrim);
 }
 // Original ceiling lighting and ventilation remain; no duplicate full-length service strips.
@@ -898,11 +892,8 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
   sleeve.rotation.z=Math.PI/2;sleeve.position.set(side*.74,y,z);group.add(sleeve);passenger(sleeve);saloonDetail(sleeve);saloonFixtureNodes.push(sleeve);
  }
 }
-// Subtle threshold wear zones break the perfectly uniform floor without dirtying the carriage.
-for(const z of doors)for(const side of [-1,1]){
- fixtureBox(.42,.004,.72,side*.82,F+.014,z,floorFinish);
- fixtureBox(.018,.005,.68,side*.61,F+.016,z,saloonJoint);
-}
+// Keep the original continuous floor finish at doorways; no stacked wear plates.
+
 // No repeated decorative floor hatches across the saloon.
 
 // Avoid duplicate longitudinal ceiling-edge strips over the original liner.
