@@ -572,13 +572,17 @@ function grainTexture(size,repeatX,repeatY){
  }
  const texture=new T.DataTexture(data,size,size,T.RGBAFormat);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(repeatX,repeatY);texture.needsUpdate=true;return texture;
 }
-const floorFinish=new T.MeshStandardMaterial({color:0x747a7c,roughness:.86,bumpMap:grainTexture(64,5,28),bumpScale:.0014});
-const vinyl=new T.MeshPhysicalMaterial({color:0x344758,roughness:.48,clearcoat:.15,envMap:frontEnvironment,envMapIntensity:.35,bumpMap:grainTexture(64,2,3),bumpScale:.0005});
-const seatBase=new T.MeshStandardMaterial({color:0xb9bab0,metalness:.20,roughness:.52});
+const floorFinish=new T.MeshStandardMaterial({color:0x6f7475,roughness:.91,metalness:.015,bumpMap:grainTexture(64,5,28),bumpScale:.0016});
+const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.52,clearcoat:.10,clearcoatRoughness:.55,envMap:frontEnvironment,envMapIntensity:.28,bumpMap:grainTexture(64,2,3),bumpScale:.00055});
+const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.12,roughness:.58,envMap:frontEnvironment,envMapIntensity:.18});
 const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
 const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
 const saloonSeats=[],saloonRails=[];
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
+// Floor finish is laid in broad longitudinal sheets with restrained welded seams and perimeter sealing.
+for(const x of [-.48,.48])sideBox(.012,.003,saloonLength-.18,x,F+.012,(saloonStart+saloonEnd)/2,saloonJoint);
+for(let z=saloonStart+2.15;z<saloonEnd-.8;z+=3.25)sideBox(W-.42,.003,.012,0,F+.013,z,saloonJoint);
+for(const side of [-1,1])sideBox(.035,.018,saloonLength-.16,side*1.145,F+.018,(saloonStart+saloonEnd)/2,sideRubber);
 function saloonCushion(w,h,d,x,y,z,material){
  const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
  const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);group.add(mesh);return passenger(mesh);
