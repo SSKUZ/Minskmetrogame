@@ -53,6 +53,20 @@ test('closing and reopening doors during stand-up cannot skip the clip or duplic
  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length));
 });
 
+test('families reserve adjacent seats without duplicate reservations or isolating children',()=>{
+ for(const seed of [717,42,106]){
+  const s=new PassengerSimulation({seed});advance(s,120,open);
+  for(const child of s.agents.filter(a=>a.parentId!==null&&a.space==='train')){
+   const parent=s.agents.find(a=>a.id===child.parentId);
+   assert.ok(parent&&parent.space==='train');assert.equal(child.destination,parent.destination);
+   assert.ok(Math.hypot(child.x-parent.x,child.z-parent.z)<2,`${seed}/${child.id}: parent must remain nearby`);
+   if(child.seat&&parent.seat)assert.ok(Math.hypot(child.seat.x-parent.seat.x,child.seat.z-parent.seat.z)<1);
+  }
+  const seats=s.agents.flatMap(a=>[a.seat??a.reservedSeat].filter(Boolean)).map(p=>p.x+':'+p.z);
+  assert.equal(new Set(seats).size,seats.length);
+ }
+});
+
 test('twelve consecutive station cycles preserve identities, family destinations and bounded journals',()=>{
  const s=new PassengerSimulation({seed:717}),allEvents=[];let retained=[];
  for(let station=0;station<12;station++){

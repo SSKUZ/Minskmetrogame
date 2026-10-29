@@ -14,7 +14,7 @@ try{
  await p.evaluate(()=>window.metroPassengerInspector.pause());
  const shot=async(name,position,target,fov=58)=>{
   if(position)await p.evaluate(({position,target,fov})=>window.metroPassengerInspector.view(position,target,fov),{position,target,fov});
-  await p.screenshot({path:output+'/'+name+'.png',timeout:120000});console.log('Captured',name);
+  await p.screenshot({path:output+'/'+name+'.png',timeout:120000});await writeFile(output+'/browser-report.partial.json',JSON.stringify(report,null,2));console.log('Captured',name);
  };
  await shot('01-platform',[-9,2.7,15],[-5,1.7,22]);
  await p.evaluate(()=>window.metroPassengerInspector.train({doors:true}));
@@ -27,6 +27,7 @@ try{
  report.exchange=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
  assert.ok(report.exchange.doors.every(q=>!q.exiting&&!q.waiting));
  assert.equal(report.exchange.events.filter(e=>e.kind==='board').length,51);
+ await p.locator('#carCameraToggle').click();
  await shot('04-carriage',[.20,2.55,31],[-.45,2.15,14]);
  report.carriage=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
  assert.ok(report.carriage.grips.length,'real scene must contain a physically supported standing passenger');
@@ -35,11 +36,12 @@ try{
  await p.evaluate(id=>window.metroPassengerInspector.focus(id,2.5),agent.id);
  await shot('05-standing');
  const [x,y,z]=grip.point;
- await shot('06-real-grip',[x-.95,y+.18,z+.80],[x,y-.08,z],43);
+ const side=grip.side==='Right'?-1:1;
+ await shot('06-real-grip',[Math.max(-1.85,Math.min(1.2,x+Math.cos(agent.heading)*side*1.15+(x<-.31?.15:-.15))),y+.18,z-Math.sin(agent.heading)*side*1.15],[x,y-.04,z],43);
  const seated=report.carriage.agents.find(a=>a.state==='seated'&&a.z>-97&&a.z<-78);
  assert.ok(seated);await p.evaluate(id=>window.metroPassengerInspector.focus(id,2.8),seated.id);await shot('07-seated');
  await shot('08-through-windows',[-4.5,2.3,25],[-.2,2.2,23.7]);
- await p.evaluate(()=>window.metroPassengerInspector.resetView());
+ await p.evaluate(()=>window.metroPassengerInspector.resetView());await p.locator('#carCameraToggle').click();
  // Both mirrors are the game's actual render targets.
  await p.waitForFunction(()=>window.metroPassengerInspector.mirrors().every(m=>m.camera[2]===3.35));
  for(const side of [-1,1]){
@@ -50,15 +52,15 @@ try{
  await p.setViewportSize({width:1280,height:800});await p.locator('#carCameraToggle').click();
  // Drive through the existing physical controller. No fake acceleration input.
  await p.evaluate(id=>{const i=window.metroPassengerInspector;i.train({doors:false,speed:20,dist:-70});i.focus(id,2.6);},agent.id);
- await p.keyboard.press('Digit5');
+ await p.keyboard.press('Digit5');await p.locator('#carCameraToggle').click();
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.acceleration>.5);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('11-acceleration');
- await p.keyboard.press('Space');
+ await p.locator('#carCameraToggle').click();await p.keyboard.press('Space');await p.locator('#carCameraToggle').click();
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.acceleration<-.5);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('12-braking');
  await p.waitForFunction(()=>window.metroPassengerInspector.snapshot().motion.speed<.1);
  report.motion.push(await p.evaluate(()=>window.metroPassengerInspector.snapshot()));await shot('13-stabilized');
- await p.keyboard.press('KeyN');
+ await p.locator('#carCameraToggle').click();await p.keyboard.press('KeyN');await p.locator('#carCameraToggle').click();
  const beforeIds=report.carriage.agents.filter(a=>a.space==='train').map(a=>a.id);
  assert.deepEqual(report.motion[0].agents.filter(a=>a.space==='train').map(a=>a.id),beforeIds);
  await p.evaluate(()=>{window.metroPassengerInspector.train({speed:0,dist:0});window.metroPassengerInspector.view([.2,2.55,31],[-.45,2.15,14]);});
@@ -70,7 +72,7 @@ try{
    const gl=document.querySelector('#scene').getContext('webgl2'),ext=gl.getExtension('WEBGL_debug_renderer_info'),sorted=times.slice(1).sort((a,b)=>a-b);
    resolve({durationMs:now-start,frames:times.length,fps:(times.length-1)*1000/(now-start-times[0]),medianFrameMs:sorted[Math.floor(sorted.length*.5)],p95FrameMs:sorted[Math.floor(sorted.length*.95)],gpu:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):'unknown',...window.metroPassengerInspector.performance(),resources:window.metroPassengerInspector.snapshot().resources});
   }requestAnimationFrame(frame);
- }));console.log('Warm performance',report.performance.fps,report.performance.memory);
+ }));await writeFile(output+'/browser-report.partial.json',JSON.stringify(report,null,2));console.log('Warm performance',report.performance.fps,report.performance.memory);
  for(let station=1;station<=8;station++){
   const result=await p.evaluate(station=>{
    const i=window.metroPassengerInspector,s=i.system.simulation;
@@ -89,7 +91,7 @@ try{
   result.heapBytes=metrics.metrics.find(m=>m.name==='JSHeapUsedSize')?.value;
   result.render=await p.evaluate(()=>({snapshot:window.metroPassengerInspector.snapshot(),...window.metroPassengerInspector.performance()}));
   assert.ok(result.render.snapshot.resources.journal<=512&&result.render.snapshot.resources.counted<=512);
-  report.stations.push(result);console.log('Station',station,'dwell',result.dwell,'heap',result.heapBytes,'GPU',result.render.memory);
+  report.stations.push(result);await writeFile(output+'/browser-report.partial.json',JSON.stringify(report,null,2));console.log('Station',station,'dwell',result.dwell,'heap',result.heapBytes,'GPU',result.render.memory);
  }
  assert.deepEqual(f.errors,[]);assert.deepEqual(f.requests,[]);report.passed=true;
 }finally{

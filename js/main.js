@@ -972,7 +972,7 @@ if(carCameraActive){
  // Keep the driver's cab out of the carriage view; all station objects remain.
  cab.visible=false;
  stationTrain.visible=false;
- renderer.render(scene,carriageCamera);
+ renderer.render(scene,passengerInspectionCamera??carriageCamera);
  cab.visible=true;
 }else renderer.render(scene,passengerInspectionCamera??chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
 if(stationCameraActive){cab.visible=true;}

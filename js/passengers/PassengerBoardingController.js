@@ -1,6 +1,7 @@
 import {DOORS,TRAIN,trainSeatPositions} from './PassengerConfig.js';
 import {platformPath} from './PassengerNavigation.js';
 import {beginSitting,beginStanding,seatApproach} from './PassengerSeating.js';
+import {reservePassengerSeat,familyCompanions} from './PassengerPlaces.js';
 
 function departurePath(a){
  const bay={x:-8.5-(a.id%6)*.58,z:a.z+((a.id%7)-3)*.65};
@@ -104,14 +105,15 @@ export class PassengerBoardingController{
    // Keep the doorway clear; walk down the aisle before taking a free place.
    const center=-88+q.car*21.5,candidates=trainSeatPositions(q.car);
    candidates.sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
-   const vacant=candidates.find(p=>!agents.some(o=>o!==a&&o.space==='train'&&o.state!=='alighting'&&o.seat&&Math.hypot(p.x-o.seat.x,p.z-o.seat.z)<.58));
-   a.seat=(a.child||slot%3!==0)&&vacant?vacant:null;
+   a.seat=reservePassengerSeat(a,agents,candidates,slot);
    const standing=[];for(const sx of [-1,1])for(let n=0;n<8;n++)standing.push({x:TRAIN.aisleX+sx*.71,z:center-7+n*2});
    standing.sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
    if(a.railPreference){
     const physical=(this.railPlaces??[]).filter(p=>p.z>center-10&&p.z<center+10).sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
     standing.unshift(...physical);
    }
+   const companion=familyCompanions(a,agents).find(o=>o.space==='train'&&o.state!=='alighting');
+   if(companion&&(a.child||companion.child||!a.railPreference)){const anchor=companion.seat??companion.path.at(-1)??companion;standing.sort((p,b)=>Math.hypot(p.x-anchor.x,p.z-anchor.z)-Math.hypot(b.x-anchor.x,b.z-anchor.z));}
    const place=standing.find(p=>!agents.some(o=>o!==a&&o.space==='train'&&Math.hypot(p.x-(o.path.at(-1)?.x??o.x),p.z-(o.path.at(-1)?.z??o.z))<.60));
    const target=(a.seat?seatApproach(a.seat):null)??place??{x:side*.71-.31,z:q.z+(q.id%2?-1:1)*3.2};
    a.assignedRailId=target.railId??null;

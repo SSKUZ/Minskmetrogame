@@ -126,3 +126,15 @@ Parent: `5cd9d779e92865749f0b8cb21050b94be14e4135`.
 ### Browser finding before checkpoint 3 publication
 
 The extended run successfully captured platform, alighting, boarding and carriage views with no JS/request errors, but failed its physical-grip population assertion: no standing passenger had chosen a reachable bar in the seeded real scene. Unit tests at reachable positions alone were insufficient. Navigation now receives candidate standing places derived from actual vertical rail geometry; support-preferring boarders reserve these places before legacy standing slots. Re-run the extended browser suite and inspect the hands before accepting this feature. No successful final-browser claim is made for this WIP checkpoint.
+
+## TZ2 checkpoint 4 — real-scene validation and family seats
+
+Verified remote parent: `cc0029759dd8c1defbc5a8296c2a2e04238bc2c3`.
+- Fixed the development inspection camera so a custom interior view renders the same detailed carriage as the ordinary carriage camera. Earlier R2 custom views showed the simplified exterior interior and are rejected as grip evidence. Normal cameras are unchanged.
+- Extended actual Chromium run R3 passed: 51 boardings, 8 alightings, physical rail attachment present, identities maintained under the real cab controller's acceleration/braking, desktop/mobile views and both mirror targets captured; eight subsequent station exchanges completed with no JS/shader/request errors and no repeated reopening events.
+- Warm software-renderer measurement: 30 s warm-up then 48.47 s / 26 frames, 0.516 FPS, median 2000 ms and p95 3916 ms. This is SwiftShader; real-device suitability is NOT established. GPU textures in the warm view: 196. These samples must not be presented as a mobile performance pass.
+- Eight-station GC samples settle around 59–60 MB JS heap; geometry/texture counts fluctuate with visible population rather than growing each station. Full data and screenshots: `artifacts/passengers/tz2-final-r3/`.
+- Visual review caught separated family seats (up to 6.6 m). Added shared adjacent-seat reservations and nearby standing preference. Seeds 717, 42 and 106 now keep children near their parent; seed 717 pairs occupy adjacent seats 0.66 m apart. All 15 passenger/transition checks passed; the new explicit family test and 12-station test pass. Existing successful assertions are retained.
+- Exact hand close-up in R3 remains partially hidden by the passenger's torso; corrected side-view capture and fresh family screenshots are running in `tests/passenger-details.mjs`.
+
+Known remaining work: service throughput is too low at dense later stations (up to 247 simulated seconds in R3). Pre-stage imminent alighters inside the train while preserving full stand-up clips, door priority, collision constraints and single crossing counts; add a regression deadline. Review the corrected hand, wardrobe and family close-ups. Hardware/mobile GPU acceptance is still unavailable in this environment. Do not claim completed TZ2 yet.
