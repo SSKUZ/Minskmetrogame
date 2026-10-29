@@ -341,10 +341,9 @@ function buildPassengerDoors(side,dz){
   sideRing(glassW,glassH,.085,side*.017,shift,0,sideRubber,.010,leaf);
   sideRing(glassW-.018,glassH-.018,.077,side*.023,shift,0,sideSteel,.004,leaf);
   const seam=new T.Mesh(new T.BoxGeometry(.037,leafH-.04,.015),sideRubber);seam.position.z=-halfDoor*(leafW/2-.005);leaf.add(seam);passenger(seam);
-  // Both painted chevrons and inner skin travel with their leaf.
-  const outer=halfDoor*(leafW/2-.035),tip=-halfDoor*(leafW/2-.12);
-  doorChevron(leaf,side,outer,F+.94-midY,tip,F+.49-midY);
-  doorChevron(leaf,side,tip,F+.49-midY,outer,F+.055-midY);
+  // Clean 81-717 sliding-door skin. The former painted chevron geometry
+  // projected across the leaf as stray decorative overlays; omit it entirely.
+  // Retain only the recessed glazing, perimeter seals and centre seam.
   slidingLeaves.push({leaf,side,doorZ:dz,homeZ,half:halfDoor,travel:.600,thickness:.032});
   leaf.traverse(o=>{if(o.isMesh)o.userData.slidingDoor=true});
  }
