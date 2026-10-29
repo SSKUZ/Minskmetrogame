@@ -589,10 +589,16 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  sideBox(.42,.34,len-.05,side*.973,F+.245,z,seatBase);
  // Ventilation slots in the actual seat plinth.
  for(let k=0;k<Math.floor(len/.085)-1;k++)sideBox(.002,.060,.035,side*.761,F+.25,a+.085+k*.085,sideRubber);
+ // Recessed toe-kick and top lip separate the plinth from the floor and cushions.
+ sideBox(.025,.055,len-.10,side*.775,F+.085,z,sideRubber);
+ sideBox(.030,.025,len-.08,side*.805,F+.405,z,seatBase);
  for(let i=0;i<count;i++){
   const width=len/count-.022,zz=a+(i+.5)*len/count;
   const pad=saloonCushion(.45,.10,width,side*.962,F+.485,zz,vinyl);
   const back=saloonCushion(.095,.48,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.065;
+  // Shallow rear shell and lower mounting tongue give each cushion a physical seat frame.
+  sideBox(.028,.43,width-.018,side*1.177,F+.785,zz,seatBase);
+  sideBox(.055,.105,width-.040,side*1.105,F+.515,zz,seatBase);
   saloonSeats.push({side,z:zz,seat:pad,back});
  }
  for(const zz of [a+.015,b-.015]){
