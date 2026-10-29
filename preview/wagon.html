@@ -636,6 +636,9 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  for(let i=0;i<columns;i++){const k=i*2;ix.push(k,k+1,k+2,k+1,k+3,k+2)}
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
  const mesh=new T.Mesh(geometry,ceilingWhite);group.add(mesh);passenger(mesh);
+ // Longitudinal ribs and transverse joints make the curved liner read as assembled ceiling panels.
+ for(const x of [-.98,-.52,0,.52,.98])sideBox(.018,.012,saloonLength-.22,x,3.205+.105*(1-Math.pow(Math.abs(x)/1.20,2.4)),(saloonStart+saloonEnd)/2,sideSteel);
+ for(let z=saloonStart+.52;z<saloonEnd-.30;z+=1.18)sideBox(2.18,.012,.018,0,3.185,z,sideLining);
 }
 const diffuser=new T.MeshStandardMaterial({color:0xfff2d5,emissive:0xffecd0,emissiveIntensity:.48,roughness:.65});
 for(const side of [-1,1]){
@@ -660,8 +663,11 @@ for(const side of [-1,1]){
   sideBox(.10,.18,doorWidth+.06,side*(half-.20),3.13,z,sideLining);
  }
  for(const z of [-6.9,-4.65,-2.4,-.15,2.1,4.35,6.6,8.75]){
-  sideBox(.16,.022,1.92,side*.53,3.285,z,sideSteel);
-  sideBox(.137,.025,1.87,side*.53,3.267,z,diffuser);
+  // Recessed fluorescent-style luminaire: metal tray, warm lens and slim retaining rails.
+  sideBox(.19,.030,1.96,side*.53,3.270,z,sideSteel);
+  sideBox(.155,.026,1.88,side*.53,3.246,z,diffuser);
+  sideBox(.012,.012,1.90,side*(.53-.082),3.238,z,sideLining);
+  sideBox(.012,.012,1.90,side*(.53+.082),3.238,z,sideLining);
  }
  for(const w of passengerWindows.filter(w=>w.side===side)){
   sideRing(w.w+.05,w.h+.05,.15,side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
