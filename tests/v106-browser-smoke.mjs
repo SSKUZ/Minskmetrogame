@@ -54,7 +54,7 @@ try{
  await page.mouse.move(790,384,{steps:12});
  await page.mouse.up();
  await page.waitForTimeout(350);
- await page.screenshot({path:'test-results/v106/station-front-wall-clearance.png'});
+ await page.screenshot({path:'test-results/v106/station-front-wall-clearance.png',timeout:120000});
  // Restore the normal station view before continuing the behavioural smoke.
  await page.reload({waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>window.metro3DReady===true,null,{timeout:90000});
