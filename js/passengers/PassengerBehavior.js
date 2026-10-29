@@ -15,16 +15,16 @@ export class PassengerSimulation{
   this.navigation=new PassengerNavigation(layout);this.boarding=new PassengerBoardingController(layout,{normal});
   this.station=-1;this.time=0;this.accumulator=0;this.events=[];this.eventSequence=0;
  }
- enterStation(index){
+ enterStation(index,arrivalHorizon=0){
   const onboard=this.agents.filter(a=>a.space==='train'&&a.state!=='gone');
   for(const a of onboard){a.boardingCounted=false;a.exitCounted=false;}
   this.agents=[...onboard,...this.spawner.station(index,this.platformCount)];
   if(this.station===-1)this.agents.push(...this.spawner.onboard(index,this.onboardCount));
-  if(this.normal){chooseExitDoors(this.agents,this.layout,index);choosePlatformDoors(this.agents,this.layout,{station:index});}
+  if(this.normal){chooseExitDoors(this.agents,this.layout,index);choosePlatformDoors(this.agents,this.layout,{station:index,arrivalHorizon});}
   this.station=index;this.boarding.reset();
  }
  update(elapsed,context){
-  if(this.station!==context.station)this.enterStation(context.station);
+  if(this.station!==context.station)this.enterStation(context.station,context.dist>145?Math.min(45,context.speed>1?context.dist/(context.speed/3.6):45):0);
   this.accumulator+=Math.max(0,Math.min(elapsed,.25));
   while(this.accumulator>=1/30){this.step(1/30,context);this.accumulator-=1/30;}
  }

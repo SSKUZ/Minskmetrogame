@@ -13,7 +13,7 @@ test('door choice keeps an isolated passenger near the closest reachable door',(
 test('a local queue sends some passengers to adjacent quieter doors without splitting a family',()=>{
  const l=normalPassengerLayout(),agents=Array.from({length:12},(_,id)=>person(id));agents[0].groupId=agents[1].groupId=100;agents[1].parentId=0;
  choosePlatformDoors(agents,l);assert.ok(new Set(agents.map(a=>a.doorId)).size>1);assert.equal(agents[0].doorId,agents[1].doorId);
- const counts=new Map();for(const a of agents)counts.set(a.doorId,(counts.get(a.doorId)??0)+1);assert.ok(Math.max(...counts.values())<agents.length/2);
+ const counts=new Map();for(const a of agents)counts.set(a.doorId,(counts.get(a.doorId)??0)+1);assert.ok(Math.max(...counts.values())<agents.length/2,JSON.stringify([...counts]));
 });
 test('unavailable doors and a statically blocked approach are excluded',()=>{
  const base=normalPassengerLayout(),doors=base.doors.map(d=>({...d,available:d.id!==0})),blocked=doors[1];

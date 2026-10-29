@@ -9,7 +9,7 @@ function units(agents){
 }
 function pathLength(from,path){let sum=0;for(const p of path){sum+=Math.hypot(p.x-from.x,p.z-from.z);from=p;}return sum;}
 
-export function choosePlatformDoors(agents,layout,{dist=0,station=-1,preserveAssignments=false}={}){
+export function choosePlatformDoors(agents,layout,{dist=0,station=-1,preserveAssignments=false,arrivalHorizon=0}={}){
  const doors=layout.doors.filter(d=>d.available!==false),load=new Map(doors.map(d=>[d.id,0]));
  const carLoad=new Map(layout.cars.map(c=>[c.id,agents.filter(a=>a.space==='train'&&a.car===c.id&&a.destination>station).length]));
  const capacity=new Map(layout.cars.map(c=>[c.id,Math.max(0,c.seatAnchors.length+c.standingZones.filter(p=>standingPlaceKeepsDoorsClear(p,layout,c.id)).length-2)]));
@@ -33,7 +33,7 @@ export function choosePlatformDoors(agents,layout,{dist=0,station=-1,preserveAss
   load.set(d.id,load.get(d.id)+sign*size);carLoad.set(d.car,(carLoad.get(d.car)??0)+sign*size);
   work.set(d.id,work.get(d.id)+sign*choice.service);
  };
- const score=(choice,record)=>((carLoad.get(choice.door.car)??0)+record.group.length>capacity.get(choice.door.car))?Infinity:choice.walk+work.get(choice.door.id)+(exiting.get(choice.door.id)??0)+(carLoad.get(choice.door.car)??0)*.5+(preserveAssignments&&record.group[0].doorId!==choice.door.id?8:0);
+ const score=(choice,record)=>((carLoad.get(choice.door.car)??0)+record.group.length>capacity.get(choice.door.car))?Infinity:Math.max(Math.max(0,choice.walk-arrivalHorizon),work.get(choice.door.id)+(exiting.get(choice.door.id)??0))+choice.walk*.20+(carLoad.get(choice.door.car)??0)*.5+(preserveAssignments&&record.group[0].doorId!==choice.door.id?2:0);
  const best=record=>record.choices.reduce((a,c)=>Number.isFinite(score(c,record))&&(!a||score(c,record)<score(a,record))?c:a,null);
  for(const record of records){record.choice=best(record);if(record.choice)change(record,record.choice,1);}
  for(let pass=0;pass<3;pass++)for(const record of records){
@@ -57,7 +57,7 @@ export function chooseExitDoors(agents,layout,station,{preserveAssignments=false
   const car=group[0].car;if(group.some(a=>a.car!==car))continue;
   const available=layout.doors.filter(d=>d.car===car&&d.available!==false);let best=null;
   for(const d of available){
-   const score=Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed))+(load.get(d.id)??0)+(preserveAssignments&&group[0].doorId!==d.id?8:0);
+   const score=Math.max(Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed)),load.get(d.id)??0)+Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed))*.15+(preserveAssignments&&group[0].doorId!==d.id?8:0);
    if(!best||score<best.score)best={door:d,score};
   }
   if(best){for(const a of group)a.doorId=best.door.id;load.set(best.door.id,(load.get(best.door.id)??0)+group.reduce((sum,a)=>sum+(layout.car(car).aisleX-best.door.thresholdX+.70)/a.walkSpeed+.25,0));}
