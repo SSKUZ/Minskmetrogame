@@ -17,7 +17,8 @@ try{
  // turn the correct preview camera off and produced a false-negative smoke failure.
  const stationCameraAlreadyActive=await page.evaluate(()=>window.metroV106Diagnostics?.().stationCameraActive===true);
  if(!stationCameraAlreadyActive)await page.locator('#stationCameraToggle').click();
- await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:180000});
+ try{await page.waitForFunction(()=>window.metroV106Diagnostics?.().loaded===true,null,{timeout:180000});}
+ catch(error){const diagnostic=await page.evaluate(()=>({v106:window.metroV106Diagnostics?.()||null,stage:window.metroV106LoadStage||null,consoleErrors:window.__v106ConsoleErrors||[],renderErrors:window.__v106RenderErrors||0}));console.error('V106_LOAD_TIMEOUT_DIAGNOSTIC',JSON.stringify(diagnostic));throw error;}
  const state=await page.evaluate(()=>window.metroV106Diagnostics());
  renderErrors=await page.evaluate(()=>window.__v106RenderErrors||0);
  assert.equal(renderErrors,0,'main render loop failed while v106 was active: '+JSON.stringify(await page.evaluate(()=>window.__v106ConsoleErrors||[])));
