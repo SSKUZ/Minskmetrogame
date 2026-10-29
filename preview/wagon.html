@@ -791,6 +791,9 @@ for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
  for(const dz of [-.43,.43])fixtureBox(.024,.82,.035,side*(sideWallInner-.025),F+1.655,z+dz,saloonTrim);
  fixtureBox(.065,.055,.78,side*(sideWallInner-.060),F+1.205,z,sideLining);
  for(const dz of [-.31,.31])fixtureBox(.026,.025,.055,side*(sideWallInner-.095),F+1.215,z+dz,saloonDark);
+ fixtureBox(.018,.030,.84,side*(sideWallInner-.044),F+1.255,z,sideRubber);
+ fixtureBox(.030,.025,.80,side*(sideWallInner-.072),F+1.190,z,saloonTrim);
+ for(const dz of [-.405,.405])fixtureBox(.018,.76,.022,side*(sideWallInner-.045),F+1.655,z+dz,sideRubber);
 }
 // Wall-panel seams and discreet screw heads reduce the single-piece plastic look.
 // Keep the lower panels broad and calm; vertical joints align to actual opening edges instead of a repetitive grid.
