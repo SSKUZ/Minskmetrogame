@@ -583,10 +583,11 @@ sideSteel.roughness=.28; sideSteel.metalness=.82; sideSteel.envMap=frontEnvironm
 sideRubber.roughness=.94; sideRubber.metalness=0;
 doorInnerLining.roughness=.64; doorInnerLining.metalness=.04;
 const saloonSeats=[],saloonRails=[];
+const floorSeam=new T.MeshStandardMaterial({color:0x555b5c,metalness:.05,roughness:.86});
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
 // Floor finish is laid in broad longitudinal sheets with restrained welded seams and perimeter sealing.
-for(const x of [-.48,.48])sideBox(.012,.003,saloonLength-.18,x,F+.012,(saloonStart+saloonEnd)/2,saloonJoint);
-for(let z=saloonStart+2.15;z<saloonEnd-.8;z+=3.25)sideBox(W-.42,.003,.012,0,F+.013,z,saloonJoint);
+for(const x of [-.48,.48])sideBox(.012,.003,saloonLength-.18,x,F+.012,(saloonStart+saloonEnd)/2,floorSeam);
+for(let z=saloonStart+2.15;z<saloonEnd-.8;z+=3.25)sideBox(W-.42,.003,.012,0,F+.013,z,floorSeam);
 for(const side of [-1,1])sideBox(.035,.018,saloonLength-.16,side*1.145,F+.018,(saloonStart+saloonEnd)/2,sideRubber);
 function saloonCushion(w,h,d,x,y,z,material){
  const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
