@@ -714,6 +714,7 @@ for(const side of [-1,1]){
 for(const [z,power] of [[-6.0,.94],[-2.8,1.00],[.4,.97],[3.6,1.02],[6.8,.93]]){
  const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);saloonLightSources.push({lamp,power,phase:z*.71});
 }
+window.wagonSetSaloonLightLoad=(load=1)=>{const l=T.MathUtils.clamp(Number(load)||1,.85,1.04);for(const x of saloonLightSources)x.lamp.intensity=x.power*l;qaFramesRemaining=2;};
 // Floor inlays mark the threshold without blocking the 3D doorway.
 for(const side of [-1,1])for(const z of doors){
  sideBox(.18,.003,doorWidth-.16,side*1.12,F+.012,z,sideSteel);
