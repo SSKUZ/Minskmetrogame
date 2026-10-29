@@ -2,6 +2,7 @@ import * as THREE from '../vendor/three.module.js';
 import {PassengerBalance} from './PassengerBalance.js';
 import {chooseRailGrip} from './PassengerRailGrip.js';
 import {SEAT_TIMING} from './PassengerSeating.js';
+import {PassengerHandGrip} from './PassengerHandGrip.js';
 
 const delta=new THREE.Quaternion(),euler=new THREE.Euler();
 const v0=new THREE.Vector3(),v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3(),v4=new THREE.Vector3();
@@ -27,7 +28,7 @@ function solveArm(view,side,targetLocal,poleLocal){
 }
 export class PassengerAnimator{
  constructor(view,agent,{rails=[],motion=null}={}){
-  this.rails=rails;this.motion=motion;this.balance=new PassengerBalance(agent);this.grip=null;this.gripAttempted=false;
+  this.handGrip=new PassengerHandGrip(view);this.rails=rails;this.motion=motion;this.balance=new PassengerBalance(agent);this.grip=null;this.gripAttempted=false;
   this.view=view;this.agent=agent;this.mixer=new THREE.AnimationMixer(view.model);this.actions={};this.mode=null;
   for(const clip of view.animations)this.actions[clip.name]=this.mixer.clipAction(clip);
   this.rest={};for(const [name,bone] of Object.entries(view.bones))this.rest[name]=bone.quaternion.clone();
@@ -62,7 +63,7 @@ export class PassengerAnimator{
   const actionWeight=a.activityStart===undefined?1:Math.min(1,Math.max(0,(time-a.activityStart)/.5),Math.max(0,((a.activityUntil??time+1)-time)/.5));
   v.props.phone.visible=phone;
   if(phone)add('Head',.19*actionWeight,-.06);
-  if(['window','display','child','bag','weight'].includes(a.activity)&&!walking){
+  if(['window','display','child','talk','bag','weight'].includes(a.activity)&&!walking){
    if(a.activity==='window')add('Head',0,(a.x<-.31?-.38:.38)*actionWeight);
    if(a.activity==='display')add('Head',-.12*actionWeight,.23*actionWeight);
    if(a.activity==='child'||a.activity==='talk')add('Head',a.activity==='child'?.12:0,THREE.MathUtils.clamp(Math.atan2(Math.sin(a.attentionAngle??0),Math.cos(a.attentionAngle??0)),-.5,.5)*actionWeight);
@@ -113,6 +114,7 @@ export class PassengerAnimator{
     if(side==='Left'&&a.activity==='talk'&&this.grip?.side!=='Left'){target.z+=.07+.06*Math.sin(time+a.phase);target.y+=.07*Math.max(0,Math.sin(time*.87+a.phase));}
     solveArm(v,side,target,new THREE.Vector3(sign*.55+(seated?hips.x:0),seated?hips.y+.25:bodyHeight*.57,(seated?hips.z:0)-.22));
    }
+   this.handGrip.update(this.grip);
    if(this.grip){
     const wrist=v.bones[this.grip.side+'Hand'].getWorldPosition(new THREE.Vector3());
     this.grip.error=wrist.distanceTo(this.grip.target);
@@ -123,6 +125,7 @@ export class PassengerAnimator{
     const head=new THREE.Vector3();v.bones.Head?.getWorldPosition(head);v.props.phone.lookAt(head);
    }
   }
+  if(walking)this.handGrip.update(null);
   const bag=v.props.bag;
   if(bag&&a.accessory==='backpack'){
    const carried=bag.userData.carried;
@@ -140,5 +143,5 @@ export class PassengerAnimator{
   }
   this.lastTime=time;
  }
- dispose(){this.mixer.stopAllAction();this.mixer.uncacheRoot(this.view.model);}
+ dispose(){this.handGrip.dispose();this.mixer.stopAllAction();this.mixer.uncacheRoot(this.view.model);}
 }

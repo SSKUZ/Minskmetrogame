@@ -29,7 +29,11 @@ export class PassengerModelLibrary{
     gltf.scene.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;
      o.material.roughness=Math.max(.65,o.material.roughness);
      if(o.material.map)o.material.map.anisotropy=2;
-     if(o.material.name==='Hair'){o.material.alphaTest=.42;o.material.depthWrite=true;o.material.transparent=false;o.material.side=THREE.DoubleSide;}
+     if(o.material.name==='Hair'){
+      if(profile===4||profile===5){
+       o.material.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n diffuseColor.rgb=mix(vec3(.27+dot(diffuseColor.rgb,vec3(.2126,.7152,.0722))*.42),diffuseColor.rgb,.14);');};
+       o.material.customProgramCacheKey=()=> 'passenger-grey-hair-v1';
+      }o.material.alphaTest=.42;o.material.depthWrite=true;o.material.transparent=false;o.material.side=THREE.DoubleSide;}
     }});
     this.sources.set(key,source);return source;
    }).catch(e=>{this.errors.push(`${key}: ${e.message}`);throw e;});
@@ -55,8 +59,8 @@ export class PassengerModelLibrary{
   const bones={};model.traverse(o=>{
    if(o.isBone)bones[o.name]=o;
    if(o.isSkinnedMesh){o.frustumCulled=true;o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,source.height*.50,0),source.height*.77);}
-   if(o.isMesh&&o.material.name==='Outfit'){
-    const key=`${agent.profile}:${agent.tint}`;
+   if(o.isMesh&&(o.material.name==='Outfit'||/Minsk|Uniform/.test(o.material.name))){
+    const key=`${agent.profile}:${agent.tint}:${o.material.name}`;
     if(!this.materials.has(key)){const material=o.material.clone();material.color.multiply(new THREE.Color(tones[agent.tint]));this.materials.set(key,material);}
     o.material=this.materials.get(key);
    }

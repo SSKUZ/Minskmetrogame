@@ -6,7 +6,7 @@ import {PassengerAnimator} from './PassengerAnimator.js';
 import {PassengerImpostors,selectPassengerLOD} from './PassengerLOD.js';
 import {PassengerAudio} from './PassengerAudio.js';
 import {PassengerTrainMotion} from './PassengerBalance.js';
-import {readCarriageRails} from './PassengerRailGrip.js';
+import {readCarriageRails,railStandingPlaces} from './PassengerRailGrip.js';
 
 function contactMaterial(){
  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;const c=canvas.getContext('2d');
@@ -17,6 +17,7 @@ export class PassengerSystem{
  constructor({scene,platform,seed,onCount,carriage}){
   this.motion=new PassengerTrainMotion();this.rails=carriage?readCarriageRails(carriage):[];
   this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed});
+  this.simulation.boarding.railPlaces=railStandingPlaces(this.rails,TRAIN.offsetZ,TRAIN.aisleX);
   this.models=new PassengerModelLibrary();this.impostors=new PassengerImpostors(scene);this.audio=new PassengerAudio();
   this.actors=new Map();this.root=new THREE.Group();this.root.name='PassengerSystem';scene.add(this.root);
   this.shadowMaterial=contactMaterial();this.shadowGeometry=new THREE.PlaneGeometry(.72,.56);this.shadowGeometry.rotateX(-Math.PI/2);
@@ -79,6 +80,6 @@ export class PassengerSystem{
   this.impostors.end();
   this.audio.update(this.simulation.agents,cameraPosition,a=>this.worldPosition(a),{volume,playing,inCab,doorsOpen:context.doorsOpen},dt);
  }
- snapshot(){return {...this.simulation.snapshot(),motion:{speed:this.motion.speed,acceleration:this.motion.acceleration},railCount:this.rails.length,grips:[...this.actors.entries()].flatMap(([id,a])=>[...a.views.values()].filter(v=>v.root.visible&&v.animator.grip).map(v=>({id,side:v.animator.grip.side,railId:v.animator.grip.railId,point:v.animator.grip.point.toArray(),error:v.animator.grip.error}))),ready:this.ready,errors:[...this.errors,...this.models.errors],lod:{...this.lodStats},
+ snapshot(){return {...this.simulation.snapshot(),resources:{sharedTextures:this.models.textures.size,tintMaterials:this.models.materials.size,views:[...this.actors.values()].reduce((n,a)=>n+a.views.size,0),journal:this.simulation.events.length,counted:this.counted.size},motion:{speed:this.motion.speed,acceleration:this.motion.acceleration},railCount:this.rails.length,grips:[...this.actors.entries()].flatMap(([id,a])=>[...a.views.values()].filter(v=>v.root.visible&&v.animator.grip).map(v=>({id,side:v.animator.grip.side,railId:v.animator.grip.railId,point:v.animator.grip.point.toArray(),error:v.animator.grip.error}))),ready:this.ready,errors:[...this.errors,...this.models.errors],lod:{...this.lodStats},
   modelsLoaded:this.models.sources.size,actors:this.actors.size,audio:this.audio.snapshot()};}
 }

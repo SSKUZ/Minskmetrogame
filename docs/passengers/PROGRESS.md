@@ -112,3 +112,17 @@ Verified repair parent: `1a74d13d4146e51a861d7a5e1803d64a3d9a31da`. The complete
 - Tests: 43/43 passed; exact physical vertical and lower horizontal rails tested. A fresh browser run is still required for the new transitions / accessory / resource changes.
 
 Next: inspect modern/seasonal clothing (several legacy profile names do not match their actual garment), fresh browser screenshots including locked grips and real acceleration/braking, warm long performance/memory samples and final report. Hardware/mobile GPU performance is not verified.
+
+## TZ2 checkpoint 3 — physical wardrobe and grip refinement
+
+Parent: `5cd9d779e92865749f0b8cb21050b94be14e4135`.
+- Added reproducible fitted/skinned seasonal garment recipes: real coat geometry with hem, buttons and seam; hooded layers, sweaters, children's full-length tops and trousers; retained skirts, sportswear, jeans, summer shirts and the existing jacket mesh. Shared demographic identities and all six clips are preserved. Runtime elderly hair receives a neutral grey treatment.
+- Rebuilt the matching medium/low models and both pose atlases. Final visual acceptance is pending the in-game captures; earlier builds with missing custom garment registration and an unjoined coat waist were rejected and corrected before saving.
+- The wrist orientation follows the actual bar. A small GPU deformation curls the existing hand vertices because the accepted game-lite skeleton has no individual finger bones. This is a bounded grip silhouette, not a full anatomical finger rig; close-up review is required.
+- Safe texture and skeleton sharing reduced the GPU texture counter from 1170 to 234 in the same seed/carriage scenario. This is an allocation reduction, not proof of real-device FPS.
+- Extended browser script `tests/passenger-tz2-browser.mjs` captures eleven requested views, uses the real cab controller for acceleration/braking, warms the renderer, measures a 45 s window and audits eight subsequent station exchanges with GC/resource measurements.
+- Existing browser suite has passed after the transition/resource changes; 43/43 Node tests passed before the additional explicit seasonal asset assertion. The extended browser run is in progress. Completion is not yet claimed.
+
+### Browser finding before checkpoint 3 publication
+
+The extended run successfully captured platform, alighting, boarding and carriage views with no JS/request errors, but failed its physical-grip population assertion: no standing passenger had chosen a reachable bar in the seeded real scene. Unit tests at reachable positions alone were insufficient. Navigation now receives candidate standing places derived from actual vertical rail geometry; support-preferring boarders reserve these places before legacy standing slots. Re-run the extended browser suite and inspect the hands before accepting this feature. No successful final-browser claim is made for this WIP checkpoint.

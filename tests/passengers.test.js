@@ -131,3 +131,14 @@ test('closing after a threshold crossing sends alighters away and boarders to th
   advance(s,30,context);assert.equal(a.space,kind==='alighting'?'platform':'train');
  }
 });
+
+test('seasonal profiles ship actual skinned outerwear rather than misleading profile names',()=>{
+ for(const [profile,expected] of [['woman-coat','Minsk wool coat'],['elder-woman','Minsk wool coat'],['man-hoodie','Minsk hoodie'],['boy','Minsk knit sweater'],['girl','Minsk hoodie']]){
+  for(const suffix of ['', '-low']){
+   const b=readFileSync(new URL(`../assets/passengers/${profile}${suffix}.glb`,import.meta.url));
+   const json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString());
+   assert.ok(json.materials.some(m=>m.name===expected),profile+suffix+': required physical garment');
+   assert.ok(json.meshes.some(mesh=>mesh.primitives.some(p=>p.attributes.JOINTS_0!==undefined)),profile+': clothing must be skinned');
+  }
+ }
+});

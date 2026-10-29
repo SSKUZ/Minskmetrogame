@@ -13,6 +13,28 @@ export function readCarriageRails(carriage){
  return rails;
 }
 
+// Navigation candidates beside actual vertical posts. Coordinates stay in the
+// simulation's train frame; the accepted carriage geometry remains untouched.
+export function railStandingPlaces(rails,offsetZ=112,aisleX=-.31){
+ const places=[];
+ for(const rail of rails){
+  let point=null,error=Infinity;
+  for(let i=1;i<rail.points.length;i++){
+   const p=rail.points[i],t=p.clone().sub(rail.points[i-1]).normalize();
+   if(Math.abs(t.y)<.94||p.y<2.1||p.y>2.8)continue;
+   if(Math.abs(p.y-2.4)<error){point=p;error=Math.abs(p.y-2.4);}
+  }
+  if(!point)continue;
+  const direction=point.x<aisleX?1:-1;
+  for(const zOffset of [-.25,.25]){
+   const place={x:point.x+direction*.43,z:point.z-offsetZ+zOffset,railId:rail.id};
+   if(place.x< -1.82||place.x>1.25)continue;
+   if(!places.some(p=>Math.hypot(p.x-place.x,p.z-place.z)<.4))places.push(place);
+  }
+ }
+ return places;
+}
+
 export function chooseRailGrip(view,rails){
  view.model.updateWorldMatrix(true,true);
  let best=null,score=Infinity;
@@ -26,7 +48,8 @@ export function chooseRailGrip(view,rails){
    // Keep children on lower bars and all hands below a comfortable reach limit.
    if(p.y<shoulder.y-reach*.72||p.y>shoulder.y+reach*.90)continue;
    const normal=shoulder.clone().sub(p).addScaledVector(tangent,-shoulder.clone().sub(p).dot(tangent)).normalize();
-   const target=p.clone().addScaledVector(normal,rail.radius+.025);
+   const handUp=normal.clone().negate().cross(tangent).normalize();
+   const target=p.clone().addScaledVector(normal,rail.radius+.025).addScaledVector(handUp,-.08);
    const distance=target.distanceTo(shoulder);
    if(distance>reach*.89||distance<reach*.29)continue;
    const local=view.root.worldToLocal(target.clone());

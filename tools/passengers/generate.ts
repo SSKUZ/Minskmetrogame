@@ -11,6 +11,8 @@ const {DEFAULT_PARAMS}=await load('src/core/params.ts');
 const {runExport,planExport,DEFAULT_EXPORT}=await load('src/export/index.ts');
 const cache=join(source,'public/assets');
 const lib=await new AssetLibrary({async read(path){const p=join(cache,path);if(!existsSync(p)){mkdirSync(dirname(p),{recursive:true});console.log('fetch',path);execFileSync('curl',['-fsSL','--retry','2','--max-time','60','https://ara3dgen.com/assets/'+path,'-o',p]);}return new Uint8Array(readFileSync(p));}}).init();
+const {registerMinskWardrobe,seasonalRecipes}=await import('./wardrobe.ts');
+await registerMinskWardrobe(source);
 const variants=[
  ['man-jacket',{gender:1,age:.52,hair:'short02',outfit:'male_casualsuit01',shoes:'shoes01',weight:.54}],
  ['woman-coat',{gender:0,age:.55,hair:'bob02',outfit:'female_casualsuit01',shoes:'shoes02',weight:.48}],
@@ -28,10 +30,11 @@ const variants=[
 const out=fileURLToPath(new URL('../../assets/passengers/',import.meta.url));mkdirSync(out,{recursive:true});
 for(let i=0;i<variants.length;i++){
  const [name,extra]=variants[i];
+ if(process.env.PASSENGER_PROFILES&&!process.env.PASSENGER_PROFILES.split(',').includes(name as string))continue;
  for(const detail of ['medium','low']){
-  const path=join(out,name+(detail==='low'?'-low':'')+'.glb');if(existsSync(path))continue;
+  const path=join(out,name+(detail==='low'?'-low':'')+'.glb');if(existsSync(path)&&process.env.PASSENGER_REBUILD!=='1')continue;
   console.log('BUILD',name,detail);
-  const p={...DEFAULT_PARAMS,...extra,name,detail,african:.025,asian:.035,caucasian:.94,seed:i+17,rig:'game_lite',faceBones:false,faceShapes:false,speechShapes:false,teeth:'none',tongue:false,modifiers:{'nose/nose-width':(i%3-1)*.16,'chin/chin-width':(i%4-1.5)*.10}};
+  const p={...DEFAULT_PARAMS,...extra,...seasonalRecipes[name],name,detail,african:.025,asian:.035,caucasian:.94,seed:i+17,rig:'game_lite',faceBones:false,faceShapes:false,speechShapes:false,teeth:'none',tongue:false,modifiers:{'nose/nose-width':(i%3-1)*.16,'chin/chin-width':(i%4-1.5)*.10}};
   const ch=await buildHuman(lib,p);
   const plan=planExport(ch,{...DEFAULT_EXPORT,format:'glb',clips:['idle','walk','talk','sit_idle','sit_down','stand_up']});
   const file=await runExport(lib,ch,plan);writeFileSync(path,file.data);

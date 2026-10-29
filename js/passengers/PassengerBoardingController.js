@@ -108,8 +108,13 @@ export class PassengerBoardingController{
    a.seat=(a.child||slot%3!==0)&&vacant?vacant:null;
    const standing=[];for(const sx of [-1,1])for(let n=0;n<8;n++)standing.push({x:TRAIN.aisleX+sx*.71,z:center-7+n*2});
    standing.sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
+   if(a.railPreference){
+    const physical=(this.railPlaces??[]).filter(p=>p.z>center-10&&p.z<center+10).sort((p,b)=>Math.abs(p.z-q.z)-Math.abs(b.z-q.z));
+    standing.unshift(...physical);
+   }
    const place=standing.find(p=>!agents.some(o=>o!==a&&o.space==='train'&&Math.hypot(p.x-(o.path.at(-1)?.x??o.x),p.z-(o.path.at(-1)?.z??o.z))<.60));
    const target=(a.seat?seatApproach(a.seat):null)??place??{x:side*.71-.31,z:q.z+(q.id%2?-1:1)*3.2};
+   a.assignedRailId=target.railId??null;
    a.path=[{x:TRAIN.aisleX,z:q.z},{x:TRAIN.aisleX,z:target.z},target];
   }else if(a.state==='returning'){
    q.active=null;
@@ -117,7 +122,7 @@ export class PassengerBoardingController{
    if(a.space==='train'&&a.boardingCounted){q.enter=q.enter.filter(id=>id!==a.id);}
   }else if(a.state==='settling'){
    if(a.seat)beginSitting(a);else a.state='riding';
-   a.activity=a.seat?'wait':a.id%3===0?'phone':a.id%3===1?'rail':'window';
+   a.activity=a.seat?'wait':a.assignedRailId?'rail':a.id%3===0?'phone':a.id%3===1?'rail':'window';
    a.targetHeading=a.seat?(a.x<-.31?Math.PI/2:-Math.PI/2):a.heading;
   }else if(a.state==='leaving'){a.state='gone';}
  }
