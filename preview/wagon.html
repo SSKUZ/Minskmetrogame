@@ -1486,16 +1486,15 @@ function installGoodmixPosters(carRoot){
   const faceX=side*(sideWallInner-.032);
   const poster=new T.Mesh(new T.PlaneGeometry(posterWidth,posterHeight),goodmixPosterMaterial);
   poster.name='goodmix-duo-poster-'+(side<0?'left':'right');
-  poster.rotation.y=side*Math.PI/2;
-  poster.position.set(faceX-side*.005,posterY,posterZ);
+  poster.rotation.y=-side*Math.PI/2;
+  poster.position.set(faceX-side*.019,posterY,posterZ);
   poster.userData.advertisement='goodmix-duo';poster.userData.keepRenderObject=true;
   carRoot.add(poster);
   const frame=new T.Mesh(new T.BoxGeometry(.014,posterHeight+.018,posterWidth+.018),goodmixFrameMaterial);
   frame.name='goodmix-duo-frame-'+(side<0?'left':'right');
-  frame.position.set(faceX+side*.009,posterY,posterZ);
+  frame.position.set(faceX-side*.009,posterY,posterZ);
   frame.userData.keepRenderObject=true;carRoot.add(frame);
   // The image sits just in front of the frame surface, avoiding z-fighting.
-  poster.position.x=faceX+side*.019;
  }
 }
 installGoodmixPosters(group);
