@@ -819,9 +819,10 @@ for(const z of [-5.15,-.15,4.85,8.45]){
  fixtureBox(.50,.030,.74,0,F+2.258,z,saloonLens);
 }
 for(const side of [-1,1])fixtureBox(.045,.020,saloonLength-.42,side*.98,F+2.205,(saloonStart+saloonEnd)/2,saloonTrim);
-// Ventilation grilles use shallow blades rather than dark painted rectangles.
-for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
- for(let k=-4;k<=4;k++)fixtureBox(.012,.012,.12,k*.026,F+2.315,z,saloonJoint);
+// Side intake channels complement the central grilles without duplicating them.
+for(const side of [-1,1])for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
+ fixtureBox(.18,.012,.20,side*.30,F+2.304,z,saloonJoint);
+ for(let k=-3;k<=3;k++)fixtureBox(.012,.010,.16,side*(.30+k*.018),F+2.296,z,saloonDark);
 }
 // End-wall corner guards and threshold kick plates protect the high-contact areas.
 for(const z of [saloonStart+.055,saloonEnd-.055]){
@@ -936,11 +937,14 @@ for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
  detailBox(.022,.022,.42,side*(sideWallInner-.057),F+1.70,z,saloonNoticeRed);
  for(const dz of [-.20,-.07,.06,.19])detailBox(.023,.012,.08,side*(sideWallInner-.058),F+1.79,z+dz,saloonDark);
 }
-// Small ceiling speaker/vent housings break up the otherwise perfectly clean
-// ceiling while remaining lightweight enough for the browser build.
+// Framed ventilation modules and speaker grilles along the ceiling centreline.
 for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
- detailBox(.30,.025,.16,0,3.285,z,saloonDark);
- for(const x of [-.09,-.03,.03,.09])detailBox(.018,.006,.10,x,3.268,z,sideRubber);
+ detailBox(.36,.030,.22,0,3.275,z,saloonTrim);
+ detailBox(.31,.024,.17,0,3.252,z,saloonDark);
+ for(let x=-.12;x<=.12;x+=.04)detailBox(.012,.010,.145,x,3.238,z,sideRubber);
+ // Small circular-equivalent speaker represented as a shallow perforated grille.
+ detailBox(.11,.014,.11,.25,3.245,z+.34,saloonDark);
+ for(const dx of [-.03,0,.03])detailBox(.010,.008,.075,.25+dx,3.235,z+.34,sideRubber);
 }
 // Passenger-facing route strips above the windows and compact equipment
 // covers near the door bays. Their shallow depth keeps the approved aisle.
