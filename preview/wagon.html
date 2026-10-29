@@ -650,6 +650,51 @@ const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,e
 const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
+const saloonTrim=new T.MeshStandardMaterial({color:0x9c9d97,metalness:.38,roughness:.38,envMap:frontEnvironment,envMapIntensity:.28});
+const saloonJoint=new T.MeshStandardMaterial({color:0x555b5c,metalness:.08,roughness:.78});
+const saloonLens=new T.MeshPhysicalMaterial({color:0xfff5df,emissive:0xffe8bd,emissiveIntensity:.28,roughness:.34,clearcoat:.12});
+const saloonFixtureNodes=[];
+function fixtureBox(w,h,d,x,y,z,m){const node=detailBox(w,h,d,x,y,z,m);saloonFixtureNodes.push(node);return node;}
+// Thin lower-wall rub strips and access-panel joints add scale without changing the accepted shell.
+for(const side of [-1,1]){
+ fixtureBox(.012,.045,saloonLength-.18,side*1.205,F+.38,(saloonStart+saloonEnd)/2,saloonTrim);
+ for(let z=saloonStart+.62;z<saloonEnd-.30;z+=1.55){
+  fixtureBox(.014,.32,.008,side*1.207,F+.66,z,saloonJoint);
+  fixtureBox(.016,.018,.11,side*1.209,F+.66,z+.34,saloonTrim);
+ }
+}
+// Door jamb liners, upper mechanism covers and small fasteners make the vestibule zones read as assembled hardware.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.055,doorWidth/2+.055]){
+  fixtureBox(.020,1.88,.032,side*1.218,F+1.04,z+dz,saloonTrim);
+  for(const yy of [F+.22,F+1.03,F+1.84])fixtureBox(.023,.026,.026,side*1.231,yy,z+dz,saloonDark);
+ }
+ fixtureBox(.035,.19,doorWidth+.18,side*1.205,F+2.06,z,saloonJoint);
+ fixtureBox(.038,.035,doorWidth-.12,side*1.208,F+1.985,z,saloonTrim);
+}
+// Seat plinth end caps, mounting feet and a subdued front wear strip.
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ for(const z of [a+.035,b-.035])fixtureBox(.38,.30,.025,side*.974,F+.245,z,seatBase);
+ fixtureBox(.012,.028,b-a-.12,side*.754,F+.145,(a+b)/2,saloonJoint);
+ for(const z of [a+.20,b-.20])fixtureBox(.055,.075,.12,side*.925,F+.055,z,saloonDark);
+}
+// Ceiling panel joints, compact speaker grilles and richer diffuser lenses.
+for(let z=saloonStart+.55;z<saloonEnd-.25;z+=1.18){
+ fixtureBox(.86,.010,.012,0,F+2.285,z,saloonJoint);
+ for(const side of [-1,1])fixtureBox(.22,.012,.055,side*.86,F+2.245,z+.28,saloonJoint);
+}
+for(const z of [-5.15,-.15,4.85,8.45]){
+ fixtureBox(.48,.018,.72,0,F+2.265,z,saloonLens);
+ for(let k=-2;k<=2;k++)fixtureBox(.012,.020,.035,k*.055,F+2.252,z+.44,saloonDark);
+}
+// Torso-height end-wall service hardware visible from the approved saloon camera.
+for(const z of [saloonStart+.075,saloonEnd-.075]){
+ fixtureBox(.62,.78,.035,-.58,F+1.25,z,saloonPaper);
+ fixtureBox(.57,.035,.030,-.58,F+1.60,z+(z<0?.020:-.020),saloonNoticeBlue);
+ fixtureBox(.30,.22,.040,.63,F+1.48,z,saloonJoint);
+ fixtureBox(.22,.055,.045,.63,F+1.50,z+(z<0?.025:-.025),saloonAmber);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
