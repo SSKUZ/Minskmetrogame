@@ -577,6 +577,11 @@ const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.52,clearcoat:.
 const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.12,roughness:.58,envMap:frontEnvironment,envMapIntensity:.18});
 const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
 const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
+// Final saloon material family: painted lining, brushed metal, rubber, vinyl and floor remain visually distinct.
+sideLining.roughness=.72; sideLining.metalness=.02;
+sideSteel.roughness=.28; sideSteel.metalness=.82; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.52;
+sideRubber.roughness=.94; sideRubber.metalness=0;
+doorInnerLining.roughness=.64; doorInnerLining.metalness=.04;
 const saloonSeats=[],saloonRails=[];
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
 // Floor finish is laid in broad longitudinal sheets with restrained welded seams and perimeter sealing.
@@ -824,6 +829,11 @@ for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.0
   const sleeve=new T.Mesh(new T.CylinderGeometry(.025,.025,.055,14),saloonTrim);
   sleeve.rotation.z=Math.PI/2;sleeve.position.set(side*.74,y,z);group.add(sleeve);passenger(sleeve);saloonDetail(sleeve);saloonFixtureNodes.push(sleeve);
  }
+}
+// Subtle threshold wear zones break the perfectly uniform floor without dirtying the carriage.
+for(const z of doors)for(const side of [-1,1]){
+ fixtureBox(.42,.004,.72,side*.82,F+.014,z,floorFinish);
+ fixtureBox(.018,.005,.68,side*.61,F+.016,z,saloonJoint);
 }
 // Small floor access covers and fasteners, outside the central walking line.
 for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
