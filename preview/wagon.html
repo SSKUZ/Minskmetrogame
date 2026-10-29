@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Вагон 81-717/714 — геометрия</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#141b25;color:white;font:14px system-ui}#info{position:absolute;top:8px;left:8px;background:#101923d9;padding:12px;border-radius:8px;max-width:340px;pointer-events:none}button{position:absolute;bottom:14px;left:14px;padding:12px;border:0;border-radius:8px;background:#f1ca55;color:#111;font-weight:700}</style></head><body><div id="info"><b>81-717/714 · Четырёхвагонный состав · v106</b><br>Каждый вагон: 19,206 × 2,670 м · 4 двери на сторону<br>Поворот: пальцем · масштаб: двумя пальцами · обзор: снаружи/внутри<br><small>Версия v106: четыре вагона, общие компоненты, 64 предупреждающие наклейки.</small></div><div id="status" style="position:absolute;right:10px;bottom:14px;max-width:220px;background:#16232de8;padding:9px;border-radius:8px">Загрузка 3D…</div><button id="view">Камера салона</button><button id="driver" style="left:170px">Камера машиниста</button><button id="front" style="left:355px">Вид спереди</button><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
+window.wagonStartupStage={name:'module-start',at:performance.now()};
+const startupStage=name=>{window.wagonStartupStage={name,at:performance.now()};};
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createIntercarEnd,createIntercarConnection} from './train-components.js?v=106';
@@ -8,6 +10,7 @@ import {createIntermediateCar,cloneCar,assembleConsist} from './train-factory.js
 import {batchStaticCar} from './train-batching.js?v=106';
 const scene=new T.Scene();scene.background=new T.Color(0x141b25);
 const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.03,150);camera.position.set(8,5,-14);camera.layers.enable(1);
+startupStage('renderer-create');
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.body.appendChild(renderer.domElement);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.toneMappingExposure=1;
 // Preserve the agreed body/interior lighting on layer 0. New front surfaces
 // use layer 1 so material calibration cannot recolor the passenger body.
@@ -16,6 +19,7 @@ const sun=new T.DirectionalLight(0xffffff,2.5);sun.position.set(6,15,9);scene.ad
 const frontAmbient=new T.HemisphereLight(0xfff5e6,0x3c404a,.65);frontAmbient.layers.set(1);scene.add(frontAmbient);
 const frontKey=new T.DirectionalLight(0xfff3df,2.2);frontKey.position.set(4,8,-17);frontKey.layers.set(1);scene.add(frontKey);
 const fill=new T.DirectionalLight(0xcbdcff,.6);fill.position.set(-6,4,-13);fill.layers.set(1);scene.add(fill);
+startupStage('renderer-ready');
 let frontEnvironment;
 // Procedural light boxes provide physically reflected ceiling bands without
 // painting highlights into the train or adding geometry to the wagon.
@@ -29,6 +33,7 @@ let frontEnvironment;
  softbox(29,.02,49,0,-3.5,0,0x353638);
  for(const x of [-4.0,4.0])softbox(.45,.04,22,x,5.1,0,0xfff6df,4);
  for(const x of [-5.0,5.0])softbox(.40,3.2,.05,x,1.5,-6,0xf7f1e4,2.5);
+ startupStage('viewer-pmrem');
  const generator=new T.PMREMGenerator(renderer);const environment=generator.fromScene(studio,.04,.1,80);
  frontEnvironment=environment.texture;generator.dispose();
  studio.traverse(object=>{if(object.isMesh){object.geometry.dispose();object.material.dispose();}});
@@ -127,9 +132,22 @@ const chevronPaint=sideCream.clone();chevronPaint.polygonOffset=true;chevronPain
 const doorInnerLining=sideLining.clone();doorInnerLining.polygonOffset=false;
 const sideGlass=new T.MeshPhysicalMaterial({color:0xe1ecec,transparent:true,opacity:.13,roughness:.12,metalness:0,envMap:frontEnvironment,envMapIntensity:.20,clearcoat:.18,depthWrite:false,side:T.DoubleSide});
 const sideAmbient=new T.HemisphereLight(0xfff6e6,0x343b47,.95);sideAmbient.layers.set(2);scene.add(sideAmbient);
+const saloonExteriorLights=[];
 for(const [x,y,z,power] of [[7,10,3,2.4],[-6,5,-4,1.0]]){
- const lamp=new T.DirectionalLight(0xfff6e9,power);lamp.position.set(x,y,z);lamp.layers.set(2);scene.add(lamp);
+ const lamp=new T.DirectionalLight(0xfff6e9,power);lamp.position.set(x,y,z);lamp.layers.set(2);scene.add(lamp);saloonExteriorLights.push({lamp,power});
 }
+// Environment response for gameplay integration. Station keeps glazing clear;
+// tunnel strengthens interior reflections and lowers exterior spill without changing geometry.
+window.wagonSetVisualEnvironment=(mode='station')=>{
+ const tunnel=mode==='tunnel',transition=mode==='transition';
+ sideGlass.opacity=tunnel?.19:transition?.15:.115;
+ sideGlass.roughness=tunnel?.10:transition?.13:.16;
+ sideGlass.envMapIntensity=tunnel?.52:transition?.39:.28;
+ sideGlass.clearcoat=tunnel?.18:.10;
+ sideAmbient.intensity=tunnel?.68:transition?.82:.95;
+ for(const {lamp,power} of saloonExteriorLights)lamp.intensity=power*(tunnel?.20:transition?.58:1);
+ qaFramesRemaining=3;
+};
 const passengerNodes=[],passengerWindows=[],slidingLeaves=[];
 function passenger(object){object.traverse(o=>{if(o.isMesh)o.layers.set(2)});passengerNodes.push(object);return object;}
 function sideBox(w,h,d,x,y,z,m){return passenger(box(w,h,d,x,y,z,m));}
@@ -207,10 +225,10 @@ function buildPassengerBay(side,a,b){
  // Clear glazing and three-dimensional opening-light frame, never a photo.
  const pane=sidePanel(w-.042,h-.042,r-.02,side*(half-.067),y,z,sideGlass);
  passengerWindows.push({side,z,w,h,y,pane});
+ // Authentic 81-717 passenger window: one short upper vent section over one large lower pane.
+ // Keep only the single horizontal transom; no vertical bars, latches or grille-like strips across the glass.
  const transom=y+h/2-.23;
- sideBox(.027,.022,w-.034,side*(half-.059),transom,z,sideSteel);
- sideBox(.025,.20,.016,side*(half-.059),transom+.11,z,sideSteel);
- for(const dz of [-w*.22,w*.22])sideBox(.025,.018,.10,side*(half-.08),transom+.025,z+dz,sideRubber);
+ sideBox(.022,.018,w-.034,side*(half-.059),transom,z,sideSteel);
  // Belt and a narrow lower sill are attached to the formed shell.
  sideBox(.003,.105,len-.012,side*(sideWallBase+.003),F+.94,bayMid,sideCream);
  sideBox(.024,.045,len,side*(sideWallBase-.006),F+.006,bayMid,sidePaint);
@@ -275,7 +293,11 @@ function addDoorCautions(side,dz){
   geo.setIndex(side>0?[0,2,1,0,3,2]:[0,1,2,0,2,3]);
   geo.computeVertexNormals();
   const decal=new T.Mesh(geo,doorCautionMaterial);
-  decal.layers.set(2);
+  // Warning decals must remain visible in both the standalone viewer and the
+  // gameplay renderer. Layer 0 is included in the game's normal render pass;
+  // layer 2 alone could disappear when the imported consist is rendered.
+  decal.layers.enable(0);
+  decal.layers.enable(2);
   decal.renderOrder=2;
   decal.name='passenger-door-caution';
   decal.userData.warningDecal=true;decal.userData.side=side;decal.userData.doorZ=dz;decal.userData.direction=direction;
@@ -293,10 +315,11 @@ function buildPassengerDoors(side,dz){
   sideBox(.025,doorHeight,.027,side*(sideWallBase-.007),F+doorHeight/2,z,sideRubber);
   sideBox(.012,doorHeight,.025,side*(sideWallInner-.006),F+doorHeight/2,z,sideSteel);
  }
- // Paint the existing metal threshold, without adding yellow overlay plates.
- sideBox(.17,.025,doorWidth,side*(half-.082),F-.006,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
- // Recolour the existing vertical lower sill face, not the moving door leaves.
- sideBox(.012,.092,doorWidth,side*(half-.082),F-.055,dz,new T.MeshStandardMaterial({color:0xf4c400,metalness:.3,roughness:.52}));
+ // Low-profile integrated sill: flush with the saloon floor, no protruding plate.
+ const threshold=sideBox(.115,.009,doorWidth-.025,side*(half-.092),F+.006,dz,new T.MeshStandardMaterial({color:0x858b89,metalness:.36,roughness:.62}));
+ threshold.name='v106-passenger-threshold';threshold.userData.passengerThreshold=true;
+ // A narrow dark front joint defines the sill without a hanging yellow slab.
+ sideBox(.008,.024,doorWidth-.025,side*(half-.045),F-.012,dz,sideRubber);
  sideBox(.15,.16,doorWidth+.12,side*(half-.21),F+doorHeight+.04,dz,sideLining);
  const surround=roundedShape(doorWidth+.09,doorHeight+.07,.12),opening=new T.Path(),points=roundedShape(doorWidth,doorHeight,.105).getPoints(20);
  for(let i=points.length-1;i>=0;i--){const p=points[i];if(i===points.length-1)opening.moveTo(p.x,p.y);else opening.lineTo(p.x,p.y)}
@@ -318,10 +341,9 @@ function buildPassengerDoors(side,dz){
   sideRing(glassW,glassH,.085,side*.017,shift,0,sideRubber,.010,leaf);
   sideRing(glassW-.018,glassH-.018,.077,side*.023,shift,0,sideSteel,.004,leaf);
   const seam=new T.Mesh(new T.BoxGeometry(.037,leafH-.04,.015),sideRubber);seam.position.z=-halfDoor*(leafW/2-.005);leaf.add(seam);passenger(seam);
-  // Both painted chevrons and inner skin travel with their leaf.
-  const outer=halfDoor*(leafW/2-.035),tip=-halfDoor*(leafW/2-.12);
-  doorChevron(leaf,side,outer,F+.94-midY,tip,F+.49-midY);
-  doorChevron(leaf,side,tip,F+.49-midY,outer,F+.055-midY);
+  // Clean 81-717 sliding-door skin. The former painted chevron geometry
+  // projected across the leaf as stray decorative overlays; omit it entirely.
+  // Retain only the recessed glazing, perimeter seals and centre seam.
   slidingLeaves.push({leaf,side,doorZ:dz,homeZ,half:halfDoor,travel:.600,thickness:.032});
   leaf.traverse(o=>{if(o.isMesh)o.userData.slidingDoor=true});
  }
@@ -416,8 +438,14 @@ function buildBodyCorner(side){
 }
 
 let doorProgress=0,doorTarget=0;
+// Mechanical door travel: soft motor take-up, steady middle travel and cushioned final seating.
+// This changes only the visual leaf interpolation; calibrated clear width/end positions stay exact.
+function doorTravelCurve(p){
+ p=T.MathUtils.clamp(p,0,1);
+ return p*p*p*(p*(p*6-15)+10);
+}
 function setDoorProgress(progress){
- doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorProgress*doorProgress*(3-2*doorProgress);
+ doorProgress=T.MathUtils.clamp(Number(progress),0,1);const t=doorTravelCurve(doorProgress);
  for(const car of activeCars)for(const d of car.leaves)d.leaf.position.z=d.homeZ+d.half*d.travel*t;
  qaFramesRemaining=3;
 }
@@ -567,15 +595,32 @@ function grainTexture(size,repeatX,repeatY){
  }
  const texture=new T.DataTexture(data,size,size,T.RGBAFormat);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(repeatX,repeatY);texture.needsUpdate=true;return texture;
 }
-const floorFinish=new T.MeshStandardMaterial({color:0x747a7c,roughness:.86,bumpMap:grainTexture(64,5,28),bumpScale:.0014});
-const vinyl=new T.MeshPhysicalMaterial({color:0x344758,roughness:.48,clearcoat:.15,envMap:frontEnvironment,envMapIntensity:.35,bumpMap:grainTexture(64,2,3),bumpScale:.0005});
-const seatBase=new T.MeshStandardMaterial({color:0xb9bab0,metalness:.20,roughness:.52});
+const floorFinish=new T.MeshStandardMaterial({color:0x707576,roughness:.89,metalness:.012,bumpMap:grainTexture(64,5,28),bumpScale:.00125});
+const vinyl=new T.MeshPhysicalMaterial({color:0x304457,roughness:.64,clearcoat:.045,clearcoatRoughness:.76,envMap:frontEnvironment,envMapIntensity:.25,bumpMap:grainTexture(128,3,4),bumpScale:.00065});
+const seatBase=new T.MeshStandardMaterial({color:0xb8b9b2,metalness:.08,roughness:.64,envMap:frontEnvironment,envMapIntensity:.14});
 const railBlue=new T.MeshStandardMaterial({color:0x2755a0,metalness:.32,roughness:.29,envMap:frontEnvironment,envMapIntensity:.5});
-const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.78,side:T.DoubleSide});
-const saloonSeats=[],saloonRails=[];
+const ceilingWhite=new T.MeshStandardMaterial({color:0xe5dec9,roughness:.82,side:T.DoubleSide});
+// Final saloon material family: painted lining, brushed metal, rubber, vinyl and floor remain visually distinct.
+sideLining.roughness=.83; sideLining.metalness=.012;
+// Subtle moulded-plastic microtexture: no extra seams or artificial ribs.
+sideLining.bumpMap=grainTexture(64,2,7);sideLining.bumpScale=.00022;
+doorInnerLining.bumpMap=sideLining.bumpMap;doorInnerLining.bumpScale=.00018;
+sideSteel.roughness=.34; sideSteel.metalness=.88; sideSteel.envMap=frontEnvironment; sideSteel.envMapIntensity=.46;
+sideRubber.roughness=.94; sideRubber.metalness=0;
+doorInnerLining.roughness=.72; doorInnerLining.metalness=.025;
+startupStage('saloon-build');
+const saloonSeats=[],saloonRails=[],saloonLightSources=[];
+const floorSeam=new T.MeshStandardMaterial({color:0x555b5c,metalness:.05,roughness:.86});
 sideBox(W-.28,.009,saloonLength,0,F+.006,(saloonStart+saloonEnd)/2,floorFinish);
+// Floor finish is laid in broad longitudinal sheets with restrained welded seams and perimeter sealing.
+for(const x of [-.48,.48])sideBox(.012,.003,saloonLength-.18,x,F+.012,(saloonStart+saloonEnd)/2,floorSeam);
+for(let z=saloonStart+2.15;z<saloonEnd-.8;z+=3.25)sideBox(W-.42,.003,.012,0,F+.013,z,floorSeam);
+for(const side of [-1,1])sideBox(.035,.018,saloonLength-.16,side*1.145,F+.018,(saloonStart+saloonEnd)/2,sideRubber);
+// Restrained traffic wear: broad, nearly invisible aisle bands break the perfectly-new procedural floor without making the car dirty.
+const floorWear=new T.MeshStandardMaterial({color:0x777c7c,transparent:true,opacity:.12,roughness:.82,metalness:0,depthWrite:false});
+for(const [x,w] of [[-.24,.18],[.18,.22]])sideBox(w,.001,saloonLength-.70,x,F+.016,(saloonStart+saloonEnd)/2,floorWear);
 function saloonCushion(w,h,d,x,y,z,material){
- const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.025),{depth:d,bevelEnabled:true,bevelSize:.005,bevelThickness:.005,bevelSegments:2,curveSegments:12});
+ const geometry=new T.ExtrudeGeometry(roundedShape(w,h,.029),{depth:d,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:3,curveSegments:16});
  const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);group.add(mesh);return passenger(mesh);
 }
 const seatBays=[[-5.52,-2.67,6],[-1.08,1.78,6],[3.37,6.22,6],[8.38,9.25,2]];
@@ -584,15 +629,41 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  sideBox(.42,.34,len-.05,side*.973,F+.245,z,seatBase);
  // Ventilation slots in the actual seat plinth.
  for(let k=0;k<Math.floor(len/.085)-1;k++)sideBox(.002,.060,.035,side*.761,F+.25,a+.085+k*.085,sideRubber);
+ // Recessed toe-kick and top lip separate the plinth from the floor and cushions.
+ sideBox(.025,.055,len-.10,side*.775,F+.085,z,sideRubber);
+ sideBox(.030,.025,len-.08,side*.805,F+.405,z,seatBase);
  for(let i=0;i<count;i++){
-  const width=len/count-.022,zz=a+(i+.5)*len/count;
-  const pad=saloonCushion(.45,.10,width,side*.962,F+.485,zz,vinyl);
-  const back=saloonCushion(.095,.48,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.065;
+  const width=len/count-.026,zz=a+(i+.5)*len/count;
+  const pad=saloonCushion(.45,.095,width,side*.962,F+.482,zz,vinyl);
+  const back=saloonCushion(.090,.475,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.060;
+  // Shallow rear shell and lower mounting tongue give each cushion a physical seat frame.
+  sideBox(.028,.43,width-.018,side*1.177,F+.785,zz,seatBase);
+  sideBox(.055,.105,width-.040,side*1.105,F+.515,zz,seatBase);
+  // Thin edge welts and two rear fasteners finish the individual upholstered module.
+  sideBox(.007,.012,width-.048,side*.914,F+.530,zz,sideSteel);
+  sideBox(.007,.012,width-.052,side*1.087,F+.582,zz,sideSteel);
+  for(const dz of [-width*.28,width*.28])sideBox(.018,.018,.018,side*1.183,F+.735,zz+dz,sideSteel);
   saloonSeats.push({side,z:zz,seat:pad,back});
  }
+ // Seat-bay end cheeks, floor shoes and restrained cushion separators make the bench read as assembled furniture.
+ for(const endZ of [a+.035,b-.035]){
+  sideBox(.075,.48,.030,side*1.115,F+.62,endZ,seatBase);
+  sideBox(.18,.055,.11,side*.93,F+.055,endZ,sideRubber);
+ }
+ for(let i=1;i<count;i++){
+  const seamZ=a+i*len/count;
+  sideBox(.012,.075,.010,side*.965,F+.505,seamZ,floorSeam);
+  sideBox(.012,.34,.010,side*1.178,F+.79,seamZ,floorSeam);
+ }
+ for(const shoeZ of [a+.22,b-.22]){
+  sideBox(.13,.075,.15,side*.91,F+.055,shoeZ,sideRubber);
+  sideBox(.16,.012,.18,side*.91,F+.012,shoeZ,sideSteel);
+ }
  for(const zz of [a+.015,b-.015]){
-  const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+1.90,zz],[side*.76,F+2.10,zz],[side*.93,F+2.23,zz]],.017,railBlue);saloonRails.push(pole);
-  sideTube([[side*1.16,F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.015,sideSteel);
+  // 81-717 style: vertical chrome stanchion grows from the seat/floor zone and
+  // terminates in a rigid junction with the continuous ceiling handrail.
+  const pole=sideTube([[side*.74,F+.10,zz],[side*.74,F+2.12,zz]],.011,sideSteel);saloonRails.push(pole);
+  const seatRail=sideTube([[side*(sideWallInner-.015),F+.72,zz],[side*.82,F+.72,zz],[side*.74,F+.65,zz]],.011,sideSteel);saloonRails.push(seatRail);
  }
 }
 // Curved internal ceiling follows the roof instead of a suspended flat box.
@@ -605,35 +676,325 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  for(let i=0;i<columns;i++){const k=i*2;ix.push(k,k+1,k+2,k+1,k+3,k+2)}
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vs,3));geometry.setIndex(ix);geometry.computeVertexNormals();
  const mesh=new T.Mesh(geometry,ceilingWhite);group.add(mesh);passenger(mesh);
+ // Smooth curved ceiling liner; avoid artificial full-length metal ribs.
 }
-const diffuser=new T.MeshStandardMaterial({color:0xfff2d5,emissive:0xffecd0,emissiveIntensity:.48,roughness:.65});
+const diffuser=new T.MeshStandardMaterial({color:0xfff1d7,emissive:0xffe9c8,emissiveIntensity:.40,roughness:.74});
 for(const side of [-1,1]){
- sideTube([[side*.72,F+2.12,saloonStart+.30],[side*.72,F+2.12,saloonEnd-.20]],.018,sideSteel);
+ const ceilingRail=sideTube([[side*.74,F+2.12,saloonStart+.18],[side*.74,F+2.12,saloonEnd-.12]],.0135,sideSteel);saloonRails.push(ceilingRail);
+ // Rigid brackets physically tie the longitudinal rail into the ceiling shell.
+ for(let z=saloonStart+.45;z<saloonEnd-.25;z+=1.42){
+  const bracket=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.22,z],[side*.82,F+2.30,z]],.011,sideSteel);saloonRails.push(bracket);
+ }
+ // Positive end anchors: each long tube turns into a rigid ceiling socket instead of ending in air.
+ for(const z of [saloonStart+.18,saloonEnd-.12]){
+  const endAnchor=sideTube([[side*.74,F+2.12,z],[side*.82,F+2.20,z],[side*.82,F+2.30,z]],.011,sideSteel);saloonRails.push(endAnchor);
+  const socket=new T.Mesh(new T.CylinderGeometry(.028,.028,.025,16),sideSteel);
+  socket.position.set(side*.82,F+2.292,z);group.add(socket);passenger(socket);saloonRails.push(socket);
+ }
+ // Door-zone stanchions join floor/seat structure directly to the same longitudinal rail.
+ for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
+  const doorPole=sideTube([[side*.74,F+.10,z+dz],[side*.74,F+2.12,z+dz]],.0115,sideSteel);saloonRails.push(doorPole);
+  const wallTie=sideTube([[side*.74,F+1.04,z+dz],[side*(sideWallInner-.012),F+1.04,z+dz]],.0105,sideSteel);saloonRails.push(wallTie);
+ }
  for(const z of doors){
-  sideTube([[side*.72,3.08,z],[side*.72,3.24,z]],.012,railBlue);
   // Inner door head and floor seam are fixed, outside the sliding channel.
   sideBox(.10,.18,doorWidth+.06,side*(half-.20),3.13,z,sideLining);
  }
  for(const z of [-6.9,-4.65,-2.4,-.15,2.1,4.35,6.6,8.75]){
-  sideBox(.16,.022,1.92,side*.53,3.285,z,sideSteel);
-  sideBox(.137,.025,1.87,side*.53,3.267,z,diffuser);
+  // Recessed fluorescent-style luminaire: metal tray, warm lens and slim retaining rails.
+  sideBox(.19,.034,1.96,side*.53,3.270,z,sideSteel);
+  sideBox(.151,.022,1.86,side*.53,3.244,z,diffuser);
+  sideBox(.012,.012,1.90,side*(.53-.082),3.238,z,sideLining);
+  sideBox(.012,.012,1.90,side*(.53+.082),3.238,z,sideLining);
  }
  for(const w of passengerWindows.filter(w=>w.side===side)){
-  sideRing(w.w+.05,w.h+.05,.15,side*(sideWallInner-.008),w.y,w.z,sideLining,.022);
-  sideBox(.014,.045,w.w+.12,side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
+  // Clean interior surround: one perimeter gasket and a slim sill, matching the simple two-section window.
+  sideRing(w.w+.032,w.h+.032,.148,side*(sideWallInner-.010),w.y,w.z,sideLining,.016);
+  sideRing(w.w+.006,w.h+.006,.140,side*(sideWallInner-.014),w.y,w.z,sideRubber,.006);
+  sideBox(.010,.026,w.w+.07,side*(sideWallInner-.020),w.y-w.h/2-.020,w.z,sideSteel);
  }
  // Narrow longitudinal ceiling ventilation slots, on actual 3D trim.
  sideBox(.075,.014,saloonLength,side*.23,3.311,(saloonStart+saloonEnd)/2,sideLining);
- for(let z=saloonStart+.06;z<saloonEnd;z+=.10)sideBox(.046,.004,.025,side*.23,3.300,z,sideRubber);
+ for(let z=saloonStart+.12;z<saloonEnd;z+=.24)sideBox(.042,.003,.018,side*.23,3.300,z,sideRubber);
 }
-for(const z of [-5.4,-.4,4.6,8.6]){
- const lamp=new T.PointLight(0xffeed7,1.3,4.2,2);lamp.position.set(0,3.09,z);lamp.layers.set(2);scene.add(lamp);
+for(const [z,power] of [[-6.0,.94],[-2.8,1.00],[.4,.97],[3.6,1.02],[6.8,.93]]){
+ const lamp=new T.PointLight(0xffeed7,power,3.85,2);lamp.position.set(0,3.08,z);lamp.layers.set(2);scene.add(lamp);saloonLightSources.push({lamp,power,phase:z*.71});
 }
-// Floor inlays mark the threshold without blocking the 3D doorway.
+window.wagonSetSaloonLightLoad=(load=1)=>{const l=T.MathUtils.clamp(Number(load)||1,.85,1.04);for(const x of saloonLightSources)x.lamp.intensity=x.power*l;qaFramesRemaining=2;};
+
+window.wagonUpdatePassingLight=(distance=0,speed=0)=>{
+ const v=Math.abs(Number(speed)||0),d=Number(distance)||0,phase=((d%8)+8)%8/8;
+ const pulse=(.5+.5*Math.sin(phase*Math.PI*2))*T.MathUtils.clamp(v/12,0,.65);
+ const source=saloonExteriorLights[0];
+ if(source)source.lamp.intensity=source.power*(.20+.38*pulse);qaFramesRemaining=2;
+};
+// The doorway already has an integrated sill; do not stack extra metal floor plates.
+
+// Soft contact shade only: no raised metal lip in the passenger doorway.
+const saloonContactShade=new T.MeshBasicMaterial({color:0x111315,transparent:true,opacity:.13,depthWrite:false});
 for(const side of [-1,1])for(const z of doors){
- sideBox(.18,.003,doorWidth-.16,side*1.12,F+.012,z,sideSteel);
- for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
+ sideBox(.11,.002,doorWidth-.20,side*1.045,F+.017,z,saloonContactShade);
 }
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
+ // Low-cost local contact shade beneath the upholstered seat and seat plinth.
+ sideBox(.34,.001,b-a-.16,side*.96,F+.0195,(a+b)/2,new T.MeshBasicMaterial({color:0x14191c,transparent:true,opacity:.065,depthWrite:false}));
+}
+// No unverified repetitive vertical wall seams.
+// Saloon detail pass: keep the approved dimensions and seating coordinates,
+// but add the small fixtures that make the interior read as a working 81-717.
+const saloonDark=new T.MeshStandardMaterial({color:0x252b2d,metalness:.12,roughness:.72});
+const saloonPaper=new T.MeshStandardMaterial({color:0xf2efe2,roughness:.88});
+const saloonNoticeBlue=new T.MeshStandardMaterial({color:0x315d82,roughness:.72});
+const saloonNoticeRed=new T.MeshStandardMaterial({color:0xa73a32,roughness:.70});
+const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,emissiveIntensity:.18,roughness:.55});
+const saloonDetailNodes=[];
+function saloonDetail(object){saloonDetailNodes.push(object);return object;}
+function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
+const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.84,roughness:.32,envMap:frontEnvironment,envMapIntensity:.52});
+// End-door hardware is supplied by the actual intercar door assembly.
+const saloonJoint=new T.MeshStandardMaterial({color:0x484e4f,metalness:.035,roughness:.91});
+const saloonLens=new T.MeshPhysicalMaterial({color:0xfff3dc,emissive:0xffe7bd,emissiveIntensity:.24,roughness:.46,clearcoat:.05});
+const saloonFixtureNodes=[];
+function fixtureBox(w,h,d,x,y,z,m){const node=detailBox(w,h,d,x,y,z,m);saloonFixtureNodes.push(node);return node;}
+// Keep the original broad wall lining free of artificial repeated seams.
+// Door jamb liners, upper mechanism covers and small fasteners make the vestibule zones read as assembled hardware.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.055,doorWidth/2+.055]){
+  fixtureBox(.020,1.88,.032,side*1.218,F+1.04,z+dz,saloonTrim);
+  for(const yy of [F+.22,F+1.03,F+1.84])fixtureBox(.023,.026,.026,side*1.231,yy,z+dz,saloonDark);
+ }
+ fixtureBox(.035,.19,doorWidth+.18,side*1.205,F+2.06,z,saloonJoint);
+ fixtureBox(.038,.035,doorWidth-.12,side*1.208,F+1.985,z,saloonTrim);
+ // Dark compressed seals and a narrow stainless wear edge give the doorway real depth from the saloon.
+ for(const dz of [-doorWidth/2-.035,doorWidth/2+.035])fixtureBox(.014,1.80,.022,side*1.224,F+1.02,z+dz,sideRubber);
+ fixtureBox(.018,.025,doorWidth+.08,side*1.220,F+.105,z,saloonTrim);
+}
+// Seat plinth end caps, mounting feet and a subdued front wear strip.
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ for(const z of [a+.035,b-.035])fixtureBox(.38,.30,.025,side*.974,F+.245,z,seatBase);
+ fixtureBox(.012,.028,b-a-.12,side*.754,F+.145,(a+b)/2,saloonJoint);
+ for(const z of [a+.20,b-.20])fixtureBox(.055,.075,.12,side*.925,F+.055,z,saloonDark);
+}
+// Use the original ceiling lights; no supplementary fake speaker or light boxes.
+// Fine door-mechanism cover fasteners, positioned away from moving leaves.
+for(const side of [-1,1])for(const z of doors)for(const dz of [-.56,.56])fixtureBox(.012,.012,.006,side*1.189,F+2.07,z+dz,saloonTrim);
+// No provisional end-wall information boards or coloured blocks.
+
+// Seat upholstery piping and mounting hardware are built with each seat module above.
+// Retain narrow side-wall protection panels; remove the duplicate raised threshold plates.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.20,doorWidth/2+.20])fixtureBox(.018,.74,.16,side*1.195,F+.76,z+dz,saloonTrim);
+}
+// Original ceiling lighting and ventilation remain; no duplicate full-length service strips.
+// End-wall perimeter trims and low kick protection complete the visible bulkheads.
+for(const z of [saloonStart+.06,saloonEnd-.06]){
+ fixtureBox(2.12,.055,.025,0,F+.12,z,saloonTrim);
+ for(const x of [-1.04,1.04])fixtureBox(.035,1.96,.025,x,F+1.08,z,saloonTrim);
+ // Fine upper trim line and unobtrusive bulkhead fastening points.
+ fixtureBox(2.06,.016,.017,0,F+2.07,z,saloonTrim);
+ for(const x of [-.91,.91])for(const y of [F+.18,F+1.97])fixtureBox(.015,.015,.008,x,y,z,saloonDark);
+}
+
+// Preserve original end-wall shell and door geometry; avoid covering it with solid panels.
+// Door and window information equipment stays sparse and mechanically mounted.
+// Omit temporary coloured vestibule placards; keep authentic door hardware.
+// Add shallow seat-back mounting brackets and under-seat cable/service covers.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ for(let i=0;i<count;i++){
+  const z=a+(i+.5)*len/count;
+  fixtureBox(.035,.18,.055,side*1.085,F+.665,z,saloonTrim);
+ }
+ fixtureBox(.18,.11,len-.18,side*.88,F+.19,(a+b)/2,saloonJoint);
+}
+// Alternating narrow ceiling ventilation slots add depth without extra lights.
+for(let z=saloonStart+.55;z<saloonEnd-.30;z+=.72){
+ for(const side of [-1,1])fixtureBox(.16,.006,.014,side*.30,F+2.304,z,saloonDark);
+}
+
+// Window interiors stay deliberately simple on the 81-717: one perimeter gasket,
+// one sill and the single transom created with the glazing above. Do not add
+// vertical inner bars or decorative latch strips that read as a grille.
+for(const w of passengerWindows){
+ fixtureBox(.014,.026,w.w+.045,w.side*(sideWallInner-.022),w.y-w.h/2-.018,w.z,saloonTrim);
+}
+// Final 81-717 saloon refinement block. These fixtures are intentionally shallow
+// and independent from the accepted shell/camera geometry so they remain portable.
+const saloonWear=new T.MeshStandardMaterial({color:0x626666,roughness:.96,metalness:.015,transparent:true,opacity:.42});
+const saloonSeal=new T.MeshStandardMaterial({color:0x171a1b,roughness:.90,metalness:.01});
+const saloonLabel=new T.MeshStandardMaterial({color:0xe8e4d5,roughness:.94});
+const saloonLabelInk=new T.MeshStandardMaterial({color:0x263d55,roughness:.82});
+
+// Sliding-door saloon faces: compressed perimeter seals, lower guide/wear hardware
+// and compact service fasteners. Nothing projects into the passenger doorway.
+for(const side of [-1,1])for(const z of doors){
+ for(const dz of [-doorWidth/2-.028,doorWidth/2+.028]){
+  fixtureBox(.010,1.74,.016,side*1.226,F+1.02,z+dz,saloonSeal);
+  for(const yy of [F+.32,F+1.58])fixtureBox(.016,.018,.018,side*1.232,yy,z+dz,saloonDark);
+ }
+ fixtureBox(.020,.020,doorWidth-.10,side*1.228,F+.115,z,saloonTrim);
+ fixtureBox(.018,.075,.22,side*1.230,F+.24,z,saloonWear);
+}
+
+// Keep original end-wall surfaces clear of provisional information holders.
+
+// Seat modules: small underside brackets and a subdued front-edge wear band.
+// The accepted cushion/back dimensions remain unchanged.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ for(let i=0;i<count;i++){
+  const z=a+(i+.5)*len/count;
+  fixtureBox(.026,.12,.040,side*1.055,F+.50,z,saloonTrim);
+ }
+ fixtureBox(.010,.018,len-.16,side*.785,F+.535,(a+b)/2,saloonWear);
+}
+
+// Handrail audit hardware: slim sockets at every seat-bay end and ceiling bracket.
+// These are small collars only; there are no hanging loops or floating rail ends.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.72,F+1.90]){
+  const collar=new T.Mesh(new T.CylinderGeometry(.015,.015,.028,12),saloonTrim);
+  collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);
+  group.add(collar);passenger(collar);saloonDetail(collar);saloonFixtureNodes.push(collar);
+ }
+}
+
+// Ceiling access covers and sparse fasteners break the perfect CGI surface without
+// creating a grid. Existing luminaires and ventilation geometry remain untouched.
+for(const z of [-5.85,-1.55,2.75,7.05]){
+ fixtureBox(.56,.006,.32,0,F+2.302,z,ceilingWhite);
+ for(const x of [-.24,.24])fixtureBox(.009,.007,.009,x,F+2.307,z,saloonTrim);
+}
+
+// Subtle service wear: threshold scuffing, a faint central walking band and darker
+// corners. Keep opacity low so the carriage looks used, not dirty.
+fixtureBox(.72,.003,saloonLength-.55,0,F+.016,(saloonStart+saloonEnd)/2,saloonWear);
+for(const z of doors)for(const side of [-1,1]){
+ fixtureBox(.48,.003,.82,side*.78,F+.019,z,saloonWear);
+}
+for(const side of [-1,1])fixtureBox(.08,.004,saloonLength-.50,side*1.03,F+.018,(saloonStart+saloonEnd)/2,saloonWear);
+
+// No placeholder information cards: real route maps require verified artwork and mounts.
+
+// Slight glass/environment response helps windows read differently in tunnel and
+// station lighting while retaining a clear view through the large lower pane.
+sideGlass.opacity=.115;
+sideGlass.roughness=.16;
+sideGlass.clearcoat=.10;
+sideGlass.envMapIntensity=.28;
+
+// Preserve uninterrupted original wall panels; no decorative seam grids or dado stripes.
+// Rail junction sleeves and end caps keep the chrome handrail system mechanically coherent.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.72,F+1.90,F+2.10]){
+  const sleeve=new T.Mesh(new T.CylinderGeometry(.025,.025,.055,14),saloonTrim);
+  sleeve.rotation.z=Math.PI/2;sleeve.position.set(side*.74,y,z);group.add(sleeve);passenger(sleeve);saloonDetail(sleeve);saloonFixtureNodes.push(sleeve);
+ }
+}
+// Keep the original continuous floor finish at doorways; no stacked wear plates.
+
+// No repeated decorative floor hatches across the saloon.
+
+// Avoid duplicate longitudinal ceiling-edge strips over the original liner.
+// Side intake channels complement the central grilles without duplicating them.
+for(const side of [-1,1])for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
+ fixtureBox(.18,.012,.20,side*.30,F+2.304,z,saloonJoint);
+ for(let k=-3;k<=3;k++)fixtureBox(.012,.010,.16,side*(.30+k*.018),F+2.296,z,saloonDark);
+}
+// End-wall corner guards and threshold kick plates protect the high-contact areas.
+for(const z of [saloonStart+.055,saloonEnd-.055]){
+ for(const x of [-1.10,1.10])fixtureBox(.040,1.75,.030,x,F+.94,z,saloonTrim);
+ fixtureBox(1.75,.12,.035,0,F+.13,z,saloonJoint);
+}
+// Avoid unverified protruding cabinets on passenger-facing walls.
+
+// Interior door-leaf furniture follows the animated leaves themselves.
+for(const entry of slidingLeaves){
+ const {leaf,side,half}=entry;
+ const innerX=-side*.031;
+ const grab=new T.Mesh(new T.BoxGeometry(.020,.42,.018),saloonTrim);grab.position.set(innerX,F+1.02-(F+1.03),half*.26);leaf.add(grab);passenger(grab);saloonDetail(grab);saloonFixtureNodes.push(grab);
+ const innerGasket=new T.Mesh(new T.BoxGeometry(.018,1.72,.020),sideRubber);innerGasket.position.set(innerX,0,-half*.39);leaf.add(innerGasket);passenger(innerGasket);saloonDetail(innerGasket);saloonFixtureNodes.push(innerGasket);
+ const wearRail=new T.Mesh(new T.BoxGeometry(.024,.055,.42),saloonTrim);wearRail.position.set(innerX,-.70,0);leaf.add(wearRail);passenger(wearRail);saloonDetail(wearRail);saloonFixtureNodes.push(wearRail);
+ const guard=new T.Mesh(new T.BoxGeometry(.022,.16,.20),saloonJoint);guard.position.set(innerX,F+.28-(F+1.03),-half*.20);leaf.add(guard);passenger(guard);saloonDetail(guard);saloonFixtureNodes.push(guard);
+ for(const yy of [-.58,.58]){
+  const cap=new T.Mesh(new T.BoxGeometry(.024,.035,.14),saloonTrim);cap.position.set(innerX,yy,half*.10);leaf.add(cap);passenger(cap);saloonDetail(cap);saloonFixtureNodes.push(cap);
+ }
+}
+// Seat-end protective caps and underside brackets make each bench read as an assembled unit.
+for(const side of [-1,1])for(const [a,b] of seatBays){
+ for(const z of [a+.055,b-.055]){
+  fixtureBox(.030,.48,.075,side*1.13,F+.78,z,saloonTrim);
+  fixtureBox(.055,.20,.085,side*.93,F+.32,z,saloonJoint);
+ }
+}
+// Proper compact handrail mounting hardware: round collars at the floor and
+// rigid ceiling sockets centered on the actual chrome stanchion axis.
+function railCollar(x,y,z,r=.035,h=.018){
+ const mesh=new T.Mesh(new T.CylinderGeometry(r,r,h,16),sideSteel);
+ mesh.position.set(x,y,z);group.add(mesh);passenger(mesh);saloonDetail(mesh);saloonFixtureNodes.push(mesh);return mesh;
+}
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ railCollar(side*.74,F+.018,z,.029,.016);
+ fixtureBox(.064,.022,.064,side*.74,F+2.285,z,saloonTrim);
+}
+// Door stanchions use the same physical mounting language at floor, wall tie and ceiling rail.
+for(const side of [-1,1])for(const z of doors)for(const dz of [-doorWidth/2-.13,doorWidth/2+.13]){
+ railCollar(side*.74,F+.018,z+dz,.030,.017);
+ fixtureBox(.062,.022,.062,side*.74,F+2.285,z+dz,saloonTrim);
+ fixtureBox(.018,.058,.058,side*(sideWallInner-.006),F+1.04,z+dz,saloonTrim);
+ // Compact collars make the rail/vertical and wall-tie junctions read as engineered T joints.
+ railCollar(side*.74,F+2.12,z+dz,.019,.022).rotation.z=Math.PI/2;
+ const joint=new T.Mesh(new T.SphereGeometry(.017,12,8),sideSteel);joint.position.set(side*.74,F+1.04,z+dz);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
+}
+// Matching junction sleeves at every seat-bay stanchion/longitudinal-rail intersection.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ const joint=new T.Mesh(new T.SphereGeometry(.016,12,8),sideSteel);joint.position.set(side*.74,F+2.12,z);group.add(joint);passenger(joint);saloonDetail(joint);saloonFixtureNodes.push(joint);
+}
+// Ceiling panel perimeter rails visually separate the curved shell from service panels.
+for(const side of [-1,1])fixtureBox(.030,.018,saloonLength-.28,side*1.08,F+2.155,(saloonStart+saloonEnd)/2,saloonJoint);
+// End bulkheads remain free of all placeholder information labels.
+// Final restrained wear cues: narrow scuff strips only at real high-contact zones.
+for(const side of [-1,1])for(const z of doors){
+ fixtureBox(.010,.035,doorWidth+.08,side*1.165,F+.055,z,saloonDark);
+ for(const dz of [-doorWidth/2-.11,doorWidth/2+.11])fixtureBox(.012,.32,.030,side*1.170,F+.30,z+dz,saloonJoint);
+}
+// Recessed floor-edge strips help the aisle/seat boundary read under warm saloon lighting.
+for(const side of [-1,1])fixtureBox(.035,.004,saloonLength-.32,side*.70,F+.011,(saloonStart+saloonEnd)/2,saloonJoint);
+// Keep the original lighting fixtures; omit additional ceiling boxes.
+// Seat-plinth kick strips and discrete cushion seams.
+for(const side of [-1,1])for(const [a,b,count] of seatBays){
+ const len=b-a;
+ detailBox(.018,.055,len-.07,side*.756,F+.075,(a+b)/2,sideSteel);
+ for(let i=1;i<count;i++){
+  const z=a+i*len/count;
+  detailBox(.006,.095,.008,side*.934,F+.49,z,saloonDark);
+  detailBox(.006,.43,.008,side*1.092,F+.80,z,saloonDark);
+ }
+}
+// floating into the floor/ceiling.
+for(const side of [-1,1])for(const [a,b] of seatBays)for(const z of [a+.015,b-.015]){
+ for(const y of [F+.105,F+2.095]){
+  const collar=new T.Mesh(new T.CylinderGeometry(.034,.034,.018,16),sideSteel);
+  collar.rotation.z=Math.PI/2;collar.position.set(side*.74,y,z);group.add(collar);passenger(collar);saloonDetail(collar);
+ }
+}
+// Door-zone furniture: the structural chrome stanchions are defined once above.
+// Here only wall-mounted hardware and anti-slip threshold ribs are added, avoiding duplicate poles.
+for(const side of [-1,1])for(const z of doors){
+ detailBox(.026,.18,.12,side*(half-.245),F+1.36,z+.84,saloonDark);
+ detailBox(.030,.065,.065,side*(half-.260),F+1.405,z+.84,saloonAmber);
+ for(let k=-5;k<=5;k++)detailBox(.205,.002,.012,side*1.115,F+.018,z+k*.10,saloonDark);
+ // Narrow stainless jamb returns visually close the lining around the real doorway.
+ for(const dz of [-doorWidth/2-.035,doorWidth/2+.035]){
+  detailBox(.024,1.86,.040,side*(sideWallInner-.010),F+1.03,z+dz,saloonTrim);
+ }
+}
+// Route sheets omitted until accurate Minsk Metro artwork is available.
+// Preserve the original ceiling ventilation and lighting geometry without duplicate grilles.
+// No fabricated emergency marker plates or temporary signage.
+// No fabricated route strips or oversized wall-mounted equipment covers.
+// Keep seat-bay wall lining clean; omit fictional seat-number plaques.
 
 // Front fascia based on the supplied 81-717 reference.
 const frontMeshStart=group.children.length;
@@ -1113,7 +1474,52 @@ const componentLibrary={
   sideBox(.014,.045,w.w+.12,w.side*(sideWallInner-.019),w.y-w.h/2-.026,w.z,sideSteel);
  })
 };
+// Two landscape Goodmix Duo posters per car: one on each side, in the
+// solid wall bay between a passenger door and its adjacent window.
+// Keep a single texture shared by all eight poster meshes in the consist.
+const goodmixPosterTexture=new T.TextureLoader().load('./assets/goodmix-duo-zakhar.jpg',()=>{qaFramesRemaining=3},undefined,err=>console.warn('Goodmix Duo poster asset missing',err));
+goodmixPosterTexture.colorSpace=T.SRGBColorSpace;
+goodmixPosterTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+const goodmixPosterMaterial=new T.MeshBasicMaterial({map:goodmixPosterTexture,side:T.DoubleSide,toneMapped:false});
+const goodmixFrameMaterial=new T.MeshStandardMaterial({color:0x929595,metalness:.75,roughness:.32});
+function installGoodmixPosters(carRoot,{head=false}={}){
+ // Head 81-717 and intermediate 81-714 have DIFFERENT door/window spacing.
+ // Head: door edge -5.61, window edge about -4.91 => pier centre -5.26.
+ // Intermediate: door edge -5.955, window edge about -5.265 => pier centre -5.61.
+ // Use the appropriate local longitudinal coordinate for each car type.
+ const posterWidth=.34,posterHeight=.240,posterZ=head?-5.155:-5.61,posterY=F+1.62;
+ for(const side of [-1,1]){
+  // Mount on the real interior wall, not on the recessed sliding door.
+  const x=side*(sideWallInner-.065);
+  const poster=new T.Mesh(new T.PlaneGeometry(posterWidth,posterHeight),goodmixPosterMaterial);
+  poster.name='goodmix-duo-poster-'+(side<0?'left':'right');
+  poster.rotation.y=-side*Math.PI/2;
+  poster.position.set(x,posterY,posterZ);
+  poster.userData.advertisement='goodmix-duo';poster.userData.keepRenderObject=true;
+  carRoot.add(poster);
+  const frame=new T.Mesh(new T.BoxGeometry(.014,posterHeight+.018,posterWidth+.018),goodmixFrameMaterial);
+  frame.name='goodmix-duo-frame-'+(side<0?'left':'right');
+  frame.position.set(x+side*.012,posterY,posterZ);
+  frame.userData.keepRenderObject=true;carRoot.add(frame);
+ }
+ if(head){
+  // Large landscape advertising panel on the cab-to-saloon bulkhead.
+  // Added only to 81-717 head-car template (front and rear of consist).
+  const bannerWidth=1.48,bannerHeight=1.04,bannerZ=saloonStart+.105;
+  const banner=new T.Mesh(new T.PlaneGeometry(bannerWidth,bannerHeight),goodmixPosterMaterial);
+  banner.name='goodmix-duo-cab-bulkhead-banner';
+  banner.position.set(0,F+1.49,bannerZ);
+  banner.userData.advertisement='goodmix-duo-banner';banner.userData.keepRenderObject=true;
+  carRoot.add(banner);
+  const border=new T.Mesh(new T.BoxGeometry(bannerWidth+.035,bannerHeight+.035,.014),goodmixFrameMaterial);
+  border.name='goodmix-duo-cab-bulkhead-frame';
+  border.position.set(0,F+1.49,bannerZ-.012);
+  border.userData.keepRenderObject=true;carRoot.add(border);
+ }
+}
+installGoodmixPosters(group,{head:true});
 const intermediateTemplate=createIntermediateCar(componentLibrary);
+installGoodmixPosters(intermediateTemplate.root);
 scene.add(intermediateTemplate.root);
 const headTemplate={root:group,type:'81-717',windows:passengerWindows,leaves:slidingLeaves,doorCenters:doors,length:L,hasCab:true};
 for(const [name,value] of qaObjects)if(name!=='roof')for(const node of Array.isArray(value)?value:[value])node.userData.keepRenderObject=true;
@@ -1163,6 +1569,17 @@ function carMeasurements(car){
  });
  return {type:car.type,hasCab:car.hasCab,cabDirection:car.hasCab?new T.Vector3(0,0,-1).transformDirection(car.root.matrixWorld).toArray():null,position:car.root.position.toArray(),rotationY:car.root.rotation.y,scale:car.root.scale.toArray(),windows:car.windows.length,leaves:car.leaves.length,openLeaves:car.leaves.filter(d=>Math.abs(d.leaf.position.z-d.homeZ)>.001).length,doorClearWidth:.008+1.2*(doorProgress*doorProgress*(3-2*doorProgress)),body:{min:body.min.toArray(),max:body.max.toArray()},contacts,...counts};
 }
+// Stable integration points for the later passenger branch and audio/environment layer.
+// They expose geometry already present in the v106 instead of duplicating passenger-specific meshes.
+window.wagonSaloonIntegration=()=>({
+ seats:activeCars.reduce((n,c)=>{c.root.traverse(o=>{if(o.userData.passengerSeat)n++});return n},0),
+ rails:saloonRails.length,
+ windows:activeCars.reduce((n,c)=>n+c.windows.length,0),
+ doors:activeCars.reduce((n,c)=>n+c.leaves.length,0),
+ doorProgress,
+ visualEnvironment:{glassOpacity:sideGlass.opacity,glassRoughness:sideGlass.roughness,reflection:sideGlass.envMapIntensity},
+ audioEvents:['door-motor-start','door-travel','door-lock','ventilation','rail-roll','bogie-joint','brake']
+});
 window.wagonTrainDiagnostics=()=>{
  const cars=activeCars.map(carMeasurements),joints=[];
  for(let i=0;i<cars.length-1;i++){
@@ -1196,7 +1613,18 @@ const cameraPresets={
  driver:{position:[-.53,F+1.23,-8.55],target:[-.53,F+1.18,-11.8],fov:58}
 };
 // Stage 3 inspection cameras. Existing front/cab cameras remain calibrated.
+// Final saloon audit cameras are QA-only: they never replace the approved in-game carriage camera.
 Object.assign(cameraPresets,{
+ 'audit-front-end':{position:[.78,F+1.72,-6.92],target:[0,F+1.18,-7.50],fov:55},
+ 'goodmix-closeup-left':{position:[.05,F+1.66,-5.88],target:[-1.02,F+1.62,-6.42],fov:32},
+ 'goodmix-closeup-right':{position:[-.05,F+1.66,-5.88],target:[1.02,F+1.62,-6.42],fov:32},
+ 'audit-front-door':{position:[.76,F+1.76,-4.65],target:[-.45,F+1.18,-3.05],fov:54},
+ 'audit-front-window':{position:[-.72,F+1.70,-2.35],target:[.78,F+1.40,-4.10],fov:52},
+ 'audit-centre':{position:[.76,F+1.78,.30],target:[-.55,F+1.30,2.15],fov:55},
+ 'audit-rear-window':{position:[-.74,F+1.70,4.05],target:[.78,F+1.40,5.08],fov:52},
+ 'audit-rear-door':{position:[.76,F+1.76,6.10],target:[-.48,F+1.18,7.05],fov:54},
+ 'audit-rear-end':{position:[-.70,F+1.72,8.05],target:[0,F+1.20,9.32],fov:54},
+ 'audit-ceiling-rails':{position:[0,F+1.22,.40],target:[.38,F+2.20,2.65],fov:58},
  'side-full':{position:[26,2.25,0],target:[0,2.25,0],fov:29},
  'side-angle':{position:[15,5,-15],target:[0,2,-1],fov:50},
  'door-close':{position:[5.5,2.15,-1.85],target:[0,2.0,-1.85],fov:32},
@@ -1269,6 +1697,7 @@ function setCamera(mode){
  document.getElementById('front').textContent=mode==='front'?'Снаружи вагона':'Вид спереди';
  const select=document.getElementById('cameraSelect');if(select)select.value=mode;
 }
+window.wagonSetCamera=setCamera;
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 document.getElementById('front').onclick=()=>setCamera(cameraMode==='front'?'outside':'front');
@@ -1436,7 +1865,7 @@ window.wagonSideDiagnostics=()=>({
  doorClearWidth:2*(doorWidth/4+slidingLeaves[0].travel*(doorProgress*doorProgress*(3-2*doorProgress))-(doorWidth/2-.008)/2),
  leaves:slidingLeaves.map(d=>({side:d.side,doorZ:d.doorZ,z:d.leaf.position.z,homeZ:d.homeZ,half:d.half,thickness:d.thickness,x:d.leaf.position.x})),
  passengerMeshes:passengerNodes.length,roofScoops:roofScoops.length,invertedWallNormals:invertedWallNormals(),lightingPreset:'passenger-softboxes-warm-v2'
- ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
+ ,interior:{seatCount:saloonSeats.length,saloonStart,saloonEnd,aisleWidth:1.44,railGroups:saloonRails.length,detailNodes:saloonDetailNodes.length,allSeatsVolumetric:saloonSeats.every(s=>s.seat.geometry.type==='ExtrudeGeometry'&&s.back.geometry.type==='ExtrudeGeometry')}
 });
 window.wagonShiftInspectionCamera=dz=>{camera.position.z+=dz;ctl.target.z+=dz;ctl.update();qaFramesRemaining=3};
 window.wagonApertureChecks=()=>{
@@ -1476,7 +1905,13 @@ const controlStyle=document.createElement('style');controlStyle.textContent='#co
 if(captureMode)controls.style.display='none';
 const viewParam=new URLSearchParams(location.search).get('view');
 if(viewParam&&cameraPresets[viewParam])setCamera(viewParam);else setCamera(formationMode==='train'?'train-angle':formationMode==='intermediate'?'intermediate-angle':'outside');
-document.getElementById('status').textContent='3D загружено';window.wagonReady=true;
+document.getElementById('status').textContent='3D загружено';// Export the original batched v106 geometry to the running game, not a redraw.
+window.wagonExportConsist=()=>{
+ if(!consist?.root||consist.cars.length!==4)throw new Error('v106 consist unavailable');
+ const doors=consist.cars.map(car=>({name:car.root.name,leaves:car.leaves.map(d=>({uuid:d.leaf.uuid,homeZ:d.homeZ,half:d.half,travel:d.travel}))}));
+ return {geometry:consist.root.toJSON(),lighting:scene.children.filter(o=>o.isLight).map(o=>o.toJSON()),doors};
+};
+window.wagonGetLiveConsist=()=>({root:consist.root,cars:consist.cars,lighting:scene.children.filter(o=>o.isLight)}); startupStage('ready'); window.wagonReady=true;
 // Critical safety markings are ordinary depth-tested 3D surfaces.
 // Construct before the first frame; a texture error must fail browser checks.
 window.wagonWarningDecals=activeCars.reduce((n,car)=>{car.root.traverse(o=>{if(o.userData.warningDecal)n++});return n},0);
@@ -1504,6 +1939,6 @@ function loop(){
  camera.layers.set(3);renderer.render(scene,camera);
  scene.background=background;renderer.autoClear=true;camera.layers.enable(0);renderedFrames++;qaFramesRemaining--;
  window.wagonFrameStats={drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,cpuSubmitMilliseconds:performance.now()-frameStart,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures};
-}loop();
+}if(!new URLSearchParams(location.search).has('gameExport'))loop();
 
 </script><script>setTimeout(()=>{const s=document.getElementById('status');if(s&&s.textContent==='Загрузка 3D…')s.textContent='Ошибка загрузки 3D. Откройте страницу в Chrome с включённым JavaScript.'},10000)</script></body></html>

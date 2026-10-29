@@ -1,3 +1,5 @@
+import {loadV106Geometry} from './train/V106GeometryLoader.js';
+import {V106_CAR_PITCH,V106_FORMATION} from './train/ConsistIntegration.js';
 import {buildPlatformApproach,buildPlatformFurniture} from './platforms/PlatformGeometry.js';
 import {updatePassengerMovement} from './passengers/PassengerMovement.js';
 import {createPassengerModelFactory} from './passengers/PassengerModels.js';
@@ -85,6 +87,9 @@ for(const side of [-1,1]){
 }
 // Exterior side of the driver's train, seen in both mirrors looking backwards.
 const reflectedTrain=new THREE.Group();scene.add(reflectedTrain);
+// This low-detail train is a mirror-only proxy. It must not occlude the real
+// imported v106 when the platform camera renders the game scene.
+reflectedTrain.visible=false;
 // Shared livery for exterior platform view and the driver's side mirrors.
 const metroBluePaint=0x4679b5;
 const trainBodyMat=new THREE.MeshStandardMaterial({color:metroBluePaint,metalness:.28,roughness:.46});
@@ -102,8 +107,80 @@ for(const side of [-1,1]){
   box(reflectedTrain,.19,1.6,.07,side*2.19,1.75,z+1.35,cabMetal);
  }
 }
-// Five-car exterior train, visible only from the elevated platform camera.
+// Transitional four-car gameplay exterior, visible from the platform camera.
+// NOT the detailed v106 viewer geometry: that migration remains a separate task.
 const stationTrain=new THREE.Group();scene.add(stationTrain);stationTrain.visible=false;
+// Keep the proven exterior as the default while the v106 camera alignment is under review.
+// Opt in to the experimental consist with ?v106=1; never replace the legacy model silently.
+const v106Query=new URLSearchParams(location.search).get('v106');
+// The dedicated station preview must exercise the actual v106 consist by
+// default. ?v106=0 remains a deliberate low-detail comparison/fallback.
+const useExperimentalV106=v106Query==='1'||(v106Query!=='0'&&new URLSearchParams(location.search).get('preview')==='station');
+let detailedV106Train=null;
+let detailedV106Loading=null;
+let detailedV106DoorProgress=0;
+const V106_PLATFORM_GAP=.010;
+const V106_WHEEL_CONTACT_X=.90;
+// Source v106 threshold: sideBox(.17,.025,doorWidth,side*(half-.082),...).
+// Measure its OUTER face (centre minus half the .17m thickness), not its centre.
+const V106_PLATFORM_THRESHOLD_OUTER_X=-(2.670/2-.082+.17/2);
+// Keep the train centred over the physical rails. Bring the platform to the train,
+// not the train 1.27m off the track. The legacy platform remains unchanged.
+const V106_PLATFORM_EDGE_X=useExperimentalV106?V106_PLATFORM_THRESHOLD_OUTER_X-V106_PLATFORM_GAP:-2.55;
+const V106_PLATFORM_FAR_EDGE_X=-22.75;
+// Match the station walking surface to the measured v106 passenger threshold.
+// Threshold bottom is 0.9315m in the exported consist; keep a small 6mm step down.
+const V106_PLATFORM_SURFACE_Y=useExperimentalV106?.9255:.7475;
+let detailedV106TrackX=0,detailedV106ThresholdMinX=null,detailedV106ThresholdCount=0,detailedV106ThresholdMinY=null,detailedV106ThresholdMaxY=null,detailedV106WheelMinY=null,detailedV106WheelMaxY=null,detailedV106WheelCount=0;
+function animateDetailedV106Doors(dt){
+ if(!detailedV106Train)return;
+ const target=doors?1:0;
+ const step=Math.min(Math.max(dt,0),.1)/1.55;
+ detailedV106DoorProgress+=Math.sign(target-detailedV106DoorProgress)*Math.min(Math.abs(target-detailedV106DoorProgress),step);
+ const p=detailedV106DoorProgress,t=p*p*(3-2*p);
+ for(const d of detailedV106Train.v106DoorActuators||[])
+  d.object.position.z=d.homeZ+d.half*d.travel*t;
+}
+
+function ensureDetailedV106(){
+ if(detailedV106Train)return Promise.resolve(detailedV106Train);
+ if(detailedV106Loading)return detailedV106Loading;
+ detailedV106Loading=loadV106Geometry({THREE,scene,renderer}).then(root=>{
+  detailedV106Train=root;
+  // Read the ACTUAL exported threshold meshes; the smoke must measure their
+  // geometry, not repeat the same formula used to position the island slab.
+  root.position.set(0,0,0);root.updateMatrixWorld(true);
+  const platformSideThresholds=[],platformSideThresholdBounds=[],wheelBounds=[];
+  root.traverse(object=>{
+   if(!object.isMesh)return;
+   const bounds=new THREE.Box3().setFromObject(object);
+   if(bounds.isEmpty())return;
+   if(object.userData.passengerThreshold&&(bounds.min.x+bounds.max.x)/2<0){platformSideThresholds.push(bounds.min.x);platformSideThresholdBounds.push(bounds);}
+   if(object.userData.wheel)wheelBounds.push(bounds);
+  });
+  if(platformSideThresholds.length!==16)throw new Error('Expected 16 platform-side v106 door thresholds, got '+platformSideThresholds.length);
+  detailedV106ThresholdCount=platformSideThresholds.length;
+  detailedV106ThresholdMinX=Math.min(...platformSideThresholds);
+  detailedV106ThresholdMinY=Math.min(...platformSideThresholdBounds.map(b=>b.min.y));
+  detailedV106ThresholdMaxY=Math.max(...platformSideThresholdBounds.map(b=>b.max.y));
+  detailedV106WheelCount=wheelBounds.length;
+  detailedV106WheelMinY=wheelBounds.length?Math.min(...wheelBounds.map(b=>b.min.y)):null;
+  detailedV106WheelMaxY=wheelBounds.length?Math.max(...wheelBounds.map(b=>b.max.y)):null;
+  // Keep the consist on the rail centreline: the platform, not the train,
+  // moves sideways to achieve 10mm clearance.
+  detailedV106TrackX=0;
+  window.metroV106GeometryLoaded=true;
+  window.metroV106GeometryError=null;
+  return root;
+ }).catch(error=>{
+  console.warn('v106 geometry unavailable; retaining playable legacy exterior',error);
+  window.metroV106GeometryError=String(error);
+  detailedV106Loading=null; // Allow retry after a transient network/GPU failure.
+  return null;
+ });
+ return detailedV106Loading;
+}
+
 const extSilver=mat(0xdce3e8,.42),extBlue=trainBodyMat;
 const extWhite=new THREE.MeshBasicMaterial({color:0xf4f5f0});
 const extLine=new THREE.MeshStandardMaterial({color:0xd5e8f3,metalness:.35,roughness:.4});
@@ -138,8 +215,8 @@ const trainDestination=document.createElement('canvas');trainDestination.width=5
 const td=trainDestination.getContext('2d');td.fillStyle='#121e29';td.fillRect(0,0,512,96);td.fillStyle='#ffe077';td.textAlign='center';td.font='bold 40px Arial';td.fillText('МАЛІНАЎКА',256,65);
 const trainDestinationTex=new THREE.CanvasTexture(trainDestination);
 const dest=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.52),new THREE.MeshBasicMaterial({map:trainDestinationTex}));dest.position.set(0,2.06,-.525);dest.rotation.y=Math.PI;trainNose.add(dest);
-for(let car=0;car<5;car++){
- const cz=12+car*21.5;
+for(let car=0;car<V106_FORMATION.length;car++){
+ const cz=12+car*V106_CAR_PITCH;
  roundedTrainPanel(stationTrain,4.32,.44,.21,20.7,0,3.57,cz,extBlue);
  box(stationTrain,4.25,.25,20.7,0,.93,cz,extBlue);
  // Interior geometry seen through the glazing.
@@ -210,6 +287,7 @@ function renderRearMirrors(){
  // Reduced resolution and 1 mirror per 3 frames keeps Android performance acceptable.
  if(window.metroMirrorsDisabled||++mirrorFrameNumber%2!==0)return;
  const m=rearMirrors[Math.floor(mirrorFrameNumber/2)%2];
+ reflectedTrain.visible=true;
  cab.visible=false;
  for(const item of rearMirrors)item.face.visible=false;
  try{
@@ -225,6 +303,7 @@ function renderRearMirrors(){
  renderer.render(scene,m.mirrorCamera);
  }finally{
   renderer.setRenderTarget(null);
+  reflectedTrain.visible=false;
   cab.visible=true;
   for(const item of rearMirrors)item.face.visible=true;
  }
@@ -730,18 +809,25 @@ for(let z=-108;z<=5;z+=20){for(const x of [-3.8,3.8]){const lamp=new THREE.Point
 const marble=mat(0xe5dfca),floorTile=mat(0xc9c8b9),trim=mat(0x77736e),glass=mat(0x5c8093,.35),doorMat=mat(0xced8dd,.4);
 const greenBand=mat(0x24552b),blackGranite=mat(0x17191a),creamWall=mat(0xe8e5d6),warmGold=new THREE.MeshBasicMaterial({color:0xffc25d}),silverRail=mat(0xa7aaa5,.6);
 // Glossy cream terrazzo with dark granite strips beside both platform edges.
-// Platform edge must meet the carriage threshold: train outer door face x=-2.43,
-// new island edge x=-2.55 -> 0.12 m clearance (previously >2 metres).
-box(platform,20.2,.045,128,-12.65,.725,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
-for(const x of [-2.84,-22.39])box(platform,.35,.052,128,x,.754,-57,blackGranite);
+// For v106, extend the island slab to the door threshold without moving the
+// train off the track. Both the upper slab and the lower concrete base agree.
+const islandWidth=V106_PLATFORM_EDGE_X-V106_PLATFORM_FAR_EDGE_X;
+const islandCentre=(V106_PLATFORM_EDGE_X+V106_PLATFORM_FAR_EDGE_X)/2;
+box(platform,islandWidth,.045,128,islandCentre,V106_PLATFORM_SURFACE_Y-.0225,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
+for(const x of [V106_PLATFORM_EDGE_X-.29,-22.39])box(platform,.35,.052,128,x,V106_PLATFORM_SURFACE_Y+.0065,-57,blackGranite);
 // Fine terrazzo tile joints and longitudinal seams on the original cream floor.
 // Reference station photo: smooth, uninterrupted pale-grey platform surface.
 // No decorative square grid or tile joints.
 // Right-side station wall, across the player's track: pale ceramic panels, green band and black base.
-box(platform,.25,7.0,128,3.58,3.72,-57,creamWall);
-box(platform,.30,1.18,128,3.39,.79,-57,blackGranite);
-box(platform,.31,.27,128,3.38,1.54,-57,greenBand);
-for(let z=4;z>-120;z-=3.5)box(platform,.035,4.6,.025,3.40,4.25,z,trim);
+// The v106 body is ~1.34m from the track centre. The former wall at x=3.58
+// left an implausible >2m void and made the correctly-scaled train look tiny.
+// Keep a realistic maintenance/safety clearance without rescaling the train.
+const stationTrackWallX=useExperimentalV106?2.38:3.58;
+const stationTrackWallFaceX=stationTrackWallX-.18;
+box(platform,.25,7.0,128,stationTrackWallX,3.72,-57,creamWall);
+box(platform,.30,1.18,128,stationTrackWallFaceX+.01,.79,-57,blackGranite);
+box(platform,.31,.27,128,stationTrackWallFaceX,1.54,-57,greenBand);
+for(let z=4;z>-120;z-=3.5)box(platform,.035,4.6,.025,stationTrackWallFaceX+.02,4.25,z,trim);
 // Painted floral decoration and station names on the wall, facing the cab.
 const floralCanvas=document.createElement('canvas');floralCanvas.width=1024;floralCanvas.height=256;
 const fc=floralCanvas.getContext('2d');fc.fillStyle='#e8e5d6';fc.fillRect(0,0,1024,256);
@@ -749,7 +835,7 @@ fc.fillStyle='#554032';fc.font='bold 89px Georgia,serif';fc.textAlign='center';f
 for(let j=0;j<30;j++){const xx=(j*173+45)%1024,yy=(j*97+37)%220;fc.strokeStyle='#3c7448';fc.lineWidth=3;fc.beginPath();fc.moveTo(xx,yy+35);fc.quadraticCurveTo(xx+13,yy+8,xx+8,yy-18);fc.stroke();for(let k=0;k<3;k++){fc.fillStyle=k===0?'#447c52':'#7b9871';fc.beginPath();fc.ellipse(xx+(k-1)*11,yy+(k-1)*9,7,3.5,(k-1)*.7,0,Math.PI*2);fc.fill();}if(j%4===0){fc.fillStyle='#a85b64';fc.beginPath();fc.arc(xx+8,yy-19,5,0,Math.PI*2);fc.fill();}}
 const floralTexture=new THREE.CanvasTexture(floralCanvas);floralTexture.colorSpace=THREE.SRGBColorSpace;
 const floralMat=new THREE.MeshBasicMaterial({map:floralTexture,side:THREE.DoubleSide});
-for(const z of [-11,-103]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(21,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(3.215,4.1,z);platform.add(wallSign);}
+for(const z of [-11,-103]){const wallSign=new THREE.Mesh(new THREE.PlaneGeometry(21,4.1),floralMat);wallSign.rotation.y=-Math.PI/2;wallSign.position.set(stationTrackWallFaceX-.165,4.1,z);platform.add(wallSign);}
 // High-resolution route diagram: yellow Malinauka, blue subsequent stops.
 // Bilingual wall route diagram, based on the original Malinauka sign.
 // Columns run from Urucca at the left to yellow Malinauka at the right.
@@ -821,8 +907,8 @@ for(const y of [1.675,3.795])box(platform,.05,.035,13.66,3.14,y,-55,routeFrame);
 for(const z of [-61.83,-48.17])box(platform,.05,2.16,.035,3.14,2.735,z,routeFrame);
 
 
-box(platform,20.2,.8,128,-12.65,.30,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
-box(platform,.16,.07,128,-2.94,.78,-57,yellow);
+box(platform,islandWidth,V106_PLATFORM_SURFACE_Y+.0525,128,islandCentre,(V106_PLATFORM_SURFACE_Y-.0525)/2,-57,new THREE.MeshStandardMaterial({color:0xb8b9b5,roughness:.96}));
+box(platform,.16,.07,128,V106_PLATFORM_EDGE_X-.39,V106_PLATFORM_SURFACE_Y+.0325,-57,yellow);
 // Single central island platform: the player drives on the RIGHT-hand track.
 // The opposite track lies beyond the LEFT-hand row of columns.
 box(platform,.16,.07,128,-22.73,.74,-57,yellow);
@@ -863,7 +949,7 @@ for(const x of [-5.55,-21.75])box(platform,.14,.16,127,x,8.04,-57,trim);
 for(let j=0;j<17;j++){const z=5-j*7.5;box(platform,31.5,.035,.07,-12.0,8.09,z,hallTrim);box(platform,2.3,.08,1.2,-2.9,8.05,z,light)}
 box(platform,5,.28,128,0,-.22,-57,otherTrackPlaceholder());
 function otherTrackPlaceholder(){return mat(0x313439)}
-for(const x of [-1.15,1.15])box(platform,.12,.16,128,x,.02,-57,rail);
+for(const x of [-V106_WHEEL_CONTACT_X,V106_WHEEL_CONTACT_X])box(platform,.12,.16,128,x,.02,-57,rail);
 for(let j=0;j<65;j++)box(platform,4.1,.12,.3,0,-.08,5-j*2,wood);
 // Portal frame, tunnel mouth and receding track visible beyond station end.
 const portalZ=-118;
@@ -1030,15 +1116,35 @@ for(let i=0;i<platformPassengers.length;i++){
 }
 let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
-carCameraButton.addEventListener('click',()=>{
+const stationCanvas=document.querySelector('#scene');
+const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
+carCameraButton.addEventListener('click',async()=>{
  carCameraActive=!carCameraActive;
- if(carCameraActive){carriageCameraController.reset();}
+ if(carCameraActive&&useExperimentalV106){
+  await ensureDetailedV106();
+  // The carriage camera now lives inside the same imported v106 consist used
+  // by the platform view. Legacy CarriageInterior is retained only as fallback.
+  if(detailedV106Train){
+   detailedV106Train.add(carriageCamera);
+   // Local v106 coordinates: centre aisle, normal standing eye height,
+   // looking longitudinally through the second car instead of out through
+   // the body shell. The controller owns this pose so reset cannot restore
+   // the obsolete mock-carriage coordinates.
+   carriageCameraController.setPose(
+    // High mount on the wall OPPOSITE the platform doors, just behind the driver's cab.
+    // Look diagonally across the saloon so the platform-side doors/windows remain on the right of frame.
+    new THREE.Vector3(.88,3.03,V106_CAR_PITCH-7.05),
+    new THREE.Vector3(-.34,-.105,1),
+    {yawMin:-.28,yawMax:1.28,pitchMin:-.38,pitchMax:.24}
+   );
+  }
+ }
+ if(carCameraActive&&!useExperimentalV106){carriageCameraController.useLegacyPose();}
+ else if(carCameraActive&&!detailedV106Train){carriageCameraController.reset();}
  if(carCameraActive){stationCameraActive=false;stationCameraButton.classList.remove('active');stationCameraButton.textContent='📷 ВИД НА ПЛАТФОРМУ';}
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
-const stationCanvas=document.querySelector('#scene');
-const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
@@ -1081,7 +1187,7 @@ function markStationSkipped(){
 }
 const stationCameraButton=document.getElementById('stationCameraToggle');let stationCameraActive=false,stationViewYaw=0,stationViewPitch=0,stationCameraAnchorZ=0,stationCameraTrainZ=0;
 const screenDoorToggle=document.getElementById('screenDoorToggle');
-function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');}
+function syncScreenDoorToggle(){if(!screenDoorToggle)return;screenDoorToggle.classList.toggle('open',doors);screenDoorToggle.setAttribute('aria-pressed',String(doors));screenDoorToggle.setAttribute('aria-label',doors?'Закрыть двери':'Открыть двери');window.dispatchEvent(new CustomEvent('metro-consist-doors',{detail:{open:Boolean(doors)}}));}
 screenDoorToggle?.addEventListener('click',e=>{e.stopPropagation();setCabDoors(!doors);syncScreenDoorToggle();});
 
 // Drag directly on the 3D picture to pan the external camera; touch and mouse.
@@ -1089,7 +1195,7 @@ let stationDrag=null;
 stationCanvas.addEventListener('pointerdown',e=>{if(!stationCameraActive)return;stationDrag={id:e.pointerId,x:e.clientX,y:e.clientY};stationCanvas.setPointerCapture(e.pointerId);e.preventDefault();});
 stationCanvas.addEventListener('pointermove',e=>{if(!stationCameraActive||!stationDrag||stationDrag.id!==e.pointerId)return;stationViewYaw=THREE.MathUtils.clamp(stationViewYaw+(stationDrag.x-e.clientX)*.0022,-.23,.23);stationViewPitch=THREE.MathUtils.clamp(stationViewPitch+(e.clientY-stationDrag.y)*.0015,-.12,.12);stationDrag.x=e.clientX;stationDrag.y=e.clientY;e.preventDefault();});
 for(const evt of ['pointerup','pointercancel'])stationCanvas.addEventListener(evt,e=>{if(stationDrag?.id===e.pointerId)stationDrag=null;});
-stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
+stationCameraButton.addEventListener('click',()=>{if(Math.abs(dist)>=32||speed>=1.5||!playing)return;carCameraActive=false;carCameraButton.classList.remove('active');carCameraButton.textContent='🚇 ВИД В ВАГОНЕ';stationCameraActive=!stationCameraActive;if(stationCameraActive){stationCameraAnchorZ=platform.position.z-100;stationCameraTrainZ=stationCameraAnchorZ;if(useExperimentalV106)ensureDetailedV106();}stationViewYaw=0;stationViewPitch=0;stationCameraButton.classList.toggle('active',stationCameraActive);stationCameraButton.textContent=stationCameraActive?'🎮 В КАБИНУ':'📷 ВИД НА ПЛАТФОРМУ';});
 updateStationClock();
 syncDoorButtons();
 function paintSign(){sc.fillStyle='#155b87';sc.fillRect(0,0,768,128);sc.fillStyle='white';sc.font='bold 52px Arial';sc.textAlign='center';sc.fillText(names[index%names.length],384,83);texture.needsUpdate=true}paintSign();
@@ -1211,8 +1317,9 @@ platform.position.y=verticalShift-descentDepth;const stationEntrance=platform.po
 animateCarriageDoors(carSlidingDoorLeaves,doors,elapsed);
 // Only expose the interior geometry when viewing from the carriage camera.
 // It must not block the cab windscreen or rear-view mirrors.
-carriage.visible=carCameraActive;
-animateDoorLeaves(stationDoorLeaves,doors,elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
+// Never render the old mock interior when the real v106 is available.
+carriage.visible=carCameraActive&&(!useExperimentalV106||!detailedV106Train);
+animateDoorLeaves(stationDoorLeaves,doors,elapsed);animateDetailedV106Doors(elapsed);try{renderRearMirrors()}catch(mirrorError){console.warn('Mirror rendering disabled:',mirrorError);window.metroMirrorsDisabled=true;}renderer.setRenderTarget(null);cab.visible=true;updateCabDisplay(speed);document.querySelector('#speed').textContent=Math.round(speed);document.querySelector('#station').textContent=names[index%names.length]+' · '+Math.max(0,Math.round(dist))+' м';document.querySelector('#people').textContent='Пассажиры: '+people;if(Math.abs(dist)<=stopTolerance&&speed<.5&&!doors&&!stationServiced&&!stationSkipped&&!overrunReported)status.textContent='Остановка у ограничителя — открой двери';const canUseStationCamera=playing&&Math.abs(dist)<32&&speed<1.5;
 stationCameraButton.style.display=(canUseStationCamera||stationCameraActive)?'block':'none';
 // Keep the platform camera stationary while the departing train drives away.
 // Return to the cab only when the whole ~108m train has cleared the shot.
@@ -1231,18 +1338,50 @@ if(stationCameraActive){
  // to the moving platform geometry, but hold the train model at its initial
  // world position: relative to the platform it now drives out of view.
  stationTrain.position.set(-.31,platform.position.y,stationCameraTrainZ);
- stationTrain.visible=true;
+ // Original v106 front is at -L/2; shift its first car centre to keep
+ // the front at the old station-camera reference plane.
+ if(useExperimentalV106&&detailedV106Train){
+  detailedV106Train.position.set(detailedV106TrackX,platform.position.y,stationCameraTrainZ+19.206/2);
+  detailedV106Train.visible=true;
+  // Visibility is resolved after the station camera is aimed below.
+  stationTrain.visible=false;
+ }else stationTrain.visible=true;
  // At the head of the train, looking down its side as in the photo.
  // Height 5.5 stays BELOW the original Malinauka ceiling (8.35).
  // A three-quarter front-side shot: nose in foreground, cars and platform
  // receding into the distance. The camera stays below the original roof.
  const noseZ=platform.position.z-100;
- stationCamera.fov=61;stationCamera.updateProjectionMatrix();stationCamera.position.set(-3.72,4.55,noseZ+3.2);
- const target=new THREE.Vector3(-5.6,2.65,noseZ+44);
+ stationCamera.fov=61;stationCamera.updateProjectionMatrix();
+ // The original preview position was 3.2 m *behind* the v106 nose, so its
+ // entire front was offscreen and the frame showed mostly roof. Put the
+ // experimental camera ahead of the nose and closer to eye level; retain
+ // the legacy camera framing for ?v106=0.
+ stationCamera.position.set(useExperimentalV106?-3.85:-3.72,useExperimentalV106?3.35:4.55,noseZ+(useExperimentalV106?-5.5:3.2));
+ const target=new THREE.Vector3(useExperimentalV106?-.31:-5.6,useExperimentalV106?2.3:2.65,noseZ+(useExperimentalV106?23:44));
  target.x+=Math.sin(stationViewYaw)*35;
  
  target.y+=stationViewPitch*9;
  stationCamera.lookAt(target);
+ if(useExperimentalV106&&detailedV106Train){
+  // Do not erase the proven exterior if the imported consist is outside the
+  // station camera frustum. Geometry loading alone does not mean it is visible.
+  detailedV106Train.updateMatrixWorld(true);
+  stationCamera.updateMatrixWorld(true);
+  const v106Bounds=new THREE.Box3().setFromObject(detailedV106Train);
+  const inCamera=!v106Bounds.isEmpty()&&(()=>{
+   const frustum=new THREE.Frustum();
+   const matrix=new THREE.Matrix4().multiplyMatrices(stationCamera.projectionMatrix,stationCamera.matrixWorldInverse);
+   frustum.setFromProjectionMatrix(matrix);
+   return frustum.intersectsBox(v106Bounds);
+  })();
+  if(!inCamera){
+   detailedV106Train.visible=false;
+   stationTrain.visible=true;
+  }else stationTrain.visible=false;
+  window.metroV106InCamera=inCamera;
+  // Browser-testable bounds and visibility diagnostics for the actual model.
+  window.metroV106Bounds={min:v106Bounds.min.toArray(),max:v106Bounds.max.toArray(),empty:v106Bounds.isEmpty()};
+ }
 }
 restoreViewport(renderer,innerWidth,innerHeight);
 if(carCameraActive){
@@ -1255,12 +1394,51 @@ if(carCameraActive){
  // Keep the driver's cab out of the carriage view; all station objects remain.
  cab.visible=false;
  stationTrain.visible=false;
- renderer.render(scene,carriageCamera);
+ if(useExperimentalV106&&detailedV106Train){
+  // Keep the authentic consist visible around the camera and reproduce the
+  // viewer's calibrated multipass materials from inside the saloon.
+  detailedV106Train.position.set(detailedV106TrackX,platform.position.y,stationCameraTrainZ+19.206/2);
+  detailedV106Train.visible=true;
+  const originalTone=renderer.toneMapping,originalExposure=renderer.toneMappingExposure;
+  const originalAutoClear=renderer.autoClear,originalMask=carriageCamera.layers.mask;
+  const originalBackground=scene.background;
+  renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
+  carriageCamera.layers.set(0);renderer.render(scene,carriageCamera);
+  renderer.autoClear=false;scene.background=null;
+  for(const layer of [2,1,3]){
+   carriageCamera.layers.set(layer);
+   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+   renderer.render(scene,carriageCamera);
+  }
+  scene.background=originalBackground;
+  carriageCamera.layers.mask=originalMask;renderer.autoClear=originalAutoClear;
+  renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
+  detailedV106Train.visible=false;
+ }else renderer.render(scene,carriageCamera);
  cab.visible=true;
+}else if(stationCameraActive&&useExperimentalV106&&detailedV106Train?.visible){
+ // Reproduce the original v106 viewer's four render passes. In particular,
+ // its front surfaces use ACES tone mapping on layers 2/1/3, not the game's
+ // single layer-0 pass. Keep the depth buffer between passes.
+ const originalTone=renderer.toneMapping,originalExposure=renderer.toneMappingExposure;
+ const originalAutoClear=renderer.autoClear,originalMask=stationCamera.layers.mask;
+ const originalBackground=scene.background;
+ renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
+ stationCamera.layers.set(0);renderer.render(scene,stationCamera);
+ renderer.autoClear=false;scene.background=null;
+ for(const layer of [2,1,3]){
+  stationCamera.layers.set(layer);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+  renderer.render(scene,stationCamera);
+ }
+ scene.background=originalBackground;
+ stationCamera.layers.mask=originalMask;renderer.autoClear=originalAutoClear;
+ renderer.toneMapping=originalTone;renderer.toneMappingExposure=originalExposure;
 }else renderer.render(scene,chooseCamera({cab:camera,platform:stationCamera,carriage:carriageCamera},stationCameraActive?'platform':'cab'));
-if(stationCameraActive){cab.visible=true;stationTrain.visible=false;}
-window.metroLastRendered=performance.now();window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
+if(stationCameraActive){cab.visible=true;stationTrain.visible=false;if(detailedV106Train)detailedV106Train.visible=false;}
+window.metroLastRendered=performance.now();window.metroV106Diagnostics=()=>({loaded:!!detailedV106Train,error:window.metroV106GeometryError||null,loadStage:window.metroV106LoadStage||null,metrics:window.metroV106Metrics||null,doorsOpen:doors,doorProgress:detailedV106DoorProgress,stationCameraActive,experimentalV106:useExperimentalV106,inCamera:window.metroV106InCamera??null,bounds:window.metroV106Bounds||null,visible:!!detailedV106Train?.visible,trainPosition:detailedV106Train?.position.toArray()||null,platformPosition:platform.position.toArray(),platformEdgeX:V106_PLATFORM_EDGE_X,targetPlatformGap:V106_PLATFORM_GAP,trainPlatformSideX:detailedV106Train&&detailedV106ThresholdMinX!==null?detailedV106Train.position.x+detailedV106ThresholdMinX:null,platformGap:detailedV106Train&&detailedV106ThresholdMinX!==null?(detailedV106Train.position.x+detailedV106ThresholdMinX)-V106_PLATFORM_EDGE_X:null,measuredThresholdCount:detailedV106ThresholdCount,thresholdBottomY:detailedV106ThresholdMinY===null?null:detailedV106Train.position.y+detailedV106ThresholdMinY,thresholdTopY:detailedV106ThresholdMaxY===null?null:detailedV106Train.position.y+detailedV106ThresholdMaxY,platformTopY:platform.position.y+V106_PLATFORM_SURFACE_Y,wheelCount:detailedV106WheelCount,wheelBottomY:detailedV106WheelMinY===null?null:detailedV106Train.position.y+detailedV106WheelMinY,wheelTopY:detailedV106WheelMaxY===null?null:detailedV106Train.position.y+detailedV106WheelMaxY,railTopY:platform.position.y+.10,railCentreX:0,railPositions:[-V106_WHEEL_CONTACT_X,V106_WHEEL_CONTACT_X],wheelContactPositions:detailedV106Train?[-V106_WHEEL_CONTACT_X+detailedV106Train.position.x,V106_WHEEL_CONTACT_X+detailedV106Train.position.x]:null,trackOffset:detailedV106Train?detailedV106Train.position.x:null,trainAnchorZ:stationCameraTrainZ,relativeToPlatformZ:detailedV106Train?detailedV106Train.position.z-platform.position.z:null});window.metroDiagnostics=()=>gameSnapshot({speed,doors,dist,index,playing,camera:carCameraActive?'carriage':stationCameraActive?'platform':'cab'});}catch(e){console.error('Metro render failure',e);const st=document.getElementById('status');if(st)st.textContent='Ошибка 3D: '+e.message;window.metro3DReady=false;window.dispatchEvent(new Event('metro-render-error'));}}document.querySelector('#cockpit').style.display='none';document.querySelector('#window').style.display='none';window.metro3DReady=true;window.dispatchEvent(new Event('metro-3d-ready'));
 if(previewMode==='station'||previewMode==='approach'){
+ if(useExperimentalV106)ensureDetailedV106();
  // Jump the WORLD forward, not the camera. The train remains on the right-hand track.
  dist=previewMode==='station'?0:105;
  const skip=1100-dist;
@@ -1268,6 +1446,15 @@ if(previewMode==='station'||previewMode==='approach'){
  depot.position.y=descentDepth;
  for(const g of chunks){g.position.z=((g.position.z+skip+384)%384+384)%384-352;g.position.y=0;}
  platform.position.z=-dist+112;platform.position.y=0;
+ // Station preview must actually select the platform camera; otherwise the
+ // authentic consist loads but the screenshot still shows the driver's cab.
+ if(previewMode==='station'){
+  stationCameraActive=true;
+  stationCameraAnchorZ=platform.position.z-100;
+  stationCameraTrainZ=stationCameraAnchorZ;
+  stationCameraButton.classList.add('active');
+  stationCameraButton.textContent='🎮 В КАБИНУ';
+ }
  const entrance=platform.position.z+6;
  for(const g of chunks){const far=g.position.z-32;g.visible=(far>entrance+3||g.position.z<entrance-145);}
  const previewFog=new THREE.Color(0x05080b);
