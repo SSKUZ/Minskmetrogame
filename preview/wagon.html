@@ -739,10 +739,7 @@ for(const side of [-1,1])for(const z of doors){
  sideBox(.035,.035,doorWidth-.10,side*1.155,F+.035,z,sideSteel);
 }
 for(const side of [-1,1])for(const [a,b] of seatBays)sideBox(.20,.002,b-a-.14,side*.92,F+.019,(a+b)/2,saloonContactShade);
-// Final lining refinement: sparse construction joints follow structural bays rather than forming a decorative grid.
-for(const side of [-1,1])for(const z of [-7.42,-5.18,-2.92,-.68,1.56,3.80,6.04,8.28]){
- sideBox(.006,.86,.010,side*(sideWallInner-.010),F+1.20,z,floorSeam);
-}
+// No unverified repetitive vertical wall seams.
 // Saloon detail pass: keep the approved dimensions and seating coordinates,
 // but add the small fixtures that make the interior read as a working 81-717.
 const saloonDark=new T.MeshStandardMaterial({color:0x252b2d,metalness:.12,roughness:.72});
@@ -905,11 +902,7 @@ for(const z of doors)for(const side of [-1,1]){
  fixtureBox(.42,.004,.72,side*.82,F+.014,z,floorFinish);
  fixtureBox(.018,.005,.68,side*.61,F+.016,z,saloonJoint);
 }
-// Small floor access covers and fasteners, outside the central walking line.
-for(let z=saloonStart+.75;z<saloonEnd-.35;z+=1.55)for(const side of [-1,1]){
- fixtureBox(.20,.006,.30,side*.54,F+.013,z,saloonJoint);
- for(const dx of [-.075,.075])for(const dz of [-.115,.115])fixtureBox(.016,.007,.016,side*.54+dx,F+.018,z+dz,saloonTrim);
-}
+// No repeated decorative floor hatches across the saloon.
 
 // Avoid duplicate longitudinal ceiling-edge strips over the original liner.
 // Side intake channels complement the central grilles without duplicating them.
@@ -922,13 +915,7 @@ for(const z of [saloonStart+.055,saloonEnd-.055]){
  for(const x of [-1.10,1.10])fixtureBox(.040,1.75,.030,x,F+.94,z,saloonTrim);
  fixtureBox(1.75,.12,.035,0,F+.13,z,saloonJoint);
 }
-// Compact emergency equipment cabinets add believable service detail without introducing labels that could be wrong.
-for(const side of [-1,1])for(const z of [-5.35,4.18]){
- fixtureBox(.045,.38,.24,side*(sideWallInner-.050),F+1.04,z,saloonJoint);
- fixtureBox(.048,.32,.19,side*(sideWallInner-.065),F+1.04,z,saloonPaper);
- fixtureBox(.052,.045,.12,side*(sideWallInner-.080),F+1.13,z,saloonNoticeRed);
- fixtureBox(.052,.030,.055,side*(sideWallInner-.082),F+.94,z,saloonDark);
-}
+// Avoid unverified protruding cabinets on passenger-facing walls.
 
 // Interior door-leaf furniture follows the animated leaves themselves.
 for(const entry of slidingLeaves){
@@ -1023,55 +1010,15 @@ for(const side of [-1,1])for(const z of doors){
   detailBox(.024,1.86,.040,side*(sideWallInner-.010),F+1.03,z+dz,saloonTrim);
  }
 }
-// Framed route/information sheets between openings. These are geometry, not
-// camera-facing overlays, so they remain correctly occluded through windows.
-for(const side of [-1,1])for(const z of [-4.10,.65,5.08,8.03]){
- detailBox(.018,.47,.64,side*(sideWallInner-.030),F+1.76,z,saloonDark);
- detailBox(.020,.425,.595,side*(sideWallInner-.044),F+1.76,z,saloonPaper);
- detailBox(.022,.030,.54,side*(sideWallInner-.056),F+1.90,z,saloonNoticeBlue);
- detailBox(.022,.022,.42,side*(sideWallInner-.057),F+1.70,z,saloonNoticeRed);
- for(const dz of [-.20,-.07,.06,.19])detailBox(.023,.012,.08,side*(sideWallInner-.058),F+1.79,z+dz,saloonDark);
-}
-// Framed ventilation modules and speaker grilles along the ceiling centreline.
-for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
- detailBox(.36,.030,.22,0,3.275,z,saloonTrim);
- detailBox(.31,.024,.17,0,3.252,z,saloonDark);
- for(let x=-.12;x<=.12;x+=.04)detailBox(.012,.010,.145,x,3.238,z,sideRubber);
- // Small circular-equivalent speaker represented as a shallow perforated grille.
- detailBox(.11,.014,.11,.25,3.245,z+.34,saloonDark);
- for(const dx of [-.03,0,.03])detailBox(.010,.008,.075,.25+dx,3.235,z+.34,sideRubber);
-}
+// Route sheets omitted until accurate Minsk Metro artwork is available.
+// Preserve the original ceiling ventilation and lighting geometry without duplicate grilles.
 // Small authentic-scale utility details: emergency marker plates and inspection fasteners, kept deliberately sparse.
 for(const side of [-1,1])for(const z of doors){
  fixtureBox(.024,.075,.12,side*(sideWallInner-.070),F+1.47,z+doorWidth/2+.23,saloonNoticeRed);
  fixtureBox(.026,.035,.08,side*(sideWallInner-.078),F+1.40,z+doorWidth/2+.23,saloonAmber);
 }
-// Passenger-facing route strips above the windows and compact equipment
-// covers near the door bays. Their shallow depth keeps the approved aisle.
-for(const side of [-1,1]){
- for(const z of [-4.10,.65,5.08]){
-  detailBox(.020,.145,.92,side*(sideWallInner-.042),F+2.28,z,saloonDark);
-  detailBox(.022,.112,.87,side*(sideWallInner-.055),F+2.28,z,saloonPaper);
-  for(let i=0;i<6;i++){
-   const marker=i%2?saloonNoticeBlue:saloonNoticeRed;
-   detailBox(.024,.034,.060,side*(sideWallInner-.068),F+2.28,z-.31+i*.124,marker);
-  }
- }
- for(const z of doors){
-  detailBox(.055,.43,.28,side*(sideWallInner-.030),F+1.90,z-doorWidth/2-.19,sideLining);
-  detailBox(.058,.085,.20,side*(sideWallInner-.046),F+2.035,z-doorWidth/2-.19,saloonNoticeBlue);
-  detailBox(.058,.18,.20,side*(sideWallInner-.046),F+1.865,z-doorWidth/2-.19,saloonPaper);
- }
-}
-// Seat-number/service plaques and small lower-wall access panels add scale
-// cues that remain visible from the gameplay saloon camera.
-for(const side of [-1,1])for(const [a,b,count] of seatBays){
- const z=(a+b)/2;
- detailBox(.025,.105,.26,side*(sideWallInner-.045),F+1.28,z,saloonDark);
- detailBox(.027,.075,.22,side*(sideWallInner-.058),F+1.28,z,saloonPaper);
- detailBox(.020,.24,.34,side*(sideWallInner-.035),F+.34,a+.20,sideLining);
- detailBox(.022,.018,.25,side*(sideWallInner-.050),F+.40,a+.20,saloonDark);
-}
+// No fabricated route strips or oversized wall-mounted equipment covers.
+// Keep seat-bay wall lining clean; omit fictional seat-number plaques.
 
 // Front fascia based on the supplied 81-717 reference.
 const frontMeshStart=group.children.length;
