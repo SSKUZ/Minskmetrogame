@@ -20,7 +20,9 @@ export class PassengerBoardingController{
   }
   for(const q of this.queues){
    q.active=null;q.phase='alighting';q.served=0;
-   q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id).map(a=>a.id);
+   q.exit=agents.filter(a=>a.space==='train'&&a.destination<=station&&a.doorId===q.id)
+    .sort((a,b)=>Math.abs(a.z-q.z)-Math.abs(b.z-q.z)||a.id-b.id).map(a=>a.id);
+   for(const id of q.exit){const a=agents.find(a=>a.id===id);a.exitSide=a.z<q.z?-1:1;a.exitQueuePoint=null;}
    q.enter=agents.filter(a=>a.space==='platform'&&a.wantsBoard&&a.state!=='leaving'&&a.doorId===q.id)
     .sort((a,b)=>Math.hypot(a.x+3.8,a.z-q.z-dist)-Math.hypot(b.x+3.8,b.z-q.z-dist)).map(a=>a.id);
    q.enter.forEach((id,rank)=>{
@@ -31,12 +33,38 @@ export class PassengerBoardingController{
    });
   }
  }
+ stageAlighters(q,byId){
+  const ranks={[-1]:0,[1]:0};
+  for(const id of q.exit){
+   const a=byId.get(id);if(!a||a.id===q.active)continue;
+   const rank=ranks[a.exitSide]++,front=id===q.exit[0];
+   const point={x:TRAIN.aisleX+(front?0:(a.x<TRAIN.aisleX?-.71:.71)),z:q.z+(front?0:a.exitSide*(1.5+rank*.68))};
+   // Everybody gets the full stand-up and stabilization clips concurrently.
+   // Until their turn, they may only approach a waiting place INSIDE the train.
+   if(a.state==='seated'){beginStanding(a);continue;}
+   if(['seatTurning','sittingDown','standingUp','seatStabilizing','returning'].includes(a.state))continue;
+   if(!['exitApproaching','exitQueued'].includes(a.state)||!a.exitQueuePoint||Math.abs(a.exitQueuePoint.z-point.z)>.01){
+    a.state='exitApproaching';a.activity='wait';a.seat=null;a.reservedSeat=null;
+    a.railGrip=null;a.assignedRailId=null;a.exitQueuePoint=point;
+    // The stand-up clip ends at the bench front. Merge diagonally into the
+    // aisle instead of requiring two opposite passengers to touch one point.
+    const mergeX=Math.max(TRAIN.aisleX-.97,Math.min(TRAIN.aisleX+.97,a.x));
+    a.path=Math.abs(mergeX-a.x)>.01?[{x:mergeX,z:a.z},point]:[point];
+   }
+  }
+ }
  update(agents,context){
   const {station,dist,speed,doorsOpen,aperture}=context;
   const stopped=Math.abs(dist)<=3&&speed<.5;
   if(!this.opened&&stopped&&doorsOpen&&aperture>.80)this.prepare(agents,station,dist);
   const byId=new Map(agents.map(a=>[a.id,a]));
   for(const q of this.queues){
+   if(!q.active)q.exit.sort((left,right)=>{
+    const a=byId.get(left),b=byId.get(right);if(!a||!b)return 0;
+    const ready=a=>['exitApproaching','exitQueued','riding','settling'].includes(a.state)?0:1;
+    return ready(a)-ready(b)||Math.hypot(a.x-TRAIN.aisleX,a.z-q.z)-Math.hypot(b.x-TRAIN.aisleX,b.z-q.z)||a.id-b.id;
+   });
+   if(this.opened&&stopped&&doorsOpen)this.stageAlighters(q,byId);
    let active=byId.get(q.active);
    if(active&&!['boarding','alighting','returning'].includes(active.state)){q.active=null;active=null;}
    if(!stopped||!doorsOpen){
@@ -65,11 +93,10 @@ export class PassengerBoardingController{
    if(!this.opened||aperture<.92||active)continue;
    if(q.exit.length){
     const a=byId.get(q.exit[0]);if(!a){q.exit.shift();continue;}
-    if(a.state==='seated'){beginStanding(a);continue;}
-    if(['seatTurning','sittingDown','standingUp','seatStabilizing'].includes(a.state))continue;
+    if(!['exitApproaching','exitQueued'].includes(a.state))continue;
     // Alighters walk to the doorway through the aisle, then leave into the clear central lane.
     a.state='alighting';a.seat=null;a.activity='wait';
-    a.path=[{x:TRAIN.aisleX,z:a.z},{x:TRAIN.aisleX,z:q.z},{x:-2.42,z:q.z},{x:-3.8,z:q.z},{x:-4.45,z:q.z}];
+    a.path=[{x:TRAIN.aisleX,z:q.z},{x:-2.42,z:q.z},{x:-3.8,z:q.z},{x:-4.45,z:q.z}];
     q.active=a.id;q.phase='alighting';
    }else if(q.enter.length){
     const a=byId.get(q.enter[0]);if(!a){q.enter.shift();continue;}
@@ -92,8 +119,15 @@ export class PassengerBoardingController{
    a.space='platform';a.z+=dist;for(const p of a.path)p.z+=dist;
    if(!a.exitCounted){a.exitCounted=true;this.events.push({kind:'alight',id:a.id,door:q.id,station,x:a.x});}
   }
+  // Once the whole body has cleared the sill, continue leaving independently.
+  // The next alighter need not wait for a walk across the whole platform bay.
+  if(a.state==='alighting'&&a.space==='platform'&&a.x<TRAIN.thresholdX-.70){
+   q.exit=q.exit.filter(id=>id!==a.id);q.active=null;
+   a.state='leaving';a.wantsBoard=false;a.path=departurePath(a);
+  }
   if(a.path.length)return;
   if(a.state==='queueing'){a.state='queued';return;}
+  if(a.state==='exitApproaching'){a.state='exitQueued';return;}
   if(a.state==='yielding'){a.state='waiting';return;}
   if(a.state==='alighting'){
    q.exit=q.exit.filter(id=>id!==a.id);q.active=null;

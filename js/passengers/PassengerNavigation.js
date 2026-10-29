@@ -1,4 +1,4 @@
-import {PLATFORM,COLUMNS,clamp} from './PassengerConfig.js';
+import {PLATFORM,COLUMNS,TRAIN,clamp} from './PassengerConfig.js';
 
 // Deterministic short detours around the station's actual column footprints.
 export function platformPath(from,to,radius=.24){
@@ -11,7 +11,12 @@ export function platformPath(from,to,radius=.24){
 // Only used after sustained lack of progress. Unlike short steering turns this
 // search can initially walk away from the goal to get behind a stationary queue.
 export function crowdDetour(agent,target,agents){
- const obstacles=[...COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035})),
+ const inTrain=agent.space==='train';
+ const bounds=inTrain?{minX:TRAIN.aisleX-.94,maxX:TRAIN.aisleX+.94,minZ:-100+agent.car*21.5+.5,maxZ:-100+(agent.car+1)*21.5-.5}:PLATFORM;
+ // Never route an alighter around a door jamb or through a bench. Only the
+ // interior aisle legs are replanned; threshold legs retain their fixed path.
+ if(inTrain&&(target.x<bounds.minX||target.x>bounds.maxX))return null;
+ const obstacles=[...(inTrain?[]:COLUMNS.map(c=>({...c,r:c.radius+agent.radius+.035}))),
   ...agents.filter(o=>o!==agent&&o.space===agent.space&&o.state!=='gone'&&o.state!=='seated')
    .map(o=>({x:o.x,z:o.z,r:o.radius+agent.radius+.045}))];
  const clear=(from,to)=>obstacles.every(o=>{
@@ -22,10 +27,10 @@ export function crowdDetour(agent,target,agents){
   return Math.hypot(from.x+dx*t-o.x,from.z+dz*t-o.z)>=o.r;
  });
  if(clear(agent,target))return [target];
- const spacing=.32,minX=Math.max(PLATFORM.minX,Math.min(agent.x,target.x)-3.2),
-  maxX=Math.min(PLATFORM.maxX,Math.max(agent.x,target.x)+3.2),
-  minZ=Math.max(PLATFORM.minZ,Math.min(agent.z,target.z)-3.2),
-  maxZ=Math.min(PLATFORM.maxZ,Math.max(agent.z,target.z)+3.2);
+ const spacing=inTrain?.16:.32,minX=Math.max(bounds.minX,Math.min(agent.x,target.x)-3.2),
+  maxX=Math.min(bounds.maxX,Math.max(agent.x,target.x)+3.2),
+  minZ=Math.max(bounds.minZ,Math.min(agent.z,target.z)-3.2),
+  maxZ=Math.min(bounds.maxZ,Math.max(agent.z,target.z)+3.2);
  const nodes=[{x:agent.x,z:agent.z,g:0,h:Math.hypot(target.x-agent.x,target.z-agent.z),parent:null,key:'start'}];
  const best=new Map();let found=null;
  for(let visited=0;nodes.length&&visited<2400;visited++){
@@ -74,7 +79,7 @@ export class PassengerNavigation{
   if(a.navigationGoal!==next){a.navigationGoal=next;a.navigationBest=Infinity;a.navigationStall=0;}
   const dx=next.x-a.x,dz=next.z-a.z,dist=Math.hypot(dx,dz);
   if(dist<a.navigationBest-.04){a.navigationBest=dist;a.navigationStall=0;}else a.navigationStall+=dt;
-  if(a.space==='platform'&&a.navigationStall>1.5){
+  if(a.navigationStall>1.5){
    a.navigationStall=0;
    const goal=next.detourGoal??next,detour=crowdDetour(a,goal,[...this.buckets.values()].flat());
    if(detour&&detour.length>1){

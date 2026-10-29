@@ -9,8 +9,8 @@ export async function poseAsset(file,height){
  const b=readFileSync(new URL('../../assets/passengers/'+file,import.meta.url)),length=b.readUInt32LE(12);
  const json=JSON.parse(b.subarray(20,20+length).toString());
  json.buffers[0].uri='data:application/octet-stream;base64,'+b.subarray(28+length).toString('base64');
- delete json.images;delete json.textures;json.materials=[];
- for(const mesh of json.meshes)for(const primitive of mesh.primitives)delete primitive.material;
+ delete json.images;delete json.textures;
+ json.materials=json.materials.map(m=>({name:m.name}));
  const source=await new GLTFLoader().parseAsync(JSON.stringify(json),'');
  const root=new THREE.Group(),model=source.scene,bones={},bounds=new THREE.Box3();root.add(model);
  model.traverse(o=>{if(o.isBone)bones[o.name]=o;if(o.isMesh){o.geometry.computeBoundingBox();bounds.union(o.geometry.boundingBox);}});

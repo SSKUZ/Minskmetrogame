@@ -11,20 +11,21 @@ export class PassengerHandGrip {
     if(!mesh.isSkinnedMesh||mesh.material.name!=='Skin')return;
     const index=mesh.skeleton.bones.findIndex(b=>b.name===grip.side+'Hand');if(index<0)return;
     const toHand=new THREE.Matrix4().multiplyMatrices(mesh.skeleton.boneInverses[index],mesh.bindMatrix);
-    const uniforms={gripActive:{value:1},gripIndex:{value:index},gripToHand:{value:toHand},gripFromHand:{value:toHand.clone().invert()}};
+    const uniforms={gripActive:{value:1},gripIndex:{value:index},gripDirection:{value:grip.side==='Left'?1:-1},gripToHand:{value:toHand},gripFromHand:{value:toHand.clone().invert()}};
     const original=mesh.material,material=original.clone();this.materials.push({mesh,original,material});this.uniforms.push(uniforms);
-    material.customProgramCacheKey=()=> 'passenger-curled-hand-v1';
+    material.customProgramCacheKey=()=> 'passenger-curled-hand-v2';
     material.onBeforeCompile=shader=>{
      Object.assign(shader.uniforms,uniforms);
-     shader.vertexShader='uniform float gripActive; uniform float gripIndex; uniform mat4 gripToHand; uniform mat4 gripFromHand;\n'+shader.vertexShader;
+     shader.vertexShader='uniform float gripActive; uniform float gripIndex; uniform float gripDirection; uniform mat4 gripToHand; uniform mat4 gripFromHand;\n'+shader.vertexShader;
      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
       if(gripActive>.5){
        float handWeight=dot(1.-step(vec4(.5),abs(skinIndex-vec4(gripIndex))),skinWeight);
        vec3 hand=(gripToHand*vec4(transformed,1.)).xyz;
        float along=clamp((hand.y-.075)/.12,0.,1.);
        float weight=smoothstep(.55,.9,handWeight)*smoothstep(.065,.09,hand.y);
-       vec3 curled=hand;float angle=along*1.9;
-       curled.y=.075+sin(angle)*.045;curled.z=hand.z*.65+(1.-cos(angle))*.045;
+       vec3 curled=hand;float angle=along*3.4;
+       curled.y=.075+sin(angle)*.033;
+       curled.x=hand.x+gripDirection*(1.-cos(angle))*.033;
        transformed=mix(transformed,(gripFromHand*vec4(curled,1.)).xyz,weight);
       }`);
     };
@@ -34,7 +35,9 @@ export class PassengerHandGrip {
   for(const uniforms of this.uniforms)uniforms.gripActive.value=1;
   const hand=this.view.bones[grip.side+'Hand'];
   if(hand){
-   const x=grip.tangent.clone().normalize(),z=grip.normal.clone().negate(),y=z.clone().cross(x).normalize();z.crossVectors(x,y).normalize();
+   // In the shipped rig the palm normal is local X, not Z. Local Z runs
+   // across the knuckles and must follow the bar; Y runs along the fingers.
+   const x=grip.normal.clone().multiplyScalar(grip.side==='Left'?-1:1),z=grip.tangent.clone().normalize(),y=z.clone().cross(x).normalize();z.crossVectors(x,y).normalize();
    const world=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));
    const parent=hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert();hand.quaternion.copy(parent.multiply(world));hand.updateWorldMatrix(false,true);
   }

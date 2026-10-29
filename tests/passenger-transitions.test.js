@@ -53,6 +53,21 @@ test('closing and reopening doors during stand-up cannot skip the clip or duplic
  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length));
 });
 
+test('alighters at one door stand up together but remain inside until their own crossing',()=>{
+ const s=new PassengerSimulation({seed:42});s.update(1/30,closed);
+ const people=s.agents.filter(a=>a.state==='seated').slice(0,3);
+ assert.equal(people.length,3);
+ for(const a of people){a.doorId=0;a.destination=0;}
+ s.update(1/30,open);
+ assert.ok(people.every(a=>a.state==='standingUp'),'preparation must not wait for the previous exit');
+ advance(s,1,open);
+ assert.ok(people.every(a=>a.state==='standingUp'&&a.space==='train'),'full clips precede walking');
+ advance(s,5,closed);
+ assert.ok(people.every(a=>a.space==='train'),'preparation cannot cross closed doors');
+ advance(s,120,open);
+ for(const a of people)assert.equal(s.events.filter(e=>e.id===a.id&&e.kind==='alight').length,1);
+});
+
 test('families reserve adjacent seats without duplicate reservations or isolating children',()=>{
  for(const seed of [717,42,106]){
   const s=new PassengerSimulation({seed});advance(s,120,open);
@@ -78,11 +93,11 @@ test('twelve consecutive station cycles preserve identities, family destinations
    const parent=s.agents.find(p=>p.id===a.parentId);assert.equal(a.destination,parent.destination);
   }
   const appearances=new Map(s.agents.map(a=>[a.id,JSON.stringify([a.profile,a.scale,a.width,a.tint,a.accessory,a.destination,a.groupId,a.parentId])]));
-  // A later station can have >100 occupants, unlike the 24-person initial scene.
-  // Keep a finite service deadline while allowing the existing serial door lanes.
+  // A later station can have >100 occupants. Concurrent preparation must
+  // finish the same dense scenario within 150 s (previously allowed 300 s).
   advance(s,120,{...open,station});
-  for(let extra=0;extra<180&&s.boarding.queues.some(q=>q.enter.length||q.exit.length);extra++)advance(s,1,{...open,station});
-  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length),'station '+station+': queue leak');
+  for(let extra=0;extra<30&&s.boarding.queues.some(q=>q.enter.length||q.exit.length);extra++)advance(s,1,{...open,station});
+  assert.ok(s.boarding.queues.every(q=>!q.enter.length&&!q.exit.length),'station '+station+': exchange exceeded 150 seconds');
   for(const a of s.agents)assert.equal(JSON.stringify([a.profile,a.scale,a.width,a.tint,a.accessory,a.destination,a.groupId,a.parentId]),appearances.get(a.id));
   assert.equal(new Set(s.agents.map(a=>a.id)).size,s.agents.length);
   assert.ok(!s.agents.some(a=>a.space==='train'&&a.destination<=station),'due passengers must leave');

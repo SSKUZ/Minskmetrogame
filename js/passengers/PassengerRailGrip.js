@@ -48,7 +48,7 @@ export function chooseRailGrip(view,rails){
    // Keep children on lower bars and all hands below a comfortable reach limit.
    if(p.y<shoulder.y-reach*.72||p.y>shoulder.y+reach*.90)continue;
    const normal=shoulder.clone().sub(p).addScaledVector(tangent,-shoulder.clone().sub(p).dot(tangent)).normalize();
-   const handUp=normal.clone().negate().cross(tangent).normalize();
+   const handUp=tangent.clone().cross(normal.clone().multiplyScalar(side==='Left'?-1:1)).normalize();
    const target=p.clone().addScaledVector(normal,rail.radius+.025).addScaledVector(handUp,-.08);
    const distance=target.distanceTo(shoulder);
    if(distance>reach*.89||distance<reach*.29)continue;

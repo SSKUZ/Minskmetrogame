@@ -52,11 +52,14 @@ test('real carriage rail grips stay fixed while the shipped skeleton compensates
   const a={...person(),heading:-Math.PI/2},motion={speed:45,acceleration:0};
   const animator=new PassengerAnimator(view,a,{rails,motion});animator.update(1/60,0);
   assert.ok(animator.grip,file+': must choose a physically reachable rail');
+  assert.ok(animator.handGrip.materials.length,file+': actual skin must receive the grip deformation');
   const fixed=animator.grip.target.clone();
   for(let n=0;n<240;n++){
    motion.acceleration=n<80?1.8:n<160?-3:0;animator.update(1/60,n/60);
    assert.ok(animator.grip.target.distanceTo(fixed)<1e-9);
    assert.ok(animator.grip.error<.002,file+': wrist must remain locked, error '+animator.grip.error);
+   const acrossKnuckles=new THREE.Vector3(0,0,1).applyQuaternion(view.bones[animator.grip.side+'Hand'].getWorldQuaternion(new THREE.Quaternion()));
+   assert.ok(Math.abs(acrossKnuckles.dot(animator.grip.tangent))>.999,'knuckles must follow the bar rather than present an open horizontal palm');
   }
   observed.add(Math.abs(animator.grip.tangent.y)>.8?'vertical':'horizontal');
   // Exercise a real horizontal section too, not an artificial IK marker.

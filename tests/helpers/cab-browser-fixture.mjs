@@ -19,7 +19,7 @@ export async function launchCabBrowser(){
  const local=!!process.env.CAB_CHROMIUM;
  const browser=await chromium.launch({headless:true,...(local?{executablePath:process.env.CAB_CHROMIUM}:{}),
   ...(process.env.CAB_BASE_URL?.startsWith('https:')&&process.env.HTTPS_PROXY?{proxy:{server:process.env.HTTPS_PROXY,bypass:'127.0.0.1,localhost'}}:{}),
-  args:[...(local?['--single-process','--in-process-gpu','--no-zygote']:[]),'--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage','--no-sandbox']});
+  args:[...(local&&process.env.CAB_SINGLE_PROCESS==='1'?['--single-process','--in-process-gpu','--no-zygote']:[]),'--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage','--no-sandbox']});
  const errors=[],requests=[];
  async function page(options={}){
   const p=await browser.newPage({viewport:{width:1536,height:864},deviceScaleFactor:1,...options});
