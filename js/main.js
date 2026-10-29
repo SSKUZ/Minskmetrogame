@@ -1111,6 +1111,8 @@ for(let i=0;i<platformPassengers.length;i++){
 }
 let carCameraActive=false;
 const carCameraButton=document.getElementById('carCameraToggle');
+const stationCanvas=document.querySelector('#scene');
+const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
 carCameraButton.addEventListener('click',async()=>{
  carCameraActive=!carCameraActive;
  if(carCameraActive&&useExperimentalV106){
@@ -1135,8 +1137,6 @@ carCameraButton.addEventListener('click',async()=>{
  carCameraButton.classList.toggle('active',carCameraActive);
  carCameraButton.textContent=carCameraActive?'🎮 В КАБИНУ':'🚇 ВИД В ВАГОНЕ';
 });
-const stationCanvas=document.querySelector('#scene');
-const carriageCameraController=createCarriageCameraController(THREE,carriageCamera,stationCanvas,()=>carCameraActive);
 let passengerDoorTime=0,passengerExchangeStarted=false,platformLifeTime=0;
 const passengerBoardingRecorded=new Set();
 function updatePlatformPassengers(dt){
