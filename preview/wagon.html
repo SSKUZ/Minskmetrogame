@@ -705,8 +705,8 @@ const saloonAmber=new T.MeshStandardMaterial({color:0xd5a63d,emissive:0x6b4312,e
 const saloonDetailNodes=[];
 function saloonDetail(object){saloonDetailNodes.push(object);return object;}
 function detailBox(w,h,d,x,y,z,m){return saloonDetail(sideBox(w,h,d,x,y,z,m));}
-const saloonTrim=new T.MeshStandardMaterial({color:0x9c9d97,metalness:.38,roughness:.38,envMap:frontEnvironment,envMapIntensity:.28});
-const saloonJoint=new T.MeshStandardMaterial({color:0x555b5c,metalness:.08,roughness:.78});
+const saloonTrim=new T.MeshStandardMaterial({color:0xa7aaa5,metalness:.72,roughness:.30,envMap:frontEnvironment,envMapIntensity:.48});
+const saloonJoint=new T.MeshStandardMaterial({color:0x4d5354,metalness:.05,roughness:.86});
 const saloonLens=new T.MeshPhysicalMaterial({color:0xfff5df,emissive:0xffe8bd,emissiveIntensity:.28,roughness:.34,clearcoat:.12});
 const saloonFixtureNodes=[];
 function fixtureBox(w,h,d,x,y,z,m){const node=detailBox(w,h,d,x,y,z,m);saloonFixtureNodes.push(node);return node;}
@@ -974,6 +974,11 @@ for(const z of [-5.65,-3.35,-1.05,1.25,3.55,5.85,8.15]){
  // Small circular-equivalent speaker represented as a shallow perforated grille.
  detailBox(.11,.014,.11,.25,3.245,z+.34,saloonDark);
  for(const dx of [-.03,0,.03])detailBox(.010,.008,.075,.25+dx,3.235,z+.34,sideRubber);
+}
+// Small authentic-scale utility details: emergency marker plates and inspection fasteners, kept deliberately sparse.
+for(const side of [-1,1])for(const z of doors){
+ fixtureBox(.024,.075,.12,side*(sideWallInner-.070),F+1.47,z+doorWidth/2+.23,saloonNoticeRed);
+ fixtureBox(.026,.035,.08,side*(sideWallInner-.078),F+1.40,z+doorWidth/2+.23,saloonAmber);
 }
 // Passenger-facing route strips above the windows and compact equipment
 // covers near the door bays. Their shallow depth keeps the approved aisle.
