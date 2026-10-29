@@ -701,6 +701,10 @@ for(const side of [-1,1])for(const z of doors){
  for(const dz of [-.48,.48])sideBox(.14,.002,.012,side*1.10,F+.015,z+dz,sideRubber);
 }
 
+// Final lining refinement: sparse construction joints follow structural bays rather than forming a decorative grid.
+for(const side of [-1,1])for(const z of [-7.42,-5.18,-2.92,-.68,1.56,3.80,6.04,8.28]){
+ sideBox(.006,.86,.010,side*(sideWallInner-.010),F+1.20,z,floorSeam);
+}
 // Saloon detail pass: keep the approved dimensions and seating coordinates,
 // but add the small fixtures that make the interior read as a working 81-717.
 const saloonDark=new T.MeshStandardMaterial({color:0x252b2d,metalness:.12,roughness:.72});
