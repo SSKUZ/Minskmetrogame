@@ -1687,7 +1687,16 @@ const cameraPresets={
  driver:{position:[-.53,F+1.23,-8.55],target:[-.53,F+1.18,-11.8],fov:58}
 };
 // Stage 3 inspection cameras. Existing front/cab cameras remain calibrated.
+// Final saloon audit cameras are QA-only: they never replace the approved in-game carriage camera.
 Object.assign(cameraPresets,{
+ 'audit-front-end':{position:[.78,F+1.72,-6.92],target:[0,F+1.18,-7.50],fov:55},
+ 'audit-front-door':{position:[.76,F+1.76,-4.65],target:[-.45,F+1.18,-3.05],fov:54},
+ 'audit-front-window':{position:[-.72,F+1.70,-2.35],target:[.78,F+1.40,-4.10],fov:52},
+ 'audit-centre':{position:[.76,F+1.78,.30],target:[-.55,F+1.30,2.15],fov:55},
+ 'audit-rear-window':{position:[-.74,F+1.70,4.05],target:[.78,F+1.40,5.08],fov:52},
+ 'audit-rear-door':{position:[.76,F+1.76,6.10],target:[-.48,F+1.18,7.05],fov:54},
+ 'audit-rear-end':{position:[-.70,F+1.72,8.05],target:[0,F+1.20,9.32],fov:54},
+ 'audit-ceiling-rails':{position:[0,F+1.22,.40],target:[.38,F+2.20,2.65],fov:58},
  'side-full':{position:[26,2.25,0],target:[0,2.25,0],fov:29},
  'side-angle':{position:[15,5,-15],target:[0,2,-1],fov:50},
  'door-close':{position:[5.5,2.15,-1.85],target:[0,2.0,-1.85],fov:32},
@@ -1760,6 +1769,7 @@ function setCamera(mode){
  document.getElementById('front').textContent=mode==='front'?'Снаружи вагона':'Вид спереди';
  const select=document.getElementById('cameraSelect');if(select)select.value=mode;
 }
+window.wagonSetCamera=setCamera;
 document.getElementById('view').onclick=()=>setCamera(cameraMode==='salon'?'outside':'salon');
 document.getElementById('driver').onclick=()=>setCamera(cameraMode==='driver'?'outside':'driver');
 document.getElementById('front').onclick=()=>setCamera(cameraMode==='front'?'outside':'front');
