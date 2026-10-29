@@ -8,9 +8,9 @@ export function createCarriageCameraController(THREE,camera,canvas,isActive){
  const target=origin.clone().add(direction);
  if(camera.parent){camera.parent.updateWorldMatrix(true,false);camera.parent.localToWorld(target);}
  camera.lookAt(target);}
- function reset(){yaw=0;pitch=0;aim()}
+ function setPose(nextOrigin,nextForward){origin.copy(nextOrigin);forward.copy(nextForward).normalize();yaw=0;pitch=0;aim()}\n function useLegacyPose(){setPose(legacyOrigin,legacyForward)}\n function reset(){yaw=0;pitch=0;aim()}
  canvas.addEventListener('pointerdown',e=>{if(!isActive())return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);e.preventDefault()});
  canvas.addEventListener('pointermove',e=>{if(!isActive()||!drag||drag.id!==e.pointerId)return;yaw=THREE.MathUtils.clamp(yaw+(drag.x-e.clientX)*.004,-1.35,1.35);pitch=THREE.MathUtils.clamp(pitch+(e.clientY-drag.y)*.003,-.72,.55);drag.x=e.clientX;drag.y=e.clientY;aim();e.preventDefault()});
  for(const evt of ['pointerup','pointercancel'])canvas.addEventListener(evt,e=>{if(drag?.id===e.pointerId)drag=null});
- reset();return {reset,aim};
+ reset();return {reset,aim,setPose,useLegacyPose};
 }
