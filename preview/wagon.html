@@ -603,15 +603,15 @@ for(const side of [-1,1])for(const [a,b,count] of seatBays){
  sideBox(.025,.055,len-.10,side*.775,F+.085,z,sideRubber);
  sideBox(.030,.025,len-.08,side*.805,F+.405,z,seatBase);
  for(let i=0;i<count;i++){
-  const width=len/count-.022,zz=a+(i+.5)*len/count;
-  const pad=saloonCushion(.45,.10,width,side*.962,F+.485,zz,vinyl);
-  const back=saloonCushion(.095,.48,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.065;
+  const width=len/count-.026,zz=a+(i+.5)*len/count;
+  const pad=saloonCushion(.45,.095,width,side*.962,F+.482,zz,vinyl);
+  const back=saloonCushion(.090,.475,width,side*1.135,F+.78,zz,vinyl);back.rotation.z=-side*.060;
   // Shallow rear shell and lower mounting tongue give each cushion a physical seat frame.
   sideBox(.028,.43,width-.018,side*1.177,F+.785,zz,seatBase);
   sideBox(.055,.105,width-.040,side*1.105,F+.515,zz,seatBase);
   // Thin edge welts and two rear fasteners finish the individual upholstered module.
-  sideBox(.010,.018,width-.050,side*.914,F+.535,zz,sideSteel);
-  sideBox(.010,.018,width-.055,side*1.087,F+.585,zz,sideSteel);
+  sideBox(.007,.012,width-.048,side*.914,F+.530,zz,sideSteel);
+  sideBox(.007,.012,width-.052,side*1.087,F+.582,zz,sideSteel);
   for(const dz of [-width*.28,width*.28])sideBox(.018,.018,.018,side*1.183,F+.735,zz+dz,sideSteel);
   saloonSeats.push({side,z:zz,seat:pad,back});
  }
