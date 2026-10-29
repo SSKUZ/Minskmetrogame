@@ -1480,24 +1480,41 @@ goodmixPosterTexture.colorSpace=T.SRGBColorSpace;
 goodmixPosterTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
 const goodmixPosterMaterial=new T.MeshBasicMaterial({map:goodmixPosterTexture,side:T.DoubleSide,toneMapped:false});
 const goodmixFrameMaterial=new T.MeshStandardMaterial({color:0x929595,metalness:.75,roughness:.32});
-function installGoodmixPosters(carRoot){
- const posterWidth=.43,posterHeight=.304,posterZ=-6.42,posterY=F+1.62;
+function installGoodmixPosters(carRoot,{head=false}={}){
+ // First solid pier AFTER the first passenger doorway, BEFORE the adjacent
+ // window. Door centre -6.30, door edge -5.61, window begins around -4.91.
+ // The old -6.42 placement was INSIDE the moving door opening.
+ const posterWidth=.43,posterHeight=.304,posterZ=-5.27,posterY=F+1.62;
  for(const side of [-1,1]){
-  const faceX=side*(sideWallInner-.032);
+  // Mount on the real interior wall, not on the recessed sliding door.
+  const x=side*(sideWallInner-.065);
   const poster=new T.Mesh(new T.PlaneGeometry(posterWidth,posterHeight),goodmixPosterMaterial);
   poster.name='goodmix-duo-poster-'+(side<0?'left':'right');
   poster.rotation.y=-side*Math.PI/2;
-  poster.position.set(faceX-side*.019,posterY,posterZ);
+  poster.position.set(x,posterY,posterZ);
   poster.userData.advertisement='goodmix-duo';poster.userData.keepRenderObject=true;
   carRoot.add(poster);
   const frame=new T.Mesh(new T.BoxGeometry(.014,posterHeight+.018,posterWidth+.018),goodmixFrameMaterial);
   frame.name='goodmix-duo-frame-'+(side<0?'left':'right');
-  frame.position.set(faceX-side*.009,posterY,posterZ);
+  frame.position.set(x+side*.012,posterY,posterZ);
   frame.userData.keepRenderObject=true;carRoot.add(frame);
-  // The image sits just in front of the frame surface, avoiding z-fighting.
+ }
+ if(head){
+  // Large landscape advertising panel on the cab-to-saloon bulkhead.
+  // Added only to 81-717 head-car template (front and rear of consist).
+  const bannerWidth=1.48,bannerHeight=1.04,bannerZ=saloonStart+.105;
+  const banner=new T.Mesh(new T.PlaneGeometry(bannerWidth,bannerHeight),goodmixPosterMaterial);
+  banner.name='goodmix-duo-cab-bulkhead-banner';
+  banner.position.set(0,F+1.49,bannerZ);
+  banner.userData.advertisement='goodmix-duo-banner';banner.userData.keepRenderObject=true;
+  carRoot.add(banner);
+  const border=new T.Mesh(new T.BoxGeometry(bannerWidth+.035,bannerHeight+.035,.014),goodmixFrameMaterial);
+  border.name='goodmix-duo-cab-bulkhead-frame';
+  border.position.set(0,F+1.49,bannerZ-.012);
+  border.userData.keepRenderObject=true;carRoot.add(border);
  }
 }
-installGoodmixPosters(group);
+installGoodmixPosters(group,{head:true});
 const intermediateTemplate=createIntermediateCar(componentLibrary);
 installGoodmixPosters(intermediateTemplate.root);
 scene.add(intermediateTemplate.root);
