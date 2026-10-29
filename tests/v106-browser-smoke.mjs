@@ -70,6 +70,17 @@ try{
  const restored=await page.evaluate(()=>window.metroV106Diagnostics());
  assert.equal(restored.loaded,true);
  assert.equal(restored.metrics.doorLeaves,64);
+ // The in-game "carriage view" must render the authentic imported v106 saloon,
+ // never the legacy CarriageInterior mock-up.
+ await page.locator('#carCameraToggle').click();
+ await page.waitForFunction(()=>window.metroDiagnostics?.().camera==='carriage');
+ await page.waitForTimeout(1200);
+ const saloon=await page.evaluate(()=>window.metroV106Diagnostics());
+ assert.equal(saloon.loaded,true,'v106 must remain loaded in carriage view');
+ assert.equal(await page.locator('#carCameraToggle').innerText(),'🎮 В КАБИНУ');
+ await page.screenshot({path:'test-results/v106/v106-saloon.png',timeout:120000,animations:'disabled'});
+ await page.locator('#carCameraToggle').click();
+ await page.waitForFunction(()=>window.metroDiagnostics?.().camera==='cab');
  // Final integration check: drive the train away from the platform with real traction.
  // Use the same master-controller pointer interaction as a player, then verify
  // that physics advances and the imported v106 remains render-stable in motion.
