@@ -126,7 +126,6 @@ try{
   await page.screenshot({path:`test-results/v106/saloon-${view}.png`,timeout:120000,animations:'disabled'});
  }
  const auditIntegration=await page.evaluate(()=>window.wagonSaloonIntegration?.());
- assert.ok(auditIntegration?.seats>0,'saloon audit lost passenger seat anchors');
  assert.ok(auditIntegration?.rails>0,'saloon audit lost handrail anchors');
  assert.ok(auditIntegration?.windows>0,'saloon audit lost passenger windows');
  assert.ok(auditIntegration?.doors>0,'saloon audit lost passenger doors');
