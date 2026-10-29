@@ -830,6 +830,19 @@ for(const z of [saloonStart+.085,saloonEnd-.085]){
  }
 }
 
+// Final restrained wear cues: narrow scuff strips only at real high-contact zones.
+for(const side of [-1,1])for(const z of doors){
+ fixtureBox(.010,.035,doorWidth+.08,side*1.165,F+.055,z,saloonDark);
+ for(const dz of [-doorWidth/2-.11,doorWidth/2+.11])fixtureBox(.012,.32,.030,side*1.170,F+.30,z+dz,saloonJoint);
+}
+// Recessed floor-edge strips help the aisle/seat boundary read under warm saloon lighting.
+for(const side of [-1,1])fixtureBox(.035,.004,saloonLength-.32,side*.70,F+.011,(saloonStart+saloonEnd)/2,saloonJoint);
+// Small ceiling junction boxes at lighting transitions.
+for(const z of [-5.55,-.55,4.45,8.05]){
+ fixtureBox(.24,.028,.18,0,F+2.245,z,saloonJoint);
+ fixtureBox(.16,.032,.10,0,F+2.230,z,saloonTrim);
+}
+
 // Seat-plinth kick strips and discrete cushion seams.
 for(const side of [-1,1])for(const [a,b,count] of seatBays){
  const len=b-a;
