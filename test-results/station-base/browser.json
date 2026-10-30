@@ -1,6 +1,6 @@
 {
   "ok": false,
-  "error": "page.screenshot: Timeout 90000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n\n    at shot (/home/runner/work/Minskmetrogame/Minskmetrogame/tests/station-base-browser.mjs:7:52)\n    at async file:///home/runner/work/Minskmetrogame/Minskmetrogame/tests/station-base-browser.mjs:15:426",
+  "error": "page.screenshot: Timeout 45000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n\n    at shot (/home/runner/work/Minskmetrogame/Minskmetrogame/tests/station-base-browser.mjs:7:268)\n    at async file:///home/runner/work/Minskmetrogame/Minskmetrogame/tests/station-base-browser.mjs:15:426",
   "cases": [
     {
       "name": "two trains stopped",
@@ -1682,7 +1682,7 @@
           "three": "160",
           "sourceThree": null,
           "metrics": {
-            "loadMs": 2065,
+            "loadMs": 2377,
             "meshCount": 969,
             "triangles": 2167962,
             "doorLeaves": 64,
@@ -3405,7 +3405,7 @@
           "three": "160",
           "sourceThree": null,
           "metrics": {
-            "loadMs": 2065,
+            "loadMs": 2377,
             "meshCount": 969,
             "triangles": 2167962,
             "doorLeaves": 64,
@@ -3427,5 +3427,12 @@
     }
   ],
   "pageErrors": [],
+  "captureWarnings": [
+    {
+      "name": "doors-open.png",
+      "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n",
+      "retry": "once"
+    }
+  ],
   "status": "Проверки mesh пройдены · 15/15"
 }
