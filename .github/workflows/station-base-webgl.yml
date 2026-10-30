@@ -1,0 +1,42 @@
+name: Station Base WebGL smoke
+on:
+  push:
+    branches: [feature/mobile-render-diagnostics]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  station-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Syntax checks
+        run: |
+          node --check js/station-base/viewer.js
+          node --check js/station-base/SceneResourceAudit.js
+          node --check js/station-base/AdaptiveQuality.js
+          node --check tests/station-browser-smoke.mjs
+      - name: Unit tests
+        run: node --test tests/station-adaptive-quality.test.js
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Serve static scene
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/station-server.log 2>&1 &
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:8765/station-base.html >/dev/null && break; sleep 1; done
+      - name: Browser WebGL smoke and screenshots
+        run: node tests/station-browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-base-webgl-diagnostics
+          path: |
+            test-results/station-base/
+            /tmp/station-server.log
+          if-no-files-found: warn
