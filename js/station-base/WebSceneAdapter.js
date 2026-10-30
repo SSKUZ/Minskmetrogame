@@ -14,9 +14,22 @@ export function renderStation(THREE,scene,base){
  const slab=base.modules.platform.slab,platformMesh=box(slab.size,slab.center,materials.platform,'platform-slab');
  for(const edge of base.modules.platform.edges){const sign=edge.id==='edge-1'?-1:1;box({x:.055,y:.005,z:edge.maxZ-edge.minZ},{x:edge.x+sign*.25,y:base.station.platform.topY+.003,z:(edge.minZ+edge.maxZ)/2},materials.edge,edge.id+'/safety-reference');}
  const markers=new THREE.Group();markers.name='technical-anchors';root.add(markers);
+ // One draw call for all stop spheres and one for all door-direction lines.
+ const doorAnchors=base.modules.stops.flatMap(s=>s.doors);
  const sphere=new THREE.SphereGeometry(.025,8,6);
- for(const d of base.modules.stops.flatMap(s=>s.doors)){const mesh=new THREE.Mesh(sphere,materials.marker);mesh.position.set(d.x,d.y+.06,d.z);markers.add(mesh);
-  const line=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(d.x+d.normal.x*.8,d.y+.012,d.z),new THREE.Vector3(d.x,d.y+.012,d.z)]);markers.add(new THREE.Line(line,new THREE.LineBasicMaterial({color:0x26afc5})));}
+ const anchorMesh=new THREE.InstancedMesh(sphere,materials.marker,doorAnchors.length);
+ anchorMesh.name='stop-door-anchors';
+ const anchorMatrix=new THREE.Matrix4(),linePoints=[];
+ for(let i=0;i<doorAnchors.length;i++){
+  const d=doorAnchors[i];
+  anchorMatrix.makeTranslation(d.x,d.y+.06,d.z);anchorMesh.setMatrixAt(i,anchorMatrix);
+  linePoints.push(d.x+d.normal.x*.8,d.y+.012,d.z,d.x,d.y+.012,d.z);
+ }
+ anchorMesh.instanceMatrix.needsUpdate=true;markers.add(anchorMesh);
+ const directionGeometry=new THREE.BufferGeometry();
+ directionGeometry.setAttribute('position',new THREE.Float32BufferAttribute(linePoints,3));
+ const directions=new THREE.LineSegments(directionGeometry,new THREE.LineBasicMaterial({color:0x26afc5}));
+ directions.name='stop-door-directions';markers.add(directions);
  const label=(text,x,y,z)=>{const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle='#102733';c.fillRect(0,0,512,96);c.fillStyle='#c7f6ff';c.font='bold 40px sans-serif';c.textAlign='center';c.fillText(text,256,64);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),depthTest:true}));sprite.position.set(x,y,z);sprite.scale.set(3.7,.7,1);markers.add(sprite);};
  for(const stop of base.modules.stops)label(stop.trackId+' · STOP',stop.trackX+stop.servedSide*2.8,2.4,stop.frontZ);
  for(const port of base.modules.ports){const geometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(port.position.x-1.65,0,port.position.z),new THREE.Vector3(port.position.x-1.65,4.02,port.position.z),new THREE.Vector3(port.position.x+1.65,4.02,port.position.z),new THREE.Vector3(port.position.x+1.65,0,port.position.z)]);markers.add(new THREE.Line(geometry,new THREE.LineBasicMaterial({color:0x408db0})));}
