@@ -1,0 +1,66 @@
+name: Metro 2 P1 native Android and Web builds
+
+on:
+  push:
+    branches:
+      - feature/metro2-godot-p1
+    paths:
+      - 'metro2/android-prototype/**'
+      - '.github/workflows/metro2-p1-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    name: Godot 4.4.1 native export
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: barichello/godot-ci:4.4.1
+    defaults:
+      run:
+        shell: bash
+        working-directory: metro2/android-prototype
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment and templates
+        run: |
+          set -euxo pipefail
+          godot --version
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          command -v keytool
+          ls -la /root/.local/share/godot/export_templates || true
+      - name: Import project and validate GDScript
+        run: |
+          set -euxo pipefail
+          godot --headless --path . --editor --import --quit
+      - name: Export native Android APK
+        run: |
+          set -euxo pipefail
+          mkdir -p build/android
+          godot --headless --path . --export-debug Android build/android/metro2-p1-debug.apk
+          test -s build/android/metro2-p1-debug.apk
+          sha256sum build/android/metro2-p1-debug.apk > build/android/SHA256SUMS.txt
+      - name: Export browser build
+        if: success()
+        run: |
+          set -euxo pipefail
+          mkdir -p build/web
+          godot --headless --path . --export-release Web build/web/index.html
+          test -s build/web/index.html
+      - name: Upload Android APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metro2-p1-android-debug
+          path: metro2/android-prototype/build/android/
+          if-no-files-found: warn
+      - name: Upload browser build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metro2-p1-web
+          path: metro2/android-prototype/build/web/
+          if-no-files-found: warn
