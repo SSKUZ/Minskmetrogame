@@ -1,7 +1,7 @@
 // Screen-space detail culling for the static opposing consist.
 // Non-destructive: geometry/materials remain intact and meshes return when camera approaches.
 // THREE's built-in frustum culling still handles objects outside the camera view.
-export function createSecondaryTrainDetailLOD(THREE,root,{minDistance=28,hideBelowPixels=2.5,restoreAbovePixels=4}={}){
+export function createSecondaryTrainDetailLOD(THREE,root,{minDistance=28,exitDistance=minDistance*.8,hideBelowPixels=2.5,restoreAbovePixels=4}={}){
  const meshes=[];
  root.traverse(object=>{
   if(!object.isMesh||!object.geometry)return;
@@ -24,7 +24,7 @@ export function createSecondaryTrainDetailLOD(THREE,root,{minDistance=28,hideBel
     const radius=sphere.radius*object.matrixWorld.getMaxScaleOnAxis();
     const distance=center.distanceTo(camera.position);
     const pixels=2*radius*focal/Math.max(.001,distance);
-    const shouldHide=distance>minDistance&&(item.hidden?pixels<restoreAbovePixels:pixels<hideBelowPixels);
+    const shouldHide=distance>(item.hidden?exitDistance:minDistance)&&(item.hidden?pixels<restoreAbovePixels:pixels<hideBelowPixels);
     if(shouldHide!==item.hidden){item.hidden=shouldHide;object.visible=!shouldHide;changed=true;}
     if(item.hidden)count++;
    }
