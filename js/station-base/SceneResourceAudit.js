@@ -2,6 +2,7 @@
 export function auditSceneResources({scene,train,secondTrain,stationView,renderer}){
  const groups=[['station',stationView?.root],['player-v106',train?.root],['opposing-v106',secondTrain?.root]];
  const seenGeometries=new Set(),seenMaterials=new Set(),seenTextures=new Set();
+ const allMaterials=new Set(),allTextures=new Set();
  const bytes={geometry:0,texturesEstimated:0};
  const scan=(name,root)=>{
   const geometries=new Set(),materials=new Set(),textures=new Set();
@@ -19,7 +20,8 @@ export function auditSceneResources({scene,train,secondTrain,stationView,rendere
   });
   out.geometries=geometries.size;out.materials=materials.size;out.textures=textures.size;
   for(const g of geometries)if(!seenGeometries.has(g)){seenGeometries.add(g);for(const a of Object.values(g.attributes||{})){if(a.array?.byteLength)bytes.geometry+=a.array.byteLength;}if(g.index?.array?.byteLength)bytes.geometry+=g.index.array.byteLength;}
-  for(const m of materials)seenMaterials.add(m);
+  for(const m of materials){seenMaterials.add(m);allMaterials.add(m);}
+  for(const t of textures){allTextures.add(t);}
   for(const t of textures)seenTextures.add(t);
   return out;
  };
@@ -36,5 +38,5 @@ export function auditSceneResources({scene,train,secondTrain,stationView,rendere
  const topByMaterialSlots=[...topMeshes].sort((a,b)=>b.materials-a.materials).slice(0,30);
  const components=groups.map(([name,root])=>scan(name,root));
  for(const t of seenTextures){const img=t.image??t.source?.data;if(img?.width&&img?.height)bytes.texturesEstimated+=img.width*img.height*4;}
- return {kind:'CPU scene inventory (not GPU benchmark)',timestamp:new Date().toISOString(),components,topByTriangles,topByMaterialSlots,unique:{geometries:seenGeometries.size,materials:seenMaterials.size,textures:seenTextures.size},bytes,rendererInfo:renderer?{calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures}:null,notes:['Triangle totals are raw geometry counts; they do not account for frustum culling or overlapping render passes.','Geometry byte count is an approximate unique BufferGeometry attribute total; texture estimate assumes 4 bytes/pixel, no mipmaps or compression.','Draw calls must be measured per render pass on an active WebGL renderer.']};
+ return {kind:'CPU scene inventory (not GPU benchmark)',timestamp:new Date().toISOString(),components,topByTriangles,topByMaterialSlots,unique:{geometries:seenGeometries.size,materials:allMaterials.size,textures:allTextures.size},bytes,rendererInfo:renderer?{calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures}:null,notes:['Triangle totals are raw geometry counts; they do not account for frustum culling or overlapping render passes.','Geometry byte count is an approximate unique BufferGeometry attribute total; texture estimate assumes 4 bytes/pixel, no mipmaps or compression.','Draw calls must be measured per render pass on an active WebGL renderer.']};
 }
