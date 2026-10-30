@@ -9,20 +9,19 @@ export function createSecondaryTrainDetailLOD(THREE,root,{minDistance=28,hideBel
   if(!sphere||!Number.isFinite(sphere.radius))return;
   meshes.push({object,sphere,hidden:false,originalVisible:object.visible});
  });
- const center=new THREE.Vector3(),scale=new THREE.Vector3(),position=new THREE.Vector3();
+ const center=new THREE.Vector3();
  let hiddenCount=0;
  return {
   update(camera,viewportHeight){
    camera.updateMatrixWorld();
+   root.updateWorldMatrix(true,true);
    const focal=viewportHeight/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov)*.5));
    let count=0,changed=false;
    for(const item of meshes){
     const {object,sphere}=item;
     if(!item.originalVisible)continue;
-    object.updateWorldMatrix(true,false);
     center.copy(sphere.center).applyMatrix4(object.matrixWorld);
-    object.getWorldScale(scale);
-    const radius=sphere.radius*Math.max(Math.abs(scale.x),Math.abs(scale.y),Math.abs(scale.z));
+    const radius=sphere.radius*object.matrixWorld.getMaxScaleOnAxis();
     const distance=center.distanceTo(camera.position);
     const pixels=2*radius*focal/Math.max(.001,distance);
     const shouldHide=distance>minDistance&&(item.hidden?pixels<restoreAbovePixels:pixels<hideBelowPixels);
