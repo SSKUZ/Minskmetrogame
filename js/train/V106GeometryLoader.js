@@ -73,14 +73,18 @@ export async function loadV106Geometry({THREE,scene,renderer,timeoutMs=90000}){
    return local;
   };
   stage('rehome-attributes');
+  const rehomedGeometries=new Set();
   root.traverse(object=>{
    const geometry=object.geometry;
-   if(!object.isMesh||!geometry?.isBufferGeometry)return;
+   if(!object.isMesh||!geometry?.isBufferGeometry||rehomedGeometries.has(geometry))return;
+   rehomedGeometries.add(geometry);
    for(const name of Object.keys(geometry.attributes))geometry.setAttribute(name,rehomeAttribute(geometry.getAttribute(name)));
    for(const [name,attributes] of Object.entries(geometry.morphAttributes||{}))
     geometry.morphAttributes[name]=attributes.map(rehomeAttribute);
    if(geometry.index)geometry.setIndex(rehomeAttribute(geometry.index));
   });
+  stage('rehome-complete');
+  window.metroV106SharedGeometryCount=rehomedGeometries.size;
   // The viewer's warning labels use a CanvasTexture created in an iframe.
   // Its HTMLCanvasElement belongs to a different realm, and is not a reliable
   // WebGL upload source for the game's renderer. Copy the exact original
