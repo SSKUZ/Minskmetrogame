@@ -1,0 +1,1297 @@
+{
+  "name": "contract",
+  "seed": 42,
+  "stations": [
+    {
+      "station": 0,
+      "population": 92,
+      "plan": {
+        "station": 0,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "growing",
+        "factor": 0.42,
+        "demand": 31,
+        "boarding": 31,
+        "exiting": 0,
+        "target": 44,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 3,
+            "exiting": 0,
+            "boarding": 8
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 3,
+            "exiting": 0,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 3,
+            "exiting": 0,
+            "boarding": 7
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 3,
+            "exiting": 0,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 7.266666666666667,
+      "before": 12,
+      "boarded": 31,
+      "alighted": 0,
+      "onboard": 43,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 11
+        },
+        {
+          "id": 1,
+          "count": 11
+        },
+        {
+          "id": 2,
+          "count": 10
+        },
+        {
+          "id": 3,
+          "count": 11
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 31,
+      "scheduledExit": 0,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 35,
+      "standing": 8
+    },
+    {
+      "station": 1,
+      "population": 95,
+      "plan": {
+        "station": 1,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "growing",
+        "factor": 0.5461904761904762,
+        "demand": 30,
+        "boarding": 30,
+        "exiting": 13,
+        "target": 60,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 15,
+            "before": 11,
+            "exiting": 4,
+            "boarding": 8
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 15,
+            "before": 11,
+            "exiting": 4,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 15,
+            "before": 10,
+            "exiting": 2,
+            "boarding": 7
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 15,
+            "before": 11,
+            "exiting": 3,
+            "boarding": 7
+          }
+        ]
+      },
+      "dwell": 12.233333333333333,
+      "before": 43,
+      "boarded": 30,
+      "alighted": 13,
+      "onboard": 60,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 15
+        },
+        {
+          "id": 1,
+          "count": 15
+        },
+        {
+          "id": 2,
+          "count": 15
+        },
+        {
+          "id": 3,
+          "count": 15
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 30,
+      "scheduledExit": 13,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 58,
+      "standing": 2
+    },
+    {
+      "station": 2,
+      "population": 90,
+      "plan": {
+        "station": 2,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "growing",
+        "factor": 0.6723809523809524,
+        "demand": 34,
+        "boarding": 34,
+        "exiting": 22,
+        "target": 72,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 18,
+            "before": 15,
+            "exiting": 6,
+            "boarding": 9
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 18,
+            "before": 15,
+            "exiting": 5,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 18,
+            "before": 15,
+            "exiting": 6,
+            "boarding": 9
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 18,
+            "before": 15,
+            "exiting": 5,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 17.1,
+      "before": 60,
+      "boarded": 34,
+      "alighted": 22,
+      "onboard": 72,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 18
+        },
+        {
+          "id": 1,
+          "count": 18
+        },
+        {
+          "id": 2,
+          "count": 18
+        },
+        {
+          "id": 3,
+          "count": 18
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 34,
+      "scheduledExit": 22,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 67,
+      "standing": 4
+    },
+    {
+      "station": 3,
+      "population": 89,
+      "plan": {
+        "station": 3,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "growing",
+        "factor": 0.7985714285714286,
+        "demand": 33,
+        "boarding": 33,
+        "exiting": 17,
+        "target": 88,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 22,
+            "before": 18,
+            "exiting": 5,
+            "boarding": 9
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 22,
+            "before": 18,
+            "exiting": 4,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 22,
+            "before": 18,
+            "exiting": 4,
+            "boarding": 8
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 22,
+            "before": 18,
+            "exiting": 4,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 16.033333333333335,
+      "before": 72,
+      "boarded": 33,
+      "alighted": 17,
+      "onboard": 88,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 22
+        },
+        {
+          "id": 1,
+          "count": 22
+        },
+        {
+          "id": 2,
+          "count": 22
+        },
+        {
+          "id": 3,
+          "count": 22
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 33,
+      "scheduledExit": 17,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 78,
+      "standing": 8
+    },
+    {
+      "station": 4,
+      "population": 95,
+      "plan": {
+        "station": 4,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "growing",
+        "factor": 0.9247619047619049,
+        "demand": 33,
+        "boarding": 33,
+        "exiting": 21,
+        "target": 100,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 25,
+            "before": 22,
+            "exiting": 6,
+            "boarding": 9
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 25,
+            "before": 22,
+            "exiting": 5,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 25,
+            "before": 22,
+            "exiting": 5,
+            "boarding": 8
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 25,
+            "before": 22,
+            "exiting": 5,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 15.8,
+      "before": 88,
+      "boarded": 33,
+      "alighted": 21,
+      "onboard": 100,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 25
+        },
+        {
+          "id": 1,
+          "count": 25
+        },
+        {
+          "id": 2,
+          "count": 25
+        },
+        {
+          "id": 3,
+          "count": 25
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 33,
+      "scheduledExit": 21,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 84,
+      "standing": 14
+    },
+    {
+      "station": 5,
+      "population": 81,
+      "plan": {
+        "station": 5,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "peak",
+        "factor": 0.969047619047619,
+        "demand": 34,
+        "boarding": 34,
+        "exiting": 30,
+        "target": 104,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 26,
+            "before": 25,
+            "exiting": 8,
+            "boarding": 9
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 26,
+            "before": 25,
+            "exiting": 7,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 26,
+            "before": 25,
+            "exiting": 7,
+            "boarding": 8
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 26,
+            "before": 25,
+            "exiting": 8,
+            "boarding": 9
+          }
+        ]
+      },
+      "dwell": 20.533333333333335,
+      "before": 100,
+      "boarded": 34,
+      "alighted": 30,
+      "onboard": 104,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 26
+        },
+        {
+          "id": 1,
+          "count": 26
+        },
+        {
+          "id": 2,
+          "count": 26
+        },
+        {
+          "id": 3,
+          "count": 26
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 34,
+      "scheduledExit": 30,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 84,
+      "standing": 16
+    },
+    {
+      "station": 6,
+      "population": 85,
+      "plan": {
+        "station": 6,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "peak",
+        "factor": 0.9928571428571429,
+        "demand": 33,
+        "boarding": 33,
+        "exiting": 29,
+        "target": 108,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 26,
+            "exiting": 7,
+            "boarding": 8
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 26,
+            "exiting": 8,
+            "boarding": 9
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 26,
+            "exiting": 7,
+            "boarding": 8
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 26,
+            "exiting": 7,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 17.433333333333334,
+      "before": 104,
+      "boarded": 33,
+      "alighted": 29,
+      "onboard": 108,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 27
+        },
+        {
+          "id": 1,
+          "count": 27
+        },
+        {
+          "id": 2,
+          "count": 27
+        },
+        {
+          "id": 3,
+          "count": 27
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 33,
+      "scheduledExit": 29,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 85,
+      "standing": 21
+    },
+    {
+      "station": 7,
+      "population": 100,
+      "plan": {
+        "station": 7,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "peak",
+        "factor": 1,
+        "demand": 34,
+        "boarding": 34,
+        "exiting": 34,
+        "target": 108,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 9,
+            "boarding": 9
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 8,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 9,
+            "boarding": 9
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 8,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 22,
+      "before": 108,
+      "boarded": 34,
+      "alighted": 34,
+      "onboard": 108,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 27
+        },
+        {
+          "id": 1,
+          "count": 27
+        },
+        {
+          "id": 2,
+          "count": 27
+        },
+        {
+          "id": 3,
+          "count": 27
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 34,
+      "scheduledExit": 34,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 86,
+      "standing": 22
+    },
+    {
+      "station": 8,
+      "population": 84,
+      "plan": {
+        "station": 8,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "peak",
+        "factor": 1,
+        "demand": 33,
+        "boarding": 33,
+        "exiting": 33,
+        "target": 108,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 8,
+            "boarding": 8
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 8,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 9,
+            "boarding": 9
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 27,
+            "before": 27,
+            "exiting": 8,
+            "boarding": 8
+          }
+        ]
+      },
+      "dwell": 18.966666666666665,
+      "before": 108,
+      "boarded": 33,
+      "alighted": 33,
+      "onboard": 108,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 27
+        },
+        {
+          "id": 1,
+          "count": 27
+        },
+        {
+          "id": 2,
+          "count": 27
+        },
+        {
+          "id": 3,
+          "count": 27
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 33,
+      "scheduledExit": 33,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 88,
+      "standing": 20
+    },
+    {
+      "station": 9,
+      "population": 83,
+      "plan": {
+        "station": 9,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "declining",
+        "factor": 0.9035714285714285,
+        "demand": 33,
+        "boarding": 33,
+        "exiting": 45,
+        "target": 96,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 24,
+            "before": 27,
+            "exiting": 11,
+            "boarding": 8
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 24,
+            "before": 27,
+            "exiting": 11,
+            "boarding": 8
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 24,
+            "before": 27,
+            "exiting": 11,
+            "boarding": 8
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 24,
+            "before": 27,
+            "exiting": 12,
+            "boarding": 9
+          }
+        ]
+      },
+      "dwell": 25.266666666666666,
+      "before": 108,
+      "boarded": 33,
+      "alighted": 45,
+      "onboard": 96,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 24
+        },
+        {
+          "id": 1,
+          "count": 24
+        },
+        {
+          "id": 2,
+          "count": 24
+        },
+        {
+          "id": 3,
+          "count": 24
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 33,
+      "scheduledExit": 45,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 84,
+      "standing": 12
+    },
+    {
+      "station": 10,
+      "population": 91,
+      "plan": {
+        "station": 10,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "declining",
+        "factor": 0.7428571428571429,
+        "demand": 26,
+        "boarding": 26,
+        "exiting": 43,
+        "target": 80,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 20,
+            "before": 24,
+            "exiting": 12,
+            "boarding": 7
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 20,
+            "before": 24,
+            "exiting": 10,
+            "boarding": 6
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 20,
+            "before": 24,
+            "exiting": 10,
+            "boarding": 6
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 20,
+            "before": 24,
+            "exiting": 11,
+            "boarding": 7
+          }
+        ]
+      },
+      "dwell": 25.133333333333333,
+      "before": 96,
+      "boarded": 26,
+      "alighted": 43,
+      "onboard": 79,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 19
+        },
+        {
+          "id": 1,
+          "count": 20
+        },
+        {
+          "id": 2,
+          "count": 20
+        },
+        {
+          "id": 3,
+          "count": 20
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 26,
+      "scheduledExit": 43,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 69,
+      "standing": 8
+    },
+    {
+      "station": 11,
+      "population": 93,
+      "plan": {
+        "station": 11,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "declining",
+        "factor": 0.5821428571428573,
+        "demand": 17,
+        "boarding": 17,
+        "exiting": 32,
+        "target": 64,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 16,
+            "before": 19,
+            "exiting": 7,
+            "boarding": 4
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 16,
+            "before": 20,
+            "exiting": 8,
+            "boarding": 4
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 16,
+            "before": 20,
+            "exiting": 9,
+            "boarding": 5
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 16,
+            "before": 20,
+            "exiting": 8,
+            "boarding": 4
+          }
+        ]
+      },
+      "dwell": 17.033333333333335,
+      "before": 79,
+      "boarded": 17,
+      "alighted": 32,
+      "onboard": 64,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 16
+        },
+        {
+          "id": 1,
+          "count": 16
+        },
+        {
+          "id": 2,
+          "count": 16
+        },
+        {
+          "id": 3,
+          "count": 16
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 17,
+      "scheduledExit": 32,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 57,
+      "standing": 7
+    },
+    {
+      "station": 12,
+      "population": 97,
+      "plan": {
+        "station": 12,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "declining",
+        "factor": 0.3928571428571431,
+        "demand": 8,
+        "boarding": 8,
+        "exiting": 30,
+        "target": 44,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 16,
+            "exiting": 8,
+            "boarding": 2
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 16,
+            "exiting": 8,
+            "boarding": 2
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 16,
+            "exiting": 7,
+            "boarding": 2
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 11,
+            "before": 16,
+            "exiting": 7,
+            "boarding": 2
+          }
+        ]
+      },
+      "dwell": 21.033333333333335,
+      "before": 64,
+      "boarded": 8,
+      "alighted": 30,
+      "onboard": 42,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 10
+        },
+        {
+          "id": 1,
+          "count": 10
+        },
+        {
+          "id": 2,
+          "count": 11
+        },
+        {
+          "id": 3,
+          "count": 11
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 8,
+      "scheduledExit": 30,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 38,
+      "standing": 4
+    },
+    {
+      "station": 13,
+      "population": 96,
+      "plan": {
+        "station": 13,
+        "stationCount": 15,
+        "terminal": false,
+        "phase": "declining",
+        "factor": 0.16,
+        "demand": 0,
+        "boarding": 0,
+        "exiting": 26,
+        "target": 16,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 4,
+            "before": 10,
+            "exiting": 6,
+            "boarding": 0
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 4,
+            "before": 10,
+            "exiting": 6,
+            "boarding": 0
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 4,
+            "before": 11,
+            "exiting": 7,
+            "boarding": 0
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 4,
+            "before": 11,
+            "exiting": 7,
+            "boarding": 0
+          }
+        ]
+      },
+      "dwell": 19.166666666666668,
+      "before": 42,
+      "boarded": 0,
+      "alighted": 26,
+      "onboard": 16,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 4
+        },
+        {
+          "id": 1,
+          "count": 4
+        },
+        {
+          "id": 2,
+          "count": 4
+        },
+        {
+          "id": 3,
+          "count": 4
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 0,
+      "scheduledExit": 26,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 15,
+      "standing": 1
+    },
+    {
+      "station": 14,
+      "population": 83,
+      "plan": {
+        "station": 14,
+        "stationCount": 15,
+        "terminal": true,
+        "phase": "terminal",
+        "factor": 0,
+        "demand": 0,
+        "boarding": 0,
+        "exiting": 16,
+        "target": 0,
+        "peakCapacity": 108,
+        "cars": [
+          {
+            "id": 0,
+            "capacity": 32,
+            "peak": 27,
+            "target": 0,
+            "before": 4,
+            "exiting": 4,
+            "boarding": 0
+          },
+          {
+            "id": 1,
+            "capacity": 32,
+            "peak": 27,
+            "target": 0,
+            "before": 4,
+            "exiting": 4,
+            "boarding": 0
+          },
+          {
+            "id": 2,
+            "capacity": 32,
+            "peak": 27,
+            "target": 0,
+            "before": 4,
+            "exiting": 4,
+            "boarding": 0
+          },
+          {
+            "id": 3,
+            "capacity": 32,
+            "peak": 27,
+            "target": 0,
+            "before": 4,
+            "exiting": 4,
+            "boarding": 0
+          }
+        ]
+      },
+      "dwell": 11.966666666666667,
+      "before": 16,
+      "boarded": 0,
+      "alighted": 16,
+      "onboard": 0,
+      "perCar": [
+        {
+          "id": 0,
+          "count": 0
+        },
+        {
+          "id": 1,
+          "count": 0
+        },
+        {
+          "id": 2,
+          "count": 0
+        },
+        {
+          "id": 3,
+          "count": 0
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 0,
+      "scheduledExit": 16,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": [],
+      "seated": 0,
+      "standing": 0
+    }
+  ],
+  "passed": true
+}

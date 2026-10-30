@@ -1,0 +1,107 @@
+{
+  "sourceCommit": "4836995ff961c66121ca97da3b742c7de0c6406c",
+  "workflowRun": "https://github.com/SSKUZ/Minskmetrogame/actions/runs/41001892523",
+  "artifactId": 12954037609,
+  "artifactSha256": "cedde59a227aa44f4ebd93e9d543ba60f3a13c3932084c6735f3ac43fd758cb8",
+  "checks": {
+    "passed": 82,
+    "failed": 0,
+    "skipped": 0
+  },
+  "headlessRoutes": {
+    "stand-717": {
+      "stops": 15,
+      "afterFirst": 32,
+      "peak": 80,
+      "beforeTerminal": 10,
+      "terminal": 0,
+      "maxOrdinarySeconds": 49.233333333333334,
+      "terminalSeconds": 26.5
+    },
+    "contract-42": {
+      "stops": 15,
+      "afterFirst": 43,
+      "peak": 108,
+      "beforeTerminal": 16,
+      "terminal": 0,
+      "maxOrdinarySeconds": 25.266666666666666,
+      "terminalSeconds": 11.966666666666667
+    }
+  },
+  "browser": {
+    "initialPlatform": 98,
+    "initialOnboard": 12,
+    "afterFirst": 32,
+    "midRoute": 80,
+    "midRouteSeated": 70,
+    "midRouteStanding": 10,
+    "midRoutePerCar": [
+      20,
+      20,
+      20,
+      20
+    ],
+    "beforeTerminal": 9,
+    "terminal": 0,
+    "terminalPerCar": [
+      {
+        "car": 0,
+        "onboard": 0
+      },
+      {
+        "car": 1,
+        "onboard": 0
+      },
+      {
+        "car": 2,
+        "onboard": 0
+      },
+      {
+        "car": 3,
+        "onboard": 0
+      }
+    ],
+    "terminalBoarding": 0,
+    "terminalAlighting": 9,
+    "passengerExchangeComplete": true,
+    "doorsSafeToClose": true,
+    "readyForNextTrip": true,
+    "firstStopSeconds": 19,
+    "maxOrdinarySeconds": 46.666666666666664,
+    "terminalSeconds": 17.1,
+    "modelsLoaded": 24,
+    "errors": [],
+    "failedRequests": []
+  },
+  "limits": {
+    "temporaryEightDoorStandMeets35SecondTarget": false,
+    "sixteenDoorContractMeets35SecondTarget": true,
+    "physicalPhoneFpsVerified": false,
+    "v106Integrated": false
+  },
+  "visualReview": [
+    "platform.png",
+    "carriage.png",
+    "carriage-middle.png",
+    "carriage-before-terminal.png",
+    "carriage-terminal-empty.png"
+  ],
+  "files": {
+    "passenger-layout/mirror-right.png": "5a2befccbabc989acaf4337bcc86aeb8834d82d485326ba72aca16641871ff81",
+    "passenger-layout/carriage.png": "7793604a3066717370b32b2e41c1f4a8bb172b428a67c333ee18a6bfbbf8ba71",
+    "passenger-layout/carriage-before-terminal.png": "cff4193a9bbea0bb432f6a85eddee0c4dbd91ac6809090d495e2077d57949479",
+    "passenger-layout/carriage-mobile.png": "85dc50a5b1363781ca73e9a4cf23330e5fea85254e962d4dd0861d01d336b3af",
+    "passenger-layout/exchange.png": "0cd220d259a2aece5cfc478a61d7c6670451a695dbf294da3f3a0f8132a4d10d",
+    "passenger-layout/platform.png": "fb1f4e9e766df892d182a37564c56267b9dbf2bb4ee38e61e6fd79909cce05f7",
+    "passenger-layout/carriage-middle.png": "e66b8d5c010ac80c58cb87a85836d5997562cc079d0d2f825f31d49eb23527d6",
+    "passenger-layout/portrait.png": "c82488696b724d8e010329a7bb6cd8b498f76fe68f92554a909bb69484aafa8a",
+    "passenger-layout/browser-report.json": "343ea7c86350fb2c35524a6c91ec95ff28e48010dedcb484042a27debb90326e",
+    "passenger-layout/carriage-terminal-empty.png": "25fed5fc9d896d8307717cf62667eebecf375a7d853208d3cb18ace058e42a36",
+    "passenger-layout/mirror-left.png": "969d4aed3e21fb885c1ba572988c220343b1dcb338c85bbfc1fc14649ebeceed",
+    "route-flow/stand-717.json": "dc1439a3a7cc502410abce714d7d03731103cf24412170d774427a2e1a01067e",
+    "route-flow/contract-42.json": "0b8240b6719b84911d318e93c8ebb7defce7b3fd7cfd501bc15e9a43757274eb",
+    "normal-flow/seed-717.json": "d888fc80b3a587a684a1893fb7aaff2de00ceb14737bf72643301daabe6f2c95",
+    "normal-flow/seed-42.json": "0d8e316eadd0e886e715001ea73bd8414a2c91ff87083ad72ffff588ddeea901",
+    "normal-flow/seed-106.json": "807556fba787e5df836a948b1583dc76dafdd80b764552bf9a3f3019c7f83437"
+  }
+}
