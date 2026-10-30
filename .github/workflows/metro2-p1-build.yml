@@ -14,11 +14,11 @@ permissions:
 
 jobs:
   export:
-    name: Godot 4.4.1 native export
+    name: Godot 4.3 native export
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: barichello/godot-ci:4.4.1
+      image: barichello/godot-ci:4.3
     defaults:
       run:
         shell: bash
@@ -32,6 +32,27 @@ jobs:
           echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
           command -v keytool
           ls -la /root/.local/share/godot/export_templates || true
+      - name: Configure Android export environment
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/share/godot" "$HOME/.config/godot"
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates "$HOME/.local/share/godot/"
+          fi
+          java_sdk="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+          debug_key="$HOME/.local/share/godot/debug.keystore"
+          if [ ! -f "$debug_key" ]; then
+            keytool -genkeypair -keystore "$debug_key" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$java_sdk"
+          export/android/debug_keystore = "$debug_key"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
       - name: Import project and validate GDScript
         run: |
           set -euxo pipefail
@@ -40,9 +61,9 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p build/android
-          godot --headless --path . --export-debug Android build/android/metro2-p1-debug.apk
-          test -s build/android/metro2-p1-debug.apk
-          sha256sum build/android/metro2-p1-debug.apk > build/android/SHA256SUMS.txt
+          godot --headless --path . --export-debug Android build/android/MinskMetro2-P1-debug.apk
+          test -s build/android/MinskMetro2-P1-debug.apk
+          sha256sum build/android/MinskMetro2-P1-debug.apk > build/android/SHA256SUMS.txt
       - name: Export browser build
         if: success()
         run: |

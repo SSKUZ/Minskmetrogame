@@ -26,3 +26,7 @@ Uses Godot CI image `barichello/godot-ci:4.4.1`; imports project, exports ARM64 
 **Evidence status:** workflow source committed, but CI run completion, APK existence, successful launch and physical-device test are **NOT confirmed**. The GitHub connector's available commit-runs endpoint filters to PR runs and cannot establish push-run success. If CI fails, inspect the run logs and fix the branch before calling it built.
 
 **How to retrieve APK once the run succeeds:** open GitHub repository → Actions → “Metro 2 P1 native Android and Web builds” → latest run on `feature/metro2-godot-p1` → artifact `metro2-p1-android-debug`. Verify SHA256SUMS, install only on a test device, and record launch evidence. Do not treat the presence of an artifact as proof of a successful launch.
+
+## Build/test update — 31 October 2026
+
+A native ARM64 APK has now been built and structurally/signature verified locally using Godot 4.3. Android installation and launch remain unverified. See `BUILD_TEST_2026-10-31.md`; the earlier automated-build evidence status above is historical.
