@@ -89,13 +89,13 @@ let lastTime=performance.now(),lastRender=0,frames=0;
 function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime)/1000);lastTime=Math.max(lastTime,now);
  const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
- if(opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){if(!opposingProxyLOD.distant)secondaryLOD?.restore();dirty=true;}
- if(secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant&&secondaryLOD.update(camera,renderer.domElement.height))dirty=true;
- if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
+ if(dirty&&opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){if(!opposingProxyLOD.distant)secondaryLOD?.restore();}
+ if(dirty&&secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant)secondaryLOD.update(camera,renderer.domElement.height);
+ if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;const renderStart=performance.now();renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
- ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-now;
+ ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-renderStart;
  if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
- diagnostic.textContent='GPU: '+gpuStats.context+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\\nError: '+gpuStats.error:'');
+ diagnostic.textContent='GPU: '+gpuStats.context+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\nError: '+gpuStats.error:'');
  $('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
  }
 }requestAnimationFrame(loop);
