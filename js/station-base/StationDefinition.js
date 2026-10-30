@@ -5,9 +5,10 @@ export function createStationDefinition(options={}){
  const kind=options.kind??'straight-level-island';
  if(kind!=='straight-level-island')throw new Error('Unsupported station topology: '+kind);
  if(![length,width,centerZ].every(Number.isFinite)||length<=0||width<=0)throw new Error('Invalid platform dimensions');
- const edge=-profile.platform.edgeOffset,farEdge=edge-width,direction=options.direction??-1;
+ const primaryTrackX=options.primaryTrackX??0;if(!Number.isFinite(primaryTrackX))throw new Error('Invalid track origin');
+ const edge=primaryTrackX-profile.platform.edgeOffset,farEdge=edge-width,direction=options.direction??-1;
  if(![-1,1].includes(direction))throw new Error('Direction must be -1 or +1');
- const tracks=[{id:'track-1',x:0,role:'player'},{id:'track-2',x:farEdge-profile.platform.edgeOffset,role:'opposing'}];
+ const tracks=[{id:'track-1',x:primaryTrackX,role:'player'},{id:'track-2',x:farEdge-profile.platform.edgeOffset,role:'opposing'}];
  const tolerance=options.stopTolerance??.5;
  const stops=tracks.map((t,i)=>{const dir=i===0?direction:-direction,frontZ=(i===0?options.stopS:options.secondStopS)??(centerZ+(dir===-1?-1:1)*profile.train.nominalLength/2);return {id:`stop-${i+1}`,trackId:t.id,frontZ,tolerance,servedSide:i===0?-1:1,direction:dir};});
  const definition={schemaVersion:1,id:options.id??'station-base-technical',kind,units:profile.units,profileId:profile.id,tracks,
