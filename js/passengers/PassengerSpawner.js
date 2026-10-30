@@ -4,11 +4,11 @@ import {platformPath} from './PassengerNavigation.js';
 import {choosePlatformDoors} from './PassengerDoorChoice.js';
 import {standingPlaceKeepsDoorsClear} from './PassengerPlaces.js';
 
-function freePoint(rng,agents,door,layout,normal=false,index=0,count=1){
+function freePoint(rng,agents,door,layout,normal=false,index=0,count=1,span=null){
  const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
  for(let n=0;n<200;n++){
   const x=normal?PLATFORM.maxX-.3-rng()*4.2:n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
-  const z=normal?PLATFORM.minZ+2+(index+rng())/count*(PLATFORM.maxZ-PLATFORM.minZ-4):Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
+  const z=normal?(span?.minZ??PLATFORM.minZ+2)+(index+rng())/count*((span?.maxZ??PLATFORM.maxZ-2)-(span?.minZ??PLATFORM.minZ+2)):Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
   if(COLUMNS.some(c=>Math.hypot(x-c.x,z-c.z)<c.radius+.5))continue;
   if(agents.some(a=>a.space==='platform'&&Math.hypot(x-a.x,z-a.z)<.72))continue;
   return {x,z};
@@ -30,16 +30,17 @@ export function createPassenger(id,rng,station,{boardingProbability=.82}={}){
 
 export class PassengerSpawner{
  constructor(seed,layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.seed=seed;this.nextId=0;this.layout=layout;this.normal=normal;}
- station(index,count=64,existing=[]){
+ station(index,count=64,existing=[],{waitingOnly=false}={}){
   const layout=this.layout,DOORS=layout.doors,PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
   const rng=randomSource(this.seed+index*91771),agents=[];
+  const span=waitingOnly?{minZ:Math.max(PLATFORM.minZ+2,Math.min(...layout.cars.map(c=>c.navigationZone.minZ))),maxZ:Math.min(PLATFORM.maxZ-2,Math.max(...layout.cars.map(c=>c.navigationZone.maxZ)))}:null;
   for(let i=0;i<count;i++){
    // Intent is chosen at spawn; waiting people are not rejected at a deadline.
-   const a=createPassenger(this.nextId++,rng,index,{boardingProbability:this.normal?.60:.82}),door=DOORS[i%DOORS.length];
+   const a=createPassenger(this.nextId++,rng,index,{boardingProbability:waitingOnly?0:this.normal?.60:.82}),door=DOORS[i%DOORS.length];
    a.flowThrough=this.normal;
-   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count),{doorId:door.id});
+   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count,span),{doorId:door.id});
    a.targetHeading=a.heading;
-   if(i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
+   if(!waitingOnly&&i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
    agents.push(a);
   }
   // Conversation partners face each other; families keep an adult beside a child.
@@ -71,14 +72,15 @@ export class PassengerSpawner{
     if(d<r){a.x=c.x+dx/(d||1)*r;a.z=c.z+dz/(d||1)*r;}}
    a.x=clamp(a.x,PLATFORM.minX,PLATFORM.maxX);a.z=clamp(a.z,PLATFORM.minZ,PLATFORM.maxZ);
   }
-  if(this.normal)choosePlatformDoors(agents,layout);
+  if(this.normal&&!waitingOnly)choosePlatformDoors(agents,layout);
   return agents;
  }
- onboard(index,count=24){
+ onboard(index,count=24,{balanced=false}={}){
   const layout=this.layout,DOORS=layout.doors;
   const rng=randomSource(this.seed^0x81_717),agents=[];
   for(let i=0;i<count;i++){
-   const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
+   const own=balanced?DOORS.filter(d=>d.car===layout.cars[i%layout.cars.length].id):DOORS;
+   const a=createPassenger(this.nextId++,rng,index),door=own[(balanced?Math.floor(i/layout.cars.length):i)%own.length];
    a.flowThrough=this.normal;
    a.space='train';a.doorId=door.id;a.car=door.car;a.wantsBoard=false;
    a.destination=i%3===0?index:index+1+Math.floor(rng()*3);

@@ -12,7 +12,7 @@ try{
  await p.evaluate(()=>window.metroPassengerInspector.pause());
  report.initial=await p.evaluate(()=>window.metroPassengerInspector.snapshot());
  assert.equal(report.initial.modelsLoaded,24);assert.deepEqual(report.initial.errors,[]);
- assert.equal(report.initial.platform,50);assert.equal(report.initial.service.cars,4);assert.equal(report.initial.service.normal,true);
+ assert.ok(report.initial.platform>=80&&report.initial.platform<=100);assert.equal(report.initial.service.cars,4);assert.equal(report.initial.service.normal,true);
  const expectedBoardings=report.initial.agents.filter(a=>a.space==='platform'&&a.wantsBoard).length;
  const expectedAlightings=report.initial.agents.filter(a=>a.space==='train'&&a.destination<=report.initial.station).length;
  console.log('24 textured model variants loaded');
@@ -31,7 +31,7 @@ try{
  console.log('Actual door exchange captured',report.boarding.events.length);
  // Functional rendering check on the unmodified eight-door temporary stand.
  // Eight-stop timing is tested separately on 4x4 door anchors.
- // This ordinary 50-person stop must also finish within 30 s on the stand.
+ // This ordinary 80–100-person stop must also finish within 30 s on the stand.
  report.temporaryStandDwell=await p.evaluate(()=>{const i=window.metroPassengerInspector;let elapsed=8;while(elapsed<30&&!i.snapshot().passengerExchangeComplete){i.step(1);elapsed++;}return elapsed;});
  assert.ok(report.temporaryStandDwell<=30);
  report.completed=await p.evaluate(()=>window.metroPassengerInspector.snapshot());

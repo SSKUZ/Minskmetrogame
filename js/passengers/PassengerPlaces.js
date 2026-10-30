@@ -25,7 +25,7 @@ export function reservePassengerSeat(a,agents,candidates,slot){
   }
  }
  const vacant=candidates.find(p=>!occupied(p));
- if(!family&&slot%3===0)return null;
+ if(!family&&(a.preferSeat===false||(a.preferSeat===undefined&&slot%3===0)))return null;
  // When seats are scarce, keep a child standing near the parent rather than
  // sending the child to an isolated free seat at the other end of the car.
  if(family&&anchor&&vacant&&distance(vacant,anchor.seat??anchor.path.at(-1)??anchor)>2)return null;

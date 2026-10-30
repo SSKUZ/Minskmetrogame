@@ -41,3 +41,11 @@ test('normal alighters can cross the portal boundary and finish both completion 
  for(let n=0;n<20*30&&!s.boarding.passengerExchangeComplete;n++)s.update(1/30,open);
  assert.equal(s.events.filter(e=>e.kind==='alight').length,1);assert.equal(s.boarding.passengerExchangeComplete,true);assert.equal(s.boarding.doorsSafeToClose,true);
 });
+
+test('the next boarder cannot claim a bay still needed by the active boarder',()=>{
+ const l=normalPassengerLayout(),c=new PassengerBoardingController(l,{normal:true}),q=c.queues[0];
+ const a=person(100,{state:'boarding',x:q.thresholdX-.54,z:q.z,path:[{x:q.approachX,z:q.z},{x:q.entryX,z:q.z}]}),b=person(101,{state:'queued',z:q.z-1.28,queueSide:-1,doorReady:true,path:[]});
+ q.active=a.id;q.enter=[a.id,b.id];q.exit=[];const people=new Map([[a.id,a],[b.id,b]]);
+ c.advanceQueue(q,people,0);assert.equal(b.doorReady,false);assert.notEqual(b.queuePoint.z,q.z);
+ a.path.shift();c.advanceQueue(q,people,0);assert.equal(b.doorReady,true);assert.equal(b.queuePoint.z,q.z);
+});

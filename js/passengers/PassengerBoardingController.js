@@ -90,7 +90,8 @@ export class PassengerBoardingController{
   const active=byId.get(q.active),front=q.enter.find(id=>id!==q.active);
   for(const id of q.enter){
    const a=byId.get(id);if(!a||id===q.active||!['queueing','queued'].includes(a.state))continue;
-   if(id===front&&active?.state==='boarding'&&active.x>q.thresholdX-.55)a.doorReady=true;
+   const bayCleared=active?.state==='boarding'&&!active.path.some(p=>Math.hypot(p.x-q.approachX,p.z-q.z-dist)<.01);
+   a.doorReady=id===front&&bayCleared&&active.x>q.thresholdX-.55;
    const side=a.queueSide??1,rank=ranks[side],point=a.doorReady?{x:q.approachX,z:q.z+dist}:{x:q.queueX-Math.min(rank,2)*.35,z:q.z+dist+side*(1.28+rank*.65)};
    if(!a.doorReady)ranks[side]++;
    if(!a.queuePoint||Math.hypot(point.x-a.queuePoint.x,point.z-a.queuePoint.z)>.01){

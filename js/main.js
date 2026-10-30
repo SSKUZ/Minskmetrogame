@@ -731,7 +731,7 @@ function updatePlatformPassengers(dt){
  const first=stationDoorLeaves[0];
  const aperture=first?Math.max(0,Math.min(1,((first.leaf.position.z-first.doorZ)*first.half-.53)/1.03)):0;
  const activeCamera=passengerInspectionCamera??(carCameraActive?carriageCamera:stationCameraActive?stationCamera:camera);
- passengerSystem.update(dt,{station:index,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture},activeCamera,
+ passengerSystem.update(dt,{station:index,stationCount:names.length,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture},activeCamera,
   {mirrorCameras:rearMirrors.filter(m=>m.enabled).map(m=>m.mirrorCamera),volume:cabVolume,inCab:!carCameraActive&&!stationCameraActive,playing});
  people=passengerSystem.simulation.agents.filter(a=>a.space==='train'&&a.state!=='gone').length;
  if(consumePassengerDeparture(passengerSystem))setCabDoors(false);
@@ -1011,7 +1011,7 @@ if(passengerParams.has('passengerInspector')){
   view(position,target,fov=58){passengerInspectionCamera=new THREE.PerspectiveCamera(fov,innerWidth/innerHeight,.06,230);passengerInspectionCamera.position.fromArray(position);passengerInspectionCamera.lookAt(...target);},
   resetView(){passengerInspectionCamera=null;},
   pause(value=true){passengerSystem.paused=value;},
-  step(seconds){const ctx={station:index,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture:((stationDoorLeaves[0].leaf.position.z-stationDoorLeaves[0].doorZ)*stationDoorLeaves[0].half-.53)/1.03};for(let t=0;t<Math.min(120,seconds);t+=1/30)passengerSystem.simulation.step(1/30,ctx);},
+  step(seconds){const ctx={station:index,stationCount:names.length,dist,speed,doorsOpen:doors&&!stationDoorCycleCompleted,aperture:((stationDoorLeaves[0].leaf.position.z-stationDoorLeaves[0].doorZ)*stationDoorLeaves[0].half-.53)/1.03};for(let t=0;t<Math.min(120,seconds);t+=1/30)passengerSystem.simulation.update(1/30,ctx);},
   train(values){if(Number.isFinite(values.dist))dist=THREE.MathUtils.clamp(values.dist,-200,1200);if(Number.isFinite(values.speed))speed=THREE.MathUtils.clamp(values.speed,0,90);if(typeof values.doors==='boolean')doors=values.doors;if(Number.isInteger(values.station))index=THREE.MathUtils.clamp(values.station,0,names.length-1);},
   mirrors(){return rearMirrors.map(m=>({side:m.side,enabled:m.enabled,camera:m.mirrorCamera.position.toArray(),size:[m.target.width,m.target.height]}));},
   mirrorImage(side){const m=rearMirrors.find(m=>m.side===side);if(!m)return null;const pixels=new Uint8Array(m.target.width*m.target.height*4);renderer.readRenderTargetPixels(m.target,0,0,m.target.width,m.target.height,pixels);const c=document.createElement('canvas');c.width=m.target.width;c.height=m.target.height;const ctx=c.getContext('2d'),data=ctx.createImageData(c.width,c.height);for(let y=0;y<c.height;y++)data.data.set(pixels.subarray((c.height-y-1)*c.width*4,(c.height-y)*c.width*4),y*c.width*4);ctx.putImageData(data,0,0);return c.toDataURL();},

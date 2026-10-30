@@ -6,6 +6,7 @@ import {PassengerBoardingController} from './PassengerBoardingController.js';
 import {updateSeating} from './PassengerSeating.js';
 import {updateCarriageActivity} from './PassengerActivities.js';
 import {choosePlatformDoors,chooseExitDoors} from './PassengerDoorChoice.js';
+import {planRouteExchange} from './PassengerRouteFlow.js';
 
 export class PassengerSimulation{
  constructor({seed=Date.now(),platformCount=64,onboardCount=24,layout=TEST_PASSENGER_LAYOUT,normal=false}={}){
@@ -15,16 +16,19 @@ export class PassengerSimulation{
   this.navigation=new PassengerNavigation(layout);this.boarding=new PassengerBoardingController(layout,{normal});
   this.station=-1;this.time=0;this.accumulator=0;this.events=[];this.eventSequence=0;
  }
- enterStation(index,arrivalHorizon=0){
+ enterStation(index,arrivalHorizon=0,stationCount=0){
+  const route=this.normal&&Number.isInteger(stationCount)&&stationCount>1;
+  if(route)this.platformCount=80+Math.floor(randomSource(this.seed+index*1237)()*21);
   const onboard=this.agents.filter(a=>a.space==='train'&&a.state!=='gone');
   for(const a of onboard){a.boardingCounted=false;a.exitCounted=false;}
-  this.agents=[...onboard,...this.spawner.station(index,this.platformCount)];
-  if(this.station===-1)this.agents.push(...this.spawner.onboard(index,this.onboardCount));
+  this.agents=[...onboard,...this.spawner.station(index,this.platformCount,[],{waitingOnly:route})];
+  if(this.station===-1)this.agents.push(...this.spawner.onboard(index,this.onboardCount,{balanced:route}));
+  this.routePlan=route?planRouteExchange(this.agents,this.layout,{station:index,stationCount,seed:this.seed}):null;
   if(this.normal){chooseExitDoors(this.agents,this.layout,index);choosePlatformDoors(this.agents,this.layout,{station:index,arrivalHorizon});}
   this.station=index;this.boarding.reset();
  }
  update(elapsed,context){
-  if(this.station!==context.station)this.enterStation(context.station,context.dist>145?Math.min(45,context.speed>1?context.dist/(context.speed/3.6):45):0);
+  if(this.station!==context.station)this.enterStation(context.station,context.dist>145?Math.min(45,context.speed>1?context.dist/(context.speed/3.6):45):0,context.stationCount);
   this.accumulator+=Math.max(0,Math.min(elapsed,.25));
   while(this.accumulator>=1/30){this.step(1/30,context);this.accumulator-=1/30;}
  }
@@ -49,7 +53,7 @@ export class PassengerSimulation{
      if(a.state==='strolling'){a.state='waiting';a.nextDecision=this.time+2+this.random()*5;}
      if(this.time>a.nextDecision&&!preparing&&a.groupId===null){
       const n=this.random();a.nextDecision=this.time+5+this.random()*11;
-      if(n<.31){a.state='strolling';a.activity='wait';a.path=platformPath(a,{x:a.x+(this.random()-.5)*3,z:a.z+(this.random()-.5)*16},a.radius,this.layout);}
+      if(n<(this.routePlan?.08:.31)){a.state='strolling';a.activity='wait';a.path=platformPath(a,{x:a.x+(this.random()-.5)*3,z:a.z+(this.random()-.5)*16},a.radius,this.layout);}
       else a.activity=n<.63?'phone':n<.86?'look':'wait';
      }
      if(a.state==='watching')a.targetHeading=Math.PI/2;
@@ -68,7 +72,7 @@ export class PassengerSimulation{
  }
  snapshot(){
   const counts={};for(const a of this.agents)counts[a.state]=(counts[a.state]??0)+1;
-  return {seed:this.seed,station:this.station,time:this.time,counts,...this.boarding.exchangeSnapshot(),service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
+  return {seed:this.seed,station:this.station,time:this.time,counts,...this.boarding.exchangeSnapshot(),route:this.routePlan,service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
    onboard:this.agents.filter(a=>a.space==='train'&&a.state!=='gone').length,
    platform:this.agents.filter(a=>a.space==='platform'&&a.state!=='gone').length,
    doors:this.boarding.snapshot(),events:this.events.slice(-200),

@@ -18,6 +18,7 @@ export function choosePlatformDoors(agents,layout,{dist=0,station=-1,preserveAss
  const waiting=agents.filter(a=>a.space==='platform'&&a.wantsBoard&&['waiting','strolling','watching','approaching','queueing','queued'].includes(a.state));
  const work=new Map(doors.map(d=>[d.id,0]));
  const records=units(waiting).map(group=>({group,choices:doors.flatMap(d=>{
+  if(group[0].boardingCar!==undefined&&d.car!==group[0].boardingCar)return [];
   let walk=0;
   for(const a of group){
    const path=crowdDetour(a,{x:d.queueX,z:d.z+dist},[],layout);

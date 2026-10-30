@@ -17,7 +17,7 @@ export class PassengerSystem{
  constructor({scene,platform,seed,onCount,carriage,layout}){
   this.layout=layout??createTestPassengerLayout({gripAnchors:carriage?readCarriageRails(carriage):[],carCount:4});
   this.motion=new PassengerTrainMotion();this.rails=this.layout.gripAnchors;
-  this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed,layout:this.layout,platformCount:50,normal:true});
+  this.scene=scene;this.platform=platform;this.onCount=onCount;this.simulation=new PassengerSimulation({seed,layout:this.layout,platformCount:90,onboardCount:12,normal:true});
   this.simulation.boarding.railPlaces=this.layout.cars.flatMap(car=>railStandingPlaces(this.rails,this.layout.train.offsetZ,car.aisleX,{...car.bounds,floorY:this.layout.train.floorY}).filter(p=>p.z>car.navigationZone.minZ&&p.z<car.navigationZone.maxZ).map(p=>({...p,car:car.id})));
   this.models=new PassengerModelLibrary();this.impostors=new PassengerImpostors(scene);this.audio=new PassengerAudio();
   this.actors=new Map();this.root=new THREE.Group();this.root.name='PassengerSystem';scene.add(this.root);

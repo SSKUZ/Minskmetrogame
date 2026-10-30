@@ -6,6 +6,8 @@ on:
       - 'js/passengers/**'
       - 'tests/passenger*'
       - 'tests/helpers/passenger*'
+      - 'tests/helpers/normal-passenger*'
+      - 'js/main.js'
       - '.github/workflows/passengers.yml'
 permissions:
   contents: read
@@ -54,5 +56,6 @@ jobs:
           path: |
             test-results/passenger-layout/
             test-results/normal-flow/
+            test-results/route-flow/
           if-no-files-found: warn
           retention-days: 14

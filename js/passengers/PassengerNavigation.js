@@ -135,7 +135,7 @@ export class PassengerNavigation{
   if(a.navigationStall>1.5){
    a.navigationStall=0;
    const agents=[...this.buckets.values()].flat(),goal=next.detourGoal??next,detour=crowdDetour(a,goal,agents,layout);
-   if(detour&&detour.length>1){
+   if(detour&&(detour.length>1||goal!==next)){
     const end=a.path.indexOf(goal);for(const p of detour)if(p!==goal)p.detourGoal=goal;
     a.path.splice(0,end>=0?end+1:1,...detour);return this.move(a,dt);
    }
