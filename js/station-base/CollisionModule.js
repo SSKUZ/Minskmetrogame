@@ -1,0 +1,3 @@
+export function createCollisionModule(station,profile){return {platformSolid:{min:{x:station.platform.minX,y:station.platform.topY-station.platform.thickness,z:station.platform.minZ},max:{x:station.platform.maxX,y:station.platform.topY,z:station.platform.maxZ}},
+ obstacles:station.obstacles.map(o=>{if(!o.id||!Number.isFinite(o.radius)||o.radius<=0||![o.x,o.z].every(Number.isFinite))throw new Error('Invalid obstacle');return {...o,space:'platform'};}),
+ reservations:station.tracks.map(t=>({trackId:t.id,minX:t.x+profile.train.fullBounds.min[0]-.1,maxX:t.x+profile.train.fullBounds.max[0]+.1,minY:profile.platform.topY+profile.validation.epsilon,maxY:profile.train.fullBounds.max[1]+.1}))};}

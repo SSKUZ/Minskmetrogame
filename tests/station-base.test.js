@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {createStationBase} from '../js/station-base/StationBase.js';
+import {V106_PROFILE,sourceToCanonical,canonicalToSource} from '../js/station-base/TrainCompatibilityProfile.js';
+import {validateDefinition} from '../js/station-base/Validation.js';
+import {validatePortPair} from '../js/station-base/TunnelConnector.js';
+import {transferZ} from '../js/station-base/PassengerStationContract.js';
+import {canExchange} from '../js/station-base/TrainStopModule.js';
+test('island is parameterized, second track follows the far edge',()=>{const a=createStationBase(),b=createStationBase({width:11,length:120,stopS:2,centerZ:45});assert.equal(b.station.platform.maxX-b.station.platform.minX,11);assert.equal(b.station.platform.maxZ-b.station.platform.minZ,120);assert.notEqual(a.station.tracks[1].x,b.station.tracks[1].x);assert.equal(b.modules.stop.doors[0].z-a.modules.stop.doors[0].z,2);});
+test('unsupported topology and unsafe dimensions fail explicitly',()=>{assert.throws(()=>createStationBase({kind:'curved'}),/Unsupported/);assert.throws(()=>createStationBase({length:20}),/Door outside/);assert.throws(()=>createStationBase({width:1}),/Waiting zone/);});
+test('broken rail top and threshold height are detected',()=>{const b=createStationBase();b.modules.track.tracks[0].rails[0].center.y+=.02;b.modules.stop.doors[0].y+=.03;const v=validateDefinition(b.station,b.profile,b.modules);assert.equal(v.ok,false);assert.ok(v.issues.includes('Rail top mismatch'));assert.ok(v.issues.includes('Door/platform height mismatch'));});
+test('tunnel ports accept reversed normals but reject lateral/rail drift',()=>{const b=createStationBase(),a=b.modules.ports[0],mate=structuredClone(a);mate.outward.z*=-1;mate.railCenters.reverse();assert.ok(validatePortPair(a,mate,b.profile));mate.railCenters[0].x+=.01;assert.equal(validatePortPair(a,mate,b.profile),false);});
+test('all 16 passenger door transitions retain world Z',()=>{const b=createStationBase();for(const d of b.profile.doors)for(const offset of [-.5,0,.5]){const frames={trainOffsetZ:offset,stationOffsetZ:7},zWorld=d.z+offset,stationZ=zWorld-7,trainZ=transferZ(stationZ,frames,true);assert.ok(Math.abs(trainZ-d.z)<1e-9);assert.ok(Math.abs(transferZ(trainZ,frames,false)+7-zWorld)<1e-9);}});
+test('source transform roundtrip and stationary-only exchange',()=>{const p={x:-.9,y:-.22,z:-7.35};const out=canonicalToSource(sourceToCanonical(p,V106_PROFILE),V106_PROFILE);for(const k of ['x','y','z'])assert.ok(Math.abs(p[k]-out[k])<1e-9);const s=createStationBase().modules.stop;assert.ok(canExchange(s,0,0));assert.equal(canExchange(s,1,0),false);assert.equal(canExchange(s,0,1),false);});

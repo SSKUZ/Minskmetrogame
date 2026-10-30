@@ -1,0 +1,1 @@
+export function createDecorationInterface(station,collisions){return {mounts:station.decorationMounts.map(m=>{if(!m.id||![m.x,m.y,m.z].every(Number.isFinite))throw new Error('Invalid decoration mount');return {...m};}),reservedVolumes:collisions.reservations,policy:'Decoration may not move track/platform/stop anchors'};}
