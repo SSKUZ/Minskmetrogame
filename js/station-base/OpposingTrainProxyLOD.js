@@ -4,7 +4,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Original geometry is retained and automatically restored near the camera.
 export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exitDistance=48}={}){
  const proxies=[];
- const bodyMaterial=new THREE.MeshStandardMaterial({color:0xb5bdc2,metalness:.35,roughness:.55});
+ const bodyMaterial=new THREE.MeshStandardMaterial({color:0x346fa7,metalness:.35,roughness:.55});
  const windowMaterial=new THREE.MeshStandardMaterial({color:0x253d49,metalness:.1,roughness:.3});
  const roofMaterial=new THREE.MeshStandardMaterial({color:0x858f94,metalness:.25,roughness:.7});
  const box=new THREE.Box3(),size=new THREE.Vector3(),center=new THREE.Vector3();
