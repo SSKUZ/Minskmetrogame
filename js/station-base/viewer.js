@@ -11,8 +11,9 @@ import {DemoMotion} from './DemoMotion.js';
 import {createSecondaryTrainDetailLOD} from './SecondaryTrainDetailLOD.js';
 import {createOpposingTrainProxyLOD} from './OpposingTrainProxyLOD.js';
 import {resolveGraphicsPreset} from './GraphicsPresets.js';
+import {createPlayerTrainDetailLOD} from './PlayerTrainDetailLOD.js';
 const $=id=>document.getElementById(id),status=$('status');
-let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD;
+let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD,playerDetailLOD;
 // Constrain framebuffer cost on mobile without changing source mesh geometry.
 const graphicsDevice={userAgent:navigator.userAgent,deviceMemory:Number(navigator.deviceMemory||0),hardwareConcurrency:Number(navigator.hardwareConcurrency||0)};
 const graphics=resolveGraphicsPreset(new URLSearchParams(location.search).get('quality'),graphicsDevice);
@@ -91,6 +92,7 @@ let lastTime=performance.now(),lastRender=0,frames=0;
 function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime)/1000);lastTime=Math.max(lastTime,now);
  const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
+ if(dirty&&playerDetailLOD)playerDetailLOD.update(camera,renderer.domElement.height);
  if(dirty&&opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){if(!opposingProxyLOD.distant)secondaryLOD?.restore();}
  if(dirty&&secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant)secondaryLOD.update(camera,renderer.domElement.height);
  if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;const renderStart=performance.now();renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
@@ -109,6 +111,7 @@ async function measureBands(){
 try{
  const root=await loadV106Geometry({THREE,scene,renderer}),consist=root.v106SourceFrame.contentWindow.wagonGetLiveConsist();
  train=createV106Adapter(THREE,root,consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);
+ playerDetailLOD=createPlayerTrainDetailLOD(THREE,consist,{hidePixels:graphics.name==='low'?2.5:graphics.name==='medium'?1.8:1.1,restorePixels:graphics.name==='low'?4:graphics.name==='medium'?3:2});
  const second=cloneV106Consist(consist);scene.add(second.root);secondTrain=createV106Adapter(THREE,second.root,second,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);
  secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root,{hideBelowPixels:graphics.detailPixels,restoreAbovePixels:graphics.restorePixels});
  opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second,{enterDistance:graphics.proxyEnter,exitDistance:graphics.proxyExit});
