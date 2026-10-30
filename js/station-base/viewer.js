@@ -89,7 +89,7 @@ let lastTime=performance.now(),lastRender=0,frames=0;
 function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime)/1000);lastTime=Math.max(lastTime,now);
  const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
- if(opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){secondaryLOD?.restore();dirty=true;}
+ if(opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){if(!opposingProxyLOD.distant)secondaryLOD?.restore();dirty=true;}
  if(secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant&&secondaryLOD.update(camera,renderer.domElement.height))dirty=true;
  if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
