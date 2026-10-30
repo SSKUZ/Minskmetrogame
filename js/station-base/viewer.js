@@ -9,8 +9,9 @@ import {measureHeightBand,validateActualGeometry,validateTrainSeparation} from '
 import {setStaticOccupancy} from './TrackOccupancyContract.js';
 import {DemoMotion} from './DemoMotion.js';
 import {createSecondaryTrainDetailLOD} from './SecondaryTrainDetailLOD.js';
+import {createOpposingTrainProxyLOD} from './OpposingTrainProxyLOD.js';
 const $=id=>document.getElementById(id),status=$('status');
-let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD;
+let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD;
 // Constrain framebuffer cost on mobile without changing source mesh geometry.
 const mobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 const lowMemory=Number(navigator.deviceMemory||0)>0&&Number(navigator.deviceMemory)<=4;
@@ -88,7 +89,8 @@ let lastTime=performance.now(),lastRender=0,frames=0;
 function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime)/1000);lastTime=Math.max(lastTime,now);
  const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
- if(secondaryLOD&&secondTrain?.root.visible&&secondaryLOD.update(camera,renderer.domElement.height))dirty=true;
+ if(opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){secondaryLOD?.restore();dirty=true;}
+ if(secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant&&secondaryLOD.update(camera,renderer.domElement.height))dirty=true;
  if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
  ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-now;
@@ -107,6 +109,7 @@ try{
  train=createV106Adapter(THREE,root,consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);
  const second=cloneV106Consist(consist);scene.add(second.root);secondTrain=createV106Adapter(THREE,second.root,second,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);
  secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root);
+ opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second);
  base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],$('second-train').checked?'v106-opposing':null);$('second-state').textContent='Путь 2: STOPPED';sync();
  await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
 }catch(error){loading=false;busy=true;setStatus('Не удалось проверить v106: '+error.message,true);console.error(error);updateHUD();}
