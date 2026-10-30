@@ -8,8 +8,8 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
  const roofMaterial=new THREE.MeshStandardMaterial({color:0x858f94,metalness:.25,roughness:.7});
  const wheelsMaterial=new THREE.MeshStandardMaterial({color:0x242b2e,roughness:.9});
  const box=new THREE.Box3(),size=new THREE.Vector3(),center=new THREE.Vector3();
- const group=new THREE.Group();group.name='opposing-train-distant-proxy';
- consist.root.add(group);
+ const doorMaterial=new THREE.MeshStandardMaterial({color:0x929fa5,metalness:.28,roughness:.6});
+ const lampMaterial=new THREE.MeshBasicMaterial({color:0xe6e5d0});
  for(const car of consist.cars){
   // Compute bounds in carriage-local coordinates, without including the proxy.
   car.root.updateWorldMatrix(true,true);
@@ -35,6 +35,22 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
    strip.position.set(center.x+side*size.x*.477,box.min.y+size.y*.72,center.z);
    carriage.add(strip);
   }
+  // A small number of distinct door/window panels preserves the familiar 81-717 rhythm.
+  for(const side of [-1,1])for(let i=0;i<4;i++){
+   const z=center.z+(i-1.5)*size.z*.215;
+   const door=new THREE.Mesh(new THREE.BoxGeometry(.024,size.y*.43,size.z*.105),doorMaterial);
+   door.position.set(center.x+side*size.x*.483,box.min.y+size.y*.47,z);carriage.add(door);
+   const glass=new THREE.Mesh(new THREE.BoxGeometry(.028,size.y*.16,size.z*.085),windowMaterial);
+   glass.position.set(center.x+side*size.x*.497,box.min.y+size.y*.63,z);carriage.add(glass);
+  }
+  for(const zSign of [-1,1]){
+   const end=new THREE.Mesh(new THREE.BoxGeometry(size.x*.9,size.y*.46,.04),bodyMaterial);
+   end.position.set(center.x,box.min.y+size.y*.48,center.z+zSign*size.z*.49);carriage.add(end);
+   for(const xSign of [-1,1]){
+    const lamp=new THREE.Mesh(new THREE.BoxGeometry(size.x*.09,size.y*.055,.045),lampMaterial);
+    lamp.position.set(center.x+xSign*size.x*.32,box.min.y+size.y*.45,center.z+zSign*size.z*.515);carriage.add(lamp);
+   }
+  }
   // Avoid adding proxy geometry to the original train's detail hierarchy.
   proxies.push(carriage);
  }
@@ -42,14 +58,13 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
  consist.root.traverse(o=>{if(o.isMesh&&!proxies.some(p=>p===o||p.children.includes(o)))originals.push({mesh:o,visible:o.visible});});
  for(const p of proxies)p.visible=false;
  let distant=false;
- const midpoint=new THREE.Vector3();
+ const nearest=new THREE.Vector3();
  return {
   update(camera){
    consist.root.updateWorldMatrix(true);
-   midpoint.set(0,0,0);
-   for(const car of consist.cars){car.root.getWorldPosition(center);midpoint.add(center);}
-   midpoint.multiplyScalar(1/consist.cars.length);
-   const distance=midpoint.distanceTo(camera.position);
+   // Long trains must use the closest carriage, not their midpoint.
+   let distance=Infinity;
+   for(const car of consist.cars){car.root.getWorldPosition(nearest);distance=Math.min(distance,nearest.distanceTo(camera.position));}
    const next=distant?distance>exitDistance:distance>enterDistance;
    if(next===distant)return false;
    distant=next;
