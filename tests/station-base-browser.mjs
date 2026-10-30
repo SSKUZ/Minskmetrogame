@@ -4,7 +4,7 @@ const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use
 const page=await browser.newPage({viewport:{width:1365,height:900},deviceScaleFactor:1});const errors=[],cases=[],captureWarnings=[];
 page.on('pageerror',e=>errors.push(e.stack??e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});page.setDefaultTimeout(90000);
 const persist=async()=>{await fs.writeFile(out+'/browser-progress.json',JSON.stringify({cases,pageErrors:errors},null,2));console.log('BROWSER_CASE',cases.at(-1)?.name)};
-const shot=async name=>{await persist();try{await page.screenshot({path:out+'/'+name,timeout:30000})}catch(error){if(error.name!=='TimeoutError')throw error;captureWarnings.push({name,error:error.message,retry:'once'});console.log('SCREENSHOT_RETRY',name);await page.screenshot({path:out+'/'+name,timeout:45000})}};
+const shot=async name=>{await persist();await page.getByRole('button',{name:'Проверить геометрию',exact:true}).click();try{await page.screenshot({path:out+'/'+name,timeout:30000})}catch(error){if(error.name!=='TimeoutError')throw error;captureWarnings.push({name,error:error.message,retry:'once'});console.log('SCREENSHOT_RETRY',name);await page.screenshot({path:out+'/'+name,timeout:45000})}};
 const read=()=>page.locator('#report-json').textContent().then(JSON.parse);
 const ready=()=>page.waitForFunction(()=>{const e=document.getElementById('report-json');try{return JSON.parse(e.textContent).contactCount===32}catch{return false}},{},{timeout:240000});
 try{

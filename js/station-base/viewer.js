@@ -9,7 +9,7 @@ import {setStaticOccupancy} from './TrackOccupancyContract.js';
 import {DemoMotion} from './DemoMotion.js';
 const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false;
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
 $('viewport').appendChild(renderer.domElement);scene.background=new THREE.Color(0xbccbd5);scene.fog=new THREE.Fog(0xbccbd5,170,390);
 const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.025,800),controls=new OrbitControls(camera,renderer.domElement);
