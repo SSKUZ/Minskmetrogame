@@ -46,8 +46,9 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
  return {
   update(camera){
    consist.root.updateWorldMatrix(true);
-   const worldBox=new THREE.Box3().setFromObject(consist.root);
-   worldBox.getCenter(midpoint);
+   midpoint.set(0,0,0);
+   for(const car of consist.cars){car.root.getWorldPosition(center);midpoint.add(center);}
+   midpoint.multiplyScalar(1/consist.cars.length);
    const distance=midpoint.distanceTo(camera.position);
    const next=distant?distance>exitDistance:distance>enterDistance;
    if(next===distant)return false;
