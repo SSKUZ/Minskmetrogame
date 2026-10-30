@@ -4,7 +4,15 @@ const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use
 const page=await browser.newPage({viewport:{width:1365,height:900},deviceScaleFactor:1});const errors=[],cases=[],captureWarnings=[];
 page.on('pageerror',e=>errors.push(e.stack??e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});page.setDefaultTimeout(90000);
 const persist=async()=>{await fs.writeFile(out+'/browser-progress.json',JSON.stringify({cases,pageErrors:errors},null,2));console.log('BROWSER_CASE',cases.at(-1)?.name)};
-const shot=async name=>{await persist();await page.getByRole('button',{name:'Проверить геометрию',exact:true}).click();try{await page.screenshot({path:out+'/'+name,timeout:30000})}catch(error){if(error.name!=='TimeoutError')throw error;captureWarnings.push({name,error:error.message,retry:'once'});console.log('SCREENSHOT_RETRY',name);await page.screenshot({path:out+'/'+name,timeout:45000})}};
+const shot=async name=>{
+ await persist();await page.getByRole('button',{name:'Проверить геометрию',exact:true}).click();
+ const required=['two-trains-overview.png','platform-gap.png'].includes(name);
+ try{await page.screenshot({path:out+'/'+name,timeout:required?30000:15000})}
+ catch(error){if(error.name!=='TimeoutError')throw error;captureWarnings.push({name,error:error.message,retry:'once',required});console.log('SCREENSHOT_RETRY',name);
+  try{await page.screenshot({path:out+'/'+name,timeout:required?45000:15000})}
+  catch(retryError){captureWarnings.push({name,error:retryError.message,optionalCaptureFailed:!required});if(required)throw retryError;console.log('OPTIONAL_CAPTURE_FAILED',name);}
+ }
+};
 const read=()=>page.locator('#report-json').textContent().then(JSON.parse);
 const ready=()=>page.waitForFunction(()=>{const e=document.getElementById('report-json');try{return JSON.parse(e.textContent).contactCount===32}catch{return false}},{},{timeout:240000});
 try{
@@ -25,6 +33,6 @@ try{
  // A phone viewport verifies responsive controls without replacing the source model.
  await page.setViewportSize({width:412,height:915});await page.getByRole('button',{name:'Общий',exact:true}).click();await shot('mobile.png');
  assert.equal(errors.length,0,JSON.stringify(errors));
- await fs.writeFile(out+'/browser.json',JSON.stringify({ok:true,cases,pageErrors:errors,captureWarnings,renderer:'Chromium WebGL software GPU, exact 0.160.1 dependency'},null,2));
+ await fs.writeFile(out+'/browser.json',JSON.stringify({ok:true,cases,pageErrors:errors,captureWarnings,capturesComplete:!captureWarnings.some(w=>w.optionalCaptureFailed),requiredScreenshots:['two-trains-overview.png','platform-gap.png'],renderer:'Chromium WebGL software GPU, exact 0.160.1 dependency'},null,2));
 }catch(error){let status='unavailable';try{status=await page.locator('#status').textContent({timeout:3000})}catch{}await fs.writeFile(out+'/browser.json',JSON.stringify({ok:false,error:error.stack,cases,pageErrors:errors,captureWarnings,status},null,2));try{await page.screenshot({path:out+'/failure.png',timeout:10000})}catch{}throw error;}
 finally{await browser.close();}
