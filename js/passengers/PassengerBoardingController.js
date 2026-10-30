@@ -23,12 +23,22 @@ export class PassengerBoardingController{
  constructor(layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.layout=layout;this.normal=normal;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];this.resetCompletion();}
  clearPlatformLanes(agents,dist){
   const DOORS=this.layout.doors,platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
-  // People who are not boarding make room for the doorway and alighting lane.
-  for(const a of agents)if(a.space==='platform'&&!a.wantsBoard&&['waiting','strolling','watching','approaching'].includes(a.state)&&DOORS.some(d=>a.x>d.yieldBoundaryX&&Math.abs(a.z-d.z-dist)<1.2)){
-   const door=DOORS.find(d=>a.x>d.yieldBoundaryX&&Math.abs(a.z-d.z-dist)<1.2),target={x:door.yieldX,z:a.z};
+  // Waiting people yield to the actual queue bays as well as the exit lane.
+  // A side bay can be outside the central door strip and still need clearance.
+  for(const a of agents){
+   if(a.space!=='platform'||a.wantsBoard||!['waiting','strolling','watching','approaching'].includes(a.state))continue;
+   const boarding=agents.find(o=>{
+    if(o.space!=='platform'||!o.wantsBoard)return false;
+    const point=o.queuePoint??(o.approachPoint?{x:o.approachPoint.x,z:o.approachPoint.z+dist}:null);
+    return point&&Math.hypot(a.x-point.x,a.z-point.z)<a.radius+o.radius+.25;
+   });
+   const door=boarding?this.layout.door(boarding.doorId):DOORS.find(d=>a.x>d.yieldBoundaryX&&Math.abs(a.z-d.z-dist)<1.2);
+   if(!door)continue;
+   const target={x:Math.min(door.yieldX,a.x-.8),z:a.z};
    a.state='yielding';a.activity='wait';a.path=platformPath(a,target,a.radius);
   }
  }
+
  prepare(agents,station,dist){
   const platformPath=(from,to,radius)=>layoutPath(from,to,radius,this.layout);
   if(this.normal){chooseExitDoors(agents,this.layout,station,{preserveAssignments:true});choosePlatformDoors(agents,this.layout,{dist,station,preserveAssignments:true});}

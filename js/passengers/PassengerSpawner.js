@@ -4,10 +4,11 @@ import {platformPath} from './PassengerNavigation.js';
 import {choosePlatformDoors} from './PassengerDoorChoice.js';
 import {standingPlaceKeepsDoorsClear} from './PassengerPlaces.js';
 
-function freePoint(rng,agents,door,layout,normal=false,index=0,count=1,span=null){
+function freePoint(rng,agents,door,layout,normal=false,index=0,count=1,span=null,waitingOnly=false){
  const PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
  for(let n=0;n<200;n++){
-  const x=normal?PLATFORM.maxX-.3-rng()*4.2:n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
+  const waitX=Math.min(PLATFORM.maxX-1,door.yieldX);
+  const x=waitingOnly?Math.max(PLATFORM.minX+.5,waitX-rng()*3):normal?PLATFORM.maxX-.3-rng()*4.2:n<100?door.queueX-rng()*6.9:PLATFORM.minX+10.3-rng()*8;
   const z=normal?(span?.minZ??PLATFORM.minZ+2)+(index+rng())/count*((span?.maxZ??PLATFORM.maxZ-2)-(span?.minZ??PLATFORM.minZ+2)):Math.max(PLATFORM.minZ+2,Math.min(PLATFORM.maxZ-1.5,door.z+(rng()-.5)*8.5));
   if(COLUMNS.some(c=>Math.hypot(x-c.x,z-c.z)<c.radius+.5))continue;
   if(agents.some(a=>a.space==='platform'&&Math.hypot(x-a.x,z-a.z)<.72))continue;
@@ -38,7 +39,7 @@ export class PassengerSpawner{
    // Intent is chosen at spawn; waiting people are not rejected at a deadline.
    const a=createPassenger(this.nextId++,rng,index,{boardingProbability:waitingOnly?0:this.normal?.60:.82}),door=DOORS[i%DOORS.length];
    a.flowThrough=this.normal;
-   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count,span),{doorId:door.id});
+   Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count,span,waitingOnly),{doorId:door.id});
    a.targetHeading=a.heading;
    if(!waitingOnly&&i%10===2){a.state='strolling';a.path=platformPath(a,{x:PLATFORM.maxX-3.55-rng()*5,z:a.z+9*(rng()-.5)},a.radius,layout);}
    agents.push(a);

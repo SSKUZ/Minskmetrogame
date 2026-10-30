@@ -65,6 +65,46 @@ try{
   assert.ok(data?.startsWith('data:image/png;base64,'));
   await writeFile(output+`/mirror-${side<0?'left':'right'}.png`,Buffer.from(data.split(',')[1],'base64'));
  }
+ // Fast-forward the actual game's existing simulation between rendered stages.
+ // Each stop still runs fixed timesteps, real queues and threshold crossings.
+ await p.locator('#carCameraToggle').click();
+ report.route=[];
+ const continueRoute=async target=>{
+  const stops=await p.evaluate(target=>{
+   const i=window.metroPassengerInspector,s=i.system.simulation,stationCount=s.routePlan.stationCount,result=[];
+   const advance=(seconds,ctx)=>{for(let n=0;n<seconds*30;n++)s.update(1/30,ctx);};
+   for(let station=s.station+1;station<=target;station++){
+    const before=s.agents.filter(a=>a.space==='train').length;
+    const closed={station,stationCount,dist:900,speed:50,doorsOpen:false,aperture:0},open={...closed,dist:0,speed:0,doorsOpen:true,aperture:1};
+    i.train({station,dist:900,speed:50,doors:false});advance(35,closed);
+    advance(12,{...closed,dist:140,speed:42});let dwell=null;
+    for(let n=0;n<(station===stationCount-1?120:60)*30;n++){
+     s.update(1/30,open);if(s.boarding.passengerExchangeComplete){dwell=(n+1)/30;break;}
+    }
+    const events=s.events.filter(e=>e.station===station),boarded=events.filter(e=>e.kind==='board').length,alighted=events.filter(e=>e.kind==='alight').length;
+    if(dwell===null||!s.boarding.doorsSafeToClose||s.boarding.missed.size||boarded!==s.routePlan.boarding||alighted!==s.routePlan.exiting)throw Error('Route exchange failed at station '+station);
+    const onboard=s.agents.filter(a=>a.space==='train').length;
+    if(onboard!==before+boarded-alighted)throw Error('Route conservation failed at station '+station);
+    result.push({station,population:s.platformCount,before,boarded,alighted,onboard,dwell});
+    advance(15,{...open,doorsOpen:false,aperture:0});i.train({station,dist:0,speed:0,doors:false});
+   }
+   return result;
+  },target);
+  report.route.push(...stops);return await p.evaluate(()=>window.metroPassengerInspector.snapshot());
+ };
+ report.midRoute=await continueRoute(7);
+ assert.ok(report.midRoute.onboard>report.completed.onboard*1.4);
+ await p.screenshot({path:output+'/carriage-middle.png',timeout:120000});
+ console.log('Route midpoint captured',report.midRoute.onboard);
+ report.preTerminal=await continueRoute(13);
+ assert.ok(report.preTerminal.onboard<report.midRoute.onboard*.3);
+ await p.screenshot({path:output+'/carriage-before-terminal.png',timeout:120000});
+ report.terminal=await continueRoute(14);
+ assert.equal(report.terminal.onboard,0);assert.equal(report.terminal.route.boarding,0);assert.equal(report.terminal.route.readyForNextTrip,true);
+ report.terminalPerCar=await p.evaluate(()=>{const s=window.metroPassengerInspector.system.simulation;return s.layout.cars.map(c=>({car:c.id,onboard:s.agents.filter(a=>a.space==='train'&&a.car===c.id).length}));});
+ assert.ok(report.terminalPerCar.every(c=>c.onboard===0));
+ await p.screenshot({path:output+'/carriage-terminal-empty.png',timeout:120000});
+ console.log('Terminal train empty',report.terminal.onboard);
  report.errors=f.errors;report.requests=f.requests;
  assert.deepEqual(f.errors,[]);assert.deepEqual(f.requests,[]);
  console.log('Browser scenarios passed',JSON.stringify({onboard:report.completed.onboard,performance:report.performance}));

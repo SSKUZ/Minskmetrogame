@@ -78,6 +78,8 @@ export function chooseExitDoors(agents,layout,station,{preserveAssignments=false
  for(const group of units(agents.filter(a=>a.space==='train'&&a.destination<=station))){
   const car=group[0].car;if(group.some(a=>a.car!==car))continue;
   const available=layout.doors.filter(d=>d.car===car&&d.available!==false);let best=null;
+  const assigned=available.find(d=>group.every(a=>a.routeExitDoor===d.id));
+  if(assigned){for(const a of group)a.doorId=assigned.id;continue;}
   for(const d of available){
    const score=Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed))+(load.get(d.id)??0)*1.0+(preserveAssignments&&group[0].doorId!==d.id?8:0);
    if(!best||score<best.score)best={door:d,score};

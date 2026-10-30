@@ -32,21 +32,30 @@ export function planRouteExchange(agents,layout,{station,stationCount,seed}){
  const quotas=new Map(carOrder.map((car,i)=>[car.id,base+(i<extra?1:0)]));
  const cars=[],out=new Set();
  for(const car of layout.cars){
-  const capacity=routeCarCapacity(layout,car),peak=Math.min(28,Math.max(0,capacity-1));
+  const capacity=routeCarCapacity(layout,car),peak=Math.min(28,Math.floor(capacity*.85));
   const target=terminal?0:Math.round(peak*factor),people=onboard.filter(a=>a.car===car.id);
   const wanted=terminal?people.length:Math.max(0,people.length+quotas.get(car.id)-target);
   let exiting=0;
-  const units=shuffled(groups(people),rng);
-  for(let i=0;i<units.length;i++){
-   const unit=units[i],remaining=wanted-exiting;
-   if(remaining<=0)break;
-   if(unit.length>remaining&&units.slice(i+1).some(g=>g.length<=remaining))continue;
-   for(const a of unit)out.add(a.id);exiting+=unit.length;
+  const units=shuffled(groups(people),rng),doors=layout.doors.filter(d=>d.car===car.id&&d.available!==false),loads=new Map(doors.map(d=>[d.id,0]));
+  // Pick intact groups near different exits, rather than sending a random
+  // bunch from one end of a car through a long sequential aisle queue.
+  while(exiting<wanted&&units.length){
+   const remaining=wanted-exiting,fit=units.some(g=>g.length<=remaining);let best=null;
+   for(let i=0;i<units.length;i++){
+    const unit=units[i];if(fit&&unit.length>remaining)continue;
+    const door=doors.reduce((best,d)=>Math.max(...unit.map(a=>Math.abs(a.z-d.z)))<Math.max(...unit.map(a=>Math.abs(a.z-best.z)))?d:best);
+    const walk=Math.max(...unit.map(a=>Math.abs(a.z-door.z)/a.walkSpeed));
+    const score=loads.get(door.id)*3+walk;
+    if(!best||score<best.score)best={i,unit,door,score};
+   }
+   if(!best)break;
+   units.splice(best.i,1);for(const a of best.unit){out.add(a.id);a.routeExitDoor=best.door.id;}
+   loads.set(best.door.id,loads.get(best.door.id)+best.unit.length);exiting+=best.unit.length;
   }
   const retained=people.length-exiting;
   cars.push({id:car.id,capacity,peak,target,before:people.length,exiting,boarding:Math.max(0,Math.min(quotas.get(car.id),target-retained,capacity-retained))});
  }
- for(const a of onboard)a.destination=out.has(a.id)?station:stationCount-1;
+ for(const a of onboard){a.destination=out.has(a.id)?station:stationCount-1;if(!out.has(a.id))a.routeExitDoor=undefined;}
  for(const a of platform){a.wantsBoard=false;a.boardingCar=undefined;a.destination=stationCount-1;}
  const pool=shuffled(groups(platform),rng),selected=new Set();
  for(const car of carOrder){

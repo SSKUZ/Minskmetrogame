@@ -25,7 +25,7 @@ for(const [name,makeLayout,seed]of [['stand',()=>createTestPassengerLayout({carC
     if(plan.boarding>=12)assert.equal(new Set(platform.filter(a=>a.wantsBoard).map(a=>a.boardingCar)).size,4);
     if(station===14){assert.equal(plan.boarding,0);assert.equal(plan.exiting,before.length);}
     advance(35,closed);for(let n=0;n<360;n++)s.update(1/30,{...closed,dist:140-n/30*11.6,speed:42});
-    let dwell=null;const deadline=station===14?120:name==='stand'?60:40;
+    let dwell=null;const deadline=station===14?120:name==='stand'?60:35;
     for(let n=0;n<deadline*30;n++){
      s.update(1/30,open);if(s.boarding.passengerExchangeComplete){dwell=(n+1)/30;break;}
     }
@@ -41,7 +41,7 @@ for(const [name,makeLayout,seed]of [['stand',()=>createTestPassengerLayout({carC
     for(const d of s.layout.doors){const ee=events.filter(e=>e.door===d.id),first=ee.findIndex(e=>e.kind==='board'),last=ee.findLastIndex(e=>e.kind==='alight');if(first>=0)assert.ok(last<first,'exit priority');}
     advance(15,{...open,doorsOpen:false,aperture:0});
     result.seated=s.agents.filter(a=>a.space==='train'&&a.state==='seated').length;result.standing=s.agents.filter(a=>a.space==='train'&&a.state==='riding').length;
-    if(station===14){assert.equal(onboard.length,0);assert.ok(result.perCar.every(c=>c.count===0));const seq=s.eventSequence;advance(1,open);assert.equal(s.eventSequence,seq);}
+    if(station===14){assert.equal(s.snapshot().route.readyForNextTrip,true);assert.equal(onboard.length,0);assert.ok(result.perCar.every(c=>c.count===0));const seq=s.eventSequence;advance(1,open);assert.equal(s.eventSequence,seq);}
     retained=s.agents.filter(a=>a.space==='train');
    }
    const peak=Math.max(...report.stations.map(s=>s.onboard));assert.ok(peak>report.stations[0].onboard*1.4);

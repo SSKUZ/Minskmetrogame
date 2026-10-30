@@ -49,3 +49,9 @@ test('the next boarder cannot claim a bay still needed by the active boarder',()
  c.advanceQueue(q,people,0);assert.equal(b.doorReady,false);assert.notEqual(b.queuePoint.z,q.z);
  a.path.shift();c.advanceQueue(q,people,0);assert.equal(b.doorReady,true);assert.equal(b.queuePoint.z,q.z);
 });
+
+test('a nonboarding person yields an occupied side queue bay outside the central exit lane',()=>{
+ const l=normalPassengerLayout(),c=new PassengerBoardingController(l,{normal:true}),d=l.doors[0];
+ const boarder=person(100,{doorId:d.id,queuePoint:{x:d.queueX,z:d.z+1.28}}),waiting=person(101,{doorId:d.id,wantsBoard:false,x:d.queueX,z:d.z+1.30,path:[]});
+ c.clearPlatformLanes([boarder,waiting],0);assert.equal(waiting.state,'yielding');assert.equal(waiting.x,d.queueX,'no teleport');assert.ok(waiting.path.length>0);assert.ok(waiting.path.at(-1).x<d.queueX-.8);
+});

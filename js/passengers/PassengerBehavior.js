@@ -72,8 +72,10 @@ export class PassengerSimulation{
  }
  snapshot(){
   const counts={};for(const a of this.agents)counts[a.state]=(counts[a.state]??0)+1;
-  return {seed:this.seed,station:this.station,time:this.time,counts,...this.boarding.exchangeSnapshot(),route:this.routePlan,service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
-   onboard:this.agents.filter(a=>a.space==='train'&&a.state!=='gone').length,
+  const onboard=this.agents.filter(a=>a.space==='train'&&a.state!=='gone').length;
+  const route=this.routePlan?{...this.routePlan,readyForNextTrip:this.routePlan.terminal&&onboard===0&&this.boarding.passengerExchangeComplete&&this.boarding.doorsSafeToClose}:null;
+  return {seed:this.seed,station:this.station,time:this.time,counts,...this.boarding.exchangeSnapshot(),route,service:{normal:this.normal,cars:this.layout.cars.length,doors:this.layout.doors.length,platformTarget:this.platformCount},
+   onboard,
    platform:this.agents.filter(a=>a.space==='platform'&&a.state!=='gone').length,
    doors:this.boarding.snapshot(),events:this.events.slice(-200),
    agents:this.agents.map(a=>({id:a.id,profile:a.profile,state:a.state,activity:a.activity,space:a.space,x:a.x,z:a.z,heading:a.heading,velocity:a.velocity,distance:a.distance,parentId:a.parentId,groupId:a.groupId,doorId:a.doorId,car:a.car,wantsBoard:a.wantsBoard,scale:a.scale,destination:a.destination,seat:a.seat,seatTime:a.seatTime,accessory:a.accessory,tint:a.tint})),
