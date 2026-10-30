@@ -23,7 +23,18 @@ export function auditSceneResources({scene,train,secondTrain,stationView,rendere
   for(const t of textures)seenTextures.add(t);
   return out;
  };
+ const topMeshes=[];
+ for(const [group,root] of groups)root?.traverse(o=>{
+  if(!o.isMesh||!o.geometry)return;
+  const geometry=o.geometry;
+  const triangles=(geometry.index?.count??geometry.attributes.position?.count??0)/3*(o.isInstancedMesh?o.count:1);
+  const materials=Array.isArray(o.material)?o.material.length:1;
+  topMeshes.push({group,name:o.name||o.type,triangles,materials,visible:o.visible,layerMask:o.layers.mask,proxy:!!o.userData?.renderOnlyLODProxy});
+ });
+ topMeshes.sort((a,b)=>b.triangles-a.triangles);
+ const topByTriangles=topMeshes.slice(0,30);
+ const topByMaterialSlots=[...topMeshes].sort((a,b)=>b.materials-a.materials).slice(0,30);
  const components=groups.map(([name,root])=>scan(name,root));
  for(const t of seenTextures){const img=t.image??t.source?.data;if(img?.width&&img?.height)bytes.texturesEstimated+=img.width*img.height*4;}
- return {kind:'CPU scene inventory (not GPU benchmark)',timestamp:new Date().toISOString(),components,unique:{geometries:seenGeometries.size,materials:seenMaterials.size,textures:seenTextures.size},bytes,rendererInfo:renderer?{calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures}:null,notes:['Triangle totals are raw geometry counts; they do not account for frustum culling or overlapping render passes.','Geometry byte count is an approximate unique BufferGeometry attribute total; texture estimate assumes 4 bytes/pixel, no mipmaps or compression.','Draw calls must be measured per render pass on an active WebGL renderer.']};
+ return {kind:'CPU scene inventory (not GPU benchmark)',timestamp:new Date().toISOString(),components,topByTriangles,topByMaterialSlots,unique:{geometries:seenGeometries.size,materials:seenMaterials.size,textures:seenTextures.size},bytes,rendererInfo:renderer?{calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures}:null,notes:['Triangle totals are raw geometry counts; they do not account for frustum culling or overlapping render passes.','Geometry byte count is an approximate unique BufferGeometry attribute total; texture estimate assumes 4 bytes/pixel, no mipmaps or compression.','Draw calls must be measured per render pass on an active WebGL renderer.']};
 }
