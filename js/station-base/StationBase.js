@@ -11,6 +11,7 @@ import {createTrackOccupancyContract} from './TrackOccupancyContract.js';
 import {validateDefinition} from './Validation.js';
 export function createStationBase(options={}){const profile=options.profile??V106_PROFILE,station=createStationDefinition({...options,profile});
  const modules={track:createTrackModule(station,profile),platform:createPlatformModule(station),stop:createTrainStopModule(station,profile),ports:createTunnelConnectors(station,profile),collision:createCollisionModule(station,profile)};
+ modules.platforms=[modules.platform];modules.collision.solids=[modules.collision.platformSolid];
  modules.stops=station.stops.map(s=>createTrainStopModule(station,profile,s));modules.stop=modules.stops[0];modules.occupancy=modules.stops.map(createTrackOccupancyContract);
  modules.passengers=createPassengerStationContract(station,profile,modules.stops);modules.decoration=createDecorationInterface(station,modules.collision);
  const validation=validateDefinition(station,profile,modules);if(!validation.ok)throw new Error(validation.issues.join('; '));return {profile,station,modules,validation};}

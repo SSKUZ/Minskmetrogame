@@ -1,3 +1,4 @@
+import {STATION_MATERIALS} from '../../data/station-base/materials.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {loadV106Geometry} from '../train/V106GeometryLoader.js';
@@ -50,17 +51,17 @@ function showReport(report){
 }
 function audit(){if(!train||busy)return;sync();const report=validateActualGeometry(THREE,base,train.consist,{frontZ:motion.frontZ,doorProgress:motion.doorProgress,band,railMeshes:stationView.railMeshes,platformMesh:stationView.platformMesh});if(secondTrain){const stop=base.modules.stops[1];report.second=validateActualGeometry(THREE,base,secondTrain.consist,{frontZ:stop.frontZ,doorProgress:0,band:secondBand,railMeshes:stationView.railMeshes,platformMesh:stationView.platformMesh,stop});report.separation=validateTrainSeparation(THREE,train.root,secondTrain.root,base.profile.validation.epsilon);report.checks.push({id:'second v106 track/datum/clearance',ok:report.second.ok},{id:'two-train separation',ok:report.separation.ok});report.ok=report.ok&&report.second.ok&&report.separation.ok;if(!report.second.ok)report.issues.push('second-train: '+report.second.issues.join(', '));if(!report.separation.ok)report.issues.push('trains intersect');report.secondVisible=secondTrain.root.visible;}report.occupancy=base.modules.occupancy;report.runtime={three:THREE.REVISION,sourceThree:window.metroV106Metrics?.sourceThreeRevision,metrics:window.metroV106Metrics};showReport(report);return report;}
 $('validate').onclick=audit;
-$('arrive').onclick=()=>{if(motion.arrive()){sync();setStatus('Подъезд по прямому пути. Итоговый контроль — на остановке.');}};
+$('arrive').onclick=()=>{lastTime=performance.now();if(motion.arrive()){sync();setStatus('Подъезд по прямому пути. Итоговый контроль — на остановке.');}};
 $('stop').onclick=()=>{motion.stopNow();sync();audit();};
-$('open').onclick=()=>{if(motion.setDoors(true)){sync();setStatus('Открываются 16 дверей со стороны платформы.');}};
-$('close').onclick=()=>{motion.setDoors(false);sync();};
-$('depart').onclick=()=>{if(motion.depart()){sync();setStatus('Отправление по прямому пути.');}};
+$('open').onclick=()=>{lastTime=performance.now();if(motion.setDoors(true)){sync();setStatus('Открываются 16 дверей со стороны платформы.');}};
+$('close').onclick=()=>{lastTime=performance.now();motion.setDoors(false);sync();};
+$('depart').onclick=()=>{lastTime=performance.now();if(motion.depart()){sync();setStatus('Отправление по прямому пути.');}};
 $('reset').onclick=()=>{motion.reset();sync();view('overview');audit();};
 $('second-train').onchange=()=>{if(secondTrain){secondTrain.root.visible=$('second-train').checked;base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],secondTrain.root.visible?'v106-opposing':null);$('second-state').textContent='Путь 2: '+base.modules.occupancy[1].state;audit();dirty=true;}};
 $('markers').onchange=()=>{stationView.markers.visible=$('markers').checked;dirty=true;};
 $('collapse').onclick=()=>{const body=$('panel-body');body.hidden=!body.hidden;$('collapse').textContent=body.hidden?'+':'−';};
 for(const button of document.querySelectorAll('[data-camera]'))button.onclick=()=>view(button.dataset.camera);
-$('export').onclick=()=>{if(!lastReport)return;const blob=new Blob([JSON.stringify({station:base.station,contract:base.modules.passengers,profile:base.profile,modules:base.modules,validation:lastReport},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='station-base-validation.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('export').onclick=()=>{if(!lastReport)return;const blob=new Blob([JSON.stringify({station:base.station,contract:base.modules.passengers,profile:base.profile,materials:STATION_MATERIALS,modules:base.modules,validation:lastReport},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='station-base-validation.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('parameters').onsubmit=async e=>{e.preventDefault();if(loading||busy||motion.phase!=='stopped'||motion.doorProgress!==0){setStatus('Для изменения размеров остановите состав и закройте двери.',true);return;}
  try{const next=createStationBase({length:Number($('length').value),width:Number($('width').value),direction:Number($('direction').value)});
  const old=stationView.root;scene.remove(old);const gs=new Set(),ms=new Set();old.traverse(o=>{if(o.geometry)gs.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])if(m)ms.add(m)});for(const g of gs)g.dispose();for(const m of ms){m.map?.dispose();m.dispose();}
@@ -68,7 +69,7 @@ $('parameters').onsubmit=async e=>{e.preventDefault();if(loading||busy||motion.p
  }catch(error){setStatus(error.message,true);}
 };
 let lastTime=performance.now(),lastRender=0,frames=0;
-function loop(now){requestAnimationFrame(loop);const dt=Math.min(1,(now-lastTime)/1000);lastTime=now;
+function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime)/1000);lastTime=Math.max(lastTime,now);
  const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
  if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;

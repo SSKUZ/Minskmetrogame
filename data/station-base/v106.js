@@ -163,5 +163,19 @@ export const V106_PROFILE=freeze({
       "localSide": 1,
       "z": 75.92099999999999
     }
-  ]
+  ],
+  "trackGeometry": {
+    "bed": {
+      "width": 3,
+      "height": 0.12,
+      "centerY": -0.3
+    },
+    "sleepers": {
+      "width": 2.3,
+      "height": 0.1,
+      "depth": 0.2,
+      "pitch": 0.65,
+      "centerY": -0.2
+    }
+  }
 });

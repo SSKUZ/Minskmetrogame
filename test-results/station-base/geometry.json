@@ -1553,7 +1553,7 @@
     }
   ],
   "geometryBytesUnchanged": true,
-  "geometrySha256": "c03fda5dd200a997d51d6dc4e0f0699ca3f736657e1cd904c5f5f3fb5c3560c1",
+  "geometrySha256": "003959727c98f9f9864274df63361da5e43b010eb74335e74abebd27f2c053d2",
   "summary": {
     "wheelChecksPerPose": 32,
     "doorsPerSide": 16,

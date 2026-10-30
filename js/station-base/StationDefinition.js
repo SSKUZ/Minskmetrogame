@@ -19,5 +19,6 @@ export function createStationDefinition(options={}){
   provenance:{scope:'technical compatibility fixture; not Malinovka dimensions',assetCommit:profile.assetCommit}};
  for(const s of stops)if(!Number.isFinite(s.frontZ)||!Number.isFinite(s.tolerance)||s.tolerance<0)throw new Error('Invalid stop');
  const r=definition.trackRange;if(![r.minZ,r.maxZ].every(Number.isFinite)||r.minZ>=r.maxZ)throw new Error('Invalid track range');
+ definition.platforms=[definition.platform];for(const stop of stops)stop.platformId=definition.platform.id;
  return definition;
 }
