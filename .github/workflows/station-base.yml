@@ -1,0 +1,54 @@
+name: Station Base v1 acceptance
+on:
+  push:
+    branches: [feature/station-base-v1]
+    paths:
+      - 'station-base.html'
+      - 'js/station-base/**'
+      - 'data/station-base/**'
+      - 'tests/station-base*'
+      - '.github/workflows/station-base.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: station-base-v1
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact viewer dependency and browser test packages
+        run: npm install --no-save --package-lock=false three@0.160.1
+      - name: Contract tests
+        run: node --test tests/station-base.test.js
+      - name: Measure original v106 geometry on both tracks and directions
+        run: node tests/station-base-geometry.mjs . node_modules/three/build/three.module.js
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser rendering, motion and screenshots
+        run: |
+          python3 -m http.server 8765 > /tmp/station-base-server.log 2>&1 &
+          node tests/station-base-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-base-acceptance
+          path: test-results/station-base/
+      - name: Save acceptance evidence to feature branch only
+        if: always()
+        run: |
+          test -d test-results/station-base
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f test-results/station-base/
+          git diff --cached --quiet && exit 0
+          git commit -m 'test(station-base): checkpoint automated acceptance evidence'
+          git push origin HEAD:feature/station-base-v1

@@ -40,7 +40,13 @@ export const V106_PROFILE=freeze({
     "contactLocalY": -0.22,
     "thresholdLocalTopY": 0.9605,
     "thresholdAbsX": 1.3005,
-    "bandHalfWidth": 1.337000012397767
+    "bandHalfWidth": 1.337000012397767,
+    "wheelLocalZ": [
+      -7.35,
+      -5.65,
+      5.65,
+      7.35
+    ]
   },
   "platform": {
     "topY": 1.1805,

@@ -1,0 +1,1470 @@
+{
+  "ok": true,
+  "sourceAssetCommit": "9a1a17bd68039a47e5ea0742bccd285dc100bf16",
+  "threeRevision": "160",
+  "scenarios": [
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 110,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 60,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 15,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 0,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -15,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -60,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -120,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.25,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.5,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.75,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 1,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "open door projection",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602226,
+      "sillGap": 0.0694999989569105,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": -30.775999999999996,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 19.224000000000004,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 64.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 79.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 94.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 139.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 199.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602226,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.25,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602226,
+      "sillGap": 0.0694999989569105,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.5,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602226,
+      "sillGap": 0.0694999989569105,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.75,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602226,
+      "sillGap": 0.0694999989569105,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 1,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602226,
+      "sillGap": 0.0694999989569105,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "open door projection",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "phase": "train-separation",
+      "direction": -1,
+      "ok": true,
+      "gapX": 7.647000002861026,
+      "gapY": -3.9165892153978348,
+      "gapZ": -80.12800061035155,
+      "method": "conservative complete-mesh AABBs"
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": -30.775999999999996,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 19.224000000000004,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 64.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 79.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 94.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 139.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "motion",
+      "frontZ": 199.224,
+      "contactCount": 32,
+      "bodyGap": 0.032999987602233105,
+      "ok": true
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.25,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.5,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 0.75,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-1",
+      "direction": 1,
+      "phase": "doors",
+      "progress": 1,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.032999987602233105,
+      "sillGap": 0.06949999895691827,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "open door projection",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.03299998760223488,
+      "sillGap": 0.06949999895691938,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 110,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 60,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 15,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": 0,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -15,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -60,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "motion",
+      "frontZ": -120,
+      "contactCount": 32,
+      "bodyGap": 0.03299998760223488,
+      "ok": true
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.25,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.03299998760223488,
+      "sillGap": 0.06949999895691938,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.5,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.03299998760223488,
+      "sillGap": 0.06949999895691938,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 0.75,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.03299998760223488,
+      "sillGap": 0.06949999895691938,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "track": "track-2",
+      "direction": -1,
+      "phase": "doors",
+      "progress": 1,
+      "contactCount": 32,
+      "servedDoorCount": 16,
+      "bodyGap": 0.03299998760223488,
+      "sillGap": 0.06949999895691938,
+      "checks": [
+        {
+          "id": "32 wheel contacts",
+          "ok": true
+        },
+        {
+          "id": "4 rail mesh profiles",
+          "ok": true
+        },
+        {
+          "id": "16 served thresholds",
+          "ok": true
+        },
+        {
+          "id": "door Z anchors",
+          "ok": true
+        },
+        {
+          "id": "level platform/sills",
+          "ok": true
+        },
+        {
+          "id": "sill horizontal gap",
+          "ok": true
+        },
+        {
+          "id": "door actuator positions",
+          "ok": true
+        },
+        {
+          "id": "open door projection",
+          "ok": true
+        },
+        {
+          "id": "measured clearance band",
+          "ok": true
+        },
+        {
+          "id": "body/platform solid clearance",
+          "ok": true
+        },
+        {
+          "id": "clearance budget",
+          "ok": true
+        },
+        {
+          "id": "stopped doors inside platform",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "phase": "train-separation",
+      "direction": 1,
+      "ok": true,
+      "gapX": 7.647000002861036,
+      "gapY": -3.9165892153978348,
+      "gapZ": -80.12800061035155,
+      "method": "conservative complete-mesh AABBs"
+    }
+  ],
+  "negative": [
+    {
+      "kind": "actual train lateral drift",
+      "direction": -1,
+      "caught": [
+        "32 wheel contacts",
+        "sill horizontal gap",
+        "body/platform solid clearance",
+        "clearance budget"
+      ]
+    },
+    {
+      "kind": "actual rail mesh raised",
+      "direction": -1,
+      "caught": [
+        "32 wheel contacts",
+        "4 rail mesh profiles",
+        "body/platform solid clearance",
+        "clearance budget"
+      ]
+    },
+    {
+      "kind": "actual train lateral drift",
+      "direction": 1,
+      "caught": [
+        "32 wheel contacts",
+        "sill horizontal gap",
+        "body/platform solid clearance",
+        "clearance budget"
+      ]
+    },
+    {
+      "kind": "actual rail mesh raised",
+      "direction": 1,
+      "caught": [
+        "32 wheel contacts",
+        "4 rail mesh profiles",
+        "body/platform solid clearance",
+        "clearance budget"
+      ]
+    }
+  ],
+  "geometryBytesUnchanged": true,
+  "geometrySha256": "003959727c98f9f9864274df63361da5e43b010eb74335e74abebd27f2c053d2",
+  "summary": {
+    "wheelChecksPerPose": 32,
+    "doorsPerSide": 16,
+    "railMeshes": 4,
+    "trackDirectionCombinations": 4,
+    "scenarioCount": 50,
+    "negativeCases": 4
+  },
+  "limits": [
+    "CPU geometry execution; browser WebGL test is separate",
+    "No full passenger runtime",
+    "Straight and level only"
+  ]
+}

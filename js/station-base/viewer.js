@@ -1,0 +1,90 @@
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {loadV106Geometry} from '../train/V106GeometryLoader.js';
+import {createStationBase} from './StationBase.js';
+import {createV106Adapter,cloneV106Consist} from './V106Adapter.js';
+import {renderStation} from './WebSceneAdapter.js';
+import {measureHeightBand,validateActualGeometry,validateTrainSeparation} from './GeometryValidation.js';
+import {setStaticOccupancy} from './TrackOccupancyContract.js';
+import {DemoMotion} from './DemoMotion.js';
+const $=id=>document.getElementById(id),status=$('status');
+let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false;
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
+$('viewport').appendChild(renderer.domElement);scene.background=new THREE.Color(0xbccbd5);scene.fog=new THREE.Fog(0xbccbd5,170,390);
+const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.025,800),controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.maxDistance=300;controls.minDistance=.25;controls.maxPolarAngle=Math.PI*.98;
+controls.addEventListener('change',()=>dirty=true);
+scene.add(new THREE.HemisphereLight(0xffffff,0x465a68,2));const light=new THREE.DirectionalLight(0xfff4dc,2);light.position.set(-20,35,-20);scene.add(light);
+stationView=renderStation(THREE,scene,base);
+let motion=new DemoMotion(base.modules.stop,{doorSeconds:base.profile.door.animationSeconds});
+const view=(name)=>{const sign=base.modules.stop.direction===-1?1:-1,z=motion.frontZ,center=z+sign*base.profile.train.nominalLength/2;let position,target;
+ if(name==='edge'){position=[-2.4,1.8,base.modules.stop.doors[0].z+(z-base.modules.stop.frontZ)-2.2];target=[-1.25,1.25,base.modules.stop.doors[0].z+(z-base.modules.stop.frontZ)+.5];}
+ else if(name==='wheels'){position=[3.2,.5,z+sign*.8];target=[.9,.13,z+sign*(base.profile.train.frontOffsetZ+Math.min(...base.profile.train.wheelLocalZ))];}
+ else if(name==='top'){position=[-4.8,88,center];target=[-4.8,0,center-.1];}
+ else {position=[-31,24,center-64];target=[-3,1.2,center-2.6];}
+ camera.position.set(...position);controls.target.set(...target);controls.update();dirty=true;
+ for(const button of document.querySelectorAll('[data-camera]'))button.classList.toggle('active',button.dataset.camera===name);
+};view('overview');
+function size(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();dirty=true;}size();window.addEventListener('resize',size);
+function setStatus(text,error=false){status.textContent=text;status.style.color=error?'#ffad9c':'#b9e9dc';}
+function sync(){if(!train)return;train.place(motion.frontZ,base.modules.stop.trackX);train.doors(motion.doorProgress);if(secondTrain){const stop=base.modules.stops[1];secondTrain.place(stop.frontZ,stop.trackX);secondTrain.doors(0);secondTrain.root.visible=$('second-train').checked;}dirty=true;updateHUD();}
+function updateHUD(){
+ $('front-z').textContent=motion.frontZ.toFixed(3).replace('.',',')+' м';
+ $('motion-state').textContent=({stopped:'Остановка',approaching:'Подъезд',departing:'Отправление',departed:'За платформой'})[motion.phase];
+ $('door-state').textContent=motion.doorProgress===0?'Двери закрыты':motion.doorProgress===1?'Двери открыты':'Двери в движении';
+ for(const id of ['arrive','stop','open','close','depart','reset'])$(id).disabled=loading||busy;
+ $('open').disabled=loading||busy||motion.phase!=='stopped'||motion.doorProgress!==0||motion.doorTarget!==0;
+ $('close').disabled=loading||busy||motion.doorProgress===0;
+ $('depart').disabled=loading||busy||motion.phase!=='stopped'||motion.doorProgress!==0||motion.doorTarget!==0;
+ $('arrive').disabled=loading||busy||motion.doorProgress!==0||motion.doorTarget!==0;
+ $('validate').disabled=loading||busy;
+}
+function showReport(report){
+ lastReport=report;$('report-json').textContent=JSON.stringify(report,null,2);
+ $('wheels').textContent=report.ok?'32 / 32':report.contactCount+' / 32';$('doors').textContent=report.servedDoorCount+' / 16';
+ $('body-gap').textContent=report.bodyGap===null?'—':(report.bodyGap*1000).toFixed(1)+' мм';$('sill-gap').textContent=(report.sillGap*1000).toFixed(1)+' мм';
+ $('step').textContent=(Math.max(...report.doorErrors.map(d=>Math.abs(d.step)))*1000).toFixed(2)+' мм';
+ $('checks').replaceChildren(...report.checks.map(c=>{const d=document.createElement('div');d.className='check '+(c.ok?'pass':'fail');d.textContent=(c.ok?'✓ ':'✕ ')+c.id;return d;}));
+ setStatus(report.ok?'Проверки mesh пройдены · '+report.checks.length+'/'+report.checks.length:'Ошибка: '+report.issues.join(', '),!report.ok);
+}
+function audit(){if(!train||busy)return;sync();const report=validateActualGeometry(THREE,base,train.consist,{frontZ:motion.frontZ,doorProgress:motion.doorProgress,band,railMeshes:stationView.railMeshes,platformMesh:stationView.platformMesh});if(secondTrain){const stop=base.modules.stops[1];report.second=validateActualGeometry(THREE,base,secondTrain.consist,{frontZ:stop.frontZ,doorProgress:0,band:secondBand,railMeshes:stationView.railMeshes,platformMesh:stationView.platformMesh,stop});report.separation=validateTrainSeparation(THREE,train.root,secondTrain.root,base.profile.validation.epsilon);report.checks.push({id:'second v106 track/datum/clearance',ok:report.second.ok},{id:'two-train separation',ok:report.separation.ok});report.ok=report.ok&&report.second.ok&&report.separation.ok;if(!report.second.ok)report.issues.push('second-train: '+report.second.issues.join(', '));if(!report.separation.ok)report.issues.push('trains intersect');report.secondVisible=secondTrain.root.visible;}report.occupancy=base.modules.occupancy;report.runtime={three:THREE.REVISION,sourceThree:window.metroV106Metrics?.sourceThreeRevision,metrics:window.metroV106Metrics};showReport(report);return report;}
+$('validate').onclick=audit;
+$('arrive').onclick=()=>{if(motion.arrive()){sync();setStatus('Подъезд по прямому пути. Итоговый контроль — на остановке.');}};
+$('stop').onclick=()=>{motion.stopNow();sync();audit();};
+$('open').onclick=()=>{if(motion.setDoors(true)){sync();setStatus('Открываются 16 дверей со стороны платформы.');}};
+$('close').onclick=()=>{motion.setDoors(false);sync();};
+$('depart').onclick=()=>{if(motion.depart()){sync();setStatus('Отправление по прямому пути.');}};
+$('reset').onclick=()=>{motion.reset();sync();view('overview');audit();};
+$('second-train').onchange=()=>{if(secondTrain){secondTrain.root.visible=$('second-train').checked;base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],secondTrain.root.visible?'v106-opposing':null);$('second-state').textContent='Путь 2: '+base.modules.occupancy[1].state;audit();dirty=true;}};
+$('markers').onchange=()=>{stationView.markers.visible=$('markers').checked;dirty=true;};
+$('collapse').onclick=()=>{const body=$('panel-body');body.hidden=!body.hidden;$('collapse').textContent=body.hidden?'+':'−';};
+for(const button of document.querySelectorAll('[data-camera]'))button.onclick=()=>view(button.dataset.camera);
+$('export').onclick=()=>{if(!lastReport)return;const blob=new Blob([JSON.stringify({station:base.station,contract:base.modules.passengers,validation:lastReport},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='station-base-validation.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('parameters').onsubmit=async e=>{e.preventDefault();if(loading||busy||motion.phase!=='stopped'||motion.doorProgress!==0){setStatus('Для изменения размеров остановите состав и закройте двери.',true);return;}
+ try{const next=createStationBase({length:Number($('length').value),width:Number($('width').value),direction:Number($('direction').value)});
+ const old=stationView.root;scene.remove(old);const gs=new Set(),ms=new Set();old.traverse(o=>{if(o.geometry)gs.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])if(m)ms.add(m)});for(const g of gs)g.dispose();for(const m of ms){m.map?.dispose();m.dispose();}
+ base=next;stationView=renderStation(THREE,scene,base);motion=new DemoMotion(base.modules.stop,{doorSeconds:base.profile.door.animationSeconds});train=createV106Adapter(THREE,train.root,train.consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);secondTrain=createV106Adapter(THREE,secondTrain.root,secondTrain.consist,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);sync();await measureBands();view('overview');audit();
+ }catch(error){setStatus(error.message,true);}
+};
+let lastTime=performance.now(),frames=0;
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(1,(now-lastTime)/1000);lastTime=now;
+ const previousPhase=motion.phase,previousDoor=motion.doorProgress;const changed=motion.update(dt);if(changed)sync();controls.update();
+ if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
+ if(dirty){dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
+ ++frames;$('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
+ }
+}requestAnimationFrame(loop);
+async function measureBands(){
+ busy=true;updateHUD();const p=base.station.platform,v=base.profile.validation;
+ band=await measureHeightBand(THREE,train.root,p.topY-p.thickness-v.verticalBudget,p.topY+v.verticalBudget,{yieldTask:()=>new Promise(r=>setTimeout(r,0)),onProgress:n=>setStatus('Измерение пути 1: '+Math.round(n*100)+'%')});
+ secondBand=await measureHeightBand(THREE,secondTrain.root,p.topY-p.thickness-v.verticalBudget,p.topY+v.verticalBudget,{yieldTask:()=>new Promise(r=>setTimeout(r,0)),onProgress:n=>setStatus('Измерение пути 2: '+Math.round(n*100)+'%')});busy=false;
+}
+try{
+ const root=await loadV106Geometry({THREE,scene,renderer}),consist=root.v106SourceFrame.contentWindow.wagonGetLiveConsist();
+ train=createV106Adapter(THREE,root,consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);
+ const second=cloneV106Consist(consist);scene.add(second.root);secondTrain=createV106Adapter(THREE,second.root,second,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);
+ base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],'v106-opposing');$('second-state').textContent='Путь 2: STOPPED';sync();
+ await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
+}catch(error){loading=false;busy=true;setStatus('Не удалось проверить v106: '+error.message,true);console.error(error);updateHUD();}
