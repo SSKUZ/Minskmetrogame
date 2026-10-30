@@ -18,3 +18,11 @@ At project creation, the available execution container had Java but **no Godot e
 
 ## Deferred from P0
 Batch glTF validation of 24 passengers, independent asset license verification and reproducible export of v106/cab remain mandatory **before importing those assets**, not prerequisites for this empty-scene P1 probe.
+
+## Automated build added (31 October 2026)
+GitHub Actions workflow: `.github/workflows/metro2-p1-build.yml` on branch `feature/metro2-godot-p1`.
+Uses Godot CI image `barichello/godot-ci:4.4.1`; imports project, exports ARM64 Android debug APK and Web build, and uploads artifacts. Android preset `export_presets.cfg` is for a **debug-only probe**, not a production-signed release.
+
+**Evidence status:** workflow source committed, but CI run completion, APK existence, successful launch and physical-device test are **NOT confirmed**. The GitHub connector's available commit-runs endpoint filters to PR runs and cannot establish push-run success. If CI fails, inspect the run logs and fix the branch before calling it built.
+
+**How to retrieve APK once the run succeeds:** open GitHub repository → Actions → “Metro 2 P1 native Android and Web builds” → latest run on `feature/metro2-godot-p1` → artifact `metro2-p1-android-debug`. Verify SHA256SUMS, install only on a test device, and record launch evidence. Do not treat the presence of an artifact as proof of a successful launch.
