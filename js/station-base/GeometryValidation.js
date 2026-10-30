@@ -55,7 +55,7 @@ export function validateActualGeometry(THREE,base,consist,{frontZ=base.modules.s
 }
 // Exact extrema of triangles clipped to a Y band; all Z positions are included.
 export async function measureHeightBand(THREE,root,low,high,{yieldTask=async()=>{},onProgress=()=>{}}={}){
- root.updateMatrixWorld(true);const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});
+ root.updateMatrixWorld(true);const meshes=[];root.traverse(o=>{if(o.isMesh&&!o.userData?.renderOnlyLODProxy)meshes.push(o)});
  let minX=Infinity,maxX=-Infinity,triangles=0;const v=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()];
  const include=x=>{minX=Math.min(minX,x);maxX=Math.max(maxX,x)};
  for(let n=0;n<meshes.length;n++){
@@ -74,7 +74,12 @@ export async function measureHeightBand(THREE,root,low,high,{yieldTask=async()=>
 }
 
 export function validateTrainSeparation(THREE,first,second,epsilon){
- first.updateMatrixWorld(true);second.updateMatrixWorld(true);const a=new THREE.Box3().setFromObject(first,true),b=new THREE.Box3().setFromObject(second,true);
+ first.updateMatrixWorld(true);second.updateMatrixWorld(true);const boundsFor=root=>{
+  const box=new THREE.Box3().makeEmpty();
+  root.traverse(o=>{if(o.isMesh&&!o.userData?.renderOnlyLODProxy)box.union(new THREE.Box3().setFromObject(o,true));});
+  return box;
+ };
+ const a=boundsFor(first),b=boundsFor(second);
  const gapX=Math.max(a.min.x-b.max.x,b.min.x-a.max.x),gapY=Math.max(a.min.y-b.max.y,b.min.y-a.max.y),gapZ=Math.max(a.min.z-b.max.z,b.min.z-a.max.z);
  return {ok:Math.max(gapX,gapY,gapZ)>epsilon,gapX,gapY,gapZ,method:'conservative complete-mesh AABBs'};
 }
