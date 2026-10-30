@@ -20,7 +20,7 @@ const graphicsDevice={userAgent:navigator.userAgent,deviceMemory:Number(navigato
 const graphics=resolveGraphicsPreset(new URLSearchParams(location.search).get('quality'),graphicsDevice);
 const lowMemory=graphics.name==='low';
 const pixelRatioCap=graphics.dpr;
-const renderer=new THREE.WebGLRenderer({antialias:!lowMemory,powerPreference:'high-performance',preserveDrawingBuffer:false});
+const renderer=new THREE.WebGLRenderer({antialias:graphics.antialias,powerPreference:'high-performance',preserveDrawingBuffer:false});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,pixelRatioCap));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
 // Mobile diagnostic checkpoint: observations only; no changes to v106 geometry or rendering passes.
 const diagnostic=document.createElement('div');
@@ -101,6 +101,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;capturePass(0);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3])capturePass(layer);
  scene.background=background;renderer.autoClear=true;camera.layers.set(0);
+ window.metroTrainLOD={playerHidden:playerDetailLOD?.hiddenCount??0,opposingHidden:secondaryLOD?.hiddenCount??0,opposingProxy:opposingProxyLOD?.distant??false,opposingLevel:opposingProxyLOD?.distant?'far':secondaryLOD?.hiddenCount?'medium':'high'};
  window.metroRenderPassAudit={timestamp:new Date().toISOString(),quality:graphics.name,perPass,total:{drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles},note:'CPU wall time is not GPU frame time; pass counts include visibility and culling.'};
  ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-renderStart;
  if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
@@ -116,9 +117,9 @@ async function measureBands(){
 try{
  const root=await loadV106Geometry({THREE,scene,renderer}),consist=root.v106SourceFrame.contentWindow.wagonGetLiveConsist();
  train=createV106Adapter(THREE,root,consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);
- playerDetailLOD=createPlayerTrainDetailLOD(THREE,consist,{hidePixels:graphics.name==='low'?2.5:graphics.name==='medium'?1.8:1.1,restorePixels:graphics.name==='low'?4:graphics.name==='medium'?3:2});
+ playerDetailLOD=createPlayerTrainDetailLOD(THREE,consist,{hidePixels:graphics.playerHidePixels,restorePixels:graphics.playerRestorePixels});
  const second=cloneV106Consist(consist);scene.add(second.root);secondTrain=createV106Adapter(THREE,second.root,second,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);
- secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root,{hideBelowPixels:graphics.detailPixels,restoreAbovePixels:graphics.restorePixels});
+ secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root,{minDistance:graphics.mediumEnter,exitDistance:graphics.mediumExit,hideBelowPixels:graphics.detailPixels,restoreAbovePixels:graphics.restorePixels});
  opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second,{enterDistance:graphics.proxyEnter,exitDistance:graphics.proxyExit});
  base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],$('second-train').checked?'v106-opposing':null);$('second-state').textContent='Путь 2: STOPPED';sync();
  await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
