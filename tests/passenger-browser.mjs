@@ -17,7 +17,9 @@ try{
  const expectedAlightings=report.initial.agents.filter(a=>a.space==='train'&&a.destination<=report.initial.station).length;
  console.log('24 textured model variants loaded');
  await p.locator('#stationCameraToggle').click();
+ await p.evaluate(()=>window.metroPassengerInspector.view([-16,3.7,5],[-6,1.5,72],68));
  await p.screenshot({path:output+'/platform.png',timeout:120000});
+ await p.evaluate(()=>window.metroPassengerInspector.resetView());
  await p.locator('#stationCameraToggle').click();
  await p.evaluate(()=>window.metroPassengerInspector.focus(4,2.7));
  await p.screenshot({path:output+'/portrait.png',timeout:120000});
