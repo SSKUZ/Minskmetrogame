@@ -12,6 +12,17 @@ const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false;
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
+// Mobile diagnostic checkpoint: observations only; no changes to v106 geometry or rendering passes.
+const diagnostic=document.createElement('div');
+diagnostic.id='mobile-render-diagnostics';
+diagnostic.style.cssText='position:fixed;right:8px;bottom:8px;z-index:9999;background:#091827dc;color:#eaffff;padding:7px 10px;border-radius:7px;font:12px/1.45 monospace;pointer-events:none;white-space:pre;max-width:95vw';
+diagnostic.textContent='GPU: initializing';
+document.body.appendChild(diagnostic);
+const gpuStats={context:'active',frames:0,windowStart:performance.now(),fps:0,lastFrameMs:0,error:''};
+renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();gpuStats.context='LOST';gpuStats.error='WebGL context lost';diagnostic.textContent='GPU: LOST — reload if not restored';setStatus('WebGL-контекст потерян. Ожидание восстановления.',true);});
+renderer.domElement.addEventListener('webglcontextrestored',()=>{gpuStats.context='restored';gpuStats.error='';dirty=true;setStatus('WebGL-контекст восстановлен.');});
+window.addEventListener('error',event=>{gpuStats.error=String(event.message||'JavaScript error').slice(0,120);});
+window.addEventListener('unhandledrejection',event=>{gpuStats.error=String(event.reason?.message||event.reason||'Promise rejected').slice(0,120);});
 $('viewport').appendChild(renderer.domElement);scene.background=new THREE.Color(0xbccbd5);scene.fog=new THREE.Fog(0xbccbd5,170,390);
 const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.025,800),controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;controls.maxDistance=300;controls.minDistance=.25;controls.maxPolarAngle=Math.PI*.98;
@@ -74,7 +85,10 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  if(!loading&&!busy&&((previousPhase!==motion.phase)||(previousDoor!==motion.doorProgress&&(motion.doorProgress===0||motion.doorProgress===1))))audit();
  if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;renderer.info.reset();const background=scene.background;camera.layers.set(0);renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.render(scene,camera);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
- ++frames;$('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
+ ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-now;
+ if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
+ diagnostic.textContent='GPU: '+gpuStats.context+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\\nError: '+gpuStats.error:'');
+ $('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
  }
 }requestAnimationFrame(loop);
 async function measureBands(){
