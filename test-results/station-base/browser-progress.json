@@ -1680,7 +1680,7 @@
           "three": "160",
           "sourceThree": null,
           "metrics": {
-            "loadMs": 2377,
+            "loadMs": 1598,
             "meshCount": 969,
             "triangles": 2167962,
             "doorLeaves": 64,
@@ -3403,7 +3403,7 @@
           "three": "160",
           "sourceThree": null,
           "metrics": {
-            "loadMs": 2377,
+            "loadMs": 1598,
             "meshCount": 969,
             "triangles": 2167962,
             "doorLeaves": 64,
