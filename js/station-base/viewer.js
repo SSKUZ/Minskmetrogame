@@ -11,6 +11,7 @@ import {DemoMotion} from './DemoMotion.js';
 import {createSecondaryTrainDetailLOD} from './SecondaryTrainDetailLOD.js';
 import {createOpposingTrainProxyLOD} from './OpposingTrainProxyLOD.js';
 import {resolveGraphicsPreset} from './GraphicsPresets.js';
+import {auditSceneResources} from './SceneResourceAudit.js';
 import {createPlayerTrainDetailLOD} from './PlayerTrainDetailLOD.js';
 const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD,playerDetailLOD;
@@ -117,4 +118,7 @@ try{
  opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second,{enterDistance:graphics.proxyEnter,exitDistance:graphics.proxyExit});
  base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],$('second-train').checked?'v106-opposing':null);$('second-state').textContent='Путь 2: STOPPED';sync();
  await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
+ // One-time, read-only resource snapshot; available to automation and browser console.
+ window.metroSceneResourceAudit=auditSceneResources({scene,train,secondTrain,stationView,renderer});
+ console.info('Station Base resource audit',window.metroSceneResourceAudit);
 }catch(error){loading=false;busy=true;setStatus('Не удалось проверить v106: '+error.message,true);console.error(error);updateHUD();}
