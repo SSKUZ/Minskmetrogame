@@ -1,3 +1,4 @@
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Lightweight distant substitute for the opposing train.
 // Each carriage becomes a small number of meshes instead of thousands of details.
 // Original geometry is retained and automatically restored near the camera.
@@ -50,7 +51,26 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
     lamp.position.set(center.x+xSign*size.x*.32,box.min.y+size.y*.45,center.z+zSign*size.z*.515);carriage.add(lamp);
    }
   }
-  // Avoid adding proxy geometry to the original train's detail hierarchy.
+  // Batch the static proxy into at most one draw call per material per car.
+  // Merge in carriage-local coordinates so car transforms remain independent.
+  carriage.updateMatrix();
+  const batches=new Map();
+  for(const part of [...carriage.children]){
+   part.updateMatrix();
+   const geometry=part.geometry.clone();
+   geometry.applyMatrix4(part.matrix);
+   const entries=batches.get(part.material)||[];
+   entries.push(geometry);batches.set(part.material,entries);
+   carriage.remove(part);part.geometry.dispose();
+  }
+  for(const [material,geometries] of batches){
+   const merged=mergeGeometries(geometries,false);
+   for(const geometry of geometries)geometry.dispose();
+   if(!merged)throw new Error('Unable to batch distant train proxy geometry');
+   const mesh=new THREE.Mesh(merged,material);
+   mesh.name='distant-car-batched-'+proxies.length;
+   carriage.add(mesh);
+  }
   proxies.push(carriage);
  }
  const proxyMeshes=new Set();
