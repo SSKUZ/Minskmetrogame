@@ -3,7 +3,8 @@ import {STATION_MATERIALS} from '../../data/station-base/materials.js';
 export function renderStation(THREE,scene,base){
  const root=new THREE.Group();root.name='StationBase-v1';scene.add(root);
  const materials=Object.fromEntries(Object.entries(STATION_MATERIALS).map(([id,spec])=>{const {kind,...values}=spec;return [id,kind==='unlit'?new THREE.MeshBasicMaterial(values):new THREE.MeshStandardMaterial(values)];}));
- const box=(size,center,material,name)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(size.x,size.y,size.z),material);o.name=name;o.position.set(center.x,center.y,center.z);root.add(o);return o;};
+ const sharedBoxGeometry=new THREE.BoxGeometry(1,1,1);
+ const box=(size,center,material,name)=>{const o=new THREE.Mesh(sharedBoxGeometry,material);o.name=name;o.position.set(center.x,center.y,center.z);o.scale.set(size.x,size.y,size.z);root.add(o);return o;};
  const railMeshes=[];
  for(const t of base.modules.track.tracks){
   for(const r of t.rails)railMeshes.push(box(r.size,r.center,materials.rail,r.id));
