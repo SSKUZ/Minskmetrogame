@@ -6,7 +6,6 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
  const bodyMaterial=new THREE.MeshStandardMaterial({color:0xb5bdc2,metalness:.35,roughness:.55});
  const windowMaterial=new THREE.MeshStandardMaterial({color:0x253d49,metalness:.1,roughness:.3});
  const roofMaterial=new THREE.MeshStandardMaterial({color:0x858f94,metalness:.25,roughness:.7});
- const wheelsMaterial=new THREE.MeshStandardMaterial({color:0x242b2e,roughness:.9});
  const box=new THREE.Box3(),size=new THREE.Vector3(),center=new THREE.Vector3();
  const doorMaterial=new THREE.MeshStandardMaterial({color:0x929fa5,metalness:.28,roughness:.6});
  const lampMaterial=new THREE.MeshBasicMaterial({color:0xe6e5d0});
@@ -17,7 +16,7 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
   box.makeEmpty();
   car.root.traverse(o=>{
    if(!o.isMesh||!o.geometry)return;
-   o.geometry.computeBoundingBox();
+   if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();
    const local=o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld).applyMatrix4(inverse);
    box.union(local);
   });
@@ -54,11 +53,14 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
   // Avoid adding proxy geometry to the original train's detail hierarchy.
   proxies.push(carriage);
  }
+ const proxyMeshes=new Set();
+ for(const proxy of proxies)proxy.traverse(o=>{if(o.isMesh)proxyMeshes.add(o);});
  const originals=[];
- consist.root.traverse(o=>{if(o.isMesh&&!proxies.some(p=>p===o||p.children.includes(o)))originals.push({mesh:o,visible:o.visible});});
+ consist.root.traverse(o=>{if(o.isMesh&&!proxyMeshes.has(o))originals.push({mesh:o,visible:o.visible});});
  for(const p of proxies)p.visible=false;
  let distant=false;
  const nearest=new THREE.Vector3();
+ // Proxy meshes must remain outside fine-detail LOD bookkeeping.
  return {
   update(camera){
    consist.root.updateWorldMatrix(true);
