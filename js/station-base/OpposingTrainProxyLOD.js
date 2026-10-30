@@ -69,6 +69,7 @@ export function createOpposingTrainProxyLOD(THREE,consist,{enterDistance=65,exit
    if(!merged)throw new Error('Unable to batch distant train proxy geometry');
    const mesh=new THREE.Mesh(merged,material);
    mesh.name='distant-car-batched-'+proxies.length;
+   mesh.userData.renderOnlyLODProxy=true;
    carriage.add(mesh);
   }
   proxies.push(carriage);
