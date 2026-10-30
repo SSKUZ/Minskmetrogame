@@ -54,3 +54,35 @@ saved preview model, with explicit nonoverlapping seat/standing anchor zones.
 It does not change or integrate V106 geometry. The actual temporary scene still
 has 4 logical cars x 2 existing doors; its rendering check is functional evidence
 only and must not be presented as the 16-door 30-second acceptance result.
+
+## TZ3 priority change — 30 October 2026
+
+The new user specification supersedes the strict 30 s ceiling: ordinary target
+is 15–30 s, with a small allowance for heavier boarding/alighting. The primary
+eight-stop test retains 30 s for ordinary stops and allows at most 35 s when
+there are at least 60 scheduled crossings. It still requires exact crossings,
+zero missed-train reclassification, physical door clearance and identities.
+There is no timer-based evacuation, speed increase or shortened animation.
+
+The ordinary platform contains 40–60 people; boarding intent is a 60% random
+choice at spawn, shared by families, rather than the old 82% demand profile.
+Others wait on the platform. Exit choice favors nearby doors in the same car
+with a small queue penalty. Only the front alighter approaches before opening;
+others rise at their own places, avoiding artificial interior queue packing.
+Interior routes join the aisle before walking along the car. Existing models,
+LOD, social/family behavior and motion response are retained. No new animation,
+LOD or extreme-crowd development is planned under TZ3.
+
+Validation of this checkpoint is in progress. Before the busy-stop allowance,
+seeds 717 and 106 passed eight stops each; seed 42 stopped at station 6 with a
+child still walking outward at natural speed, just beyond the 30 s deadline.
+These are algorithm contract tests on sixteen anchors, not V106 integration.
+The physical temporary scene still has eight doors and must be checked in-game.
+
+Validation: `npm run check` passed all 78 checks, no skips. All 24 normal station
+cycles passed: seed 717 maximum 28.67 s, seed 42 maximum 31.60 s (one busy stop
+with 27 boarders + 39 alighters), seed 106 maximum 27.77 s. All scheduled people
+crossed once, identities survived, door zones cleared and both flags were true.
+A separate normal 50-person headless stop on the unchanged eight-door stand
+finished in 20.67 s (30 boardings, 8 alightings). No stress command was run.
+Browser screenshots and rendering validation follow this source checkpoint.

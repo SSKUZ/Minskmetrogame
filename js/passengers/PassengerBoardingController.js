@@ -12,6 +12,13 @@ function departurePath(a,layout){
  return [...platformPath(a,bay,a.radius),...platformPath(bay,exit,a.radius)];
 }
 
+function interiorPath(a,target,car){
+ const path=[];
+ if(Math.abs(a.x-car.aisleX)>.05&&Math.abs(a.z-target.z)>.1)path.push({x:car.aisleX,z:a.z});
+ if(Math.abs(target.x-car.aisleX)>.05&&Math.abs(a.z-target.z)>.1)path.push({x:car.aisleX,z:target.z});
+ path.push(target);return path;
+}
+
 export class PassengerBoardingController{
  constructor(layout=TEST_PASSENGER_LAYOUT,{normal=false}={}){this.layout=layout;this.normal=normal;this.queues=layout.doors.map(d=>({...d,phase:'closed',active:null,exit:[],enter:[],served:0}));this.queueById=new Map(this.queues.map(q=>[q.id,q]));this.opened=false;this.events=[];this.resetCompletion();}
  clearPlatformLanes(agents,dist){
@@ -66,22 +73,11 @@ export class PassengerBoardingController{
     if(a.state==='seated'){beginStanding(a);continue;}
     if(['seatTurning','sittingDown','standingUp','seatStabilizing'].includes(a.state))continue;
     if(a.exitPrepStation!==station||a.exitPrepDoor!==d.id){a.exitPrepPoint=null;a.exitPrepStation=station;a.exitPrepDoor=d.id;}
-    if(!a.exitPrepPoint){
-     if(a.id===this.approachFront.get(d.id))a.exitPrepPoint={x:car.aisleX,z:d.z};
-     else{
-      const candidates=car.standingZones.filter(p=>Math.abs(p.z-d.z)<=.8&&
-       (Math.abs(p.z-d.z)>.5||p.x>car.aisleX+.5));
-      candidates.sort((p,q)=>Math.hypot(p.x-a.x,p.z-a.z)-Math.hypot(q.x-a.x,q.z-a.z));
-      const free=candidates.find(p=>!agents.some(o=>{
-       if(o===a||o.space!=='train'||o.state==='gone')return false;
-       const at=o.exitPrepPoint??o.path.at(-1)??o;
-       return Math.hypot(p.x-at.x,p.z-at.z)<a.radius+o.radius+.06;
-      }));
-      if(free)a.exitPrepPoint={x:free.x,z:free.z};
-     }
-    }
+    // Only the front person approaches the door before opening. The others
+    // rise at their own places instead of packing invented interior queues.
+    if(!a.exitPrepPoint&&a.id===this.approachFront.get(d.id))a.exitPrepPoint={x:car.aisleX,z:d.z};
     if(a.exitPrepPoint&&a.state!=='exitPreparing'){
-     a.state='exitPreparing';a.activity='wait';a.seat=null;a.railGrip=null;a.path=[a.exitPrepPoint];
+     a.state='exitPreparing';a.activity='wait';a.seat=null;a.railGrip=null;a.path=interiorPath(a,a.exitPrepPoint,car);
     }else if(!a.exitPrepPoint&&a.state!=='exitWaiting'){
      a.state='exitWaiting';a.activity='wait';a.path=[];a.seat=null;a.railGrip=null;
     }
@@ -123,7 +119,7 @@ export class PassengerBoardingController{
     const activeClearedAisle=active?.state==='alighting'&&!active.path.some(p=>Math.abs(p.x-TRAIN.aisleX)<.01&&Math.abs(p.z-q.z)<.01);
     if(a.id===next&&activeClearedAisle&&active.x<q.exitInnerX+.35){
      const point={x:TRAIN.aisleX,z:q.z,preparedDoor:q.id,aisle:true};
-     a.state='exitApproaching';a.activity='wait';a.seat=null;a.railGrip=null;a.exitQueuePoint=point;a.path=[point];
+     a.state='exitApproaching';a.activity='wait';a.seat=null;a.railGrip=null;a.exitQueuePoint=point;a.path=interiorPath(a,point,TRAIN);
     }else if(a.exitQueuePoint?.preparedDoor===q.id){continue;}
     else if(a.state!=='exitQueued'){
      a.state='exitQueued';a.activity='wait';a.path=[];a.seat=null;a.reservedSeat=null;a.railGrip=null;a.assignedRailId=null;
@@ -190,7 +186,7 @@ export class PassengerBoardingController{
     // Alighters walk to the doorway through the aisle, then leave into the clear central lane.
     a.state='alighting';a.seat=null;a.activity='wait';
     if(this.normal&&a.groupId!==null)q.priorityExitGroup=a.groupId;
-    a.path=[{x:TRAIN.aisleX,z:q.z},{x:q.exitInnerX,z:q.z},{x:q.exitOuterX,z:q.z},{x:q.exitClearX,z:q.z}];
+    a.path=[...interiorPath(a,{x:TRAIN.aisleX,z:q.z},TRAIN),{x:q.exitInnerX,z:q.z},{x:q.exitOuterX,z:q.z},{x:q.exitClearX,z:q.z}];
     q.active=a.id;q.phase='alighting';
    }else if(q.enter.length){
     const a=byId.get(q.enter[0]);if(!a){q.enter.shift();continue;}

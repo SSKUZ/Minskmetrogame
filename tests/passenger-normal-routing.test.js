@@ -24,9 +24,9 @@ test('car occupancy is considered before arrival, so a full car does not receive
  const l=normalPassengerLayout(),occupied=Array.from({length:40},(_,id)=>person(id,{space:'train',car:0,destination:5,state:'riding',wantsBoard:false})),a=person(100);
  choosePlatformDoors([...occupied,a],l,{station:0});assert.notEqual(l.door(a.doorId).car,0);
 });
-test('exit choice stays in the same car and distributes the actual walking workload',()=>{
- const l=normalPassengerLayout(),agents=Array.from({length:8},(_,id)=>person(id,{space:'train',car:0,destination:0,z:-88,walkSpeed:id%2?.65:1.2}));
- chooseExitDoors(agents,l,0);assert.ok(new Set(agents.map(a=>a.doorId)).size>=3);assert.ok(agents.every(a=>l.door(a.doorId).car===0));
+test('exit choice uses nearby doors across the same car',()=>{
+ const l=normalPassengerLayout(),agents=Array.from({length:8},(_,id)=>person(id,{space:'train',car:0,destination:0,z:[-94,-93,-90,-89,-86,-85,-81,-80][id],walkSpeed:id%2?.65:1.2}));
+ chooseExitDoors(agents,l,0);assert.equal(new Set(agents.map(a=>a.doorId)).size,4);assert.ok(agents.every(a=>l.door(a.doorId).car===0));
 });
 test('standing anchors do not block entrances or bench approaches',()=>{
  const l=normalPassengerLayout(),c=l.cars[0],d=l.doors[0];assert.equal(standingPlaceKeepsDoorsClear({x:c.aisleX-.71,z:d.z},l,c.id),false);

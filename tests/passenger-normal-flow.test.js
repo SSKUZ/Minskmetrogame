@@ -5,7 +5,7 @@ import {PassengerSimulation} from '../js/passengers/PassengerBehavior.js';
 import {normalPassengerLayout} from './helpers/normal-passenger-layout.mjs';
 const counts=[40,50,60,50,40,60,50,60];
 const appearance=a=>[a.profile,a.scale,a.width,a.tint,a.accessory,a.groupId,a.parentId,a.destination];
-for(const seed of [717,42,106])test(`normal 4-car flow: 8 stops, 40–60 people, <=30 s and independent closure signals (seed ${seed})`,()=>{
+for(const seed of [717,42,106])test(`normal 4-car flow: 8 stops, 40–60 people, <=30 s (busy <=35 s) and independent closure signals (seed ${seed})`,()=>{
  const layout=normalPassengerLayout(),s=new PassengerSimulation({seed,normal:true,layout}),report={seed,doorCount:layout.doors.length,stations:[]},events=[];
  const advance=(seconds,ctx)=>{for(let n=0;n<seconds*30;n++)s.update(1/30,ctx);};
  let retained=[];
@@ -21,8 +21,10 @@ for(const seed of [717,42,106])test(`normal 4-car flow: 8 stops, 40–60 people,
    const expectedBoard=platform.filter(a=>a.wantsBoard).length,expectedExit=s.agents.filter(a=>a.space==='train'&&a.destination<=station).length;
    advance(35,closed);
    for(let n=0;n<12*30;n++)s.update(1/30,{...closed,dist:140-n/30*11.6,speed:42});
+   // TZ3 permits a small increase for a busy stop, without rejecting people.
+   const deadline=expectedBoard+expectedExit>=60?35:30;
    let dwell=null,parallel=0,parallelExit=0,queues;
-   for(let n=0;n<30*30;n++){
+   for(let n=0;n<deadline*30;n++){
     s.update(1/30,open);
     if(n===0){
      queues=s.boarding.queues.map(q=>({id:q.id,car:q.car,in:q.enter.length,out:q.exit.length}));
@@ -39,9 +41,9 @@ for(const seed of [717,42,106])test(`normal 4-car flow: 8 stops, 40–60 people,
     }
     if(s.boarding.passengerExchangeComplete){dwell=(n+1)/30;break;}
    }
-   const result={station,population:counts[station],expectedBoard,expectedExit,dwell,parallel,parallelExit,queues,...s.boarding.exchangeSnapshot()};report.stations.push(result);
+   const result={station,population:counts[station],expectedBoard,expectedExit,deadline,dwell,parallel,parallelExit,queues,...s.boarding.exchangeSnapshot()};report.stations.push(result);
    if(dwell===null)result.failure={snapshot:s.snapshot(),paths:s.agents.filter(a=>a.path.length).map(a=>({id:a.id,path:a.path}))};
-   assert.ok(dwell!==null,`seed ${seed}, station ${station}: normal exchange exceeded 30 s`);
+   assert.ok(dwell!==null,`seed ${seed}, station ${station}: normal exchange exceeded ${deadline} s`);
    assert.equal(s.boarding.doorsSafeToClose,true);assert.equal(s.boarding.obstructions.length,0);assert.equal(s.boarding.missed.size,0,'no timer-based rejection to pass the target');
    assert.ok(parallel>=8);if(expectedExit>1)assert.ok(parallelExit>=2);
    const current=s.events.filter(e=>e.station===station);

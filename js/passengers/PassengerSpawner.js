@@ -15,14 +15,14 @@ function freePoint(rng,agents,door,layout,normal=false,index=0,count=1){
  }
  return {x:PLATFORM.minX+8.3-rng()*5,z:PLATFORM.minZ+3+rng()*(PLATFORM.maxZ-PLATFORM.minZ-6.5)};
 }
-export function createPassenger(id,rng,station){
+export function createPassenger(id,rng,station,{boardingProbability=.82}={}){
  const profile=id%12,child=profile===6||profile===7,elder=profile===4||profile===5;
  return {id,profile,child,elder,radius:child?.18:.25,scale:.95+rng()*.10,width:.94+rng()*.12,
   railPreference:id%3===1,tint:Math.floor(rng()*5),phase:rng()*13,heading:rng()*Math.PI*2,targetHeading:0,
   walkSpeed:child?.76:elder?.64+rng()*.14:.86+rng()*.48,
   state:'waiting',space:'platform',x:0,z:0,velocity:0,distance:0,path:[],
   activity:rng()<.28?'phone':'wait',nextDecision:2+rng()*9,createdAt:station,
-  destination:station+1+Math.floor(rng()*4),wantsBoard:rng()<.82,doorId:0,
+  destination:station+1+Math.floor(rng()*4),wantsBoard:rng()<boardingProbability,doorId:0,
   groupId:null,parentId:null,seat:null,boardingCounted:false,exitCounted:false,
   accessory:child?'backpack':rng()<.28?'backpack':rng()<.45?'bag':rng()<.25?'shopping':null,
  };
@@ -34,7 +34,8 @@ export class PassengerSpawner{
   const layout=this.layout,DOORS=layout.doors,PLATFORM=layout.platform,COLUMNS=layout.obstacles('platform');
   const rng=randomSource(this.seed+index*91771),agents=[];
   for(let i=0;i<count;i++){
-   const a=createPassenger(this.nextId++,rng,index),door=DOORS[i%DOORS.length];
+   // Intent is chosen at spawn; waiting people are not rejected at a deadline.
+   const a=createPassenger(this.nextId++,rng,index,{boardingProbability:this.normal?.60:.82}),door=DOORS[i%DOORS.length];
    a.flowThrough=this.normal;
    Object.assign(a,freePoint(rng,[...existing,...agents],door,layout,this.normal,i,count),{doorId:door.id});
    a.targetHeading=a.heading;

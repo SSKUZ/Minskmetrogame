@@ -78,9 +78,9 @@ export function chooseExitDoors(agents,layout,station,{preserveAssignments=false
   const car=group[0].car;if(group.some(a=>a.car!==car))continue;
   const available=layout.doors.filter(d=>d.car===car&&d.available!==false);let best=null;
   for(const d of available){
-   const score=Math.max(Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed)),load.get(d.id)??0)+Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed))*.15+(preserveAssignments&&group[0].doorId!==d.id?8:0);
+   const score=Math.max(...group.map(a=>Math.abs(a.z-d.z)/a.walkSpeed))+(load.get(d.id)??0)*1.0+(preserveAssignments&&group[0].doorId!==d.id?8:0);
    if(!best||score<best.score)best={door:d,score};
   }
-  if(best){for(const a of group)a.doorId=best.door.id;load.set(best.door.id,(load.get(best.door.id)??0)+group.reduce((sum,a)=>sum+(layout.car(car).aisleX-best.door.thresholdX+.70)/a.walkSpeed+.25,0));}
+  if(best){for(const a of group)a.doorId=best.door.id;load.set(best.door.id,(load.get(best.door.id)??0)+group.length);}
  }
 }
