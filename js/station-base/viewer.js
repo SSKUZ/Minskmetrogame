@@ -12,13 +12,18 @@ import {createSecondaryTrainDetailLOD} from './SecondaryTrainDetailLOD.js';
 import {createOpposingTrainProxyLOD} from './OpposingTrainProxyLOD.js';
 import {resolveGraphicsPreset} from './GraphicsPresets.js';
 import {auditSceneResources} from './SceneResourceAudit.js';
+import {createAdaptiveQuality} from './AdaptiveQuality.js';
 import {createPlayerTrainDetailLOD} from './PlayerTrainDetailLOD.js';
 const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD,playerDetailLOD;
 // Constrain framebuffer cost on mobile without changing source mesh geometry.
 const graphicsDevice={userAgent:navigator.userAgent,deviceMemory:Number(navigator.deviceMemory||0),hardwareConcurrency:Number(navigator.hardwareConcurrency||0)};
 const graphics=resolveGraphicsPreset(new URLSearchParams(location.search).get('quality'),graphicsDevice);
-const lowMemory=graphics.name==='low';
+const params=new URLSearchParams(location.search);
+const benchmarkMode=params.get('benchmark')==='1';
+const adaptiveEnabled=benchmarkMode&&params.get('adaptive')!=='0';
+const targetFps=graphics.name==='low'?30:60;
+const adaptive=createAdaptiveQuality({baseDpr:graphics.dpr,maxDpr:graphics.dpr,targetFps});
 const pixelRatioCap=graphics.dpr;
 const renderer=new THREE.WebGLRenderer({antialias:graphics.antialias,powerPreference:'high-performance',preserveDrawingBuffer:false});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,pixelRatioCap));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
@@ -96,7 +101,8 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  if(dirty&&playerDetailLOD)playerDetailLOD.update(camera,renderer.domElement.height);
  if(dirty&&opposingProxyLOD&&secondTrain?.root.visible&&opposingProxyLOD.update(camera)){if(!opposingProxyLOD.distant)secondaryLOD?.restore();}
  if(dirty&&secondaryLOD&&secondTrain?.root.visible&&!opposingProxyLOD?.distant)secondaryLOD.update(camera,renderer.domElement.height);
- if(dirty&&now-lastRender>=1000/20){lastRender=now;dirty=false;const renderStart=performance.now();renderer.info.reset();const background=scene.background;const perPass=[];
+ if(benchmarkMode&&!loading&&!busy)dirty=true;
+ if(dirty&&now-lastRender>=1000/(benchmarkMode?targetFps:20)){lastRender=now;dirty=false;const renderStart=performance.now();renderer.info.reset();const background=scene.background;const perPass=[];
  const capturePass=(layer)=>{const beforeCalls=renderer.info.render.calls,beforeTriangles=renderer.info.render.triangles,start=performance.now();camera.layers.set(layer);renderer.render(scene,camera);perPass.push({layer,drawCalls:renderer.info.render.calls-beforeCalls,triangles:renderer.info.render.triangles-beforeTriangles,cpuMs:Math.round((performance.now()-start)*100)/100});};
  renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;capturePass(0);renderer.autoClear=false;scene.background=null;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3])capturePass(layer);
@@ -104,8 +110,9 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  window.metroTrainLOD={playerHidden:playerDetailLOD?.hiddenCount??0,opposingHidden:secondaryLOD?.hiddenCount??0,opposingProxy:opposingProxyLOD?.distant??false,opposingLevel:opposingProxyLOD?.distant?'far':secondaryLOD?.hiddenCount?'medium':'high'};
  window.metroRenderPassAudit={timestamp:new Date().toISOString(),quality:graphics.name,perPass,total:{drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles},note:'CPU wall time is not GPU frame time; pass counts include visibility and culling.'};
  ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-renderStart;
+ if(adaptiveEnabled){const result=adaptive.sample(now,{active:!document.hidden,frameMs:gpuStats.lastFrameMs});if(result?.changed){renderer.setPixelRatio(Math.min(devicePixelRatio||1,result.dpr));size();}window.metroAdaptiveQuality=result??{dpr:adaptive.dpr,collecting:true};}
  if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
- diagnostic.textContent='GPU: '+gpuStats.context+' | Quality: '+graphics.name+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\nError: '+gpuStats.error:'');
+ diagnostic.textContent='GPU: '+gpuStats.context+' | Quality: '+graphics.name+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap '+(benchmarkMode?targetFps:20)+'\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\nError: '+gpuStats.error:'');
  $('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
  }
 }requestAnimationFrame(loop);
@@ -125,5 +132,6 @@ try{
  await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
  // One-time, read-only resource snapshot; available to automation and browser console.
  window.metroSceneResourceAudit=auditSceneResources({scene,train,secondTrain,stationView,renderer});
+ window.metroBenchmarkSnapshot=()=>({resources:auditSceneResources({scene,train,secondTrain,stationView,renderer}),passes:window.metroRenderPassAudit,lod:window.metroTrainLOD,adaptive:window.metroAdaptiveQuality,load:window.metroV106Metrics,errors:gpuStats.error,context:gpuStats.context});
  console.info('Station Base resource audit',window.metroSceneResourceAudit);
 }catch(error){loading=false;busy=true;setStatus('Не удалось проверить v106: '+error.message,true);console.error(error);updateHUD();}
