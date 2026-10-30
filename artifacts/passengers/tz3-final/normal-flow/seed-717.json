@@ -1,0 +1,927 @@
+{
+  "seed": 717,
+  "doorCount": 16,
+  "stations": [
+    {
+      "station": 0,
+      "population": 40,
+      "expectedBoard": 17,
+      "expectedExit": 8,
+      "deadline": 30,
+      "dwell": 13.766666666666667,
+      "parallel": 16,
+      "parallelExit": 4,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 0,
+          "out": 1
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 1,
+          "out": 0
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 2,
+          "out": 0
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 17,
+      "scheduledExit": 8,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 1,
+      "population": 50,
+      "expectedBoard": 36,
+      "expectedExit": 10,
+      "deadline": 30,
+      "dwell": 12.366666666666667,
+      "parallel": 16,
+      "parallelExit": 9,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 3,
+          "out": 0
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 36,
+      "scheduledExit": 10,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 2,
+      "population": 60,
+      "expectedBoard": 35,
+      "expectedExit": 20,
+      "deadline": 30,
+      "dwell": 19.166666666666668,
+      "parallel": 16,
+      "parallelExit": 11,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 1,
+          "out": 1
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 4,
+          "out": 1
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 3,
+          "out": 2
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 4,
+          "out": 0
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 3,
+          "out": 2
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 35,
+      "scheduledExit": 20,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 3,
+      "population": 50,
+      "expectedBoard": 23,
+      "expectedExit": 25,
+      "deadline": 30,
+      "dwell": 26.133333333333333,
+      "parallel": 16,
+      "parallelExit": 14,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 1,
+          "out": 2
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 3,
+          "out": 1
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 23,
+      "scheduledExit": 25,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 4,
+      "population": 40,
+      "expectedBoard": 30,
+      "expectedExit": 17,
+      "deadline": 30,
+      "dwell": 22.433333333333334,
+      "parallel": 16,
+      "parallelExit": 10,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 1,
+          "out": 1
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 1,
+          "out": 1
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 0,
+          "out": 2
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 2,
+          "out": 0
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 3,
+          "out": 0
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 1,
+          "out": 2
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 3,
+          "out": 1
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 30,
+      "scheduledExit": 17,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 5,
+      "population": 60,
+      "expectedBoard": 45,
+      "expectedExit": 36,
+      "deadline": 35,
+      "dwell": 26.7,
+      "parallel": 16,
+      "parallelExit": 15,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 1,
+          "out": 4
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 4,
+          "out": 2
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 3,
+          "out": 3
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 2,
+          "out": 3
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 6,
+          "out": 1
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 6,
+          "out": 0
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 2,
+          "out": 3
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 1,
+          "out": 4
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 6,
+          "out": 1
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 4,
+          "out": 3
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 45,
+      "scheduledExit": 36,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 6,
+      "population": 50,
+      "expectedBoard": 27,
+      "expectedExit": 42,
+      "deadline": 35,
+      "dwell": 28.666666666666668,
+      "parallel": 16,
+      "parallelExit": 16,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 1,
+          "out": 3
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 2,
+          "out": 3
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 0,
+          "out": 5
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 3,
+          "out": 2
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 1,
+          "out": 3
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 0,
+          "out": 3
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 3,
+          "out": 1
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 1,
+          "out": 3
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 3,
+          "out": 2
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 1,
+          "out": 3
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 3,
+          "out": 3
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 27,
+      "scheduledExit": 42,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    },
+    {
+      "station": 7,
+      "population": 60,
+      "expectedBoard": 37,
+      "expectedExit": 32,
+      "deadline": 35,
+      "dwell": 24.366666666666667,
+      "parallel": 16,
+      "parallelExit": 14,
+      "queues": [
+        {
+          "id": 0,
+          "car": 0,
+          "in": 1,
+          "out": 2
+        },
+        {
+          "id": 1,
+          "car": 0,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 2,
+          "car": 0,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 3,
+          "car": 0,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 4,
+          "car": 1,
+          "in": 5,
+          "out": 0
+        },
+        {
+          "id": 5,
+          "car": 1,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 6,
+          "car": 1,
+          "in": 2,
+          "out": 1
+        },
+        {
+          "id": 7,
+          "car": 1,
+          "in": 2,
+          "out": 2
+        },
+        {
+          "id": 8,
+          "car": 2,
+          "in": 4,
+          "out": 1
+        },
+        {
+          "id": 9,
+          "car": 2,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 10,
+          "car": 2,
+          "in": 0,
+          "out": 4
+        },
+        {
+          "id": 11,
+          "car": 2,
+          "in": 3,
+          "out": 2
+        },
+        {
+          "id": 12,
+          "car": 3,
+          "in": 3,
+          "out": 2
+        },
+        {
+          "id": 13,
+          "car": 3,
+          "in": 2,
+          "out": 3
+        },
+        {
+          "id": 14,
+          "car": 3,
+          "in": 5,
+          "out": 0
+        },
+        {
+          "id": 15,
+          "car": 3,
+          "in": 2,
+          "out": 3
+        }
+      ],
+      "passengerExchangeComplete": true,
+      "doorsSafeToClose": true,
+      "scheduledBoard": 37,
+      "scheduledExit": 32,
+      "missed": 0,
+      "admissionClosed": false,
+      "obstructions": []
+    }
+  ],
+  "passed": true
+}

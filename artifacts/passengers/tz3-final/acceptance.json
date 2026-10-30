@@ -1,0 +1,74 @@
+{
+  "sourceCommit": "201dc86a00745c36832c352d8910337c78b5ff76",
+  "workflowRun": "https://github.com/SSKUZ/Minskmetrogame/actions/runs/40997323283",
+  "artifactId": 12951889008,
+  "artifactSha256": "7e4ef25d91cd109a62944d46f658b0a215d84b3e97df8f65fc0239712caf7271",
+  "checks": {
+    "passed": 78,
+    "failed": 0,
+    "skipped": 0
+  },
+  "normalFlow": [
+    {
+      "seed": 717,
+      "passed": true,
+      "stations": 8,
+      "maxSeconds": 28.666666666666668
+    },
+    {
+      "seed": 42,
+      "passed": true,
+      "stations": 8,
+      "maxSeconds": 31.6
+    },
+    {
+      "seed": 106,
+      "passed": true,
+      "stations": 8,
+      "maxSeconds": 27.766666666666666
+    }
+  ],
+  "temporaryStand": {
+    "cars": 4,
+    "doors": 8,
+    "platformPeople": 50,
+    "seconds": 21,
+    "boarded": 30,
+    "alighted": 8,
+    "onboard": 46,
+    "passengerExchangeComplete": true,
+    "doorsSafeToClose": true
+  },
+  "browser": {
+    "modelsLoaded": 24,
+    "errors": [],
+    "failedRequests": [],
+    "mobileViewport": [
+      412,
+      915
+    ],
+    "realPhoneFpsVerified": false
+  },
+  "visualReview": {
+    "reviewed": [
+      "platform.png",
+      "exchange.png",
+      "carriage.png",
+      "carriage-mobile.png"
+    ],
+    "result": "No gross passenger body or pose defect observed; temporary stand geometry unchanged."
+  },
+  "files": {
+    "passenger-layout/mirror-right.png": "4899dd85f5e731400eb1182440158900502201ef92432f804942cad35bc7c93f",
+    "passenger-layout/carriage.png": "c8eda99f80c01e65b91e228da820aa9a3bfa4e7c9661b0f8d3e4254163de1307",
+    "passenger-layout/carriage-mobile.png": "ee51842fdd3c8a7acbaa4de2d92a297dc139d3477d897bf37c8e05eec56778bc",
+    "passenger-layout/exchange.png": "503127cde24fec7e6504eb9e3e6be111a4d4bb061371a4f3fa9199f1b1c56a0d",
+    "passenger-layout/platform.png": "be49c56aebf66e01253652664be6da2a4db117a9f6998657a4ea216e4c9095c3",
+    "passenger-layout/portrait.png": "9b3ce00e77e510b3c6572b2eb40692cfd7815fe15aa45b19ce4fc0817b14e6d1",
+    "passenger-layout/browser-report.json": "611f9ec013fe3fe085a394f8badd881c1f6bd5a37513100371707be9208aab6d",
+    "passenger-layout/mirror-left.png": "81681149c8100a780e9a12782bc17c048fcb2b52cbac929e6d1bc839e2279e82",
+    "normal-flow/seed-717.json": "d888fc80b3a587a684a1893fb7aaff2de00ceb14737bf72643301daabe6f2c95",
+    "normal-flow/seed-42.json": "94a17e428fc87d7e0d66fc2cda9fb654a79f384bdb8c731c17a74e2c74444f40",
+    "normal-flow/seed-106.json": "807556fba787e5df836a948b1583dc76dafdd80b764552bf9a3f3019c7f83437"
+  }
+}
