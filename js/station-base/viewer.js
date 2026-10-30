@@ -10,12 +10,14 @@ import {setStaticOccupancy} from './TrackOccupancyContract.js';
 import {DemoMotion} from './DemoMotion.js';
 import {createSecondaryTrainDetailLOD} from './SecondaryTrainDetailLOD.js';
 import {createOpposingTrainProxyLOD} from './OpposingTrainProxyLOD.js';
+import {resolveGraphicsPreset} from './GraphicsPresets.js';
 const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false,secondaryLOD,opposingProxyLOD;
 // Constrain framebuffer cost on mobile without changing source mesh geometry.
-const mobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-const lowMemory=Number(navigator.deviceMemory||0)>0&&Number(navigator.deviceMemory)<=4;
-const pixelRatioCap=mobileDevice?(lowMemory?1:1.25):1.5;
+const graphicsDevice={userAgent:navigator.userAgent,deviceMemory:Number(navigator.deviceMemory||0),hardwareConcurrency:Number(navigator.hardwareConcurrency||0)};
+const graphics=resolveGraphicsPreset(new URLSearchParams(location.search).get('quality'),graphicsDevice);
+const lowMemory=graphics.name==='low';
+const pixelRatioCap=graphics.dpr;
 const renderer=new THREE.WebGLRenderer({antialias:!lowMemory,powerPreference:'high-performance',preserveDrawingBuffer:false});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,pixelRatioCap));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
 // Mobile diagnostic checkpoint: observations only; no changes to v106 geometry or rendering passes.
@@ -95,7 +97,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
  ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-renderStart;
  if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
- diagnostic.textContent='GPU: '+gpuStats.context+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\nError: '+gpuStats.error:'');
+ diagnostic.textContent='GPU: '+gpuStats.context+' | Quality: '+graphics.name+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\nError: '+gpuStats.error:'');
  $('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
  }
 }requestAnimationFrame(loop);
@@ -108,8 +110,8 @@ try{
  const root=await loadV106Geometry({THREE,scene,renderer}),consist=root.v106SourceFrame.contentWindow.wagonGetLiveConsist();
  train=createV106Adapter(THREE,root,consist,base.profile,base.modules.stop.servedSide,base.modules.stop.direction);
  const second=cloneV106Consist(consist);scene.add(second.root);secondTrain=createV106Adapter(THREE,second.root,second,base.profile,base.modules.stops[1].servedSide,base.modules.stops[1].direction);
- secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root);
- opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second);
+ secondaryLOD=createSecondaryTrainDetailLOD(THREE,second.root,{hideBelowPixels:graphics.detailPixels,restoreAbovePixels:graphics.restorePixels});
+ opposingProxyLOD=createOpposingTrainProxyLOD(THREE,second,{enterDistance:graphics.proxyEnter,exitDistance:graphics.proxyExit});
  base.modules.occupancy[1]=setStaticOccupancy(base.modules.occupancy[1],$('second-train').checked?'v106-opposing':null);$('second-state').textContent='Путь 2: STOPPED';sync();
  await measureBands();loading=false;busy=false;audit();updateHUD();dirty=true;
 }catch(error){loading=false;busy=true;setStatus('Не удалось проверить v106: '+error.message,true);console.error(error);updateHUD();}
