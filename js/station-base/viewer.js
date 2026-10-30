@@ -24,7 +24,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio||1,pixelRatioCap));renderer.out
 // Mobile diagnostic checkpoint: observations only; no changes to v106 geometry or rendering passes.
 const diagnostic=document.createElement('div');
 diagnostic.id='mobile-render-diagnostics';
-diagnostic.style.cssText='position:fixed;right:8px;bottom:8px;z-index:9999;background:#091827dc;color:#eaffff;padding:7px 10px;border-radius:7px;font:12px/1.45 monospace;pointer-events:none;white-space:pre;max-width:95vw';
+diagnostic.style.cssText='position:fixed;right:8px;bottom:170px;z-index:50;background:#091827dc;color:#eaffff;padding:7px 10px;border-radius:7px;font:12px/1.45 monospace;pointer-events:none;white-space:pre;max-width:95vw';
 diagnostic.textContent='GPU: initializing';
 document.body.appendChild(diagnostic);
 const gpuStats={context:'active',frames:0,windowStart:performance.now(),fps:0,lastFrameMs:0,error:''};
