@@ -10,8 +10,12 @@ import {setStaticOccupancy} from './TrackOccupancyContract.js';
 import {DemoMotion} from './DemoMotion.js';
 const $=id=>document.getElementById(id),status=$('status');
 let base=createStationBase(),scene=new THREE.Scene(),train,secondTrain,stationView,band,secondBand,lastReport,loading=true,dirty=true,busy=false;
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
+// Constrain framebuffer cost on mobile without changing source mesh geometry.
+const mobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const lowMemory=Number(navigator.deviceMemory||0)>0&&Number(navigator.deviceMemory)<=4;
+const pixelRatioCap=mobileDevice?(lowMemory?1:1.25):1.5;
+const renderer=new THREE.WebGLRenderer({antialias:!lowMemory,powerPreference:'high-performance',preserveDrawingBuffer:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,pixelRatioCap));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=false;
 // Mobile diagnostic checkpoint: observations only; no changes to v106 geometry or rendering passes.
 const diagnostic=document.createElement('div');
 diagnostic.id='mobile-render-diagnostics';
@@ -87,7 +91,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.max(0,(now-lastTime
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;for(const layer of [2,1,3]){camera.layers.set(layer);renderer.render(scene,camera);}scene.background=background;renderer.autoClear=true;camera.layers.set(0);
  ++frames;gpuStats.frames++;gpuStats.lastFrameMs=performance.now()-now;
  if(now-gpuStats.windowStart>=2000){gpuStats.fps=gpuStats.frames*1000/(now-gpuStats.windowStart);gpuStats.frames=0;gpuStats.windowStart=now;}
- diagnostic.textContent='GPU: '+gpuStats.context+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\\nError: '+gpuStats.error:'');
+ diagnostic.textContent='GPU: '+gpuStats.context+' | DPR: '+renderer.getPixelRatio().toFixed(2)+' | FPS(render): '+gpuStats.fps.toFixed(1)+' / cap 20'+'\\n'+'Draw calls: '+renderer.info.render.calls+' | Triangles: '+(renderer.info.render.triangles/1e6).toFixed(2)+'M'+'\\n'+'Render CPU: '+gpuStats.lastFrameMs.toFixed(1)+' ms | Train 2: '+(secondTrain?.root.visible?'ON':'OFF')+(gpuStats.error?'\\nError: '+gpuStats.error:'');
  $('render-info').textContent=`${renderer.info.render.calls} вызовов · ${(renderer.info.render.triangles/1e6).toFixed(2)} млн треуг.`;
  }
 }requestAnimationFrame(loop);
