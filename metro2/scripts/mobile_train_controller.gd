@@ -38,7 +38,7 @@ func _update_camera() -> void:
     if cab_view:
         # Camera inside the leading head car, facing the travel direction (-Z).
         camera.position = train.position + Vector3(-0.35, 2.65, -7.6)
-        camera.rotation_degrees = Vector3(0.0, 180.0, 0.0)
+        camera.rotation_degrees = Vector3.ZERO
         camera.fov = 75.0
     else:
         camera.position = train.position + Vector3(-34.0, 21.0, 94.0)
