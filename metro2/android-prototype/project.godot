@@ -3,8 +3,8 @@
 config_version=5
 
 [application]
-config/name="Minsk Metro 2.0 - P1 Probe"
-run/main_scene="res://scenes/probe.tscn"
+config/name="Minsk Metro 2.0 - P2 Stress Test"
+run/main_scene="res://scenes/stress_test.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [display]
