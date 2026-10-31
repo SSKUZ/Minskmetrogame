@@ -18,7 +18,7 @@ ambient_light_energy = 0.8
 [node name="StationBase" parent="." instance=ExtResource("1")]
 
 [node name="PlayerTrainPlacement" type="Node3D" parent="."]
-position = Vector3(0, 0.22, 0)
+position = Vector3(0, 0.22, 9.603)
 
 [node name="Car01" parent="PlayerTrainPlacement" instance=ExtResource("2")]
 
