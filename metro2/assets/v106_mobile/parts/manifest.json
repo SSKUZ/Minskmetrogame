@@ -1,0 +1,331 @@
+{
+  "filename": "v106_car01_mobile.glb",
+  "size": 21216508,
+  "sha256": "aed209d835f6f2a50090cbcbe283ec1467853a2d598591801196618f8ae4c48a",
+  "parts": [
+    {
+      "name": "v106_car01_mobile.glb.part001",
+      "size": 393216,
+      "sha256": "eb809a70258f4275e7913c804dd09323dfadd68facd0a558c3e54c95d8067c33",
+      "git_sha": "aaa805d046ed67d6abbe0b6d8424e0c4332c8b86"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part002",
+      "size": 393216,
+      "sha256": "6095197d7218d9dd3f906a08fdc1c869bf7ccf888a9adb01052c7ddc398c59f3",
+      "git_sha": "7617c405b465be3fb4c947eee004cbfeb7f34d4d"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part003",
+      "size": 393216,
+      "sha256": "d03e63bf80525161b2bd3bd3d01b24693020ebfe98581815fd59efe64c7abc11",
+      "git_sha": "5ac3231bd5f025e66dfdc1d9c276586f9072c9b4"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part004",
+      "size": 393216,
+      "sha256": "26136229d168ee33f789c4f4115a57bbb83f3f2da02a31e54fa7d47c4c1f411a",
+      "git_sha": "b78cda1d1c48d734f55933deb7ef15c2924d74d4"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part005",
+      "size": 393216,
+      "sha256": "7935dfabebbfd8ea57f0898019687018794ff1fd801b9935a7d64b050e7bc62f",
+      "git_sha": "0cd5e349aae2609f8b94b6ed59984ed0bf41190b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part006",
+      "size": 393216,
+      "sha256": "9323fc9a49b7dc4a99d358d329b0e088ff7d8c696db8b12bd2b235c414524a13",
+      "git_sha": "4598bed34baf4a31a1a7cc8da3ea473fd0006c2b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part007",
+      "size": 393216,
+      "sha256": "7a4e53fca2edb9784fbd28f23cc8778d802a14ee41f1b81c66d76438dea05e25",
+      "git_sha": "f3be902428b70072f5fa3a046d6d6fd35aef42a5"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part008",
+      "size": 393216,
+      "sha256": "aa97a8a647a83d9bd294aed4dd281ea52d0e3f2e81b8c08302b233213e7e2e3a",
+      "git_sha": "4c375484107d8e9ebb2e02aa4d42623264343ebd"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part009",
+      "size": 393216,
+      "sha256": "ff594fdeb40a0e1c469018dd1a9ab254f52c72fb00c9a9ef8586cf40e26f13b7",
+      "git_sha": "2f0aa832d2764afb1433b63959e419b637722101"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part010",
+      "size": 393216,
+      "sha256": "de191d2649c8cd7ec689297c651546b675d0f053e5ad642b0fbc0290e280ff09",
+      "git_sha": "a03ad2717d87ecf402c879d6d543eddde5cf4363"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part011",
+      "size": 393216,
+      "sha256": "581503219eb78062da7d8bcf887f0eb533fc273a90befe740090f907ba14ef95",
+      "git_sha": "27bdf22cd8e06f896ce2adac4b5dd58725ae8617"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part012",
+      "size": 393216,
+      "sha256": "bc11a6547ab574f5e07ecdc27f0814caf282dd0f854107531d887623a8b11ec7",
+      "git_sha": "9be99f6cdcfbd224e3237c35c52216bd25f279b3"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part013",
+      "size": 393216,
+      "sha256": "6f7092a021b358724e8181787ac705fe5d5a31472f29fc9b2fc123a6506b7446",
+      "git_sha": "e628589b34c0c286b2f640df62d40c6978eddaad"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part014",
+      "size": 393216,
+      "sha256": "1394f80b9dd2b712a3e014c02d02d5cbff68c7807c4ebc21427c6f2ee367d22d",
+      "git_sha": "48f2a1586e38445caa83fe8bab2fe08767cfea4b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part015",
+      "size": 393216,
+      "sha256": "d58a44081c08068f322197709c9fefd2e57a3ab9e15f568bbc86e346dffbf247",
+      "git_sha": "b044b7583711dbdb4fd3e6231c022da752d35947"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part016",
+      "size": 393216,
+      "sha256": "4155f682e5441a8b2b9257365367cb8dbe3d3300bbf969d8e10ffb220aac29ba",
+      "git_sha": "4ff2b91ee97a7f343c0842dbdcc522ce8e67dc48"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part017",
+      "size": 393216,
+      "sha256": "8c4e328e040dcc81f85973f50dfc58b0aa9c6bbdde2b1b66d4e1d72d4857ce62",
+      "git_sha": "6fbb1cbeaad192ea65a9152356086651f2ea89f9"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part018",
+      "size": 393216,
+      "sha256": "8e1ec8980123ebfd36084dd28c6e814e69f132a91f661ad9cbdddadfe002b023",
+      "git_sha": "a070373b6790a51274a31b7d853eba1c68b60c2b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part019",
+      "size": 393216,
+      "sha256": "16f5be49ad914732a99577d45e5ab72a49a6495a8324f9568875f053caa72f01",
+      "git_sha": "80600f01b7b20d2971cf255d5aefd3f0033d75ef"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part020",
+      "size": 393216,
+      "sha256": "7ff7fc0fecb193656140c8a78de84810c303deaa987947791659decd803c9093",
+      "git_sha": "4843569c246223950176112dd9160747cce876a3"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part021",
+      "size": 393216,
+      "sha256": "75041913934fc1b61d29fcf4883bf0c89721e6f5ff236d6b32def6994f1d6c77",
+      "git_sha": "9f6b0702be9ff56a7460fb2428a50dcb2da9a6dc"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part022",
+      "size": 393216,
+      "sha256": "da70b084ce5e4b7ddc54ece28fee739e38a3845476e1a5bccaaa7130830be5d7",
+      "git_sha": "15ed58a048677aa13eec1e8b48f4795b7b103c58"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part023",
+      "size": 393216,
+      "sha256": "e9206e12f00a7390aadf7219d2651a40c91d0ef4dc619f11e5a22dcf929714a2",
+      "git_sha": "bbc55fd73a886ca5ee333eff28fc903a024f603f"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part024",
+      "size": 393216,
+      "sha256": "332958a6a1d1050646665c9253953629f9106bbd3db17fdaad8aa7f6fac6d25c",
+      "git_sha": "bafe45a8ccfc741fde163ba9fe94bc98917e0d68"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part025",
+      "size": 393216,
+      "sha256": "6f77d7e1124b671b95773d215f4b2108b676fd834af074e1f497b2eb44964051",
+      "git_sha": "70f6931be48ed7fc5a24143a7286eaa695444146"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part026",
+      "size": 393216,
+      "sha256": "6328d13c0df17e19eb8d8d80ffd608d4e7f67854162784cdc16ff1866fb586c5",
+      "git_sha": "c614e495a97cdfa7ddaa38ab61a2167525de212b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part027",
+      "size": 393216,
+      "sha256": "7641fb55645fb6d749a58e29b586ffc3d8f7e3694ab506f4f654d2899818931e",
+      "git_sha": "a5c8e3f07b99f8d7e20a1eac5045257d9e65e845"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part028",
+      "size": 393216,
+      "sha256": "41de15ae7aa0ab072572fe166c7e77cfb0593d530e17f8de2a4344269aaa87d8",
+      "git_sha": "1c49f3d4fbd2eb1c71e67f82f295265bf3822768"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part029",
+      "size": 393216,
+      "sha256": "e9ce800d05fa512988278f55941795bcdfaed8f4e27c35c606dca8e3749afe84",
+      "git_sha": "a0acd31c3367bc598bd872769bf3d669e1833e77"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part030",
+      "size": 393216,
+      "sha256": "2b86e7c2c643b85a02c31ef9ae86ae834197fdb4a839cfbf51c19c15f0a38253",
+      "git_sha": "00a0d4677b5070e966e20ffd89e2120db2674027"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part031",
+      "size": 393216,
+      "sha256": "1e0a2f8c07f286f4a410ee3a71733402aeef390c10e5d9d78db3d1325795c5a6",
+      "git_sha": "5bac4f118f98b37edc0bb9b956cfd09abf468edf"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part032",
+      "size": 393216,
+      "sha256": "6b65a312cfa3e3de1b0abbbc20046f7f657b73acfede54bb14866b4062160758",
+      "git_sha": "b4e5e77147ee1fef22a455a94832f1b842baa3e3"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part033",
+      "size": 393216,
+      "sha256": "615d92f917cf1e2ae2092fcf72aefb7b32002b8d050d22be38c1d73a6b4e3129",
+      "git_sha": "6baaed9c557d39bbedb5933f100564b7e4af98b4"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part034",
+      "size": 393216,
+      "sha256": "9be955838f88e71907157d3e603f06a7986d6a18b1772f60c987560ce65024bc",
+      "git_sha": "9786eea081ce34fdc7ee2fd0e589ef9e20146276"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part035",
+      "size": 393216,
+      "sha256": "3f1a53d37f3aee89753bbb210b3604a8d9049a567b8068804e7b51d8b4680829",
+      "git_sha": "71a55d28d2ffdbf89662c2efd91b4be61ceaa244"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part036",
+      "size": 393216,
+      "sha256": "ccdfe40c8292c7ed312641eb400775a077cd47f21063880a730a492b37436295",
+      "git_sha": "09f877539a8fca8ae71529eb612f472018cc6362"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part037",
+      "size": 393216,
+      "sha256": "b73d8f37c881fc1355a012800b270ccef74b004c2a12d20cf76ef26599a51baa",
+      "git_sha": "94c334e45a63bfdb834586ce56280bf72b74a3d8"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part038",
+      "size": 393216,
+      "sha256": "6d191ee871ca1cb9fd170bc3280595e572a525cb0bad4c30e99bdec02d724a7d",
+      "git_sha": "dee8c0bbeccf140c87198c43bb2e22f499d7e9c0"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part039",
+      "size": 393216,
+      "sha256": "78f3fdd3da7970920dce142801d4d49c11205f733ce7ba7ac72a869c5377267e",
+      "git_sha": "8f049d0fd03f4f4c015192636354e152a3c71d01"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part040",
+      "size": 393216,
+      "sha256": "f72bfd19fb0c359a59c79669f99cfbfa73003c4446c467e8736f71d7ca78e8ad",
+      "git_sha": "3d14992b08ba22ff68e56921dc1c2126071b2e8c"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part041",
+      "size": 393216,
+      "sha256": "1681a47aa3b916598d16bebb2e357fc61f3e521ccedcc5feaab1d3d14709b3c8",
+      "git_sha": "7734dae14843c042858e0ec49057c953cdf2c114"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part042",
+      "size": 393216,
+      "sha256": "4a55dee06810fa5af92e5b5b962386672b5ff11d03347ec1c8b27903664c9869",
+      "git_sha": "cb085a7d14cca9c304dab473c0befd82ed84eda4"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part043",
+      "size": 393216,
+      "sha256": "85f5ffc8c42d46870e00f82c00468a95fa2de400230523dee7736a3080b0f8b7",
+      "git_sha": "19d2ddc9e3982f7a274fe05be3a5a76cf711468b"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part044",
+      "size": 393216,
+      "sha256": "fb71547aeb71d3eb0485e503321a068c85c4e81935b80a0646ab812857099d9f",
+      "git_sha": "c3b4edd02bf9ae1d129305957646661588f68297"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part045",
+      "size": 393216,
+      "sha256": "8b9cef5f7b35c5c26b7a8d7f81164654d6c70fb18bb41c87759ac3deea03af67",
+      "git_sha": "63402e7b4519a90ae80119e3d6cea224ecd4d888"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part046",
+      "size": 393216,
+      "sha256": "74cb76560f67fa64c39d15d8413537b3c8df8ac79f33c8085e2bf3fe71e3fbe9",
+      "git_sha": "338d0d1730625d2635c48e652d84a2d4bbc982c5"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part047",
+      "size": 393216,
+      "sha256": "267b66da19b5369e3dda8a7b8260c10f06c123140fe6197f7093d2887efead8d",
+      "git_sha": "10d05d182c1d330b2f28a7bc0464d8d3a48b1f84"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part048",
+      "size": 393216,
+      "sha256": "06fefd2316d341eca04de47ecaaaf60d890cab3e0b9bee90ba509298653b9fbd",
+      "git_sha": "6d975b293ae664e31779b1fd4db165ff76443f20"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part049",
+      "size": 393216,
+      "sha256": "45e3c3ea45e17cf26250e01edfa83358190d6e7d29b2b2769d03f666e6a16896",
+      "git_sha": "525fad478bd99ff4e17e37d703a2cea9a1fba2c5"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part050",
+      "size": 393216,
+      "sha256": "15c48cd05cb5453ec66db6631a746dc48d22d1d5fb1a36ade2391a7ca6d106ea",
+      "git_sha": "a88a8aff6c258ff5641f5cdc93bde9a22007eab5"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part051",
+      "size": 393216,
+      "sha256": "9c2157224a572000e48978d0c30783d97f368251b2084dd1724e7829f5e6cbd0",
+      "git_sha": "c3e549959b4727fd22ba3dc47f67039fed663ba9"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part052",
+      "size": 393216,
+      "sha256": "62cf19ccbc079eef1875046b66b3286cb045e59a880377f2de52be1c1a359865",
+      "git_sha": "94b84f050fd622d6f2d3fbeb59999b87396775de"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part053",
+      "size": 393216,
+      "sha256": "6298b2a05f6ca22577da38a03c2f7383e27af3ac6db698b3e8ad682992f189f3",
+      "git_sha": "589dcc222d1683e8a394bc5097b2bfbf0a189018"
+    },
+    {
+      "name": "v106_car01_mobile.glb.part054",
+      "size": 376060,
+      "sha256": "56c2e4c41d5819af513b07d99135493c35086619626c871f85a2e583cc891f15",
+      "git_sha": "4288d46e4acb7cdeb6cde8e171107dadd70c2643"
+    }
+  ]
+}
