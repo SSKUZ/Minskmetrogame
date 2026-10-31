@@ -101,7 +101,7 @@ func _set_level(level: int) -> void:
 		level_root.remove_child(child)
 		child.queue_free()
 	current_level = level
-	var objects := TARGET_OBJECTS[level]
+	var objects: int = TARGET_OBJECTS[level]
 	var segments := maxi(1, roundi(sqrt(float(TARGET_TRIANGLES[level]) / (2.0 * float(objects)))))
 	var mesh := _make_grid_mesh(segments)
 	var material := StandardMaterial3D.new()
