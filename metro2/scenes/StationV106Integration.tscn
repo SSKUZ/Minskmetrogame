@@ -1,7 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/StationBaseStatic.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/V106Consist.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_01.glb" id="2"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_02.glb" id="3"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_03.glb" id="4"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_04.glb" id="5"]
 
 [sub_resource type="Environment" id="Environment_station"]
 background_mode = 1
@@ -17,8 +20,13 @@ ambient_light_energy = 0.8
 [node name="PlayerTrainPlacement" type="Node3D" parent="."]
 position = Vector3(0, 0.22, 0)
 
-[node name="V106Consist" parent="PlayerTrainPlacement" instance=ExtResource("2")]
-editable_children = true
+[node name="Car01" parent="PlayerTrainPlacement" instance=ExtResource("2")]
+
+[node name="Car02" parent="PlayerTrainPlacement" instance=ExtResource("3")]
+
+[node name="Car03" parent="PlayerTrainPlacement" instance=ExtResource("4")]
+
+[node name="Car04" parent="PlayerTrainPlacement" instance=ExtResource("5")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_station")
