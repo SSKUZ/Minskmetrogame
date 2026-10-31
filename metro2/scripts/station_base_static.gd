@@ -9,8 +9,8 @@ const TRAIN_LENGTH := 79.224
 const PLATFORM_TOP_Y := 1.1805
 const PLATFORM_THICKNESS := 0.2
 const EDGE_OFFSET := 1.37
-const TRACK_MIN_Z := -180.0
-const TRACK_MAX_Z := 220.0
+const TRACK_MIN_Z := -220.0
+const TRACK_MAX_Z := 310.0
 const SLEEPER_PITCH := 0.65
 
 func _ready() -> void:
