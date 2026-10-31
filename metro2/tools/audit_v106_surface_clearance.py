@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact triangle-edge extrema within the platform slab, using original GLB mesh vertices.
+"""Triangle-vertex and edge extrema within the platform slab, using original GLB mesh vertices.
 Requires numpy and trimesh. Run from any directory.
 """
 from pathlib import Path
@@ -81,8 +81,8 @@ def main():
             errors.append(f"car {car}: unexpected bottom vertex pattern")
         if any(min(abs(abs(x)-abs(rail)) for rail in RAILS_X) > 0.061 for x in x_values):
             errors.append(f"car {car}: bottom vertex lateral displacement")
-    print("PASS: static triangle slab clearance and bottom-vertex patterns" if not errors else "FAIL: " + "; ".join(errors))
-    print("LIMITATION: no triangle-triangle coupler collision or Godot rendering validation.")
+    print("PASS: triangle-edge candidate clearance and bottom-vertex patterns" if not errors else "FAIL: " + "; ".join(errors))
+    print("LIMITATION: does not include slab-corner interior triangle intersections, triangle-triangle coupler collisions or Godot rendering validation.")
     return 1 if errors else 0
 
 if __name__ == "__main__":
