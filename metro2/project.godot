@@ -1,13 +1,18 @@
 config_version=5
 
 [application]
-config/name="Minsk Metro 2.0 - Station V106 Integration"
-run/main_scene="res://scenes/StationV106Integration.tscn"
+config/name="Minsk Metro V106 Comparison"
+run/main_scene="res://scenes/V106Comparison.tscn"
+config/icon="res://comparison_icon.png"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [display]
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[input_devices]
+pointing/emulate_mouse_from_touch=false
 
 [rendering]
 renderer/rendering_method="gl_compatibility"
