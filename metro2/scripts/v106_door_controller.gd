@@ -5,11 +5,13 @@ signal ready_count(count: int)
 var leaves: Array[Dictionary] = []
 var openness: float = 0.0
 var target_open: bool = false
+var validated: bool = false
 const SLIDE_METERS := 0.56
 const ANIMATION_SECONDS := 1.3
 
 func setup(consist: Node3D) -> void:
     leaves.clear()
+    validated = false
     for car in consist.get_children():
         var panels: Array[Dictionary] = []
         var decals: Array[Dictionary] = []
@@ -17,7 +19,6 @@ func setup(consist: Node3D) -> void:
         var grouped: Dictionary = {}
         for item in panels:
             var mesh: MeshInstance3D = item["node"]
-            var box: AABB = mesh.get_aabb()
             var center: Vector3 = item["center"]
             var key := "%s:%s" % [roundi(center.x * 10.0), roundi(center.z * 100.0)]
             if not grouped.has(key):
@@ -53,7 +54,26 @@ func setup(consist: Node3D) -> void:
                 leaves.clear()
                 ready_count.emit(0)
                 return
+        # Require one and only one matching leaf within the same car.
+        for i in range(car_leaves.size()):
+            var center: Vector3 = car_leaves[i]["center"]
+            var partners: Array[int] = []
+            for j in range(car_leaves.size()):
+                if i == j:
+                    continue
+                var other: Vector3 = car_leaves[j]["center"]
+                var distance := absf(other.z - center.z)
+                if absf(other.x - center.x) < 0.2 and distance > 0.60 and distance < 0.80:
+                    partners.append(j)
+            if partners.size() != 1:
+                push_error("Ambiguous door pairing in %s, leaf %d" % [car.name, i])
+                leaves.clear()
+                ready_count.emit(0)
+                return
+            var partner: Vector3 = car_leaves[partners[0]]["center"]
+            car_leaves[i]["direction"] = signf(center.z - partner.z)
         leaves.append_array(car_leaves)
+    validated = leaves.size() == 64
     ready_count.emit(leaves.size())
     if leaves.size() != 64:
         push_warning("Door controller expected 64 leaves; found %d. Animation disabled." % leaves.size())
@@ -71,28 +91,12 @@ func _scan(root: Node, panels: Array[Dictionary], decals: Array[Dictionary]) -> 
         _scan(child, panels, decals)
 
 func _process(delta: float) -> void:
-    if leaves.size() != 64:
+    if not validated:
         return
     var goal := 1.0 if target_open else 0.0
     openness = move_toward(openness, goal, delta / ANIMATION_SECONDS)
     for leaf in leaves:
-        var center: Vector3 = leaf["center"]
-        # Pair only the immediately adjacent leaves of the same aperture.
-        # Adjacent leaf centers differ by about 0.69 m in source GLBs.
-        var partner_distance := INF
-        var partner_z := center.z
-        for candidate in leaves:
-            var c: Vector3 = candidate["center"]
-            if absf(c.x - center.x) > 0.2:
-                continue
-            var dist := absf(c.z - center.z)
-            if dist > 0.60 and dist < 0.80 and dist < partner_distance:
-                partner_distance = dist
-                partner_z = c.z
-        if partner_distance == INF:
-            continue
-        var opening_center := (partner_z + center.z) * 0.5
-        var direction := signf(center.z - opening_center)
+        var direction: float = leaf["direction"]
         var shift := Vector3(0, 0, direction * SLIDE_METERS * openness)
         for item in leaf["parts"]:
             var node: Node3D = item["node"]
@@ -102,7 +106,7 @@ func _process(delta: float) -> void:
             node.position = item["origin"] + shift
 
 func request_open(speed_mps: float) -> void:
-    if speed_mps > 0.05 or leaves.size() != 64:
+    if speed_mps > 0.05 or not validated:
         return
     target_open = true
 
@@ -110,4 +114,4 @@ func request_close() -> void:
     target_open = false
 
 func can_move() -> bool:
-    return not target_open and openness <= 0.001 and leaves.size() == 64
+    return not target_open and openness <= 0.001 and validated
