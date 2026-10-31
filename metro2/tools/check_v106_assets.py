@@ -50,7 +50,7 @@ def main():
                 errors.append(f"SCENE MISSING REFERENCE: {name}")
         if "StationBaseStatic.tscn" not in text:
             errors.append("SCENE MISSING STATION REFERENCE")
-        if "Vector3(0, 0.22, 0)" not in text:
+        if "Vector3(0, 0.22, 9.603)" not in text:
             errors.append("SCENE TRAIN Y PLACEMENT NOT FOUND")
     for error in errors:
         print(error, file=sys.stderr)
