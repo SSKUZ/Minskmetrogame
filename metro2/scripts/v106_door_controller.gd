@@ -42,6 +42,17 @@ func setup(consist: Node3D) -> void:
                     best_index = i
             if best_index >= 0:
                 car_leaves[best_index]["decals"].append(decal)
+        if car_leaves.size() != 16:
+            push_error("V106 door discovery: %s found %d/16 leaves" % [car.name, car_leaves.size()])
+            leaves.clear()
+            ready_count.emit(0)
+            return
+        for leaf in car_leaves:
+            if leaf["decals"].size() != 1:
+                push_error("V106 door decal mismatch in %s" % car.name)
+                leaves.clear()
+                ready_count.emit(0)
+                return
         leaves.append_array(car_leaves)
     ready_count.emit(leaves.size())
     if leaves.size() != 64:
@@ -52,9 +63,9 @@ func _scan(root: Node, panels: Array[Dictionary], decals: Array[Dictionary]) -> 
         var bounds: AABB = root.get_aabb()
         var scale_size: Vector3 = bounds.size * root.scale.abs()
         var center: Vector3 = root.transform * bounds.get_center()
-        if root.name.begins_with("passenger-door-caution"):
+        if str(root.name).begins_with("passenger-door-caution"):
             decals.append({"node": root, "center": center, "origin": root.position})
-        elif root.name.is_valid_int() and absf(center.x) > 1.0 and absf(center.x) < 1.4 and scale_size.y > 1.9 and scale_size.y < 2.2 and scale_size.z > 0.65 and scale_size.z < 0.72:
+        elif str(root.name).is_valid_int() and absf(center.x) > 1.0 and absf(center.x) < 1.4 and scale_size.y > 1.9 and scale_size.y < 2.2 and scale_size.z > 0.65 and scale_size.z < 0.72:
             panels.append({"node": root, "center": center, "origin": root.position})
     for child in root.get_children():
         _scan(child, panels, decals)
@@ -66,19 +77,21 @@ func _process(delta: float) -> void:
     openness = move_toward(openness, goal, delta / ANIMATION_SECONDS)
     for leaf in leaves:
         var center: Vector3 = leaf["center"]
-        var nearest_center := INF
-        var opening_center := 0.0
-        # Door aperture centers repeat every pair of sliding leaves.
+        # Pair only the immediately adjacent leaves of the same aperture.
+        # Adjacent leaf centers differ by about 0.69 m in source GLBs.
+        var partner_distance := INF
+        var partner_z := center.z
         for candidate in leaves:
             var c: Vector3 = candidate["center"]
             if absf(c.x - center.x) > 0.2:
                 continue
             var dist := absf(c.z - center.z)
-            if dist > 0.5 and dist < nearest_center:
-                nearest_center = dist
-                opening_center = (c.z + center.z) * 0.5
-        if nearest_center == INF:
+            if dist > 0.60 and dist < 0.80 and dist < partner_distance:
+                partner_distance = dist
+                partner_z = c.z
+        if partner_distance == INF:
             continue
+        var opening_center := (partner_z + center.z) * 0.5
         var direction := signf(center.z - opening_center)
         var shift := Vector3(0, 0, direction * SLIDE_METERS * openness)
         for item in leaf["parts"]:
