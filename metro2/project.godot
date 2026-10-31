@@ -1,8 +1,8 @@
 config_version=5
 
 [application]
-config/name="Minsk Metro 2.0 - V106 Static Viewer"
-run/main_scene="res://scenes/V106Consist.tscn"
+config/name="Minsk Metro 2.0 - Station V106 Integration"
+run/main_scene="res://scenes/StationV106Integration.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [display]
