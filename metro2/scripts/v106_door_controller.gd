@@ -1,6 +1,6 @@
 extends Node
 ## Door leaves discovered by their imported mesh bounds; GLB originals stay untouched.
-## Two coplanar meshes per leaf (glass/skin) move together with their caution decal.
+## Existing leaf parents move all child meshes together with their caution decal.
 signal ready_count(count: int)
 var leaves: Array[Dictionary] = []
 var openness: float = 0.0
@@ -15,10 +15,9 @@ func setup(consist: Node3D) -> void:
     for car in consist.get_children():
         var panels: Array[Dictionary] = []
         var decals: Array[Dictionary] = []
-        _scan(car, panels, decals)
+        _scan(car, car, panels, decals)
         var grouped: Dictionary = {}
         for item in panels:
-            var mesh: MeshInstance3D = item["node"]
             var center: Vector3 = item["center"]
             var key := "%s:%s" % [roundi(center.x * 10.0), roundi(center.z * 100.0)]
             if not grouped.has(key):
@@ -27,13 +26,13 @@ func setup(consist: Node3D) -> void:
         var car_leaves: Array[Dictionary] = []
         for key in grouped:
             var group: Array = grouped[key]
-            if group.size() != 2:
+            if group.size() != 1:
                 continue
             var center: Vector3 = group[0]["center"]
             car_leaves.append({"parts": group, "center": center, "decals": []})
         for decal in decals:
             var decal_center: Vector3 = decal["center"]
-            var best_distance := 0.35
+            var best_distance := 0.65
             var best_index := -1
             for i in range(car_leaves.size()):
                 var center: Vector3 = car_leaves[i]["center"]
@@ -78,17 +77,22 @@ func setup(consist: Node3D) -> void:
     if leaves.size() != 64:
         push_warning("Door controller expected 64 leaves; found %d. Animation disabled." % leaves.size())
 
-func _scan(root: Node, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
+func _scan(root: Node, car: Node3D, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
     if root is MeshInstance3D and root.mesh != null:
         var bounds: AABB = root.get_aabb()
-        var scale_size: Vector3 = bounds.size * root.scale.abs()
-        var center: Vector3 = root.transform * bounds.get_center()
+        var size: Vector3 = bounds.size
+        var to_car: Transform3D = car.global_transform.affine_inverse() * root.global_transform
+        var center: Vector3 = to_car * bounds.get_center()
         if str(root.name).begins_with("passenger-door-caution"):
-            decals.append({"node": root, "center": center, "origin": root.position})
-        elif str(root.name).is_valid_int() and absf(center.x) > 1.0 and absf(center.x) < 1.4 and scale_size.y > 1.9 and scale_size.y < 2.2 and scale_size.z > 0.65 and scale_size.z < 0.72:
-            panels.append({"node": root, "center": center, "origin": root.position})
+            decals.append({"node": root, "center": center, "origin": root.position,
+                "slide_axis": root.get_parent().global_basis.inverse() * car.global_basis.z})
+        elif size.x > 0.67 and size.x < 0.70 and size.y > 2.0 and size.y < 2.1 and size.z > 0.02 and size.z < 0.04 and absf(center.x) > 1.0 and absf(center.x) < 1.4:
+            # Move the existing leaf parent, including skin, glass and trim.
+            var leaf: Node3D = root.get_parent()
+            panels.append({"node": leaf, "center": center, "origin": leaf.position,
+                "slide_axis": leaf.get_parent().global_basis.inverse() * car.global_basis.z})
     for child in root.get_children():
-        _scan(child, panels, decals)
+        _scan(child, car, panels, decals)
 
 func _process(delta: float) -> void:
     if not validated:
@@ -97,13 +101,12 @@ func _process(delta: float) -> void:
     openness = move_toward(openness, goal, delta / ANIMATION_SECONDS)
     for leaf in leaves:
         var direction: float = leaf["direction"]
-        var shift := Vector3(0, 0, direction * SLIDE_METERS * openness)
         for item in leaf["parts"]:
             var node: Node3D = item["node"]
-            node.position = item["origin"] + shift
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * openness
         for item in leaf["decals"]:
             var node: Node3D = item["node"]
-            node.position = item["origin"] + shift
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * openness
 
 func request_open(speed_mps: float) -> void:
     if speed_mps > 0.05 or not validated:
