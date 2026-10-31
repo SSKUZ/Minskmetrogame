@@ -12,7 +12,7 @@ Branch: feature/metro2-real-scene-p3-recovery
 - Source track 1 center: X=0; track 2 center: X=-10.74.
 - Rail head: Y=0; island platform top: Y=1.1805.
 - Platform longitudinal center: Z=39.612; edges Z=-12.888 to 92.112.
-- Player train root: X=0, Y=0.22, Z=0.
+- Player train root: X=0, Y=0.22, Z=9.603 (source-to-canonical front offset).
 - Train GLB original world-space Z positions are retained; do NOT add car spacing.
 - Y=0.22 comes from source V106_PROFILE.train.placementY and contactLocalY=-0.22.
 
@@ -31,3 +31,11 @@ Branch: feature/metro2-real-scene-p3-recovery
 3. Open res://scenes/StationV106Integration.tscn.
 4. Check GDScript parsing, rail/wheel datum, platform clearance and camera.
 5. Run `python3 tools/check_v106_assets.py` from the metro2 directory to verify original GLB sizes, hashes, headers and scene references.\n6. Record screenshot and any errors; do not change GLB geometry.
+
+## Five-point geometry audit
+- Source stop for track 1: frontZ=0.0, direction=-1, tolerance=±0.5 m. Train root Z=frontZ+9.603.
+- Source stop for track 2: frontZ=79.224, direction=+1; requires 180-degree train yaw when a second train is added.
+- Platform edges X=-9.37 and X=-1.37; top Y=1.1805; Z=-12.888..92.112.
+- Nominal door threshold gap = 69.5 mm, nominal vertical step = 0 mm. These are source design values, not mesh-verified measurements.
+- Run `python3 tools/audit_station_geometry.py` for nominal five-point station geometry checks.
+- Actual coupler clearances, wheel contacts, door mesh gaps and rendered view remain pending a Godot runtime check.
