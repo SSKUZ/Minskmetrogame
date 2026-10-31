@@ -12,12 +12,17 @@ const COAST_MPS2 := 0.12
 var speed_mps: float = 0.0
 var throttle: bool = false
 var braking: bool = false
-var cab_view: bool = false
+var camera_mode: int = 0
+var door_system: Node
 var initial_train_position: Vector3
 var hud: Label
 
 func _ready() -> void:
     initial_train_position = train.position
+    door_system = load("res://scripts/v106_door_controller.gd").new()
+    door_system.name = "DoorSystem"
+    add_child(door_system)
+    door_system.setup(train)
     _make_controls()
     _update_camera()
     _update_hud()
@@ -26,7 +31,7 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle:
+    elif throttle and door_system.can_move():
         acceleration = ACCEL_MPS2
     speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
@@ -35,20 +40,23 @@ func _physics_process(delta: float) -> void:
     _update_hud()
 
 func _update_camera() -> void:
-    if cab_view:
-        # Camera inside the leading head car, facing the travel direction (-Z).
+    if camera_mode == 0:
+        camera.position = train.position + Vector3(-23.0, 11.0, 41.0)
+        camera.look_at(train.position + Vector3(0.0, 1.6, 24.0), Vector3.UP)
+        camera.fov = 65.0
+    elif camera_mode == 1:
         camera.position = train.position + Vector3(-0.35, 2.65, -7.6)
         camera.rotation_degrees = Vector3.ZERO
         camera.fov = 75.0
     else:
-        camera.position = train.position + Vector3(-34.0, 21.0, 94.0)
-        camera.look_at(train.position + Vector3(0.0, 1.5, 29.0), Vector3.UP)
-        camera.fov = 65.0
+        camera.position = train.position + Vector3(0.0, 2.75, 12.0)
+        camera.rotation_degrees = Vector3.ZERO
+        camera.fov = 80.0
 
 func _update_hud() -> void:
     if hud != null:
         hud.text = "МИНСКОЕ МЕТРО 2.0  |  %.0f км/ч  |  %s" % [
-            speed_mps * 3.6, "КАБИНА" if cab_view else "ОБЗОР"
+            speed_mps * 3.6, ["ПЛАТФОРМА", "КАБИНА", "САЛОН"][camera_mode]
         ]
 
 func _make_controls() -> void:
@@ -83,7 +91,13 @@ func _make_controls() -> void:
     brake.focus_exited.connect(func() -> void: braking = false)
 
     var view := _button("КАМЕРА", row)
-    view.pressed.connect(func() -> void: cab_view = not cab_view)
+    view.pressed.connect(func() -> void: camera_mode = (camera_mode + 1) % 3)
+
+    var doors_open := _button("ДВЕРИ +", row)
+    doors_open.pressed.connect(func() -> void: door_system.request_open(speed_mps))
+
+    var doors_close := _button("ДВЕРИ −", row)
+    doors_close.pressed.connect(func() -> void: door_system.request_close())
 
     var reset := _button("СБРОС", row)
     reset.pressed.connect(_reset_train)
