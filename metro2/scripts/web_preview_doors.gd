@@ -14,6 +14,7 @@ func _ready() -> void:
     add_child(doors)
     # The original controller expects 64 leaves / four cars. This test
     # must not claim functioning doors when only one car is available.
+    doors.expected_cars = 1
     doors.setup($Train)
     camera = $Camera3D
     _make_ui()
@@ -37,7 +38,7 @@ func _make_ui() -> void:
         else:
             button.pressed.connect(func(): doors.request_close())
     status = Label.new()
-    status.text = "LOD1: двери ожидают полный состав (64 створки)"
+    status.text = "LOD1: управление дверями головного вагона"
     canvas.add_child(status)
 
 func _make_cab_button() -> void:
