@@ -23,27 +23,27 @@ func _check() -> void:
         _fail("train or camera missing")
         return
     var adapter := train.get_node_or_null("CabV106Adapter")
-    if adapter == null or not adapter.ready_for_play:
+    if adapter == null or not adapter.get("ready_for_play"):
         _fail("original cab GLB not instantiated")
         return
-    if adapter.original_cab == null or adapter.original_cab.get_parent() != adapter:
+    if adapter.get("original_cab") == null or (adapter.get("original_cab") as Node3D).get_parent() != adapter:
         _fail("original cab is not parented to train adapter")
         return
-    if adapter.original_cab.scale.distance_to(Vector3.ONE) > 0.001:
+    if (adapter.get("original_cab") as Node3D).scale.distance_to(Vector3.ONE) > 0.001:
         _fail("cab scale must remain 1:1")
         return
     for mode in [0, 1, 2]:
-        root.camera_mode = mode
-        root._update_camera()
+        root.set("camera_mode", mode)
+        root.call("_update_camera")
         if not camera.global_position.is_finite():
             _fail("camera position invalid for mode %d" % mode)
             return
         if camera.global_basis.determinant() < 0.9:
             _fail("camera basis invalid for mode %d" % mode)
             return
-    root.camera_mode = 1
+    root.set("camera_mode", 1)
     root._update_camera()
-    var eye := train.to_global(adapter.get_eye_position())
+    var eye := train.to_global(adapter.call("get_eye_position"))
     if camera.global_position.distance_to(eye) > 0.01:
         _fail("cab camera detached from train")
         return
