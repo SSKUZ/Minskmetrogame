@@ -17,11 +17,16 @@ var camera_mode: int = 0
 var door_system: Node
 var initial_train_position: Vector3
 const STATION_STOP_Z := 9.603
+const CURVE_START_Z := 210.0
+const CURVE_END_Z := 146.0
+const CURVE_OFFSET := 0.65
+var initial_train_rotation: Vector3
 var status_label: Label
 var hud: Label
 
 func _ready() -> void:
     initial_train_position = train.position
+    initial_train_rotation = train.rotation
     door_system = DOOR_CONTROLLER.new()
     door_system.name = "DoorSystem"
     add_child(door_system)
@@ -41,6 +46,9 @@ func _physics_process(delta: float) -> void:
     speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
     train.position.z -= speed_mps * delta
+    # Cab-facing visual S-curve only: keep all four car meshes rigid.
+    train.position.x = initial_train_position.x + _curve_offset(train.position.z)
+    train.rotation.y = _curve_heading(train.position.z)
     _update_camera()
     _update_hud()
 
@@ -51,11 +59,11 @@ func _update_camera() -> void:
         camera.fov = 65.0
     elif camera_mode == 1:
         camera.position = train.position + Vector3(-0.35, 2.65, -8.6)
-        camera.rotation_degrees = Vector3.ZERO
+        camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
         camera.fov = 75.0
     else:
         camera.position = train.position + Vector3(0.0, 2.75, 12.0)
-        camera.rotation_degrees = Vector3.ZERO
+        camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
         camera.fov = 80.0
 
 func _update_hud() -> void:
@@ -136,3 +144,17 @@ func _reset_train() -> void:
     speed_mps = 0.0
     door_system.request_close()
     train.position = initial_train_position
+    train.rotation = initial_train_rotation
+
+func _curve_offset(z: float) -> float:
+    if z >= CURVE_START_Z or z <= CURVE_END_Z:
+        return 0.0
+    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
+    return CURVE_OFFSET * pow(sin(PI * u), 2.0)
+
+func _curve_heading(z: float) -> float:
+    if z >= CURVE_START_Z or z <= CURVE_END_Z:
+        return 0.0
+    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
+    # Heading follows the derivative of the visual centreline.
+    return atan2(-CURVE_OFFSET * PI / (CURVE_START_Z - CURVE_END_Z) * sin(2.0 * PI * u), 1.0)
