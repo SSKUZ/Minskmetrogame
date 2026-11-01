@@ -89,9 +89,9 @@ func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
         add_child(root)
         root = geometry
         if z1 <= CURVE_END_Z or z0 >= CURVE_START_Z:
-        _shell(root, z0, z1, concrete)
-    else:
-        _curved_shell(root, z0, z1, concrete)
+            _shell(root, z0, z1, concrete)
+        else:
+            _curved_shell(root, z0, z1, concrete)
         _ribs(root, z0, z1, ribs)
         _lining_joints(root, z0, z1, seam)
         _grime_strips(root, z0, z1, grime)
