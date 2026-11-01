@@ -17,6 +17,9 @@ const MODULE_LENGTH := 16.0
 const VISIBLE_DISTANCE := 120.0
 # Depot (z=329.6) -> Malinovka (z=9.6), travel along negative Z.
 # Decorative junction at z=232, curved side bore turns 22 degrees right.
+const CURVE_START_Z := 210.0
+const CURVE_END_Z := 146.0
+const CURVE_OFFSET := 0.65
 const BRANCH_Z := 232.0
 const BRANCH_SIDE := 1
 const BRANCH_LENGTH := 48.0
@@ -53,6 +56,7 @@ func _ready() -> void:
     _build_side_branch(concrete, seam, ribs)
     _build_branch_tracks()
     _build_switch_connection()
+    _build_main_visual_curve(concrete)
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
@@ -84,7 +88,10 @@ func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
         _modules.append(root)
         add_child(root)
         root = geometry
+        if z1 <= CURVE_END_Z or z0 >= CURVE_START_Z:
         _shell(root, z0, z1, concrete)
+    else:
+        _curved_shell(root, z0, z1, concrete)
         _ribs(root, z0, z1, ribs)
         _lining_joints(root, z0, z1, seam)
         _grime_strips(root, z0, z1, grime)
@@ -173,6 +180,90 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     cap.material_override = _mat(Color("#090b0c"))
     cap.position = _branch_center(BRANCH_LENGTH)
     parent.add_child(cap)
+
+func curve_offset(z: float) -> float:
+    # A shallow S-curve; the track returns to its original centreline
+    # before Malinovka, so station alignment remains unchanged.
+    if z >= CURVE_START_Z or z <= CURVE_END_Z:
+        return 0.0
+    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
+    return CURVE_OFFSET * sin(PI * u) * sin(PI * u)
+
+func _curved_shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var slices := maxi(4, int(ceilf((z1 - z0) / 2.0)))
+    for j in range(slices):
+        var za := lerpf(z0, z1, float(j) / slices)
+        var zb := lerpf(z0, z1, float(j + 1) / slices)
+        for i in range(PROFILE.size() - 1):
+            var a: Vector2 = PROFILE[i]
+            var b: Vector2 = PROFILE[i + 1]
+            var x0 := curve_offset(za)
+            var x1 := curve_offset(zb)
+            var p0 := Vector3(a.x + x0, a.y, za)
+            var p1 := Vector3(b.x + x0, b.y, za)
+            var p2 := Vector3(b.x + x1, b.y, zb)
+            var p3 := Vector3(a.x + x1, a.y, zb)
+            for v in [p0, p1, p2, p0, p2, p3]:
+                st.add_vertex(v)
+    st.generate_normals()
+    var mesh := MeshInstance3D.new()
+    mesh.name = "GentlyCurvedArch"
+    mesh.mesh = st.commit()
+    mesh.material_override = material
+    parent.add_child(mesh)
+
+func _build_main_visual_curve(concrete: Material) -> void:
+    # Native low-poly curved rail overlay. StationBaseStatic original rails
+    # remain intact, so no station geometry or train physics is rewritten.
+    var root := Node3D.new()
+    root.name = "MainTrackGentleSCurve_Visual"
+    add_child(root)
+    var steel := _mat(Color("#a1a7aa"))
+    steel.metallic = 0.7
+    var ballast := _mat(Color("#33383c"))
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var slices := 64
+    for j in range(slices):
+        var za := lerpf(CURVE_END_Z, CURVE_START_Z, float(j) / slices)
+        var zb := lerpf(CURVE_END_Z, CURVE_START_Z, float(j + 1) / slices)
+        for side in [-1, 1]:
+            var xa := curve_offset(za) + float(side) * 0.9
+            var xb := curve_offset(zb) + float(side) * 0.9
+            var w := 0.07
+            for v in [
+                Vector3(xa-w, 0.02, za), Vector3(xa+w, 0.02, za),
+                Vector3(xb+w, 0.02, zb), Vector3(xa-w, 0.02, za),
+                Vector3(xb+w, 0.02, zb), Vector3(xb-w, 0.02, zb)
+            ]:
+                st.add_vertex(v)
+    st.generate_normals()
+    var rail := MeshInstance3D.new()
+    rail.name = "CurvedRailTops"
+    rail.mesh = st.commit()
+    rail.material_override = steel
+    root.add_child(rail)
+    # The narrow ballast ribbon masks the straight original track beneath.
+    # It is deliberately low to avoid obscuring the new rail tops.
+    var bed := SurfaceTool.new()
+    bed.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for j in range(slices):
+        var za := lerpf(CURVE_END_Z, CURVE_START_Z, float(j) / slices)
+        var zb := lerpf(CURVE_END_Z, CURVE_START_Z, float(j + 1) / slices)
+        var xa := curve_offset(za)
+        var xb := curve_offset(zb)
+        for v in [Vector3(xa-1.25,-0.13,za),Vector3(xa+1.25,-0.13,za),
+                Vector3(xb+1.25,-0.13,zb),Vector3(xa-1.25,-0.13,za),
+                Vector3(xb+1.25,-0.13,zb),Vector3(xb-1.25,-0.13,zb)]:
+            bed.add_vertex(v)
+    bed.generate_normals()
+    var bed_node := MeshInstance3D.new()
+    bed_node.name = "CurvedBallast"
+    bed_node.mesh = bed.commit()
+    bed_node.material_override = ballast
+    root.add_child(bed_node)
 
 func _build_switch_connection() -> void:
     # Visual-only turnout: tapered rails join the live straight rail without
