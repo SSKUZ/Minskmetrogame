@@ -107,7 +107,7 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     var parent := Node3D.new()
     parent.name = "DepotSideBranch_Curved_VisualOnly"
     add_child(parent)
-    _modules.append(parent)
+    # Side bore remains visible; later use distance-based culling via its own bounds.
     # Build an open-sided connection mouth, then a curved tube from 8m to 48m.
     var shell := SurfaceTool.new()
     shell.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -127,17 +127,17 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
             # Reduced bore size, positioned off the live running line.
             var aa := Vector3(a.x * 0.78, a.y * 0.85, 0)
             var bb := Vector3(b.x * 0.78, b.y * 0.85, 0)
-            var v0 := p0 + Basis(Vector3.UP, t0) * aa
-            var v1 := p0 + Basis(Vector3.UP, t0) * bb
-            var v2 := p1 + Basis(Vector3.UP, t1) * bb
-            var v3 := p1 + Basis(Vector3.UP, t1) * aa
+            var v0 := p0 + Basis(Vector3.UP, -t0) * aa
+            var v1 := p0 + Basis(Vector3.UP, -t0) * bb
+            var v2 := p1 + Basis(Vector3.UP, -t1) * bb
+            var v3 := p1 + Basis(Vector3.UP, -t1) * aa
             for vertex in [v0, v1, v2, v0, v2, v3]:
                 shell.add_vertex(vertex)
             if j % 4 == 0:
                 # Thin arch joints at 8m intervals.
                 var edge := (bb - aa).normalized() * 0.035
-                var out := Basis(Vector3.UP, t0) * edge
-                var along := Basis(Vector3.UP, t0) * Vector3(0, 0, -0.07)
+                var out := Basis(Vector3.UP, -t0) * edge
+                var along := Basis(Vector3.UP, -t0) * Vector3(0, 0, -0.07)
                 for vertex in [v0, v1, v1 + along, v0, v1 + along, v0 + along]:
                     joint.add_vertex(vertex + out)
     shell.generate_normals()
@@ -232,7 +232,7 @@ func _shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
     for i in range(PROFILE.size() - 1):
         # Open the right-hand wall at the side junction; keep the arch above.
-        if z0 >= BRANCH_Z - 8.0 and z1 <= BRANCH_Z + 8.0 and i == PROFILE.size() - 2:
+        if z0 < BRANCH_Z + 8.0 and z1 > BRANCH_Z - 8.0 and i == PROFILE.size() - 2:
             continue
         var a: Vector2 = PROFILE[i]
         var b: Vector2 = PROFILE[i + 1]
