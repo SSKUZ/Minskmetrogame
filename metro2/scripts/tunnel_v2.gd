@@ -2,6 +2,8 @@ extends Node3D
 ## Tunnel V2: native Godot mobile geometry, browser 'testing' as visual reference.
 ## Existing StationBaseStatic rails and sleepers are authoritative; no duplicates.
 const SECTIONS := [Vector2(110.0, 310.0), Vector2(-220.0, -70.0)]
+const ROUTE_GRAPH_SCRIPT = preload("res://scripts/tunnel_route_graph.gd")
+var route_graph: RefCounted
 const PROFILE := [
     Vector2(-3.15, 0.05), Vector2(-3.15, 3.3), Vector2(-2.94, 4.8),
     Vector2(-2.25, 6.15), Vector2(-1.25, 6.85), Vector2(0.0, 7.05),
@@ -28,6 +30,11 @@ func _ready() -> void:
     var glow := _mat(Color("#e5f5ff"), true)
     var red := _mat(Color("#ff2828"), true)
     var green := _mat(Color("#26ff73"), true)
+    route_graph = ROUTE_GRAPH_SCRIPT.new()
+    # Existing geometry stays straight; future authored curves/junctions use route_graph.sample().
+    for i in range(SECTIONS.size()):
+        var section: Vector2 = SECTIONS[i]
+        route_graph.add_straight("main_%d" % i, Vector3(0, 0, section.y), 0.0, section.y - section.x)
     _follow_train = get_parent().get_node_or_null("PlayerTrainPlacement") as Node3D
     for section in SECTIONS:
         var module_start: float = section.x
