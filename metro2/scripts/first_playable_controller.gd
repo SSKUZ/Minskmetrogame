@@ -35,7 +35,7 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle and door_system.can_move():
+    elif throttle and (not door_system.validated or door_system.can_move()):
         acceleration = ACCEL_MPS2
     speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
@@ -109,7 +109,10 @@ func _make_controls() -> void:
     view.pressed.connect(func() -> void: camera_mode = (camera_mode + 1) % 3)
 
     var doors_open := _button("ДВЕРИ +", row)
-    doors_open.pressed.connect(func() -> void: door_system.request_open(speed_mps))
+    doors_open.pressed.connect(func() -> void:
+        if absf(train.position.z - STATION_STOP_Z) <= 5.0:
+            door_system.request_open(speed_mps)
+    )
 
     var doors_close := _button("ДВЕРИ −", row)
     doors_close.pressed.connect(func() -> void: door_system.request_close())
