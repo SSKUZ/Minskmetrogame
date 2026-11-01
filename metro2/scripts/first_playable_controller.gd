@@ -14,7 +14,7 @@ const COAST_MPS2 := 0.12
 var speed_mps: float = 0.0
 var throttle: bool = false
 var braking: bool = false
-var camera_mode: int = 0
+var camera_mode: int = 1
 var door_system: Node
 var initial_train_position: Vector3
 const STATION_STOP_Z := 9.603
@@ -29,6 +29,7 @@ var cab_yaw := 0.0
 var cab_pitch := 0.0
 var cab_zoom := 75.0
 var pinch_last := -1.0
+var info_notice_until := 0
 var platform_view_available := false
 var platform_button: Button
 var info_button: Button
@@ -70,25 +71,25 @@ func _physics_process(delta: float) -> void:
 
 func _update_camera() -> void:
     if camera_mode == 0:
-        camera.position = Vector3(-12.5, 5.5, 12.0)
-        camera.look_at(Vector3(0.992, 1.6, 12.0), Vector3.UP)
+        camera.position = Vector3(-12.5, 5.5, STATION_STOP_Z + 5.0)
+        camera.look_at(Vector3(initial_train_position.x, 1.6, STATION_STOP_Z), Vector3.UP)
         camera.fov = 65.0
     elif camera_mode == 1:
-        camera.position = train.position + Vector3(-0.35, 2.65, -8.6)
+        camera.global_position = train.to_global(Vector3(-0.35, 2.65, -8.6))
         camera.rotation = Vector3(cab_pitch, train.rotation.y + cab_yaw, 0.0)
         camera.fov = cab_zoom
     else:
-        camera.position = train.position + Vector3(0.0, 2.75, 12.0)
+        camera.global_position = train.to_global(Vector3(0.0, 2.75, 12.0))
         camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
         camera.fov = 80.0
 
 func _update_hud() -> void:
-    platform_view_available = train.position.z <= PLATFORM_VIEW_Z
+    platform_view_available = train.position.z <= PLATFORM_VIEW_Z and train.position.z >= STATION_STOP_Z - 30.0
     if platform_button != null:
         platform_button.visible = platform_view_available
     if camera_mode == 0 and not platform_view_available:
         camera_mode = 1
-    if status_label != null:
+    if status_label != null and Time.get_ticks_msec() >= info_notice_until:
         var remaining := train.position.z - STATION_STOP_Z
         status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.target_open else "ЗАКРЫТЫ"]
     if cab_adapter != null:
@@ -213,3 +214,4 @@ func _unhandled_input(event: InputEvent) -> void:
 func _show_info_placeholder() -> void:
     if status_label != null:
         status_label.text = "Info: информатор будет подключён позже"
+        info_notice_until = Time.get_ticks_msec() + 2500
