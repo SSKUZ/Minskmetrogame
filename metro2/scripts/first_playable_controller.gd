@@ -29,6 +29,10 @@ var cab_yaw := 0.0
 var cab_pitch := 0.0
 var cab_zoom := 75.0
 var pinch_last := -1.0
+var mouse_dragging := false
+const CAB_FOV_MIN := 45.0
+const CAB_FOV_MAX := 90.0
+const SALON_EYE := Vector3(-0.75, 2.7, 1.7)
 var info_notice_until := 0
 var platform_view_available := false
 var platform_button: Button
@@ -48,6 +52,8 @@ func _ready() -> void:
     cab_adapter.name = "CabV106Adapter"
     train.add_child(cab_adapter)
     cab_adapter.call("initialize", train)
+    if not cab_adapter.ready_for_play:
+        push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
     if not door_system.validated:
         push_warning("V106 doors are not validated; movement is blocked.")
     _make_controls()
@@ -71,16 +77,16 @@ func _physics_process(delta: float) -> void:
 
 func _update_camera() -> void:
     if camera_mode == 0:
-        camera.position = Vector3(-12.5, 5.5, STATION_STOP_Z + 5.0)
+        camera.global_position = Vector3(initial_train_position.x - 12.5, 5.5, STATION_STOP_Z + 5.0)
         camera.look_at(Vector3(initial_train_position.x, 1.6, STATION_STOP_Z), Vector3.UP)
         camera.fov = 65.0
     elif camera_mode == 1:
-        camera.global_position = train.to_global(Vector3(-0.35, 2.65, -8.6))
-        camera.rotation = Vector3(cab_pitch, train.rotation.y + cab_yaw, 0.0)
+        camera.global_position = train.to_global(cab_adapter.get_eye_position())
+        camera.global_basis = train.global_basis * Basis.from_euler(Vector3(cab_pitch, cab_yaw, 0.0))
         camera.fov = cab_zoom
     else:
-        camera.global_position = train.to_global(Vector3(0.0, 2.75, 12.0))
-        camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
+        camera.global_position = train.to_global(SALON_EYE)
+        camera.global_basis = train.global_basis
         camera.fov = 80.0
 
 func _update_hud() -> void:
@@ -143,6 +149,7 @@ func _make_controls() -> void:
     var view := _button("КАМЕРА", row)
     view.pressed.connect(func() -> void:
         camera_mode = 2 if camera_mode == 1 else 1
+        _update_camera()
     )
 
     door_button = _button("▮▮ ДВЕРИ", row)
@@ -156,7 +163,10 @@ func _make_controls() -> void:
     info_button.pressed.connect(func() -> void: _show_info_placeholder())
     platform_button = _button("ПЛАТФОРМА", row)
     platform_button.visible = false
-    platform_button.pressed.connect(func() -> void: camera_mode = 0)
+    platform_button.pressed.connect(func() -> void:
+        camera_mode = 0
+        _update_camera()
+    )
 
     var reset := _button("СБРОС", row)
     reset.pressed.connect(_reset_train)
@@ -177,6 +187,13 @@ func _reset_train() -> void:
     door_system.request_close()
     train.position = initial_train_position
     train.rotation = initial_train_rotation
+    cab_yaw = 0.0
+    cab_pitch = 0.0
+    cab_zoom = 75.0
+    camera_mode = 1
+    touch_points.clear()
+    pinch_last = -1.0
+    _update_camera()
 
 func _curve_offset(z: float) -> float:
     if z >= CURVE_START_Z or z <= CURVE_END_Z:
@@ -198,13 +215,23 @@ func _unhandled_input(event: InputEvent) -> void:
         else:
             touch_points.erase(event.index)
             pinch_last = -1.0
+    elif event is InputEventMouseButton:
+        if event.button_index == MOUSE_BUTTON_LEFT:
+            mouse_dragging = event.pressed
+        elif event.pressed and camera_mode == 1 and event.button_index == MOUSE_BUTTON_WHEEL_UP:
+            cab_zoom = clampf(cab_zoom - 3.0, CAB_FOV_MIN, CAB_FOV_MAX)
+        elif event.pressed and camera_mode == 1 and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+            cab_zoom = clampf(cab_zoom + 3.0, CAB_FOV_MIN, CAB_FOV_MAX)
+    elif event is InputEventMouseMotion and mouse_dragging and camera_mode == 1:
+        cab_yaw = clampf(cab_yaw - event.relative.x * 0.004, -1.35, 1.35)
+        cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
     elif event is InputEventScreenDrag and camera_mode == 1:
         touch_points[event.index] = event.position
         if touch_points.size() >= 2:
             var points := touch_points.values()
             var distance: float = (points[0] as Vector2).distance_to(points[1] as Vector2)
             if pinch_last > 0.0:
-                cab_zoom = clampf(cab_zoom - (distance - pinch_last) * 0.09, 45.0, 90.0)
+                cab_zoom = clampf(cab_zoom - (distance - pinch_last) * 0.09, CAB_FOV_MIN, CAB_FOV_MAX)
             pinch_last = distance
         else:
             pinch_last = -1.0
