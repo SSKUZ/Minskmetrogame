@@ -19,13 +19,13 @@ script = ExtResource("4")
 position = Vector3(0, 0.22, 9.603)
 
 [node name="Car02" parent="Train" instance=ExtResource("5")]
-position = Vector3(0, 0.22, 29.411)
+position = Vector3(0, 0.22, 9.603)
 
 [node name="Car03" parent="Train" instance=ExtResource("6")]
-position = Vector3(0, 0.22, 49.219)
+position = Vector3(0, 0.22, 9.603)
 
 [node name="Car04" parent="Train" instance=ExtResource("7")]
-position = Vector3(0, 0.22, 69.027)
+position = Vector3(0, 0.22, 9.603)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 position = Vector3(14, 7, 29)
