@@ -8,6 +8,7 @@ on:
       - 'metro2/scenes/**'
       - 'metro2/assets/cab/**'
       - 'metro2/tools/prepare_cab.py'
+      - 'metro2/tools/prepare_first_playable_assets.py'
       - 'metro2/tests/**'
       - '.github/workflows/metro2-cab-validation.yml'
 permissions:
@@ -22,9 +23,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reconstruct and verify original cab GLB
         run: python3 metro2/tools/prepare_cab.py
+      - name: Restore required original consist GLBs (no optimization)
+        run: python3 metro2/tools/prepare_first_playable_assets.py
       - name: Confirm Godot project and GLB presence
         run: |
           test -s metro2/assets/cab/cab_81_717_r2.glb
+          test -s metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb
+          test -s metro2/assets/v106_original/car02/v106_car_02.glb
+          test -s metro2/assets/v106_original/car03/v106_car_03.glb
+          test -s metro2/assets/v106_original/car04/v106_car_04.glb
           test -f metro2/project.godot
       - name: Import Godot scenes and validate GDScript
         run: godot --headless --path metro2 --editor --import --quit
