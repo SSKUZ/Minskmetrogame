@@ -6,6 +6,7 @@ var leaves: Array[Dictionary] = []
 var openness: float = 0.0
 var target_open: bool = false
 var validated: bool = false
+var expected_cars: int = 4
 const SLIDE_METERS := 0.56
 const ANIMATION_SECONDS := 1.3
 
@@ -72,10 +73,10 @@ func setup(consist: Node3D) -> void:
             var partner: Vector3 = car_leaves[partners[0]]["center"]
             car_leaves[i]["direction"] = signf(center.z - partner.z)
         leaves.append_array(car_leaves)
-    validated = leaves.size() == 64
+    validated = leaves.size() == expected_cars * 16
     ready_count.emit(leaves.size())
-    if leaves.size() != 64:
-        push_warning("Door controller expected 64 leaves; found %d. Animation disabled." % leaves.size())
+    if leaves.size() != expected_cars * 16:
+        push_warning("Door controller expected %d leaves; found %d. Animation disabled." % [expected_cars * 16, leaves.size()])
 
 func _scan(root: Node, car: Node3D, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
     if root is MeshInstance3D and root.mesh != null:
