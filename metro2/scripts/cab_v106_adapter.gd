@@ -24,6 +24,10 @@ func initialize(_train: Node3D) -> void:
         push_error("Cab-r2 root must be Node3D")
         return
     original_cab.name = "OriginalCab81_717_R2"
+    # Source cab front is +Z, while this consist travels toward -Z.
+    # Place the cab at the leading end of the first car; keep scale in metres.
+    original_cab.rotation.y = PI
+    original_cab.position = Vector3(0.0, 0.0, -8.0)
     add_child(original_cab)
     # Export must be authored in Godot metres; do NOT apply legacy Three.js 1.65 scale twice.
     ready_for_play = true
