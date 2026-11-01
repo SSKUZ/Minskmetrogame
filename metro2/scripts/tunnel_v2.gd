@@ -15,6 +15,12 @@ const LIGHT_STEP := 12.0
 const LINING_STEP := 2.0
 const MODULE_LENGTH := 16.0
 const VISIBLE_DISTANCE := 120.0
+# Depot (z=329.6) -> Malinovka (z=9.6), travel along negative Z.
+# Decorative junction at z=232, curved side bore turns 22 degrees right.
+const BRANCH_Z := 232.0
+const BRANCH_SIDE := 1
+const BRANCH_LENGTH := 48.0
+const BRANCH_TURN := deg_to_rad(22.0)
 var _modules: Array[Node3D] = []
 var _follow_train: Node3D
 
@@ -35,6 +41,8 @@ func _ready() -> void:
     for i in range(SECTIONS.size()):
         var section: Vector2 = SECTIONS[i]
         route_graph.add_straight("main_%d" % i, Vector3(0, 0, section.y), 0.0, section.y - section.x)
+    route_graph.add_visual_branch("depot_side_bore", Vector3(3.15, 0, BRANCH_Z), 0.0,
+        BRANCH_LENGTH, BRANCH_SIDE, BRANCH_TURN)
     _follow_train = get_parent().get_node_or_null("PlayerTrainPlacement") as Node3D
     for section in SECTIONS:
         var module_start: float = section.x
@@ -42,6 +50,7 @@ func _ready() -> void:
             var module_end: float = minf(module_start + MODULE_LENGTH, section.y)
             _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
             module_start = module_end
+    _build_side_branch(concrete, seam, ribs)
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
@@ -92,6 +101,74 @@ func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
         while signal_z < z1 - 1.0:
             _signal(root, signal_z, signal_body, ribs, red, green, int(signal_z) % 2 == 0)
             signal_z += 128.0
+
+func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> void:
+    # One visibly curved, non-drivable side bore. Does not change player track.
+    var parent := Node3D.new()
+    parent.name = "DepotSideBranch_Curved_VisualOnly"
+    add_child(parent)
+    _modules.append(parent)
+    # Build an open-sided connection mouth, then a curved tube from 8m to 48m.
+    var shell := SurfaceTool.new()
+    shell.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var joint := SurfaceTool.new()
+    joint.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var steps := 24
+    for j in range(steps):
+        var d0 := BRANCH_LENGTH * float(j) / float(steps)
+        var d1 := BRANCH_LENGTH * float(j + 1) / float(steps)
+        var t0 := BRANCH_TURN * d0 / BRANCH_LENGTH
+        var t1 := BRANCH_TURN * d1 / BRANCH_LENGTH
+        var p0 := _branch_center(d0)
+        var p1 := _branch_center(d1)
+        for i in range(PROFILE.size() - 1):
+            var a: Vector2 = PROFILE[i]
+            var b: Vector2 = PROFILE[i + 1]
+            # Reduced bore size, positioned off the live running line.
+            var aa := Vector3(a.x * 0.78, a.y * 0.85, 0)
+            var bb := Vector3(b.x * 0.78, b.y * 0.85, 0)
+            var v0 := p0 + Basis(Vector3.UP, t0) * aa
+            var v1 := p0 + Basis(Vector3.UP, t0) * bb
+            var v2 := p1 + Basis(Vector3.UP, t1) * bb
+            var v3 := p1 + Basis(Vector3.UP, t1) * aa
+            for vertex in [v0, v1, v2, v0, v2, v3]:
+                shell.add_vertex(vertex)
+            if j % 4 == 0:
+                # Thin arch joints at 8m intervals.
+                var edge := (bb - aa).normalized() * 0.035
+                var out := Basis(Vector3.UP, t0) * edge
+                var along := Basis(Vector3.UP, t0) * Vector3(0, 0, -0.07)
+                for vertex in [v0, v1, v1 + along, v0, v1 + along, v0 + along]:
+                    joint.add_vertex(vertex + out)
+    shell.generate_normals()
+    joint.generate_normals()
+    var arch := MeshInstance3D.new()
+    arch.name = "CurvedBranchArch"
+    arch.mesh = shell.commit()
+    arch.material_override = concrete
+    parent.add_child(arch)
+    var seams := MeshInstance3D.new()
+    seams.name = "BranchLiningJoints"
+    seams.mesh = joint.commit()
+    seams.material_override = seam
+    parent.add_child(seams)
+    # Dark end cap makes the side tunnel visibly recede into darkness.
+    var cap := MeshInstance3D.new()
+    cap.name = "BranchDarkEnd"
+    var cap_mesh := SphereMesh.new()
+    cap_mesh.radius = 2.3
+    cap_mesh.height = 4.6
+    cap.mesh = cap_mesh
+    cap.material_override = _mat(Color("#090b0c"))
+    cap.position = _branch_center(BRANCH_LENGTH)
+    parent.add_child(cap)
+
+func _branch_center(distance: float) -> Vector3:
+    var turn := BRANCH_TURN * distance / BRANCH_LENGTH
+    var radius := BRANCH_LENGTH / BRANCH_TURN
+    # Rightward deviation along negative Z; starts beside the right-hand wall.
+    return Vector3(3.15 + radius * (1.0 - cos(turn)),
+        0.0, BRANCH_Z - radius * sin(turn))
 
 func _concrete_material() -> ShaderMaterial:
     # World-position noise: no bitmap texture download, seamless between modules.
@@ -154,6 +231,9 @@ func _shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
     var st := SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
     for i in range(PROFILE.size() - 1):
+        # Open the right-hand wall at the side junction; keep the arch above.
+        if z0 >= BRANCH_Z - 8.0 and z1 <= BRANCH_Z + 8.0 and i == PROFILE.size() - 2:
+            continue
         var a: Vector2 = PROFILE[i]
         var b: Vector2 = PROFILE[i + 1]
         var p0 := Vector3(a.x, a.y, z0)
