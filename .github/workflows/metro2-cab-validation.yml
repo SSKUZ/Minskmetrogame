@@ -1,0 +1,31 @@
+name: Metro2 cab-r2 integration validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/metro2-tunnel-v2]
+    paths:
+      - 'metro2/scripts/**'
+      - 'metro2/scenes/**'
+      - 'metro2/assets/cab/**'
+      - 'metro2/tools/prepare_cab.py'
+      - '.github/workflows/metro2-cab-validation.yml'
+permissions:
+  contents: read
+jobs:
+  cab-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct and verify original cab GLB
+        run: python3 metro2/tools/prepare_cab.py
+      - name: Confirm Godot project and GLB presence
+        run: |
+          test -s metro2/assets/cab/cab_81_717_r2.glb
+          test -f metro2/project.godot
+      - name: Import Godot scenes and validate GDScript
+        run: godot --headless --path metro2 --editor --import --quit
+      - name: Load first playable scene in headless Godot
+        run: timeout 25s godot --headless --path metro2 --quit-after 3
