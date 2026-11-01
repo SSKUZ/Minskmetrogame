@@ -2,10 +2,10 @@
 
 [ext_resource type="PackedScene" path="res://scenes/StationBaseStatic.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/mobile_train_controller.gd" id="6"]
-[ext_resource type="PackedScene" path="res://assets/v106/v106_car_01.glb" id="2"]
-[ext_resource type="PackedScene" path="res://assets/v106/v106_car_02.glb" id="3"]
-[ext_resource type="PackedScene" path="res://assets/v106/v106_car_03.glb" id="4"]
-[ext_resource type="PackedScene" path="res://assets/v106/v106_car_04.glb" id="5"]
+[ext_resource type="PackedScene" path="res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb" id="2"]
+[ext_resource type="PackedScene" path="res://assets/v106_original/car02/v106_car_02.glb" id="3"]
+[ext_resource type="PackedScene" path="res://assets/v106_original/car03/v106_car_03.glb" id="4"]
+[ext_resource type="PackedScene" path="res://assets/v106_original/car04/v106_car_04.glb" id="5"]
 
 [sub_resource type="Environment" id="Environment_station"]
 background_mode = 1
