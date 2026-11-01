@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="Minsk Metro 2.0 - Station V106 Integration"
-run/main_scene="res://scenes/StationV106Integration.tscn"
+run/main_scene="res://scenes/station_v106_preview.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [display]

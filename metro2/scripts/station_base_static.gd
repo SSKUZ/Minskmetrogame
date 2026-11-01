@@ -4,20 +4,21 @@ extends Node3D
 ## PlatformModule, data/station-base/v106.js). Units: metres. No gameplay.
 
 const PLATFORM_LENGTH := 105.0
-const PLATFORM_WIDTH := 8.0
+const PLATFORM_WIDTH := 10.0
 const TRAIN_LENGTH := 79.224
 const PLATFORM_TOP_Y := 1.1805
 const PLATFORM_THICKNESS := 0.2
-const EDGE_OFFSET := 1.37
-const TRACK_MIN_Z := -180.0
-const TRACK_MAX_Z := 220.0
+const EDGE_OFFSET := 1.362
+const PLATFORM_CENTER_X := -5.37
+const TRACK_MIN_Z := -220.0
+const TRACK_MAX_Z := 310.0
 const SLEEPER_PITCH := 0.65
 
 func _ready() -> void:
     var platform_center_z := TRAIN_LENGTH / 2.0
-    var platform_max_x := -EDGE_OFFSET
+    var platform_max_x := PLATFORM_CENTER_X + PLATFORM_WIDTH / 2.0
     var platform_min_x := platform_max_x - PLATFORM_WIDTH
-    var tracks := [0.0, platform_min_x - EDGE_OFFSET]
+    var tracks := [platform_max_x + EDGE_OFFSET, platform_min_x - EDGE_OFFSET]
     var rail_mat := _material(Color("#899ba6"), 0.75, 0.34)
     var bed_mat := _material(Color("#43515b"))
     var sleeper_mat := _material(Color("#54616a"))
