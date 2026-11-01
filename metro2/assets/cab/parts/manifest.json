@@ -1,0 +1,92 @@
+{
+  "filename": "cab_81_717_r2.glb",
+  "size": 5184476,
+  "sha256": "3d236f283081d6a88d87e4d4d3265a358a0a2124bf2a883db711d03eab92fea3",
+  "part_count": 14,
+  "source_branch": "cab-development",
+  "source_commit": "aef6e01a10c9750582c93697536b3e56a62ac3f2",
+  "model_version": "cab-r2",
+  "units": "meters",
+  "root_scale": [
+    1,
+    1,
+    1
+  ],
+  "parts": [
+    {
+      "name": "cab_81_717_r2.glb.part001",
+      "size": 393216,
+      "sha256": "0efd9a1db7814e7f1e7928756c281011892d8f8adaf87601f312e9ddcef318fb"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part002",
+      "size": 393216,
+      "sha256": "685e04dd404adf28bb2bbfe4c9821d760e86c4a660cf6c7f04a0ee083c6f8849"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part003",
+      "size": 393216,
+      "sha256": "3466097f4797e29925ac27ff786f36b41ac3507ecad2bac1d34ce06947358079"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part004",
+      "size": 393216,
+      "sha256": "c0709cb73ab8e4a9e74597334c9e0e0f769bdbcbbb61362ca7b1bcd7c62861d3"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part005",
+      "size": 393216,
+      "sha256": "8a89c1037294aece2a774d2b7c868ff3833c8cc514ae7d49c248f7b6ac22aa57"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part006",
+      "size": 393216,
+      "sha256": "198d9c64130c291731abf86445be3b9ad1341d642da4f6e3ed9bb84931ce94a4"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part007",
+      "size": 393216,
+      "sha256": "87763afd0e5f72c85fc031190f4b07a4b0658c9e09dd08e78c66483c989548d5"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part008",
+      "size": 393216,
+      "sha256": "1a53c5bb097f80be13aabebea375d06c389635e89b089cb007ce29f58d5c4c8d"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part009",
+      "size": 393216,
+      "sha256": "38febffbfcb90e65ded856295f144d32a43104c48d9e8072294ccc4e5b0e8839"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part010",
+      "size": 393216,
+      "sha256": "ce87a868eed8703333978f7ae81cf0848f755358925428ec9e7747a2f3af1703"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part011",
+      "size": 393216,
+      "sha256": "e8398e5db234cc6013e71114dd45c3d8bc7efb23be6cd521fdce6c7104331cd1"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part012",
+      "size": 393216,
+      "sha256": "de884acf0790c8e83cc35096bfc64b5d7652869fc351fe5e9160be8cc411f459"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part013",
+      "size": 393216,
+      "sha256": "660cb6779a8f5d113750528ca4d766068849ac75e6c06ff4cc4063b478218f53"
+    },
+    {
+      "name": "cab_81_717_r2.glb.part014",
+      "size": 72668,
+      "sha256": "b9b5138e8eb98db6ad60b411fd13d8535a66eaca6026c992a865affeb5c3b641"
+    }
+  ],
+  "export_limits": [
+    "Mirror and video render-target textures replaced by flat static materials; surfaces retained.",
+    "Three.js runtime interaction, animation and environment lighting not exported.",
+    "Three.js bump maps and procedural shading are not supported by GLTFExporter; base color, roughness, metalness and supported static textures retained."
+  ]
+}
