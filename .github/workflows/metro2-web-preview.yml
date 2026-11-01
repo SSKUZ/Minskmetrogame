@@ -58,6 +58,15 @@ jobs:
           mkdir -p /tmp/godot-templates
           unzip -q /tmp/templates.tpz -d /tmp/godot-templates
           cp /tmp/godot-templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+      - name: Select isolated preview scene for this build only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("metro2/project.godot")
+          data = p.read_text()
+          assert 'run/main_scene="res://scenes/StationV106Integration.tscn"' in data
+          p.write_text(data.replace('run/main_scene="res://scenes/StationV106Integration.tscn"', 'run/main_scene="res://scenes/WebPreviewOptimizedCar.tscn"'))
+          PY
       - name: Import resources
         run: godot --headless --path metro2 --editor --import --quit
       - name: Export Web preview
