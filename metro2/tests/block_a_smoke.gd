@@ -42,7 +42,7 @@ func _check() -> void:
             _fail("camera basis invalid for mode %d" % mode)
             return
     root.set("camera_mode", 1)
-    root._update_camera()
+    root.call("_update_camera")
     var eye := train.to_global(adapter.call("get_eye_position"))
     if camera.global_position.distance_to(eye) > 0.01:
         _fail("cab camera detached from train")
