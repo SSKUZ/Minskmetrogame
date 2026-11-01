@@ -42,6 +42,15 @@ jobs:
           assert hashlib.sha256(p.read_bytes()).hexdigest() == "4d7db8f979e6688f34ac670f63476166a8129da9e455bed1eef6b9ff1f853d2c"
           print("PASS: LOD1 verified; no aggressive optimization")
           PY
+      - name: Fail clearly if original middle and tail GLBs are absent
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          required = [Path(f"metro2/assets/v106/v106_car_{n:02d}.glb") for n in (2, 3, 4)]
+          missing = [str(p) for p in required if not p.is_file()]
+          if missing:
+              raise SystemExit("BLOCKED: previously exported original GLBs not stored in repository: " + ", ".join(missing))
+          PY
       - name: Setup Godot 4.3
         run: |
           curl -fsSL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
