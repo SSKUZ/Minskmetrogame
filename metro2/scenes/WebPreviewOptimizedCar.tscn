@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/StationBaseStatic.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_01.glb" id="2"]
+
+[node name="Metro2WebPreview" type="Node3D"]
+
+[node name="Station" parent="." instance=ExtResource("1")]
+
+[node name="OptimizedHeadCar" parent="." instance=ExtResource("2")]
+position = Vector3(0, 0.22, 9.603)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(14, 7, 29)
+rotation = Vector3(-0.18, 0.6, 0)
+current = true
+fov = 75.0
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.8, -0.5, 0)
+light_energy = 1.5
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
