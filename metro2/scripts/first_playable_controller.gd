@@ -30,6 +30,7 @@ var cab_pitch := 0.0
 var cab_zoom := 75.0
 var pinch_last := -1.0
 var mouse_dragging := false
+var camera_drag_index := -1
 const CAB_FOV_MIN := 45.0
 const CAB_FOV_MAX := 90.0
 const SALON_EYE := Vector3(-0.75, 2.7, 1.7)
@@ -192,6 +193,8 @@ func _reset_train() -> void:
     cab_zoom = 75.0
     camera_mode = 1
     touch_points.clear()
+    camera_drag_index = -1
+    mouse_dragging = false
     pinch_last = -1.0
     _update_camera()
 
@@ -212,8 +215,14 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         if event.pressed:
             touch_points[event.index] = event.position
+            if touch_points.size() == 1:
+                camera_drag_index = event.index
+            else:
+                camera_drag_index = -1
+                pinch_last = -1.0
         else:
             touch_points.erase(event.index)
+            camera_drag_index = -1
             pinch_last = -1.0
     elif event is InputEventMouseButton:
         if event.button_index == MOUSE_BUTTON_LEFT:
@@ -226,6 +235,8 @@ func _unhandled_input(event: InputEvent) -> void:
         cab_yaw = clampf(cab_yaw - event.relative.x * 0.004, -1.35, 1.35)
         cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
     elif event is InputEventScreenDrag and camera_mode == 1:
+        if not touch_points.has(event.index):
+            return
         touch_points[event.index] = event.position
         if touch_points.size() >= 2:
             var points := touch_points.values()
@@ -233,7 +244,7 @@ func _unhandled_input(event: InputEvent) -> void:
             if pinch_last > 0.0:
                 cab_zoom = clampf(cab_zoom - (distance - pinch_last) * 0.09, CAB_FOV_MIN, CAB_FOV_MAX)
             pinch_last = distance
-        else:
+        elif camera_drag_index == event.index:
             pinch_last = -1.0
             cab_yaw = clampf(cab_yaw - event.relative.x * 0.004, -1.35, 1.35)
             cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
