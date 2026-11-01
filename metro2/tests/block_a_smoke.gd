@@ -43,7 +43,7 @@ func _check() -> void:
             return
     root.set("camera_mode", 1)
     root.call("_update_camera")
-    var eye := train.to_global(adapter.call("get_eye_position"))
+    var eye: Vector3 = train.to_global(adapter.call("get_eye_position") as Vector3)
     if camera.global_position.distance_to(eye) > 0.01:
         _fail("cab camera detached from train")
         return
