@@ -59,7 +59,7 @@ func _make_cab_mount() -> void:
             cab_instance.name = "Cab81_717"
             cab_mount.add_child(cab_instance)
     else:
-        push_warning("Full cab GLB not exported yet: " + CAB_SCENE_PATH)
+        push_error("Cab GLB must be restored from metro2/assets/cab/parts before import: " + CAB_SCENE_PATH)
     cab_camera = Camera3D.new()
     cab_camera.name = "DriverCabCamera"
     cab_camera.position = Vector3(-0.38, 1.85, 2.5)
@@ -74,7 +74,8 @@ func _make_headlights() -> void:
         var beam := SpotLight3D.new()
         beam.name = "HeadlightLeft" if side < 0.0 else "HeadlightRight"
         beam.position = Vector3(side * 1.02, 1.48, -8.0)
-        beam.rotation_degrees = Vector3(0.0, 180.0, 0.0)
+        # Godot SpotLight3D shines along local -Z, matching train travel.
+        beam.rotation_degrees = Vector3.ZERO
         beam.light_color = Color("#f0f6ff")
         beam.light_energy = 2.8
         beam.spot_range = 88.0
