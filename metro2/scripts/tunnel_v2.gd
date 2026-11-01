@@ -30,9 +30,9 @@ func _ready() -> void:
     var green := _mat(Color("#26ff73"), true)
     _follow_train = get_parent().get_node_or_null("PlayerTrainPlacement") as Node3D
     for section in SECTIONS:
-        var module_start: float = z0
-        while module_start < z1 - 0.001:
-            var module_end: float = minf(module_start + MODULE_LENGTH, z1)
+        var module_start: float = section.x
+        while module_start < section.y - 0.001:
+            var module_end: float = minf(module_start + MODULE_LENGTH, section.y)
             _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
             module_start = module_end
 
@@ -72,7 +72,7 @@ func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
             _repeat_boxes(root, "UpperBrackets", Vector3(0.15, 0.08, 0.25), ribs,
                 Vector3(side * 3.04, 2.58, z0 + 3.0), Vector3(0, 0, 7.0),
                 maxi(0, int((z1 - z0 - 3.0) / 7.0) + 1))
-            var z := z0 + 24.0
+            var z := ceilf((z0 - 24.0) / 48.0) * 48.0 + 24.0
             while z < z1:
                 _box(root, "ServiceCabinet", Vector3(0.22, 0.82, 0.86),
                     Vector3(side * 2.97, 2.35, z), fixture)
@@ -81,7 +81,7 @@ func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
                 _box(root, "HazardPlate", Vector3(0.245, 0.22, 0.23),
                     Vector3(side * 2.81, 2.43, z), hazard)
                 z += 48.0
-        var signal_z := ceilf(z0 / 128.0) * 128.0 + 64.0
+        var signal_z := ceilf((z0 - 64.0) / 128.0) * 128.0 + 64.0
         while signal_z < z1 - 1.0:
             _signal(root, signal_z, signal_body, ribs, red, green, int(signal_z) % 2 == 0)
             signal_z += 128.0
