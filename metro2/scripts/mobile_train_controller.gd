@@ -17,6 +17,9 @@ var door_system: Node
 var initial_train_position: Vector3
 var hud: Label
 var headlights: Array[SpotLight3D] = []
+var cab_mount: Node3D
+var cab_camera: Camera3D
+const CAB_SCENE_PATH := "res://assets/cab/cab_81_717.glb"
 
 func _ready() -> void:
     initial_train_position = train.position
@@ -24,6 +27,7 @@ func _ready() -> void:
     door_system.name = "DoorSystem"
     add_child(door_system)
     door_system.setup(train)
+    _make_cab_mount()
     _make_headlights()
     _make_controls()
     _update_camera()
@@ -40,6 +44,29 @@ func _physics_process(delta: float) -> void:
     train.position.z -= speed_mps * delta
     _update_camera()
     _update_hud()
+
+func _make_cab_mount() -> void:
+    # Real cab is exported from cab-development; never substitute an invented cab.
+    # Mount and camera remain train-relative, unlike the legacy world-space camera.
+    cab_mount = Node3D.new()
+    cab_mount.name = "Cab81_717Mount"
+    cab_mount.position = Vector3(0.0, 0.0, -8.0)
+    train.add_child(cab_mount)
+    if ResourceLoader.exists(CAB_SCENE_PATH):
+        var cab_resource := load(CAB_SCENE_PATH)
+        if cab_resource is PackedScene:
+            var cab_instance := (cab_resource as PackedScene).instantiate()
+            cab_instance.name = "Cab81_717"
+            cab_mount.add_child(cab_instance)
+    else:
+        push_warning("Full cab GLB not exported yet: " + CAB_SCENE_PATH)
+    cab_camera = Camera3D.new()
+    cab_camera.name = "DriverCabCamera"
+    cab_camera.position = Vector3(-0.38, 1.85, 2.5)
+    cab_camera.rotation_degrees = Vector3.ZERO
+    cab_camera.fov = 75.0
+    cab_camera.far = 400.0
+    cab_mount.add_child(cab_camera)
 
 func _make_headlights() -> void:
     # Attach the light sources to the moving consist; train travels toward -Z.
@@ -59,6 +86,9 @@ func _make_headlights() -> void:
         headlights.append(beam)
 
 func _update_camera() -> void:
+    camera.current = camera_mode != 1
+    if cab_camera != null:
+        cab_camera.current = camera_mode == 1
     if camera_mode == 0:
         camera.position = train.position + Vector3(-23.0, 11.0, 41.0)
         camera.look_at(train.position + Vector3(0.0, 1.6, 24.0), Vector3.UP)
