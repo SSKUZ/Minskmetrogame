@@ -2,6 +2,7 @@ extends Node3D
 ## First playable route: touch throttle/brake, doors and three camera views.
 ## Original GLB geometry and doors are not modified.
 const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
+const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
 const MAX_SPEED_MPS := 25.0
 const ACCEL_MPS2 := 1.2
 const BRAKE_MPS2 := 2.0
@@ -31,6 +32,7 @@ var pinch_last := -1.0
 var platform_view_available := false
 var platform_button: Button
 var info_button: Button
+var cab_adapter: Node3D
 var door_button: Button
 const PLATFORM_VIEW_Z := 112.0
 
@@ -41,6 +43,10 @@ func _ready() -> void:
     door_system.name = "DoorSystem"
     add_child(door_system)
     door_system.setup(train)
+    cab_adapter = CAB_ADAPTER.new()
+    cab_adapter.name = "CabV106Adapter"
+    train.add_child(cab_adapter)
+    cab_adapter.call("initialize", train)
     if not door_system.validated:
         push_warning("V106 doors are not validated; movement is blocked.")
     _make_controls()
@@ -85,6 +91,8 @@ func _update_hud() -> void:
     if status_label != null:
         var remaining := train.position.z - STATION_STOP_Z
         status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.target_open else "ЗАКРЫТЫ"]
+    if cab_adapter != null:
+        cab_adapter.call("set_door_state", door_system.target_open)
     if door_button != null:
         door_button.text = "◀ ▶ ДВЕРИ" if door_system.target_open else "▶ ◀ ДВЕРИ"
     if hud != null:
@@ -132,7 +140,9 @@ func _make_controls() -> void:
     brake.focus_exited.connect(func() -> void: braking = false)
 
     var view := _button("КАМЕРА", row)
-    view.pressed.connect(func() -> void: camera_mode = (camera_mode + 1) % 3)
+    view.pressed.connect(func() -> void:
+        camera_mode = 2 if camera_mode == 1 else 1
+    )
 
     door_button = _button("▮▮ ДВЕРИ", row)
     door_button.pressed.connect(func() -> void:
