@@ -1,9 +1,12 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/StationBaseStatic.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://assets/v106/v106_car_01.glb" id="2"]
 [ext_resource type="Script" path="res://scripts/web_preview_camera.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/web_preview_doors.gd" id="4"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_02.glb" id="5"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_03.glb" id="6"]
+[ext_resource type="PackedScene" path="res://assets/v106/v106_car_04.glb" id="7"]
 
 [node name="Metro2WebPreview" type="Node3D"]
 script = ExtResource("4")
@@ -15,13 +18,13 @@ script = ExtResource("4")
 [node name="Car01" parent="Train" instance=ExtResource("2")]
 position = Vector3(0, 0.22, 9.603)
 
-[node name="Car02" parent="Train" instance=ExtResource("2")]
+[node name="Car02" parent="Train" instance=ExtResource("5")]
 position = Vector3(0, 0.22, 29.411)
 
-[node name="Car03" parent="Train" instance=ExtResource("2")]
+[node name="Car03" parent="Train" instance=ExtResource("6")]
 position = Vector3(0, 0.22, 49.219)
 
-[node name="Car04" parent="Train" instance=ExtResource("2")]
+[node name="Car04" parent="Train" instance=ExtResource("7")]
 position = Vector3(0, 0.22, 69.027)
 
 [node name="Camera3D" type="Camera3D" parent="."]
