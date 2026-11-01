@@ -6,15 +6,15 @@ var car: Node3D
 var status: Label
 var camera: Camera3D
 var cab_button: StaticBody3D
-var ray_length := 10.0
+var ray_length := 100.0
 
 func _ready() -> void:
-    car = $OptimizedHeadCar
+    car = $Train/Car01
     doors = DOOR_SCRIPT.new()
     add_child(doors)
     # The original controller expects 64 leaves / four cars. This test
     # must not claim functioning doors when only one car is available.
-    doors.expected_cars = 1
+    doors.expected_cars = 4
     doors.setup($Train)
     camera = $Camera3D
     _make_ui()
@@ -38,7 +38,7 @@ func _make_ui() -> void:
         else:
             button.pressed.connect(func(): doors.request_close())
     status = Label.new()
-    status.text = "LOD1: управление дверями головного вагона"
+    status.text = "4 вагона LOD1 (временные копии головного) | Двери: проверка 64 створок"
     canvas.add_child(status)
 
 func _make_cab_button() -> void:
