@@ -26,7 +26,7 @@ func _ready() -> void:
     add_child(door_system)
     door_system.setup(train)
     if not door_system.validated:
-        push_warning("V106 doors are not validated; door animation is disabled until model matching is corrected.")
+        push_warning("V106 doors are not validated; movement is blocked.")
     _make_controls()
     _update_camera()
     _update_hud()
@@ -35,7 +35,7 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle and (not door_system.validated or door_system.can_move()):
+    elif throttle and door_system.can_move():
         acceleration = ACCEL_MPS2
     speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
@@ -49,7 +49,7 @@ func _update_camera() -> void:
         camera.look_at(Vector3(0.992, 1.6, 49.0), Vector3.UP)
         camera.fov = 65.0
     elif camera_mode == 1:
-        camera.position = train.position + Vector3(-0.35, 2.65, -7.6)
+        camera.position = train.position + Vector3(-0.35, 2.65, -8.6)
         camera.rotation_degrees = Vector3.ZERO
         camera.fov = 75.0
     else:
@@ -133,4 +133,5 @@ func _reset_train() -> void:
     throttle = false
     braking = false
     speed_mps = 0.0
+    door_system.request_close()
     train.position = initial_train_position
