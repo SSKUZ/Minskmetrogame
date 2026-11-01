@@ -28,12 +28,21 @@ def main() -> int:
         if not target.exists() or hashlib.sha256(target.read_bytes()).hexdigest() != expected:
             print("FAIL: restored cab GLB failed verification", file=sys.stderr)
             return 1
-    for number in range(1, 5):
+    expected_cars = {
+        1: (32324584, "40d1d00e66e2bbd4429579f82ecda65a749f5301ff38ced5b5b5193f76c20c4f"),
+        2: (28658552, "bf3fac63153e28b9d250d437e95c2f2fd2dfc17b9c750a399bf559c34769cd5b"),
+        3: (28658552, "7160a2db252a4a641c80555acd9d0351f2f488e230068980f32eb287333676e1"),
+        4: (32305384, "a0257eeca3c8f6e2959025d34dbc3934449901f823ef5668716fc3716d14a6aa"),
+    }
+    for number, (expected_size, expected_sha) in expected_cars.items():
         car = ROOT / f"assets/v106/v106_car_{number:02d}.glb"
         if not car.is_file():
-            print(f"FAIL: missing original wagon GLB: {car}", file=sys.stderr)
+            print(f"FAIL: original wagon missing: {car}. Supply previously exported GLB; DO NOT re-export.", file=sys.stderr)
             return 1
-        print(f"PASS: original wagon {number:02d}: {car.stat().st_size} bytes")
+        if car.stat().st_size != expected_size or hashlib.sha256(car.read_bytes()).hexdigest() != expected_sha:
+            print(f"FAIL: original wagon {number:02d} size/SHA256 mismatch: {car}", file=sys.stderr)
+            return 1
+        print(f"PASS: original wagon {number:02d}: {expected_size} bytes, SHA256 verified")
     print("PASS: all five GLBs available. Open project in Godot 4.3 to import and inspect.")
     return 0
 
