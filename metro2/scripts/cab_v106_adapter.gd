@@ -1,0 +1,34 @@
+extends Node3D
+## Godot adapter for the ORIGINAL cab-r2 authored in Three.js (cab-development).
+## No replacement cab is generated. Exported GLB must be added at CAB_PATH.
+## Original source: js/cab/CabModel.js and supporting js/cab/Cab*.js.
+const CAB_PATH := "res://assets/cab/cab_81_717_r2.glb"
+const CAB_SCENE_PATH := "res://assets/cab/cab_81_717_r2.tscn"
+var original_cab: Node3D
+var door_open: bool = false
+var ready_for_play: bool = false
+
+func initialize(_train: Node3D) -> void:
+    var path := CAB_PATH
+    if not ResourceLoader.exists(path):
+        path = CAB_SCENE_PATH
+    if not ResourceLoader.exists(path):
+        push_warning("Original cab-r2 is not exported to Godot yet. No substitute model will be shown.")
+        return
+    var resource := load(path)
+    if not resource is PackedScene:
+        push_error("Cab-r2 asset is not an imported PackedScene: " + path)
+        return
+    original_cab = (resource as PackedScene).instantiate() as Node3D
+    if original_cab == null:
+        push_error("Cab-r2 root must be Node3D")
+        return
+    original_cab.name = "OriginalCab81_717_R2"
+    add_child(original_cab)
+    # Export must be authored in Godot metres; do NOT apply legacy Three.js 1.65 scale twice.
+    ready_for_play = true
+
+func set_door_state(is_open: bool) -> void:
+    door_open = is_open
+    # Placeholder for original cab-r2 control lamp bindings after GLB export.
+    # Never animate unverified imported mesh names.
