@@ -48,14 +48,14 @@ func _ready() -> void:
     door_system = DOOR_CONTROLLER.new()
     door_system.name = "DoorSystem"
     add_child(door_system)
-    door_system.setup(train)
+    door_system.call("setup", train)
     cab_adapter = CAB_ADAPTER.new()
     cab_adapter.name = "CabV106Adapter"
     train.add_child(cab_adapter)
     cab_adapter.call("initialize", train)
-    if not cab_adapter.ready_for_play:
+    if not cab_adapter.get("ready_for_play"):
         push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
-    if not door_system.validated:
+    if not door_system.get("validated"):
         push_warning("V106 doors are not validated; movement is blocked.")
     _make_controls()
     _update_camera()
@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle and door_system.can_move():
+    elif throttle and door_system.call("can_move"):
         acceleration = ACCEL_MPS2
     speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
@@ -82,7 +82,7 @@ func _update_camera() -> void:
         camera.look_at(Vector3(initial_train_position.x, 1.6, STATION_STOP_Z), Vector3.UP)
         camera.fov = 65.0
     elif camera_mode == 1:
-        camera.global_position = train.to_global(cab_adapter.get_eye_position())
+        camera.global_position = train.to_global(cab_adapter.call("get_eye_position") as Vector3)
         camera.global_basis = train.global_basis * Basis.from_euler(Vector3(cab_pitch, cab_yaw, 0.0))
         camera.fov = cab_zoom
     else:
@@ -98,11 +98,11 @@ func _update_hud() -> void:
         camera_mode = 1
     if status_label != null and Time.get_ticks_msec() >= info_notice_until:
         var remaining := train.position.z - STATION_STOP_Z
-        status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.target_open else "ЗАКРЫТЫ"]
+        status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.get("target_open") else "ЗАКРЫТЫ"]
     if cab_adapter != null:
-        cab_adapter.call("set_door_state", door_system.target_open)
+        cab_adapter.call("set_door_state", door_system.get("target_open"))
     if door_button != null:
-        door_button.text = "◀ ▶ ДВЕРИ" if door_system.target_open else "▶ ◀ ДВЕРИ"
+        door_button.text = "◀ ▶ ДВЕРИ" if door_system.get("target_open") else "▶ ◀ ДВЕРИ"
     if hud != null:
         hud.text = "МИНСКОЕ МЕТРО 2.0  |  %.0f км/ч  |  %s" % [
             speed_mps * 3.6, ["ПЛАТФОРМА", "КАБИНА", "САЛОН"][camera_mode]
@@ -155,10 +155,10 @@ func _make_controls() -> void:
 
     door_button = _button("▮▮ ДВЕРИ", row)
     door_button.pressed.connect(func() -> void:
-        if door_system.target_open:
-            door_system.request_close()
+        if door_system.get("target_open"):
+            door_system.call("request_close")
         elif absf(train.position.z - STATION_STOP_Z) <= 5.0:
-            door_system.request_open(speed_mps)
+            door_system.call("request_open", speed_mps)
     )
     info_button = _button("Info", row)
     info_button.pressed.connect(func() -> void: _show_info_placeholder())
@@ -185,7 +185,7 @@ func _reset_train() -> void:
     throttle = false
     braking = false
     speed_mps = 0.0
-    door_system.request_close()
+    door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
     cab_yaw = 0.0
