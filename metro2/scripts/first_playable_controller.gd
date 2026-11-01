@@ -23,6 +23,16 @@ const CURVE_OFFSET := 0.65
 var initial_train_rotation: Vector3
 var status_label: Label
 var hud: Label
+var touch_points: Dictionary = {}
+var cab_yaw := 0.0
+var cab_pitch := 0.0
+var cab_zoom := 75.0
+var pinch_last := -1.0
+var platform_view_available := false
+var platform_button: Button
+var info_button: Button
+var door_button: Button
+const PLATFORM_VIEW_Z := 112.0
 
 func _ready() -> void:
     initial_train_position = train.position
@@ -54,22 +64,29 @@ func _physics_process(delta: float) -> void:
 
 func _update_camera() -> void:
     if camera_mode == 0:
-        camera.position = Vector3(-12.5, 5.5, 48.0)
-        camera.look_at(Vector3(0.992, 1.6, 49.0), Vector3.UP)
+        camera.position = Vector3(-12.5, 5.5, 12.0)
+        camera.look_at(Vector3(0.992, 1.6, 12.0), Vector3.UP)
         camera.fov = 65.0
     elif camera_mode == 1:
         camera.position = train.position + Vector3(-0.35, 2.65, -8.6)
-        camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
-        camera.fov = 75.0
+        camera.rotation = Vector3(cab_pitch, train.rotation.y + cab_yaw, 0.0)
+        camera.fov = cab_zoom
     else:
         camera.position = train.position + Vector3(0.0, 2.75, 12.0)
         camera.rotation = Vector3(0.0, train.rotation.y, 0.0)
         camera.fov = 80.0
 
 func _update_hud() -> void:
+    platform_view_available = train.position.z <= PLATFORM_VIEW_Z
+    if platform_button != null:
+        platform_button.visible = platform_view_available
+    if camera_mode == 0 and not platform_view_available:
+        camera_mode = 1
     if status_label != null:
         var remaining := train.position.z - STATION_STOP_Z
         status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.target_open else "ЗАКРЫТЫ"]
+    if door_button != null:
+        door_button.text = "◀ ▶ ДВЕРИ" if door_system.target_open else "▶ ◀ ДВЕРИ"
     if hud != null:
         hud.text = "МИНСКОЕ МЕТРО 2.0  |  %.0f км/ч  |  %s" % [
             speed_mps * 3.6, ["ПЛАТФОРМА", "КАБИНА", "САЛОН"][camera_mode]
@@ -117,14 +134,18 @@ func _make_controls() -> void:
     var view := _button("КАМЕРА", row)
     view.pressed.connect(func() -> void: camera_mode = (camera_mode + 1) % 3)
 
-    var doors_open := _button("ДВЕРИ +", row)
-    doors_open.pressed.connect(func() -> void:
-        if absf(train.position.z - STATION_STOP_Z) <= 5.0:
+    door_button = _button("▮▮ ДВЕРИ", row)
+    door_button.pressed.connect(func() -> void:
+        if door_system.target_open:
+            door_system.request_close()
+        elif absf(train.position.z - STATION_STOP_Z) <= 5.0:
             door_system.request_open(speed_mps)
     )
-
-    var doors_close := _button("ДВЕРИ −", row)
-    doors_close.pressed.connect(func() -> void: door_system.request_close())
+    info_button = _button("Info", row)
+    info_button.pressed.connect(func() -> void: _show_info_placeholder())
+    platform_button = _button("ПЛАТФОРМА", row)
+    platform_button.visible = false
+    platform_button.pressed.connect(func() -> void: camera_mode = 0)
 
     var reset := _button("СБРОС", row)
     reset.pressed.connect(_reset_train)
@@ -158,3 +179,27 @@ func _curve_heading(z: float) -> float:
     var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
     # Heading follows the derivative of the visual centreline.
     return atan2(-CURVE_OFFSET * PI / (CURVE_START_Z - CURVE_END_Z) * sin(2.0 * PI * u), 1.0)
+
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventScreenTouch:
+        if event.pressed:
+            touch_points[event.index] = event.position
+        else:
+            touch_points.erase(event.index)
+            pinch_last = -1.0
+    elif event is InputEventScreenDrag and camera_mode == 1:
+        touch_points[event.index] = event.position
+        if touch_points.size() >= 2:
+            var points := touch_points.values()
+            var distance: float = (points[0] as Vector2).distance_to(points[1] as Vector2)
+            if pinch_last > 0.0:
+                cab_zoom = clampf(cab_zoom - (distance - pinch_last) * 0.09, 45.0, 90.0)
+            pinch_last = distance
+        else:
+            pinch_last = -1.0
+            cab_yaw = clampf(cab_yaw - event.relative.x * 0.004, -1.35, 1.35)
+            cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
+
+func _show_info_placeholder() -> void:
+    if status_label != null:
+        status_label.text = "Info: информатор будет подключён позже"
