@@ -16,6 +16,7 @@ var camera_mode: int = 0
 var door_system: Node
 var initial_train_position: Vector3
 var hud: Label
+var headlights: Array[SpotLight3D] = []
 
 func _ready() -> void:
     initial_train_position = train.position
@@ -23,6 +24,7 @@ func _ready() -> void:
     door_system.name = "DoorSystem"
     add_child(door_system)
     door_system.setup(train)
+    _make_headlights()
     _make_controls()
     _update_camera()
     _update_hud()
@@ -38,6 +40,23 @@ func _physics_process(delta: float) -> void:
     train.position.z -= speed_mps * delta
     _update_camera()
     _update_hud()
+
+func _make_headlights() -> void:
+    # Attach the light sources to the moving consist; train travels toward -Z.
+    for side in [-1.0, 1.0]:
+        var beam := SpotLight3D.new()
+        beam.name = "HeadlightLeft" if side < 0.0 else "HeadlightRight"
+        beam.position = Vector3(side * 1.02, 1.48, -8.0)
+        beam.rotation_degrees = Vector3(0.0, 180.0, 0.0)
+        beam.light_color = Color("#f0f6ff")
+        beam.light_energy = 2.8
+        beam.spot_range = 88.0
+        beam.spot_angle = 22.0
+        beam.spot_attenuation = 1.4
+        # Only one shadow-casting beam for mobile performance.
+        beam.shadow_enabled = side < 0.0
+        train.add_child(beam)
+        headlights.append(beam)
 
 func _update_camera() -> void:
     if camera_mode == 0:
