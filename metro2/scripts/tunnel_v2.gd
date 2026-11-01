@@ -52,6 +52,7 @@ func _ready() -> void:
             module_start = module_end
     _build_side_branch(concrete, seam, ribs)
     _build_branch_tracks()
+    _build_switch_connection()
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
@@ -60,6 +61,9 @@ func _process(_delta: float) -> void:
     var branch := get_node_or_null("DepotSideBranch_Curved_VisualOnly")
     if branch != null:
         branch.visible = absf(BRANCH_Z - train_z) < VISIBLE_DISTANCE + BRANCH_LENGTH
+    var switch_track := get_node_or_null("DepotSwitchConnection_VisualOnly")
+    if switch_track != null:
+        switch_track.visible = absf(BRANCH_Z - train_z) < VISIBLE_DISTANCE + 24.0
     var branch_track := get_node_or_null("DepotBranchTrack_VisualOnly")
     if branch_track != null:
         branch_track.visible = absf(BRANCH_Z - train_z) < VISIBLE_DISTANCE + BRANCH_LENGTH
@@ -169,6 +173,53 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     cap.material_override = _mat(Color("#090b0c"))
     cap.position = _branch_center(BRANCH_LENGTH)
     parent.add_child(cap)
+
+func _build_switch_connection() -> void:
+    # Visual-only turnout: tapered rails join the live straight rail without
+    # changing its collision, train trajectory, or station stop position.
+    var root := Node3D.new()
+    root.name = "DepotSwitchConnection_VisualOnly"
+    add_child(root)
+    var steel := _mat(Color("#92999a"))
+    steel.metallic = 0.75
+    var sleeper := _mat(Color("#4c4741"))
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Branch centre drifts smoothly from the main track to the side bore.
+    # At z=BRANCH_Z+20 the turnout begins on the running line;
+    # at z=BRANCH_Z it reaches the decorative bore mouth.
+    var steps := 24
+    for rail_side in [-1, 1]:
+        for i in range(steps):
+            var u0 := float(i) / float(steps)
+            var u1 := float(i + 1) / float(steps)
+            var x0 := 3.15 * (u0 * u0 * (3.0 - 2.0 * u0))
+            var x1 := 3.15 * (u1 * u1 * (3.0 - 2.0 * u1))
+            var z0 := BRANCH_Z + 20.0 * (1.0 - u0)
+            var z1 := BRANCH_Z + 20.0 * (1.0 - u1)
+            # The first rail lies on the original right-hand rail.
+            # The second rail converges from the left side of the running track.
+            var side_offset := float(rail_side) * 0.9
+            var a := Vector3(x0 + side_offset, -0.01, z0)
+            var b := Vector3(x1 + side_offset, -0.01, z1)
+            var width := 0.055
+            for p in [a + Vector3(-width, 0, 0), a + Vector3(width, 0, 0),
+                    b + Vector3(width, 0, 0), a + Vector3(-width, 0, 0),
+                    b + Vector3(width, 0, 0), b + Vector3(-width, 0, 0)]:
+                st.add_vertex(p)
+    st.generate_normals()
+    var rails := MeshInstance3D.new()
+    rails.name = "TaperedTurnoutRails"
+    rails.mesh = st.commit()
+    rails.material_override = steel
+    root.add_child(rails)
+    # Light sleeper ties emphasize the junction without duplicating main track.
+    for i in range(8):
+        var u := (float(i) + 0.5) / 8.0
+        var x := 3.15 * u * u * (3.0 - 2.0 * u)
+        var z := BRANCH_Z + 20.0 * (1.0 - u)
+        _box(root, "TurnoutSleeper", Vector3(2.2, 0.07, 0.18),
+            Vector3(x, -0.22, z), sleeper)
 
 func _build_branch_tracks() -> void:
     # Dedicated decorative track: never touches the existing main line rails.
