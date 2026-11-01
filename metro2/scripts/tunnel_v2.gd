@@ -11,9 +11,13 @@ const PROFILE := [
 const RIB_STEP := 8.0
 const LIGHT_STEP := 12.0
 const LINING_STEP := 2.0
+const MODULE_LENGTH := 16.0
+const VISIBLE_DISTANCE := 120.0
+var _modules: Array[Node3D] = []
+var _follow_train: Node3D
 
 func _ready() -> void:
-    var concrete := _mat(Color("#77736c"))
+    var concrete := _concrete_material()
     var seam := _mat(Color("#393a38"))
     var grime := _mat(Color("#4c4944"))
     var ribs := _mat(Color("#5a5854"))
@@ -24,27 +28,52 @@ func _ready() -> void:
     var glow := _mat(Color("#e5f5ff"), true)
     var red := _mat(Color("#ff2828"), true)
     var green := _mat(Color("#26ff73"), true)
+    _follow_train = get_parent().get_node_or_null("PlayerTrainPlacement") as Node3D
     for section in SECTIONS:
+        var module_start: float = z0
+        while module_start < z1 - 0.001:
+            var module_end: float = minf(module_start + MODULE_LENGTH, z1)
+            _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
+            module_start = module_end
+
+func _process(_delta: float) -> void:
+    if _follow_train == null:
+        return
+    var train_z := _follow_train.global_position.z
+    for module in _modules:
+        module.visible = absf(module.position.z - train_z) < VISIBLE_DISTANCE + MODULE_LENGTH
+
+func _build_module(z0: float, z1: float, concrete: Material, seam: Material,
+        grime: Material, ribs: Material, cable_colors: Array, fixture: Material,
+        hazard: Material, signal_body: Material, glow: Material, red: Material,
+        green: Material) -> void:
         var root := Node3D.new()
-        root.name = "TunnelV2_%d_%d" % [int(section.x), int(section.y)]
+        root.name = "TunnelModule_%d_%d" % [int(z0), int(z1)]
+        root.position.z = (z0 + z1) * 0.5
+        # Geometry uses absolute Z; compensate by placing a neutral local container.
+        var geometry := Node3D.new()
+        geometry.position.z = -root.position.z
+        root.add_child(geometry)
+        _modules.append(root)
         add_child(root)
-        _shell(root, section.x, section.y, concrete)
-        _ribs(root, section.x, section.y, ribs)
-        _lining_joints(root, section.x, section.y, seam)
-        _grime_strips(root, section.x, section.y, grime)
-        _cables(root, section.x, section.y, cable_colors)
+        root = geometry
+        _shell(root, z0, z1, concrete)
+        _ribs(root, z0, z1, ribs)
+        _lining_joints(root, z0, z1, seam)
+        _grime_strips(root, z0, z1, grime)
+        _cables(root, z0, z1, cable_colors)
         _repeat_boxes(root, "WallLights", Vector3(0.11, 0.62, 0.25), glow,
-            Vector3(-3.02, 3.3, section.x + 8.0), Vector3(0, 0, LIGHT_STEP),
-            maxi(0, int((section.y - section.x - 8.0) / LIGHT_STEP) + 1))
+            Vector3(-3.02, 3.3, z0 + 8.0), Vector3(0, 0, LIGHT_STEP),
+            maxi(0, int((z1 - z0 - 8.0) / LIGHT_STEP) + 1))
         for side in [-1, 1]:
             _repeat_boxes(root, "CableBrackets", Vector3(0.15, 0.08, 0.25), ribs,
-                Vector3(side * 3.04, 1.55, section.x + 3.0), Vector3(0, 0, 7.0),
-                maxi(0, int((section.y - section.x - 3.0) / 7.0) + 1))
+                Vector3(side * 3.04, 1.55, z0 + 3.0), Vector3(0, 0, 7.0),
+                maxi(0, int((z1 - z0 - 3.0) / 7.0) + 1))
             _repeat_boxes(root, "UpperBrackets", Vector3(0.15, 0.08, 0.25), ribs,
-                Vector3(side * 3.04, 2.58, section.x + 3.0), Vector3(0, 0, 7.0),
-                maxi(0, int((section.y - section.x - 3.0) / 7.0) + 1))
-            var z := section.x + 24.0
-            while z < section.y:
+                Vector3(side * 3.04, 2.58, z0 + 3.0), Vector3(0, 0, 7.0),
+                maxi(0, int((z1 - z0 - 3.0) / 7.0) + 1))
+            var z := z0 + 24.0
+            while z < z1:
                 _box(root, "ServiceCabinet", Vector3(0.22, 0.82, 0.86),
                     Vector3(side * 2.97, 2.35, z), fixture)
                 _box(root, "CabinetDoor", Vector3(0.235, 0.68, 0.69),
@@ -52,10 +81,36 @@ func _ready() -> void:
                 _box(root, "HazardPlate", Vector3(0.245, 0.22, 0.23),
                     Vector3(side * 2.81, 2.43, z), hazard)
                 z += 48.0
-        var signal_z := section.x + 64.0
-        while signal_z < section.y - 12.0:
+        var signal_z := ceilf(z0 / 128.0) * 128.0 + 64.0
+        while signal_z < z1 - 1.0:
             _signal(root, signal_z, signal_body, ribs, red, green, int(signal_z) % 2 == 0)
             signal_z += 128.0
+
+func _concrete_material() -> ShaderMaterial:
+    # World-position noise: no bitmap texture download, seamless between modules.
+    var shader := Shader.new()
+    shader.code = """shader_type spatial;
+render_mode cull_disabled, diffuse_burley, specular_disabled;
+varying vec3 world_pos;
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+float hash21(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+void fragment() {
+    vec2 cell = floor(vec2(world_pos.z * 3.0, world_pos.y * 3.0));
+    float grain = hash21(cell);
+    float broad = hash21(floor(vec2(world_pos.z, world_pos.y) * 0.35));
+    float stains = smoothstep(0.60, 0.93, broad) * 0.18;
+    float base = 0.43 + grain * 0.095 - stains;
+    ALBEDO = vec3(base * 1.04, base * 1.01, base * 0.95);
+    ROUGHNESS = 0.96;
+}
+"""
+    var material := ShaderMaterial.new()
+    material.shader = shader
+    return material
 
 func _lining_joints(parent: Node3D, z0: float, z1: float, material: Material) -> void:
     var mesh := BoxMesh.new()
