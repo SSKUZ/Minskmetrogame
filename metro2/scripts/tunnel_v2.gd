@@ -9,13 +9,17 @@ const PROFILE := [
     Vector2(3.15, 3.3), Vector2(3.15, 0.05)
 ]
 const RIB_STEP := 8.0
-const LIGHT_STEP := 16.0
+const LIGHT_STEP := 12.0
+const LINING_STEP := 2.0
 
 func _ready() -> void:
-    var concrete := _mat(Color("#171b20"))
-    var ribs := _mat(Color("#303840"))
+    var concrete := _mat(Color("#77736c"))
+    var seam := _mat(Color("#393a38"))
+    var grime := _mat(Color("#4c4944"))
+    var ribs := _mat(Color("#5a5854"))
     var cable_colors := [_mat(Color("#10161b")), _mat(Color("#253d49")), _mat(Color("#302a28"))]
-    var fixture := _mat(Color("#62696b"))
+    var fixture := _mat(Color("#737779"))
+    var hazard := _mat(Color("#d7b43a"))
     var signal_body := _mat(Color("#101619"))
     var glow := _mat(Color("#e5f5ff"), true)
     var red := _mat(Color("#ff2828"), true)
@@ -26,6 +30,8 @@ func _ready() -> void:
         add_child(root)
         _shell(root, section.x, section.y, concrete)
         _ribs(root, section.x, section.y, ribs)
+        _lining_joints(root, section.x, section.y, seam)
+        _grime_strips(root, section.x, section.y, grime)
         _cables(root, section.x, section.y, cable_colors)
         _repeat_boxes(root, "WallLights", Vector3(0.11, 0.62, 0.25), glow,
             Vector3(-3.02, 3.3, section.x + 8.0), Vector3(0, 0, LIGHT_STEP),
@@ -43,11 +49,43 @@ func _ready() -> void:
                     Vector3(side * 2.97, 2.35, z), fixture)
                 _box(root, "CabinetDoor", Vector3(0.235, 0.68, 0.69),
                     Vector3(side * 2.82, 2.35, z), ribs)
-                z += 96.0
+                _box(root, "HazardPlate", Vector3(0.245, 0.22, 0.23),
+                    Vector3(side * 2.81, 2.43, z), hazard)
+                z += 48.0
         var signal_z := section.x + 64.0
         while signal_z < section.y - 12.0:
             _signal(root, signal_z, signal_body, ribs, red, green, int(signal_z) % 2 == 0)
             signal_z += 128.0
+
+func _lining_joints(parent: Node3D, z0: float, z1: float, material: Material) -> void:
+    var mesh := BoxMesh.new()
+    mesh.size = Vector3(0.035, 1.0, 0.035)
+    mesh.material = material
+    var count := maxi(0, int((z1 - z0) / LINING_STEP))
+    var mm := MultiMesh.new()
+    mm.transform_format = MultiMesh.TRANSFORM_3D
+    mm.mesh = mesh
+    mm.instance_count = count * (PROFILE.size() - 1)
+    var index := 0
+    for j in range(count):
+        var z := z0 + (j + 1) * LINING_STEP
+        for k in range(PROFILE.size() - 1):
+            var a: Vector2 = PROFILE[k]
+            var b: Vector2 = PROFILE[k + 1]
+            var angle := -atan2(b.x - a.x, b.y - a.y)
+            var basis := Basis(Vector3.BACK, angle).scaled(Vector3(1, a.distance_to(b), 1))
+            mm.set_instance_transform(index, Transform3D(basis,
+                Vector3((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, z)))
+            index += 1
+    var inst := MultiMeshInstance3D.new()
+    inst.name = "LiningSegmentJoints"
+    inst.multimesh = mm
+    parent.add_child(inst)
+
+func _grime_strips(parent: Node3D, z0: float, z1: float, material: Material) -> void:
+    for side in [-1, 1]:
+        _box(parent, "LowerWallGrime", Vector3(0.025, 0.52, z1 - z0),
+            Vector3(side * 3.14, 0.45, (z0 + z1) * 0.5), material)
 
 func _shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
     # One combined arch surface per section, rather than a MeshInstance per panel.
