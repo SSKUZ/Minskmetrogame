@@ -8,6 +8,7 @@ on:
       - 'metro2/scenes/**'
       - 'metro2/assets/cab/**'
       - 'metro2/tools/prepare_cab.py'
+      - 'metro2/tests/**'
       - '.github/workflows/metro2-cab-validation.yml'
 permissions:
   contents: read
@@ -27,5 +28,5 @@ jobs:
           test -f metro2/project.godot
       - name: Import Godot scenes and validate GDScript
         run: godot --headless --path metro2 --editor --import --quit
-      - name: Load first playable scene in headless Godot
-        run: timeout 25s godot --headless --path metro2 --quit-after 3
+      - name: Block A headless runtime smoke test (no APK, no screenshots)
+        run: timeout 90s godot --headless --path metro2 --script res://tests/block_a_smoke.gd
