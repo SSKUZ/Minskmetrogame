@@ -29,8 +29,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: feature/metro2-first-playable
-      - name: Restore original GLB assets and verify checksums
-        run: python3 metro2/tools/prepare_first_playable.py
+      - name: Fetch already saved optimized head car (no re-export)
+        uses: actions/checkout@v4
+        with:
+          ref: feature/metro2-v106-aggressive-lod
+          path: saved-models
+          sparse-checkout: metro2/assets/v106_mobile
+      - name: Restore saved optimized head car
+        run: |
+          python3 saved-models/metro2/assets/v106_mobile/restore_glb.py
+          mkdir -p metro2/assets/v106
+          cp saved-models/metro2/assets/v106_mobile/v106_car01_mobile.glb metro2/assets/v106/v106_car_01.glb
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          p = Path("metro2/assets/v106/v106_car_01.glb")
+          assert p.stat().st_size == 21216508
+          assert hashlib.sha256(p.read_bytes()).hexdigest() == "aed209d835f6f2a50090cbcbe283ec1467853a2d598591801196618f8ae4c48a"
+          print("PASS: saved optimized head car verified")
+          PY
       - name: Setup Godot 4.3
         run: |
           curl -fsSL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
