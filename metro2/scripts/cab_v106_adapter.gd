@@ -7,7 +7,11 @@ const CAB_SCENE_PATH := "res://assets/cab/cab_81_717_r2.tscn"
 var original_cab: Node3D
 var door_open: bool = false
 var ready_for_play: bool = false
-var cab_eye_local := Vector3(-0.35, 2.65, -8.6)
+## Adjustable placement and camera anchor; values await APK visual calibration.
+const CAB_POSITION := Vector3(0.0, 0.0, -8.0)
+const CAB_ROTATION_Y := PI
+const CAB_EYE := Vector3(-0.35, 2.65, -8.6)
+var cab_eye_local := CAB_EYE
 
 func get_eye_position() -> Vector3:
     return cab_eye_local
@@ -30,12 +34,12 @@ func initialize(_train: Node3D) -> void:
     original_cab.name = "OriginalCab81_717_R2"
     # Source cab front is +Z, while this consist travels toward -Z.
     # Place the cab at the leading end of the first car; keep scale in metres.
-    original_cab.rotation.y = PI
-    original_cab.position = Vector3(0.0, 0.0, -8.0)
+    original_cab.rotation.y = CAB_ROTATION_Y
+    original_cab.position = CAB_POSITION
     add_child(original_cab)
     # Export must be authored in Godot metres; do NOT apply legacy Three.js 1.65 scale twice.
     ready_for_play = true
-    print("Original cab-r2 instantiated in player train: ", path)
+    print("BLOCK A cab loaded: ", path, " position=", CAB_POSITION, " yaw=", CAB_ROTATION_Y, " eye=", CAB_EYE)
 
 func set_door_state(is_open: bool) -> void:
     door_open = is_open
