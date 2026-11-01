@@ -7,6 +7,10 @@ const CAB_SCENE_PATH := "res://assets/cab/cab_81_717_r2.tscn"
 var original_cab: Node3D
 var door_open: bool = false
 var ready_for_play: bool = false
+var cab_eye_local := Vector3(-0.35, 2.65, -8.6)
+
+func get_eye_position() -> Vector3:
+    return cab_eye_local
 
 func initialize(_train: Node3D) -> void:
     var path := CAB_PATH
@@ -31,6 +35,7 @@ func initialize(_train: Node3D) -> void:
     add_child(original_cab)
     # Export must be authored in Godot metres; do NOT apply legacy Three.js 1.65 scale twice.
     ready_for_play = true
+    print("Original cab-r2 instantiated in player train: ", path)
 
 func set_door_state(is_open: bool) -> void:
     door_open = is_open
