@@ -87,7 +87,7 @@ func _ribs(parent: Node3D, z0: float, z1: float, material: Material) -> void:
             var b: Vector2 = PROFILE[k + 1]
             var length := a.distance_to(b)
             var angle := -atan2(b.x - a.x, b.y - a.y)
-            var basis := Basis(Vector3.FORWARD, angle).scaled(Vector3(1, length, 1))
+            var basis := Basis(Vector3.BACK, angle).scaled(Vector3(1, length, 1))
             mm.set_instance_transform(index, Transform3D(basis,
                 Vector3((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, z)))
             index += 1
