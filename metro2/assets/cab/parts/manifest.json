@@ -1,0 +1,72 @@
+{
+  "filename": "cab_81_717.glb",
+  "size": 5180668,
+  "sha256": "2a3f37650722ba667f61f9cd063d4a3c7795fed37bc85285dd4c01c29b91d1e6",
+  "parts": [
+    {
+      "name": "cab_81_717.glb.part001",
+      "size": 400000,
+      "sha256": "57f8557d77d1a4e3d7c2195b8fe45a50f688f092d0794bfe238be5cd434f187b"
+    },
+    {
+      "name": "cab_81_717.glb.part002",
+      "size": 400000,
+      "sha256": "5363de437cce74509cf723a19bf86878c95ed23cff00fc3bf5ab32f5f4d0593d"
+    },
+    {
+      "name": "cab_81_717.glb.part003",
+      "size": 400000,
+      "sha256": "158150b6b9a2b7b45968e3427c8b55dbf330baa241a36b9309cb3b5aa88d70f5"
+    },
+    {
+      "name": "cab_81_717.glb.part004",
+      "size": 400000,
+      "sha256": "a108078076236ee28eca2202fad8249358f11d481348a82f911666613d5696a0"
+    },
+    {
+      "name": "cab_81_717.glb.part005",
+      "size": 400000,
+      "sha256": "8d77e7ecfc52af6e483961513792ae4ab020c6bc3653b77d990cbb4b04e73895"
+    },
+    {
+      "name": "cab_81_717.glb.part006",
+      "size": 400000,
+      "sha256": "aaff28f8eed38ef169e79c7a71d208ecbdcd0e18678745820afa6908e494bd8a"
+    },
+    {
+      "name": "cab_81_717.glb.part007",
+      "size": 400000,
+      "sha256": "375b099755691863897bc321da383124d485593c0976a53012caf66d49727a01"
+    },
+    {
+      "name": "cab_81_717.glb.part008",
+      "size": 400000,
+      "sha256": "0387cc9d84d364e75168d77f02a076888435fd90c4096d65e2680fc34041e30b"
+    },
+    {
+      "name": "cab_81_717.glb.part009",
+      "size": 400000,
+      "sha256": "557f66d15eeecb6dcc77edef4ce76ed58c9254fcce01051b0852ce6acf3762b4"
+    },
+    {
+      "name": "cab_81_717.glb.part010",
+      "size": 400000,
+      "sha256": "2cbb9df206b01376a3491bc279956077dd427513f83347056b3c483d0ab662d2"
+    },
+    {
+      "name": "cab_81_717.glb.part011",
+      "size": 400000,
+      "sha256": "299c34dddf1721ef954abffcf48c2db1b476900129b46629ac60634548590146"
+    },
+    {
+      "name": "cab_81_717.glb.part012",
+      "size": 400000,
+      "sha256": "5165a30c11806509449c535157196a626d8fe7ae3e2e796ea3fc50c626ad4a2a"
+    },
+    {
+      "name": "cab_81_717.glb.part013",
+      "size": 380668,
+      "sha256": "af44e86354fa6a7f0a16dd39fa67be820e02646cb4662791ecba648a57deeac9"
+    }
+  ]
+}
