@@ -51,11 +51,18 @@ func _ready() -> void:
             _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
             module_start = module_end
     _build_side_branch(concrete, seam, ribs)
+    _build_branch_tracks()
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
         return
     var train_z := _follow_train.global_position.z
+    var branch := get_node_or_null("DepotSideBranch_Curved_VisualOnly")
+    if branch != null:
+        branch.visible = absf(BRANCH_Z - train_z) < VISIBLE_DISTANCE + BRANCH_LENGTH
+    var branch_track := get_node_or_null("DepotBranchTrack_VisualOnly")
+    if branch_track != null:
+        branch_track.visible = absf(BRANCH_Z - train_z) < VISIBLE_DISTANCE + BRANCH_LENGTH
     for module in _modules:
         module.visible = absf(module.position.z - train_z) < VISIBLE_DISTANCE + MODULE_LENGTH
 
@@ -107,7 +114,7 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     var parent := Node3D.new()
     parent.name = "DepotSideBranch_Curved_VisualOnly"
     add_child(parent)
-    # Side bore remains visible; later use distance-based culling via its own bounds.
+    # Culling is based on the junction coordinate, not the origin of this node.
     # Build an open-sided connection mouth, then a curved tube from 8m to 48m.
     var shell := SurfaceTool.new()
     shell.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -162,6 +169,57 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     cap.material_override = _mat(Color("#090b0c"))
     cap.position = _branch_center(BRANCH_LENGTH)
     parent.add_child(cap)
+
+func _build_branch_tracks() -> void:
+    # Dedicated decorative track: never touches the existing main line rails.
+    var root := Node3D.new()
+    root.name = "DepotBranchTrack_VisualOnly"
+    add_child(root)
+    var rail_mat := _mat(Color("#747a7e"))
+    rail_mat.metallic = 0.65
+    var sleeper_mat := _mat(Color("#4a4440"))
+    var ballast_mat := _mat(Color("#393735"))
+    var rail_mesh := BoxMesh.new()
+    rail_mesh.size = Vector3(0.075, 0.14, 1.0)
+    rail_mesh.material = rail_mat
+    var ballast_mesh := BoxMesh.new()
+    ballast_mesh.size = Vector3(2.55, 0.18, 1.0)
+    ballast_mesh.material = ballast_mat
+    var sleepers_mesh := BoxMesh.new()
+    sleepers_mesh.size = Vector3(2.35, 0.14, 0.24)
+    sleepers_mesh.material = sleeper_mat
+    var segment_count := 48
+    var mm_rails := MultiMesh.new()
+    mm_rails.transform_format = MultiMesh.TRANSFORM_3D
+    mm_rails.mesh = rail_mesh
+    mm_rails.instance_count = segment_count * 2
+    var mm_ballast := MultiMesh.new()
+    mm_ballast.transform_format = MultiMesh.TRANSFORM_3D
+    mm_ballast.mesh = ballast_mesh
+    mm_ballast.instance_count = segment_count
+    var mm_sleepers := MultiMesh.new()
+    mm_sleepers.transform_format = MultiMesh.TRANSFORM_3D
+    mm_sleepers.mesh = sleepers_mesh
+    mm_sleepers.instance_count = segment_count
+    for i in range(segment_count):
+        var d := (float(i) + 0.5) * BRANCH_LENGTH / float(segment_count)
+        var angle := BRANCH_TURN * d / BRANCH_LENGTH
+        var basis := Basis(Vector3.UP, -angle)
+        var center := _branch_center(d)
+        for side in [-1, 1]:
+            var rail_position := center + basis * Vector3(side * 0.76, 0.23, 0)
+            mm_rails.set_instance_transform(i * 2 + (0 if side == -1 else 1),
+                Transform3D(basis, rail_position))
+        mm_ballast.set_instance_transform(i, Transform3D(basis,
+            center + Vector3(0, 0.01, 0)))
+        mm_sleepers.set_instance_transform(i, Transform3D(basis,
+            center + Vector3(0, 0.14, 0)))
+    for entry in [["BranchRails", mm_rails], ["BranchBallast", mm_ballast],
+            ["BranchSleepers", mm_sleepers]]:
+        var instance := MultiMeshInstance3D.new()
+        instance.name = entry[0]
+        instance.multimesh = entry[1]
+        root.add_child(instance)
 
 func _branch_center(distance: float) -> Vector3:
     var turn := BRANCH_TURN * distance / BRANCH_LENGTH
@@ -227,21 +285,26 @@ func _grime_strips(parent: Node3D, z0: float, z1: float, material: Material) -> 
             Vector3(side * 3.14, 0.45, (z0 + z1) * 0.5), material)
 
 func _shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
-    # One combined arch surface per section, rather than a MeshInstance per panel.
+    # One combined arch surface per section, except an accurately bounded junction opening.
     var st := SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
     for i in range(PROFILE.size() - 1):
-        # Open the right-hand wall at the side junction; keep the arch above.
-        if z0 < BRANCH_Z + 8.0 and z1 > BRANCH_Z - 8.0 and i == PROFILE.size() - 2:
-            continue
         var a: Vector2 = PROFILE[i]
         var b: Vector2 = PROFILE[i + 1]
-        var p0 := Vector3(a.x, a.y, z0)
-        var p1 := Vector3(b.x, b.y, z0)
-        var p2 := Vector3(b.x, b.y, z1)
-        var p3 := Vector3(a.x, a.y, z1)
-        for p in [p0, p1, p2, p0, p2, p3]:
-            st.add_vertex(p)
+        var spans: Array[Vector2] = [Vector2(z0, z1)]
+        if i == PROFILE.size() - 2 and z0 < BRANCH_Z + 8.0 and z1 > BRANCH_Z - 8.0:
+            spans.clear()
+            if z0 < BRANCH_Z - 8.0:
+                spans.append(Vector2(z0, BRANCH_Z - 8.0))
+            if z1 > BRANCH_Z + 8.0:
+                spans.append(Vector2(BRANCH_Z + 8.0, z1))
+        for span in spans:
+            var p0 := Vector3(a.x, a.y, span.x)
+            var p1 := Vector3(b.x, b.y, span.x)
+            var p2 := Vector3(b.x, b.y, span.y)
+            var p3 := Vector3(a.x, a.y, span.y)
+            for p in [p0, p1, p2, p0, p2, p3]:
+                st.add_vertex(p)
     st.generate_normals()
     var mesh := st.commit()
     var instance := MeshInstance3D.new()
