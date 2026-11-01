@@ -1,6 +1,7 @@
 extends Node3D
 ## First playable route: touch throttle/brake, doors and three camera views.
 ## Original GLB geometry and doors are not modified.
+const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
 const MAX_SPEED_MPS := 25.0
 const ACCEL_MPS2 := 1.2
 const BRAKE_MPS2 := 2.0
@@ -21,7 +22,7 @@ var hud: Label
 
 func _ready() -> void:
     initial_train_position = train.position
-    door_system = load("res://scripts/v106_door_controller.gd").new()
+    door_system = DOOR_CONTROLLER.new()
     door_system.name = "DoorSystem"
     add_child(door_system)
     door_system.setup(train)
