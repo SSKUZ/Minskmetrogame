@@ -1,0 +1,67 @@
+name: Metro 2 Godot browser preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/metro2-tunnel-v2
+    paths:
+      - 'metro2/**'
+      - '.github/workflows/metro2-browser-preview.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: metro2-pages-preview
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: barichello/godot-ci:4.3
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore train and cab assets
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/prepare_first_playable_assets.py
+          python3 metro2/tools/prepare_cab.py
+          python3 metro2/tools/prepare_announcements.py
+      - name: Import and validate Godot project
+        run: |
+          set -euo pipefail
+          godot --headless --path metro2 --editor --import --quit
+      - name: Export HTML5 preview
+        run: |
+          set -euo pipefail
+          mkdir -p metro2/build/web
+          godot --headless --path metro2 --export-release Web build/web/index.html
+          test -s metro2/build/web/index.html
+          test -s metro2/build/web/index.wasm
+          test -s metro2/build/web/index.pck
+          touch metro2/build/web/.nojekyll
+      - name: Upload web preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metro2-browser-preview
+          path: metro2/build/web/
+          if-no-files-found: error
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: metro2/build/web/
+      - name: Deploy preview
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages
