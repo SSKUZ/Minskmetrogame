@@ -52,12 +52,35 @@ func _ready() -> void:
         var module_start: float = section.x
         while module_start < section.y - 0.001:
             var module_end: float = minf(module_start + MODULE_LENGTH, section.y)
-            _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
+            # Reference shell on complete 16 m spans; keep legacy junction and end caps.
+            var full_span: bool = absf(module_end - module_start - MODULE_LENGTH) < 0.001
+            var at_junction: bool = module_start < BRANCH_Z + 8.0 and module_end > BRANCH_Z - 8.0
+            if full_span and not at_junction:
+                var reference := Node3D.new()
+                reference.set_script(load("res://scripts/tunnel_reference_module.gd"))
+                reference.name = "ReferenceTunnel_%d" % int(module_start)
+                reference.set("route_start_z", module_start)
+                reference.set("include_track", false)
+                reference.set("illumination", _module_illumination(module_start))
+                reference.position.z = module_start
+                add_child(reference)
+                _modules.append(reference)
+            else:
+                _build_module(module_start, module_end, concrete, seam, grime, ribs, cable_colors, fixture, hazard, signal_body, glow, red, green)
             module_start = module_end
     _build_side_branch(concrete, seam, ribs)
     _build_branch_tracks()
     _build_switch_connection()
     # StationBaseStatic now builds the authoritative curved track; no duplicate overlay.
+
+func _module_illumination(z: float) -> float:
+    # Deterministic variety without additional unique tunnel meshes.
+    var index := int(floor(z / MODULE_LENGTH))
+    if posmod(index, 7) == 0:
+        return 0.45
+    if posmod(index, 5) == 0:
+        return 1.3
+    return 0.9
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
