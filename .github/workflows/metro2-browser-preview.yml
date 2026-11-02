@@ -56,6 +56,16 @@ jobs:
           test -s metro2/build/web/index.wasm
           test -s metro2/build/web/index.pck
           touch metro2/build/web/.nojekyll
+      - name: Export isolated Godot 3D probe
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/web_render_probe.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/probe
+          godot --headless --path metro2 --export-release Web build/probe/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/probe/index.pck
+          touch metro2/build/probe/.nojekyll
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -79,6 +89,8 @@ jobs:
           find metro2/build/web -type f -size +95M -print -quit | grep -q . && { echo "Web export has a file >95MB; refusing GitHub push"; exit 1; } || true
           mkdir -p published-site/metro2
           cp -a metro2/build/web/. published-site/metro2/
+          mkdir -p published-site/metro2/probe
+          cp -a metro2/build/probe/. published-site/metro2/probe/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
