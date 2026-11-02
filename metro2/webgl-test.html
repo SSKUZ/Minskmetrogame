@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Metro 2.0 — WebGL2 check</title>
+<style>body{background:#111923;color:#fff;font:16px sans-serif;padding:18px}canvas{display:block;width:100%;max-width:500px;height:320px;border:2px solid #fff;background:#152638}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head>
+<body><h2>Метро 2.0 — проверка WebGL2</h2><p>Ниже должен появиться ярко-розовый треугольник на синем фоне.</p><canvas id="view" width="500" height="320"></canvas><pre id="report">Проверка...</pre>
+<script>
+const report=document.getElementById('report'),canvas=document.getElementById('view');
+function write(s){report.textContent+=s+'\n'}
+report.textContent='';
+try {
+ const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,failIfMajorPerformanceCaveat:false});
+ if(!gl){write('FAIL: WebGL2 context не создан.');}
+ else{
+  write('WebGL2: OK');
+  write('Version: '+gl.getParameter(gl.VERSION));
+  write('GLSL: '+gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+  const vs=gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vs,'#version 300 es\nprecision highp float;\nconst vec2 p[3]=vec2[3](vec2(-0.75,-0.65),vec2(0.75,-0.65),vec2(0.0,0.8));\nvoid main(){gl_Position=vec4(p[gl_VertexID],0.0,1.0);}');
+  gl.compileShader(vs);write('Vertex shader: '+(gl.getShaderParameter(vs,gl.COMPILE_STATUS)?'OK':gl.getShaderInfoLog(vs)));
+  const fs=gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fs,'#version 300 es\nprecision mediump float;\nout vec4 color;\nvoid main(){color=vec4(1.0,0.0,0.85,1.0);}');
+  gl.compileShader(fs);write('Fragment shader: '+(gl.getShaderParameter(fs,gl.COMPILE_STATUS)?'OK':gl.getShaderInfoLog(fs)));
+  const prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
+  write('Program: '+(gl.getProgramParameter(prog,gl.LINK_STATUS)?'OK':gl.getProgramInfoLog(prog)));
+  gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0.05,0.22,0.45,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.useProgram(prog);gl.drawArrays(gl.TRIANGLES,0,3);
+  write('Draw error: '+gl.getError());
+  const pixel=new Uint8Array(4);gl.readPixels(250,160,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+  write('Center pixel RGBA: '+Array.from(pixel).join(', '));
+  write(pixel[0]>180&&pixel[2]>120?'PASS: WebGL2 рисует треугольник.':'FAIL: WebGL2 не нарисовал ожидаемый цвет.');
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();write('ERROR: WebGL context lost');});
+ }
+}catch(e){write('ERROR: '+String(e));}
+</script></body></html>
