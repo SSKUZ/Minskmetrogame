@@ -11,6 +11,11 @@ const ACCEL_MPS2 := 1.2
 const MAX_PHYSICS_DELTA := 0.1
 const BRAKE_MPS2 := 2.0
 const COAST_MPS2 := 0.12
+# Geometry centres measured in Block B audit, including scene root offsets.
+const CAR_CENTERS_Z := [0.15025, 20.38751, 40.43151, 60.49701]
+const CAR_ROOT_OFFSETS_Z := [0.0, 0.38151, 0.41951, 0.45751]
+var car_nodes: Array[Node3D] = []
+var car_original_transforms: Array[Transform3D] = []
 
 @onready var train: Node3D = $PlayerTrainPlacement
 @onready var camera: Camera3D = $OverviewCamera
@@ -61,6 +66,7 @@ func _ready() -> void:
         push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
     if not door_system.get("validated"):
         push_warning("V106 doors are not validated; movement is blocked.")
+    _initialize_car_followers()
     _make_controls()
     _update_camera()
     _update_hud()
@@ -88,8 +94,45 @@ func _physics_process(delta: float) -> void:
     # Cab-facing visual S-curve only: keep all four car meshes rigid.
     train.position.x = initial_train_position.x + TRACK_PATH.offset(train.position.z)
     train.rotation.y = TRACK_PATH.heading(train.position.z)
+    _update_car_followers()
     _update_camera()
     _update_hud()
+
+
+func _initialize_car_followers() -> void:
+    # Original meshes retain their imported coordinates; only root transforms change.
+    # Do not reparent nodes: door-system references and cab attachments stay intact.
+    car_nodes.clear()
+    car_original_transforms.clear()
+    for i in range(4):
+        var car := train.get_node_or_null("Car%02d" % (i + 1)) as Node3D
+        if car == null:
+            push_error("BLOCK B: missing car %02d; per-car curve disabled" % (i + 1))
+            car_nodes.clear()
+            car_original_transforms.clear()
+            return
+        car_nodes.append(car)
+        car_original_transforms.append(car.transform)
+    _update_car_followers()
+
+func _update_car_followers() -> void:
+    if car_nodes.size() != 4:
+        return
+    var train_z: float = train.position.z
+    var front_heading: float = TRACK_PATH.heading(train_z)
+    var front_offset: float = TRACK_PATH.offset(train_z)
+    for i in range(4):
+        # Positive local Z points toward trailing cars; imported centre coordinates
+        # are already baked into each GLB and are NOT additional placement offsets.
+        var centre_z: float = CAR_CENTERS_Z[i]
+        var world_z: float = train_z + centre_z
+        var relative_heading: float = TRACK_PATH.heading(world_z) - front_heading
+        var relative_x: float = TRACK_PATH.offset(world_z) - front_offset
+        # Convert world-space curve displacement to the train's rotated frame.
+        var relative_shift := Basis(Vector3.UP, -front_heading) * Vector3(relative_x, 0.0, 0.0)
+        var pivot := Vector3(0.0, 0.0, centre_z)
+        var rotation_about_pivot := Transform3D(Basis(Vector3.UP, relative_heading), pivot) * Transform3D(Basis(), -pivot)
+        car_nodes[i].transform = Transform3D(Basis(), relative_shift) * rotation_about_pivot * car_original_transforms[i]
 
 func _update_camera() -> void:
     if camera_mode == 0:
@@ -203,6 +246,7 @@ func _reset_train() -> void:
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
+    _update_car_followers()
     cab_yaw = 0.0
     cab_pitch = 0.0
     cab_zoom = 75.0
