@@ -35,5 +35,7 @@ jobs:
           test -f metro2/project.godot
       - name: Import Godot scenes and validate GDScript
         run: godot --headless --path metro2 --editor --import --quit
+      - name: Block B numerical track checks (no APK, no screenshots)
+        run: timeout 60s godot --headless --path metro2 --script res://tests/block_b_smoke.gd
       - name: Block A headless runtime smoke test (no APK, no screenshots)
         run: timeout 90s godot --headless --path metro2 --script res://tests/block_a_smoke.gd
