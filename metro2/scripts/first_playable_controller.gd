@@ -4,6 +4,7 @@ extends Node3D
 const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
 const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
 const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
+const ANNOUNCER = preload("res://scripts/station_announcer.gd")
 const MAX_SPEED_MPS := 25.0
 const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
@@ -50,6 +51,8 @@ var platform_button: Button
 var info_button: Button
 var cab_adapter: Node3D
 var door_button: Button
+var announcer: Node
+var arrival_announced := false
 const PLATFORM_VIEW_Z := 112.0
 
 func _ready() -> void:
@@ -67,6 +70,9 @@ func _ready() -> void:
         push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
     if not door_system.get("validated"):
         push_warning("V106 doors are not validated; movement is blocked.")
+    announcer = ANNOUNCER.new()
+    announcer.name = "StationAnnouncer"
+    add_child(announcer)
     _initialize_car_followers()
     _make_controls()
     _update_camera()
@@ -96,6 +102,9 @@ func _physics_process(delta: float) -> void:
     train.position.x = initial_train_position.x + TRACK_PATH.offset(train.position.z)
     train.rotation.y = TRACK_PATH.heading(train.position.z)
     _update_car_followers()
+    if not arrival_announced and train.position.z <= ROUTE_END_Z + DOOR_STOP_TOLERANCE and speed_mps <= 0.05:
+        arrival_announced = true
+        announcer.call("play_arrival")
     _update_camera()
     _update_hud()
 
@@ -228,7 +237,7 @@ func _make_controls() -> void:
             door_system.call("request_open", speed_mps)
     )
     info_button = _button("Info", row)
-    info_button.pressed.connect(func() -> void: _show_info_placeholder())
+    info_button.pressed.connect(_play_info_announcement)
     platform_button = _button("ПЛАТФОРМА", row)
     platform_button.visible = false
     platform_button.pressed.connect(func() -> void:
@@ -252,6 +261,7 @@ func _reset_train() -> void:
     throttle = false
     braking = false
     speed_mps = 0.0
+    arrival_announced = false
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -304,7 +314,12 @@ func _unhandled_input(event: InputEvent) -> void:
             cab_yaw = clampf(cab_yaw - event.relative.x * 0.004, -1.35, 1.35)
             cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
 
-func _show_info_placeholder() -> void:
+func _play_info_announcement() -> void:
+    if announcer == null:
+        return
+    var is_at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
+    var ok: bool = bool(announcer.call("play_arrival" if is_at_station else "play_departure"))
     if status_label != null:
-        status_label.text = "Info: информатор будет подключён позже"
-        info_notice_until = Time.get_ticks_msec() + 2500
+        status_label.text = ("Информатор: прибытие" if is_at_station else "Информатор: отправление / следующая станция") if ok else "Аудиофайлы информатора не подготовлены"
+        info_notice_until = Time.get_ticks_msec() + 3000
+
