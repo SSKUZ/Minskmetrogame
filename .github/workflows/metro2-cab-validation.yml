@@ -38,6 +38,17 @@ jobs:
       - name: Block B numerical track checks (no APK, no screenshots)
         run: timeout 60s godot --headless --path metro2 --script res://tests/block_b_smoke.gd
       - name: Block B original car geometry audit (read-only)
-        run: timeout 90s godot --headless --path metro2 --script res://tests/block_b_car_audit.gd
+        run: |
+          set -o pipefail
+          timeout 90s godot --headless --path metro2 --script res://tests/block_b_car_audit.gd 2>&1 | tee block_b_car_geometry.log
+        shell: bash
+      - name: Preserve car geometry measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-b-car-geometry
+          path: block_b_car_geometry.log
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Block A headless runtime smoke test (no APK, no screenshots)
         run: timeout 90s godot --headless --path metro2 --script res://tests/block_a_smoke.gd
