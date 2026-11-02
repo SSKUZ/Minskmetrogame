@@ -7,6 +7,7 @@ const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
 const MAX_SPEED_MPS := 25.0
 const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
+const DOOR_STOP_TOLERANCE := 0.5
 const ACCEL_MPS2 := 1.2
 const MAX_PHYSICS_DELTA := 0.1
 const BRAKE_MPS2 := 2.0
@@ -159,8 +160,12 @@ func _update_hud() -> void:
     if camera_mode == 0 and not platform_view_available:
         camera_mode = 1
     if status_label != null and Time.get_ticks_msec() >= info_notice_until:
-        var remaining := train.position.z - STATION_STOP_Z
-        status_label.text = "До точки остановки: %.0f м  |  Двери: %s" % [remaining, "ОТКРЫТЫ" if door_system.get("target_open") else "ЗАКРЫТЫ"]
+        var remaining: float = maxf(0.0, train.position.z - STATION_STOP_Z)
+        var brake_distance: float = speed_mps * speed_mps / (2.0 * BRAKE_MPS2)
+        var stop_status := "СТОЯНКА" if remaining <= DOOR_STOP_TOLERANCE and speed_mps <= 0.05 else "ТОРМОЗИТЬ" if remaining <= brake_distance + 3.0 else "ДВИЖЕНИЕ"
+        status_label.text = "%s | До остановки: %.1f м | Тормозной путь: %.0f м | Двери: %s" % [
+            stop_status, remaining, brake_distance, "ОТКРЫТЫ" if door_system.get("target_open") else "ЗАКРЫТЫ"
+        ]
     if cab_adapter != null:
         cab_adapter.call("set_door_state", door_system.get("target_open"))
     if door_button != null:
@@ -219,7 +224,7 @@ func _make_controls() -> void:
     door_button.pressed.connect(func() -> void:
         if door_system.get("target_open"):
             door_system.call("request_close")
-        elif absf(train.position.z - STATION_STOP_Z) <= 5.0:
+        elif absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE:
             door_system.call("request_open", speed_mps)
     )
     info_button = _button("Info", row)
