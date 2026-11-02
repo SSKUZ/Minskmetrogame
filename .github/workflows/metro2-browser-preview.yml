@@ -10,7 +10,7 @@ on:
       - '.github/workflows/metro2-browser-preview.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: metro2-browser-preview
@@ -62,4 +62,31 @@ jobs:
           name: metro2-browser-preview
           path: metro2/build/web/
           if-no-files-found: error
-      # Do not deploy to the existing Pages root: it hosts the original Three.js game.
+
+      - name: Checkout published website separately
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 0
+          path: published-site
+      - name: Publish Godot under /metro2 without changing old website
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f published-site/index.html
+          test -f metro2/build/web/index.html
+          find metro2/build/web -type f -size +95M -print -quit | grep -q . && { echo "Web export has a file >95MB; refusing GitHub push"; exit 1; } || true
+          mkdir -p published-site/metro2
+          cp -a metro2/build/web/. published-site/metro2/
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2
+          if git diff --cached --quiet; then
+            echo "Godot preview already published"
+            exit 0
+          fi
+          git commit -m "Publish Godot Metro 2 under /metro2 (preserve legacy root)"
+          git pull --rebase origin main
+          git push origin HEAD:main
