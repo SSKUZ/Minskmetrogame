@@ -57,7 +57,7 @@ func _ready() -> void:
     _build_side_branch(concrete, seam, ribs)
     _build_branch_tracks()
     _build_switch_connection()
-    _build_main_visual_curve(concrete)
+    # StationBaseStatic now builds the authoritative curved track; no duplicate overlay.
 
 func _process(_delta: float) -> void:
     if _follow_train == null:
