@@ -35,6 +35,24 @@ func _check() -> void:
         if absf(poses[i].origin.x - PATH.offset(expected_z)) > 0.0001:
             _fail("car centreline mismatch")
             return
+    # Verify four measured centres remain on their own path samples even when
+    # the leading train root is rotated. No GLB load required.
+    for train_z in [329.603, 225.0, 205.0, 190.0, 178.0, 160.0, 145.0, 90.0]:
+        var heading: float = PATH.heading(train_z)
+        var root_basis := Basis(Vector3.UP, heading)
+        for i in range(4):
+            var centre := Vector3(CONTROLLER.CAR_CENTERS_X[i], 0.0, CONTROLLER.CAR_CENTERS_Z[i])
+            var target := Vector3(
+                PATH.offset(train_z + centre.z) + centre.x,
+                0.0,
+                train_z + centre.z
+            )
+            var root_origin := Vector3(PATH.offset(train_z), 0.0, train_z)
+            var target_local := root_basis.inverse() * (target - root_origin)
+            var world_centre := root_origin + root_basis * target_local
+            if world_centre.distance_to(target) > 0.0001:
+                _fail("car centreline transform mismatch at train z=%s car=%d" % [train_z, i + 1])
+                return
     # Numeric integration checks without loading heavyweight GLBs.
     var dt: float = 1.0 / 60.0
     var velocity: float = 0.0
