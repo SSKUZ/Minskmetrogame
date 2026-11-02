@@ -13,7 +13,7 @@ const BRAKE_MPS2 := 2.0
 const COAST_MPS2 := 0.12
 # Geometry centres measured in Block B audit, including scene root offsets.
 const CAR_CENTERS_Z := [0.15025, 20.38751, 40.43151, 60.49701]
-const CAR_ROOT_OFFSETS_Z := [0.0, 0.38151, 0.41951, 0.45751]
+const CAR_CENTERS_X := [-0.08, 0.0, 0.0, 0.08]
 var car_nodes: Array[Node3D] = []
 var car_original_transforms: Array[Transform3D] = []
 
@@ -119,20 +119,24 @@ func _update_car_followers() -> void:
     if car_nodes.size() != 4:
         return
     var train_z: float = train.position.z
-    var front_heading: float = TRACK_PATH.heading(train_z)
-    var front_offset: float = TRACK_PATH.offset(train_z)
+    var train_heading: float = TRACK_PATH.heading(train_z)
+    var inverse_basis := Basis(Vector3.UP, -train_heading)
     for i in range(4):
-        # Positive local Z points toward trailing cars; imported centre coordinates
-        # are already baked into each GLB and are NOT additional placement offsets.
-        var centre_z: float = CAR_CENTERS_Z[i]
-        var world_z: float = train_z + centre_z
-        var relative_heading: float = TRACK_PATH.heading(world_z) - front_heading
-        var relative_x: float = TRACK_PATH.offset(world_z) - front_offset
-        # Convert world-space curve displacement to the train's rotated frame.
-        var relative_shift := Basis(Vector3.UP, -front_heading) * Vector3(relative_x, 0.0, 0.0)
-        var pivot := Vector3(0.0, 0.0, centre_z)
-        var rotation_about_pivot := Transform3D(Basis(Vector3.UP, relative_heading), pivot) * Transform3D(Basis(), -pivot)
-        car_nodes[i].transform = Transform3D(Basis(), relative_shift) * rotation_about_pivot * car_original_transforms[i]
+        var centre := Vector3(CAR_CENTERS_X[i], 0.0, CAR_CENTERS_Z[i])
+        var world_z: float = train_z + centre.z
+        var target_world := Vector3(
+            initial_train_position.x + TRACK_PATH.offset(world_z) + centre.x,
+            train.position.y,
+            world_z
+        )
+        # Invert the train's heading to place each measured centre exactly
+        # on its own path sample, including longitudinal rotation displacement.
+        var target_local: Vector3 = inverse_basis * (target_world - train.position)
+        var relative_heading: float = TRACK_PATH.heading(world_z) - train_heading
+        var rotate_about_centre := Transform3D(Basis(), centre) * Transform3D(
+            Basis(Vector3.UP, relative_heading), Vector3.ZERO
+        ) * Transform3D(Basis(), -centre)
+        car_nodes[i].transform = Transform3D(Basis(), target_local - centre) * rotate_about_centre * car_original_transforms[i]
 
 func _update_camera() -> void:
     if camera_mode == 0:
