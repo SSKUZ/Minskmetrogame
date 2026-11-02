@@ -84,6 +84,12 @@ func _check() -> void:
     if CONTROLLER.MAX_SPEED_MPS != 25.0:
         _fail("speed limit is not 90 km/h")
         return
+    if CONTROLLER.DOOR_STOP_TOLERANCE > 0.5:
+        _fail("station doors may open too far from stop")
+        return
+    if 25.0 * 25.0 / (2.0 * CONTROLLER.BRAKE_MPS2) > 160.0:
+        _fail("braking distance exceeds approach allowance")
+        return
     if CONTROLLER.ROUTE_END_Z != CONTROLLER.STATION_STOP_Z:
         _fail("route stop mismatch")
         return
