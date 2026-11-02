@@ -30,7 +30,7 @@ func add_visual_branch(id: String, start: Vector3, heading: float,
     _add(id, VISUAL_BRANCH, start, heading, length, angle_radians,
         {"side": clampi(side, -1, 1), "drivable": false})
 
-func connect(from_id: String, to_id: String) -> bool:
+func connect_segments(from_id: String, to_id: String) -> bool:
     if not segments.has(from_id) or not segments.has(to_id):
         return false
     if not links.has(from_id):

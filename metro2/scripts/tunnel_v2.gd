@@ -490,8 +490,8 @@ func _cables(parent: Node3D, z0: float, z1: float, materials: Array) -> void:
                 for j in range(segments):
                     var za := lerpf(z0, z1, float(j) / segments)
                     var zb := lerpf(z0, z1, float(j + 1) / segments)
-                    var xa := side * (3.12 - offset * 0.32 + 0.025 * sin(za * 0.375 + offset * 12.0))
-                    var xb := side * (3.12 - offset * 0.32 + 0.025 * sin(zb * 0.375 + offset * 12.0))
+                    var xa: float = side * (3.12 - offset * 0.32 + 0.025 * sin(za * 0.375 + offset * 12.0))
+                    var xb: float = side * (3.12 - offset * 0.32 + 0.025 * sin(zb * 0.375 + offset * 12.0))
                     var ya := y + 0.055 * sin(za * 0.325 + offset * 6.0)
                     var yb := y + 0.055 * sin(zb * 0.325 + offset * 6.0)
                     # Flat ribbon cable: visible and inexpensive at driving distance.
