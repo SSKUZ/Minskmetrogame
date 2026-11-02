@@ -16,6 +16,45 @@ static var _shared_box: BoxMesh
 static var _shared_bolt: SphereMesh
 static var _shared_materials: Dictionary = {}
 
+# Smooth reference arch: Catmull-Rom interpolates the original profile vertices.
+# The inherited polygonal profile is preserved for all legacy tunnel geometry.
+func _curved_shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    st.set_smooth_group(0)
+    var profile_steps := (PROFILE.size() - 1) * 4
+    var length_steps := maxi(8, int(ceilf((z1 - z0) / 1.0)))
+    for j in range(length_steps):
+        var za := lerpf(z0, z1, float(j) / float(length_steps))
+        var zb := lerpf(z0, z1, float(j + 1) / float(length_steps))
+        for i in range(profile_steps):
+            var a := _smooth_profile(float(i) / 4.0)
+            var b := _smooth_profile(float(i + 1) / 4.0)
+            var p0 := Vector3(a.x + curve_offset(za), a.y, za)
+            var p1 := Vector3(b.x + curve_offset(za), b.y, za)
+            var p2 := Vector3(b.x + curve_offset(zb), b.y, zb)
+            var p3 := Vector3(a.x + curve_offset(zb), a.y, zb)
+            for v in [p0, p1, p2, p0, p2, p3]:
+                st.add_vertex(v)
+    st.index()
+    st.generate_normals()
+    var shell := MeshInstance3D.new()
+    shell.name = "SmoothReferenceArch"
+    shell.mesh = st.commit()
+    shell.material_override = material
+    parent.add_child(shell)
+
+func _smooth_profile(t: float) -> Vector2:
+    var i := mini(int(floor(t)), PROFILE.size() - 2)
+    var f := clampf(t - float(i), 0.0, 1.0)
+    var a: Vector2 = PROFILE[maxi(i - 1, 0)]
+    var b: Vector2 = PROFILE[i]
+    var c: Vector2 = PROFILE[i + 1]
+    var d: Vector2 = PROFILE[mini(i + 2, PROFILE.size() - 1)]
+    return 0.5 * ((2.0 * b) + (-a + c) * f
+        + (2.0 * a - 5.0 * b + 4.0 * c - d) * f * f
+        + (-a + 3.0 * b - 3.0 * c + d) * f * f * f)
+
 func curve_offset(z: float) -> float:
     return TRACK_PATH.offset(route_start_z + z)
 
