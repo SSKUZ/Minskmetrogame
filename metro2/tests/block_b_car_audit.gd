@@ -1,5 +1,5 @@
 extends SceneTree
-## Inspect imported car geometry, never edit original GLBs.
+## Read-only bounds audit for imported car GLBs; prints local geometry centres.
 const CAR_PATHS := [
     "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb",
     "res://assets/v106_original/car02/v106_car_02.glb",
@@ -12,40 +12,47 @@ func _initialize() -> void:
 
 func _inspect() -> void:
     for i in range(CAR_PATHS.size()):
-        var scene: PackedScene = load(CAR_PATHS[i]) as PackedScene
+        var scene := load(CAR_PATHS[i]) as PackedScene
         if scene == null:
-            push_error("BLOCK_B_CAR_AUDIT: missing imported scene %d" % (i + 1))
-            quit(1)
+            _fail("missing imported scene %d" % (i + 1))
             return
-        var car: Node3D = scene.instantiate() as Node3D
+        var car := scene.instantiate() as Node3D
         if car == null:
-            push_error("BLOCK_B_CAR_AUDIT: invalid root %d" % (i + 1))
-            quit(1)
+            _fail("invalid root %d" % (i + 1))
             return
         root.add_child(car)
-        var bounds := AABB()
-        var found := [false]
-        _visit(car, car, bounds, found)
-        # Bounds are logged for calibration, not treated as safe pivot coordinates.
-        print("BLOCK_B_CAR_%02d: meshes=%d" % [i + 1, _mesh_count(car)])
-        car.queue_free()
-    print("BLOCK_B_CAR_AUDIT_PASS: all four original imports inspected")
+        var stats := {"min": Vector3(INF, INF, INF), "max": Vector3(-INF, -INF, -INF), "meshes": 0}
+        _visit(car, car, stats)
+        if int(stats["meshes"]) == 0:
+            _fail("no mesh geometry in car %d" % (i + 1))
+            return
+        var min_corner: Vector3 = stats["min"]
+        var max_corner: Vector3 = stats["max"]
+        var center: Vector3 = (min_corner + max_corner) * 0.5
+        var dimensions: Vector3 = max_corner - min_corner
+        print("BLOCK_B_CAR_%02d meshes=%d center=%s size=%s min=%s max=%s" % [
+            i + 1, stats["meshes"], center, dimensions, min_corner, max_corner])
+        car.free()
+    print("BLOCK_B_CAR_AUDIT_PASS")
     quit(0)
 
-func _mesh_count(node: Node) -> int:
-    var count := 1 if node is MeshInstance3D else 0
+func _visit(node: Node, car: Node3D, stats: Dictionary) -> void:
+    if node is MeshInstance3D:
+        var mesh := node as MeshInstance3D
+        if mesh.mesh != null:
+            stats["meshes"] = int(stats["meshes"]) + 1
+            var box := mesh.get_aabb()
+            var to_car := car.global_transform.affine_inverse() * mesh.global_transform
+            for xi in range(2):
+                for yi in range(2):
+                    for zi in range(2):
+                        var corner := box.position + box.size * Vector3(float(xi), float(yi), float(zi))
+                        var point := to_car * corner
+                        stats["min"] = (stats["min"] as Vector3).min(point)
+                        stats["max"] = (stats["max"] as Vector3).max(point)
     for child in node.get_children():
-        count += _mesh_count(child)
-    return count
+        _visit(child, car, stats)
 
-func _visit(node: Node, car: Node3D, bounds: AABB, found: Array) -> void:
-    if node is MeshInstance3D and node.mesh != null:
-        var mesh: MeshInstance3D = node as MeshInstance3D
-        var local_bounds: AABB = mesh.get_aabb()
-        var to_car: Transform3D = car.global_transform.affine_inverse() * mesh.global_transform
-        var center: Vector3 = to_car * local_bounds.get_center()
-        if not found[0]:
-            print("  first mesh centre in car coordinates: ", center)
-            found[0] = true
-    for child in node.get_children():
-        _visit(child, car, bounds, found)
+func _fail(message: String) -> void:
+    push_error("BLOCK_B_CAR_AUDIT_FAIL: " + message)
+    quit(1)
