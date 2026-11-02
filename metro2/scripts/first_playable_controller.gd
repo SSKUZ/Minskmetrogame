@@ -125,7 +125,7 @@ func _refresh_render_diagnostics() -> void:
         "Look XYZ: %.2f / %.2f / %.2f" % [forward.x, forward.y, forward.z],
         "Train Z: %.1f | doors valid: %s" % [train.position.z, str(door_system != null and bool(door_system.get("validated")))]
     ]
-    render_diagnostics.text = "\\n".join(lines)
+    render_diagnostics.text = "\n".join(lines)
 
 # Diagnostic only: an unshaded cube fixed one metre in front of the active camera.
 # It must be visible regardless of tunnel lighting or the train's world position.
@@ -220,11 +220,11 @@ func _update_camera() -> void:
         camera.fov = 65.0
     elif camera_mode == 1:
         camera.global_position = train.to_global(cab_adapter.call("get_eye_position") as Vector3)
-        camera.global_basis = train.global_basis * Basis.from_euler(Vector3(cab_pitch, cab_yaw, 0.0))
+        camera.global_basis = train.global_basis * Basis(Vector3.UP, PI) * Basis.from_euler(Vector3(cab_pitch, cab_yaw, 0.0))
         camera.fov = cab_zoom
     else:
         camera.global_position = train.to_global(SALON_EYE)
-        camera.global_basis = train.global_basis
+        camera.global_basis = train.global_basis * Basis(Vector3.UP, PI)
         camera.fov = 80.0
 
 func _update_hud() -> void:
