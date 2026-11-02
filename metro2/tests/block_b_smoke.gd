@@ -23,6 +23,18 @@ func _check() -> void:
         if absf(PATH.offset(z)) > 0.00001 or absf(PATH.derivative(z)) > 0.00001:
             _fail("curve endpoint not tangent to straight track")
             return
+    var poses: Array[Transform3D] = PATH.car_poses(170.0, 19.0, 4)
+    if poses.size() != 4:
+        _fail("expected four car poses")
+        return
+    for i in range(poses.size()):
+        var expected_z: float = 170.0 + float(i) * 19.0
+        if absf(poses[i].origin.z - expected_z) > 0.0001:
+            _fail("car longitudinal position mismatch")
+            return
+        if absf(poses[i].origin.x - PATH.offset(expected_z)) > 0.0001:
+            _fail("car centreline mismatch")
+            return
     var tunnel = TUNNEL.new()
     for z in [120.0, 146.0, 165.0, 178.0, 190.0, 210.0, 250.0]:
         if absf(tunnel.curve_offset(z) - PATH.offset(z)) > 0.00001:
