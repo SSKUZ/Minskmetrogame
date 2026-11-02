@@ -1,0 +1,28 @@
+V106 / BLOCK B CAR GEOMETRY
+Source branch: feature/metro2-tunnel-v2
+Source commit: 1d30847c52c596949336b6bed0f1f61c81926258
+Script: metro2/tests/block_b_car_audit.gd (unchanged)
+Units: metres. size=(width X, height Y, length Z).
+Geometry centres are mesh-AABB centres in the imported car root frame.
+Pair spacing is longitudinal (Z); scene car Z offsets: 0, 0.38151, 0.41951, 0.45751 m.
+No global train placement applied. Gaps are between full mesh AABBs, not body-end or coupler measurements.
+
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+BLOCK_B_CAR_01 meshes=325 center=(-0.08, 1.737616, 0.15025) size=(2.933, 3.915231, 20.4105) min=(-1.5465, -0.22, -10.055) max=(1.3865, 3.695231, 10.3555)
+BLOCK_B_CAR_02 meshes=157 center=(0, 1.738295, 20.006) size=(2.69, 3.916589, 20.024) min=(-1.345, -0.22, 9.994) max=(1.345, 3.696589, 30.018)
+BLOCK_B_CAR_03 meshes=157 center=(0, 1.738295, 40.012) size=(2.69, 3.916589, 20.024) min=(-1.345, -0.22, 30) max=(1.345, 3.696589, 50.024)
+BLOCK_B_CAR_04 meshes=320 center=(0.08, 1.737616, 60.0395) size=(2.933, 3.915231, 20.067) min=(-1.3865, -0.22, 50.006) max=(1.5465, 3.695231, 70.073)
+BLOCK_B_PAIR_01_02 centre_spacing=20.2373 end_gap=0.0200
+BLOCK_B_PAIR_02_03 centre_spacing=20.0440 end_gap=0.0200
+BLOCK_B_PAIR_03_04 centre_spacing=20.0655 end_gap=0.0200
+BLOCK_B_CAR_AUDIT_PASS
+
+Pair centres after the script scene offsets:
+Car 01: (-0.080000, 1.737616, 0.150250)
+Car 02: (0.000000, 1.738295, 20.387510)
+Car 03: (0.000000, 1.738295, 40.431510)
+Car 04: (0.080000, 1.737616, 60.497010)
+Pair 01-02 Euclidean centre distance: 20.237418 m
+Pair 02-03 Euclidean centre distance: 20.044000 m
+Pair 03-04 Euclidean centre distance: 20.065659 m
