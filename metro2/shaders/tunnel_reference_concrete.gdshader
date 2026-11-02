@@ -10,9 +10,11 @@ void vertex() { surface_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; }
 void fragment() {
     vec2 uv=vec2(surface_pos.z, surface_pos.y+abs(surface_pos.x)*0.5);
     float mottling=noise(uv*1.1)*0.55+noise(uv*4.1)*0.28+noise(uv*17.0)*0.17;
-    float streak=noise(vec2(surface_pos.z*27.4,uv.y*0.44));
+    float warp=(noise(vec2(surface_pos.z*0.37, uv.y*0.29))-0.5)*2.7;
+    float streak=noise(vec2((surface_pos.z+warp)*13.7, uv.y*0.39+warp*0.21));
     float damp=smoothstep(0.49,0.8,streak)*(0.35+0.65*noise(vec2(surface_pos.z*1.6,uv.y*0.65)));
-    damp*=smoothstep(0.23,0.65,noise(uv*2.3));
+    damp*=smoothstep(0.27,0.72,noise(uv*1.71+vec2(warp*0.3,warp*0.17)));
+    damp*=0.58+0.42*noise(vec2(surface_pos.z*0.11,uv.y*0.71));
     float soot=0.16*(1.0-smoothstep(0.3,1.4,surface_pos.y));
     float ring=abs(fract(surface_pos.z+0.5)-0.5);
     float ring_line=1.0-smoothstep(0.006,0.018,ring);
