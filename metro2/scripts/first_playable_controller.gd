@@ -79,6 +79,7 @@ func _ready() -> void:
     _update_hud()
     _install_render_diagnostics()
     get_tree().create_timer(3.0).timeout.connect(_refresh_render_diagnostics)
+    _install_camera_render_probe()
 
 var render_diagnostics: Label
 
@@ -125,6 +126,23 @@ func _refresh_render_diagnostics() -> void:
         "Train Z: %.1f | doors valid: %s" % [train.position.z, str(door_system != null and bool(door_system.get("validated")))]
     ]
     render_diagnostics.text = "\\n".join(lines)
+
+# Diagnostic only: an unshaded cube fixed one metre in front of the active camera.
+# It must be visible regardless of tunnel lighting or the train's world position.
+func _install_camera_render_probe() -> void:
+    var probe := MeshInstance3D.new()
+    probe.name = "CameraRenderProbe_MAGENTA"
+    var cube := BoxMesh.new()
+    cube.size = Vector3(0.35, 0.35, 0.35)
+    probe.mesh = cube
+    var material := StandardMaterial3D.new()
+    material.albedo_color = Color(1.0, 0.0, 1.0, 1.0)
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.no_depth_test = true
+    probe.material_override = material
+    camera.add_child(probe)
+    probe.position = Vector3(0.0, 0.0, -1.0)
+    print("3D DIAG: magenta camera probe installed at -1m")
 
 func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
