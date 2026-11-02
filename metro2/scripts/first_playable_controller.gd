@@ -69,9 +69,11 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle and door_system.call("can_move"):
+    elif throttle and door_system != null and bool(door_system.call("can_move")):
         acceleration = ACCEL_MPS2
     var dt: float = clampf(delta, 0.0, MAX_PHYSICS_DELTA)
+    if dt <= 0.0:
+        return
     var previous_speed: float = speed_mps
     speed_mps = clampf(speed_mps + acceleration * dt, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
