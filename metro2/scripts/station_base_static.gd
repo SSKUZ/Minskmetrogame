@@ -9,6 +9,7 @@ const PLATFORM_WIDTH := 10.0
 const TRAIN_LENGTH := 79.224
 const PLATFORM_TOP_Y := 1.1805
 const PLATFORM_THICKNESS := 0.2
+const STOP_Z := 9.603
 const EDGE_OFFSET := 1.362
 const PLATFORM_CENTER_X := -5.37
 const TRACK_MIN_Z := -220.0
@@ -101,6 +102,22 @@ func _ready() -> void:
     _box(self, "SafetyEdgeTrack2", Vector3(0.055, 0.005, PLATFORM_LENGTH),
         Vector3(platform_min_x + 0.25, PLATFORM_TOP_Y + 0.003, platform_center_z),
         edge_mat)
+
+    # Visible stop target and modest station lighting, with no new assets.
+    var marker_mat := _material(Color("#e8e9ee"))
+    _box(self, "TrainStopMarker", Vector3(0.18, 0.012, 0.7),
+        Vector3(platform_max_x - 0.18, PLATFORM_TOP_Y + 0.012, STOP_Z),
+        marker_mat)
+    for i in range(6):
+        var light := OmniLight3D.new()
+        light.name = "PlatformLight%02d" % (i + 1)
+        light.position = Vector3(platform_center_x, 4.3,
+            platform_center_z - PLATFORM_LENGTH * 0.5 + 8.0 + float(i) * 18.0)
+        light.light_color = Color(0.89, 0.94, 1.0)
+        light.light_energy = 0.65
+        light.omni_range = 13.0
+        light.shadow_enabled = false
+        add_child(light)
 
 func _material(color: Color, metallic: float = 0.0, roughness: float = 1.0) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
