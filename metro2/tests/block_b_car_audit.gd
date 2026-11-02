@@ -11,6 +11,8 @@ func _initialize() -> void:
     call_deferred("_inspect")
 
 func _inspect() -> void:
+    var centers: Array[Vector3] = []
+    var lengths: Array[float] = []
     for i in range(CAR_PATHS.size()):
         var scene := load(CAR_PATHS[i]) as PackedScene
         if scene == null:
@@ -30,9 +32,19 @@ func _inspect() -> void:
         var max_corner: Vector3 = stats["max"]
         var center: Vector3 = (min_corner + max_corner) * 0.5
         var dimensions: Vector3 = max_corner - min_corner
+        var scene_offset_z: float = [0.0, 0.38151, 0.41951, 0.45751][i]
+        centers.append(center + Vector3(0.0, 0.0, scene_offset_z))
+        lengths.append(dimensions.z)
         print("BLOCK_B_CAR_%02d meshes=%d center=%s size=%s min=%s max=%s" % [
             i + 1, stats["meshes"], center, dimensions, min_corner, max_corner])
         car.free()
+    for i in range(1, centers.size()):
+        var spacing: float = absf(centers[i].z - centers[i - 1].z)
+        var gap: float = spacing - (lengths[i] + lengths[i - 1]) * 0.5
+        print("BLOCK_B_PAIR_%02d_%02d centre_spacing=%.4f end_gap=%.4f" % [i, i + 1, spacing, gap])
+        if spacing < 1.0 or spacing > 30.0:
+            _fail("implausible car spacing; do not enable per-car motion")
+            return
     print("BLOCK_B_CAR_AUDIT_PASS")
     quit(0)
 
