@@ -75,6 +75,15 @@ jobs:
           godot --headless --path metro2 --export-release Web build/lite/index.html
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/lite/index.pck
+      - name: Export original V106 single wagon preview
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_single_car_playable.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/v106-one
+          godot --headless --path metro2 --export-release Web build/v106-one/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/v106-one/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -102,6 +111,8 @@ jobs:
           cp -a metro2/build/probe/. published-site/metro2/probe/
           mkdir -p published-site/metro2/lite
           cp -a metro2/build/lite/. published-site/metro2/lite/
+          mkdir -p published-site/metro2/v106-one
+          cp -a metro2/build/v106-one/. published-site/metro2/v106-one/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
