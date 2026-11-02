@@ -77,6 +77,54 @@ func _ready() -> void:
     _make_controls()
     _update_camera()
     _update_hud()
+    _install_render_diagnostics()
+    get_tree().create_timer(3.0).timeout.connect(_refresh_render_diagnostics)
+
+var render_diagnostics: Label
+
+func _install_render_diagnostics() -> void:
+    var layer := CanvasLayer.new()
+    layer.name = "RenderDiagnostics"
+    layer.layer = 100
+    add_child(layer)
+    render_diagnostics = Label.new()
+    render_diagnostics.name = "RenderStatus"
+    render_diagnostics.set_anchors_preset(Control.PRESET_TOP_LEFT)
+    render_diagnostics.position = Vector2(12, 112)
+    render_diagnostics.add_theme_font_size_override("font_size", 16)
+    render_diagnostics.add_theme_color_override("font_color", Color(1, 0.95, 0.2))
+    render_diagnostics.add_theme_color_override("font_shadow_color", Color.BLACK)
+    render_diagnostics.add_theme_constant_override("shadow_offset_x", 1)
+    render_diagnostics.add_theme_constant_override("shadow_offset_y", 1)
+    layer.add_child(render_diagnostics)
+    _refresh_render_diagnostics()
+
+func _refresh_render_diagnostics() -> void:
+    if render_diagnostics == null or not is_instance_valid(render_diagnostics):
+        return
+    var meshes := 0
+    var visible_meshes := 0
+    var stack: Array[Node] = [self]
+    while not stack.is_empty():
+        var node: Node = stack.pop_back()
+        if node is MeshInstance3D or node is MultiMeshInstance3D:
+            meshes += 1
+            if node.is_visible_in_tree():
+                visible_meshes += 1
+        for child in node.get_children():
+            stack.append(child)
+    var cab_loaded := cab_adapter != null and bool(cab_adapter.get("ready_for_play"))
+    var camera_active := camera != null and camera.is_current()
+    var cam_pos := camera.global_position if camera != null else Vector3.ZERO
+    var forward := -camera.global_basis.z if camera != null else Vector3.ZERO
+    var lines := [
+        "3D DIAG | meshes: %d visible: %d" % [meshes, visible_meshes],
+        "Cab loaded: %s | Camera active: %s" % [str(cab_loaded), str(camera_active)],
+        "Camera XYZ: %.1f / %.1f / %.1f" % [cam_pos.x, cam_pos.y, cam_pos.z],
+        "Look XYZ: %.2f / %.2f / %.2f" % [forward.x, forward.y, forward.z],
+        "Train Z: %.1f | doors valid: %s" % [train.position.z, str(door_system != null and bool(door_system.get("validated")))]
+    ]
+    render_diagnostics.text = "\\n".join(lines)
 
 func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
@@ -104,6 +152,8 @@ func _physics_process(delta: float) -> void:
     _update_car_followers()
     _update_camera()
     _update_hud()
+    if Engine.get_physics_frames() % 120 == 0:
+        _refresh_render_diagnostics()
 
 
 func _initialize_car_followers() -> void:
