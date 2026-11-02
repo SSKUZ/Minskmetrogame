@@ -10,7 +10,7 @@ var hud: Label
 var distance := 300.0
 var orbit_yaw := -0.45
 var orbit_pitch := 0.20
-var orbit_radius := 4.6
+var orbit_radius := 9.0
 var touch_dragging := false
 var touch_last := Vector2.ZERO
 var wagon_center := Vector3(0, 1.2, 0)
@@ -40,13 +40,14 @@ func _ready() -> void:
     var bounds := _get_model_bounds(original_car)
     if bounds.size.length() > 0.01:
         wagon_center = bounds.get_center()
-        orbit_radius = 4.6
+        orbit_radius = 9.0
         print("V106 BOUNDS: ", bounds)
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
     authentic_tunnel.set_script(load("res://scripts/tunnel_v2.gd"))
     add_child(authentic_tunnel)
+    _build_rails()
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
@@ -79,6 +80,50 @@ func _ready() -> void:
     stop.button_up.connect(func(): brake = false)
     _update_camera()
 
+func _build_rails() -> void:
+    # Tunnel-only preview: two running rails and sleepers, no station platform.
+    var rail_mat := StandardMaterial3D.new()
+    rail_mat.albedo_color = Color(0.65, 0.72, 0.77)
+    rail_mat.metallic = 0.55
+    var sleeper_mat := StandardMaterial3D.new()
+    sleeper_mat.albedo_color = Color(0.28, 0.30, 0.32)
+    var rail_mesh := BoxMesh.new()
+    rail_mesh.size = Vector3(0.12, 0.16, 1.0)
+    rail_mesh.material = rail_mat
+    var sleeper_mesh := BoxMesh.new()
+    sleeper_mesh.size = Vector3(2.3, 0.12, 0.22)
+    sleeper_mesh.material = sleeper_mat
+    var track_path = load("res://scripts/playable_track_path.gd")
+    var segments := 530
+    var rail_multi := MultiMesh.new()
+    rail_multi.transform_format = MultiMesh.TRANSFORM_3D
+    rail_multi.mesh = rail_mesh
+    rail_multi.instance_count = segments * 2
+    for i in range(segments):
+        var z := -220.0 + float(i)
+        var x := 0.992 + track_path.offset(z)
+        var basis := Basis(Vector3.UP, track_path.heading(z))
+        for side in range(2):
+            var dx := -0.9 if side == 0 else 0.9
+            rail_multi.set_instance_transform(i * 2 + side, Transform3D(basis, Vector3(x, -0.08, z) + basis * Vector3(dx, 0, 0)))
+    var rails := MultiMeshInstance3D.new()
+    rails.name = "RunningRails"
+    rails.multimesh = rail_multi
+    add_child(rails)
+    var count := 815
+    var sleeper_multi := MultiMesh.new()
+    sleeper_multi.transform_format = MultiMesh.TRANSFORM_3D
+    sleeper_multi.mesh = sleeper_mesh
+    sleeper_multi.instance_count = count
+    for i in range(count):
+        var z := -220.0 + float(i) * 0.65
+        var basis := Basis(Vector3.UP, track_path.heading(z))
+        sleeper_multi.set_instance_transform(i, Transform3D(basis, Vector3(0.992 + track_path.offset(z), -0.20, z)))
+    var sleepers := MultiMeshInstance3D.new()
+    sleepers.name = "Sleepers"
+    sleepers.multimesh = sleeper_multi
+    add_child(sleepers)
+
 func _get_model_bounds(root: Node3D) -> AABB:
     var found := false
     var result := AABB()
@@ -107,6 +152,8 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventScreenDrag and touch_dragging:
         orbit_yaw -= event.relative.x * 0.008
         orbit_pitch = clampf(orbit_pitch + event.relative.y * 0.006, -1.2, 1.2)
+    elif event is InputEventMagnifyGesture:
+        orbit_radius = clampf(orbit_radius / maxf(event.factor, 0.1), 3.0, 35.0)
     elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
         orbit_yaw -= event.relative.x * 0.008
         orbit_pitch = clampf(orbit_pitch + event.relative.y * 0.006, -1.2, 1.2)
@@ -138,7 +185,7 @@ func _physics_process(delta: float) -> void:
     distance = maxf(12.0, distance - speed * delta)
     train.position.z = distance
     _update_camera()
-    hud.text = "V106 + MINSK TUNNEL | %.0f km/h | Swipe: rotate | Radius %.1fm" % [speed * 3.6, orbit_radius]
+    hud.text = "V106 + RAILS | MINSK TUNNEL | %.0f km/h | Swipe: rotate | Radius %.1fm" % [speed * 3.6, orbit_radius]
 
 func _update_camera() -> void:
     var focus := train.global_position + wagon_center
