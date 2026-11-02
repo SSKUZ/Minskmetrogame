@@ -10,7 +10,7 @@ var hud: Label
 var distance := 300.0
 var orbit_yaw := -0.45
 var orbit_pitch := 0.20
-var orbit_radius := 24.0
+var orbit_radius := 4.6
 var touch_dragging := false
 var touch_last := Vector2.ZERO
 var wagon_center := Vector3(0, 1.2, 0)
@@ -30,8 +30,9 @@ func _ready() -> void:
     light.light_energy = 1.5
     add_child(light)
     train = Node3D.new()
+    train.name = "PlayerTrainPlacement"
     add_child(train)
-    train.position = Vector3(0, 0, distance)
+    train.position = Vector3(0.992, 0.22, distance)
     var original_car := V106_SCENE.instantiate()
     original_car.name = "OriginalV106Car01"
     train.add_child(original_car)
@@ -39,19 +40,17 @@ func _ready() -> void:
     var bounds := _get_model_bounds(original_car)
     if bounds.size.length() > 0.01:
         wagon_center = bounds.get_center()
-        orbit_radius = clampf(bounds.size.length() * 1.15, 12.0, 80.0)
+        orbit_radius = 4.6
         print("V106 BOUNDS: ", bounds)
-    for i in range(18):
-        var z := 20.0 + i * 20.0
-        _box(self, Vector3(-2.6, 1.5, z), Vector3(0.25, 3.0, 19.0), Color(0.34, 0.36, 0.4))
-        _box(self, Vector3(2.6, 1.5, z), Vector3(0.25, 3.0, 19.0), Color(0.34, 0.36, 0.4))
-        _box(self, Vector3(0, 3.15, z), Vector3(5.4, 0.25, 19.0), Color(0.31, 0.33, 0.37))
-        _box(self, Vector3(-0.75, -0.05, z), Vector3(0.1, 0.15, 19.0), Color(0.65, 0.68, 0.72))
-        _box(self, Vector3(0.75, -0.05, z), Vector3(0.1, 0.15, 19.0), Color(0.65, 0.68, 0.72))
-        _box(self, Vector3(0, -0.18, z), Vector3(5.0, 0.2, 19.0), Color(0.17, 0.18, 0.2))
+    var authentic_tunnel := Node3D.new()
+    authentic_tunnel.name = "ExistingTunnelRoute"
+    authentic_tunnel.position.x = 0.992
+    authentic_tunnel.set_script(load("res://scripts/tunnel_v2.gd"))
+    add_child(authentic_tunnel)
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
+    camera.near = 0.04
     add_child(camera)
     var ui := CanvasLayer.new()
     add_child(ui)
@@ -139,7 +138,7 @@ func _physics_process(delta: float) -> void:
     distance = maxf(12.0, distance - speed * delta)
     train.position.z = distance
     _update_camera()
-    hud.text = "V106 | %.0f km/h | Swipe: rotate | Radius %.0fm" % [speed * 3.6, orbit_radius]
+    hud.text = "V106 + MINSK TUNNEL | %.0f km/h | Swipe: rotate | Radius %.1fm" % [speed * 3.6, orbit_radius]
 
 func _update_camera() -> void:
     var focus := train.global_position + wagon_center
