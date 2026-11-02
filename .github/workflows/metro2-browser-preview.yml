@@ -66,6 +66,15 @@ jobs:
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/probe/index.pck
           touch metro2/build/probe/.nojekyll
+      - name: Export lightweight playable tunnel
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/lite_playable.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/lite
+          godot --headless --path metro2 --export-release Web build/lite/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/lite/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -91,6 +100,8 @@ jobs:
           cp -a metro2/build/web/. published-site/metro2/
           mkdir -p published-site/metro2/probe
           cp -a metro2/build/probe/. published-site/metro2/probe/
+          mkdir -p published-site/metro2/lite
+          cp -a metro2/build/lite/. published-site/metro2/lite/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
