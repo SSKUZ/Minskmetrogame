@@ -18,3 +18,17 @@ static func derivative(z: float) -> float:
 
 static func heading(z: float) -> float:
     return atan2(derivative(z), 1.0)
+
+## Samples each car at its own longitudinal centre, without assuming GLB origins.
+## Car mesh pivots must be calibrated before applying these poses to imported assets.
+static func car_pose(car_center_z: float, track_origin_x: float = 0.0) -> Transform3D:
+    var origin := Vector3(track_origin_x + offset(car_center_z), 0.0, car_center_z)
+    return Transform3D(Basis(Vector3.UP, heading(car_center_z)), origin)
+
+static func car_poses(front_center_z: float, car_spacing: float, count: int, track_origin_x: float = 0.0) -> Array[Transform3D]:
+    var poses: Array[Transform3D] = []
+    if car_spacing <= 0.0 or count <= 0:
+        return poses
+    for i in range(count):
+        poses.append(car_pose(front_center_z + float(i) * car_spacing, track_origin_x))
+    return poses
