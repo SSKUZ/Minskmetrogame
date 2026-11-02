@@ -1,4 +1,4 @@
-name: Metro 2 Godot browser preview
+name: Metro 2 Godot browser preview (artifact only)
 
 on:
   workflow_dispatch:
@@ -11,11 +11,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: metro2-pages-preview
+  group: metro2-browser-preview
   cancel-in-progress: true
 
 jobs:
@@ -58,14 +56,4 @@ jobs:
           name: metro2-browser-preview
           path: metro2/build/web/
           if-no-files-found: error
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: metro2/build/web/
-      - name: Deploy preview
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages
+      # Do not deploy to the existing Pages root: it hosts the original Three.js game.
