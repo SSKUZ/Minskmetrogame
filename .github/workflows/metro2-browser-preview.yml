@@ -63,10 +63,10 @@ jobs:
           path: metro2/build/web/
           if-no-files-found: error
 
-      - name: Checkout published website separately
+      - name: Checkout live gh-pages branch separately
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: gh-pages
           persist-credentials: true
           fetch-depth: 0
           path: published-site
@@ -87,6 +87,6 @@ jobs:
             echo "Godot preview already published"
             exit 0
           fi
-          git commit -m "Publish Godot Metro 2 under /metro2 (preserve legacy root)"
+          git commit -m "Publish Godot Metro 2 under /metro2 on gh-pages (preserve legacy root)"
           git pull --rebase origin main
-          git push origin HEAD:main
+          git push origin HEAD:gh-pages
