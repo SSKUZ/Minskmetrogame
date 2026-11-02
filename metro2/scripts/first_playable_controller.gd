@@ -8,6 +8,7 @@ const MAX_SPEED_MPS := 25.0
 const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
 const ACCEL_MPS2 := 1.2
+const MAX_PHYSICS_DELTA := 0.1
 const BRAKE_MPS2 := 2.0
 const COAST_MPS2 := 0.12
 
@@ -70,13 +71,16 @@ func _physics_process(delta: float) -> void:
         acceleration = -BRAKE_MPS2
     elif throttle and door_system.call("can_move"):
         acceleration = ACCEL_MPS2
-    speed_mps = clampf(speed_mps + acceleration * delta, 0.0, MAX_SPEED_MPS)
+    var dt: float = clampf(delta, 0.0, MAX_PHYSICS_DELTA)
+    var previous_speed: float = speed_mps
+    speed_mps = clampf(speed_mps + acceleration * dt, 0.0, MAX_SPEED_MPS)
     # Original consist faces toward decreasing Z.
     # Clamp to the station stop; never overshoot into unbuilt track.
     var distance_to_stop: float = maxf(0.0, train.position.z - ROUTE_END_Z)
-    var travel: float = minf(speed_mps * delta, distance_to_stop)
+    var travel: float = minf((previous_speed + speed_mps) * 0.5 * dt, distance_to_stop)
     train.position.z -= travel
     if distance_to_stop <= travel + STOP_EPSILON:
+        train.position.z = ROUTE_END_Z
         speed_mps = 0.0
         throttle = false
     # Cab-facing visual S-curve only: keep all four car meshes rigid.
