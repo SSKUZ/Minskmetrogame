@@ -3,6 +3,7 @@ extends "res://scripts/tunnel_v2.gd"
 ## Opt-in scene only: the playable route is not changed or replicated.
 @export var route_start_z: float = 0.0
 @export var include_track: bool = true
+@export var include_service_cabinet: bool = true
 @export_range(0.0, 2.0, 0.05) var illumination: float = 1.0:
     set(value):
         illumination = value
@@ -89,7 +90,8 @@ func _ready() -> void:
         t.basis = Basis(Vector3.UP, TRACK_PATH.heading(route_start_z+t.origin.z)) * t.basis
         rings.set_instance_transform(i,t)
     _reference_cables()
-    _reference_panels()
+    if include_service_cabinet:
+        _reference_panels()
     _reference_lamps()
     if include_track:
         _reference_track()
