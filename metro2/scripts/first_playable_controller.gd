@@ -1,10 +1,11 @@
 extends Node3D
 ## First playable route: touch throttle/brake, doors and three camera views.
 ## Original GLB geometry and doors are not modified.
+const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
 const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
 const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
 const MAX_SPEED_MPS := 25.0
-const ROUTE_END_Z := STATION_STOP_Z
+const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
 const ACCEL_MPS2 := 1.2
 const BRAKE_MPS2 := 2.0
@@ -79,8 +80,8 @@ func _physics_process(delta: float) -> void:
         speed_mps = 0.0
         throttle = false
     # Cab-facing visual S-curve only: keep all four car meshes rigid.
-    train.position.x = initial_train_position.x + _curve_offset(train.position.z)
-    train.rotation.y = _curve_heading(train.position.z)
+    train.position.x = initial_train_position.x + TRACK_PATH.offset(train.position.z)
+    train.rotation.y = TRACK_PATH.heading(train.position.z)
     _update_camera()
     _update_hud()
 
@@ -205,19 +206,6 @@ func _reset_train() -> void:
     mouse_dragging = false
     pinch_last = -1.0
     _update_camera()
-
-func _curve_offset(z: float) -> float:
-    if z >= CURVE_START_Z or z <= CURVE_END_Z:
-        return 0.0
-    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
-    return CURVE_OFFSET * pow(sin(PI * u), 2.0)
-
-func _curve_heading(z: float) -> float:
-    if z >= CURVE_START_Z or z <= CURVE_END_Z:
-        return 0.0
-    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
-    # Heading follows the derivative of the visual centreline.
-    return atan2(-CURVE_OFFSET * PI / (CURVE_START_Z - CURVE_END_Z) * sin(2.0 * PI * u), 1.0)
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
