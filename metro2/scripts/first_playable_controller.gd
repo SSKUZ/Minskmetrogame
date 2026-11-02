@@ -102,9 +102,6 @@ func _physics_process(delta: float) -> void:
     train.position.x = initial_train_position.x + TRACK_PATH.offset(train.position.z)
     train.rotation.y = TRACK_PATH.heading(train.position.z)
     _update_car_followers()
-    if not arrival_announced and train.position.z <= ROUTE_END_Z + DOOR_STOP_TOLERANCE and speed_mps <= 0.05:
-        arrival_announced = true
-        announcer.call("play_arrival")
     _update_camera()
     _update_hud()
 
@@ -262,6 +259,7 @@ func _reset_train() -> void:
     braking = false
     speed_mps = 0.0
     arrival_announced = false
+    announcer.call("reset_sequence")
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -317,9 +315,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _play_info_announcement() -> void:
     if announcer == null:
         return
-    var is_at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
-    var ok: bool = bool(announcer.call("play_arrival" if is_at_station else "play_departure"))
+    var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
+    var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z >= STATION_STOP_Z - DOOR_STOP_TOLERANCE
+    var message: String = str(announcer.call("press_info", approaching, at_station,
+        bool(door_system.get("target_open")), speed_mps > 0.05))
     if status_label != null:
-        status_label.text = ("Информатор: прибытие" if is_at_station else "Информатор: отправление / следующая станция") if ok else "Аудиофайлы информатора не подготовлены"
+        status_label.text = message
         info_notice_until = Time.get_ticks_msec() + 3000
-
