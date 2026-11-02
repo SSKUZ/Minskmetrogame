@@ -37,6 +37,12 @@ jobs:
           python3 metro2/tools/prepare_first_playable_assets.py
           python3 metro2/tools/prepare_cab.py
           python3 metro2/tools/prepare_announcements.py
+      - name: Install Godot Web export templates
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          test -f "$HOME/.local/share/godot/export_templates/4.3.stable/web_nothreads_release.zip"
       - name: Import and validate Godot project
         run: |
           set -euo pipefail
