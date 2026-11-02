@@ -2,6 +2,7 @@ extends Node3D
 ## Tunnel V2: native Godot mobile geometry, browser 'testing' as visual reference.
 ## Existing StationBaseStatic rails and sleepers are authoritative; no duplicates.
 const SECTIONS := [Vector2(110.0, 310.0), Vector2(-220.0, -70.0)]
+const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
 const ROUTE_GRAPH_SCRIPT = preload("res://scripts/tunnel_route_graph.gd")
 var route_graph: RefCounted
 const PROFILE := [
@@ -182,12 +183,7 @@ func _build_side_branch(concrete: Material, seam: Material, ribs: Material) -> v
     parent.add_child(cap)
 
 func curve_offset(z: float) -> float:
-    # A shallow S-curve; the track returns to its original centreline
-    # before Malinovka, so station alignment remains unchanged.
-    if z >= CURVE_START_Z or z <= CURVE_END_Z:
-        return 0.0
-    var u := (CURVE_START_Z - z) / (CURVE_START_Z - CURVE_END_Z)
-    return CURVE_OFFSET * sin(PI * u) * sin(PI * u)
+    return TRACK_PATH.offset(z)
 
 func _curved_shell(parent: Node3D, z0: float, z1: float, material: Material) -> void:
     var st := SurfaceTool.new()
