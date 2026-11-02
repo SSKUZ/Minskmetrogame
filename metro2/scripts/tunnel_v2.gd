@@ -61,6 +61,7 @@ func _ready() -> void:
                 reference.name = "ReferenceTunnel_%d" % int(module_start)
                 reference.set("route_start_z", module_start)
                 reference.set("include_track", false)
+                reference.set("include_service_cabinet", posmod(int(floor(module_start / MODULE_LENGTH)), 4) == 0)
                 reference.set("illumination", _module_illumination(module_start))
                 reference.position.z = module_start
                 add_child(reference)
