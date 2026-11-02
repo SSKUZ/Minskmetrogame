@@ -35,6 +35,28 @@ func _check() -> void:
         if absf(poses[i].origin.x - PATH.offset(expected_z)) > 0.0001:
             _fail("car centreline mismatch")
             return
+    # Numeric integration checks without loading heavyweight GLBs.
+    var dt: float = 1.0 / 60.0
+    var velocity: float = 0.0
+    for i in range(1500):
+        velocity = minf(CONTROLLER.MAX_SPEED_MPS, velocity + CONTROLLER.ACCEL_MPS2 * dt)
+    if absf(velocity - 25.0) > 0.001:
+        _fail("acceleration fails to reach 90 km/h")
+        return
+    for i in range(750):
+        velocity = maxf(0.0, velocity - CONTROLLER.BRAKE_MPS2 * dt)
+    if velocity > 0.001:
+        _fail("braking does not reach zero")
+        return
+    velocity = 25.0
+    var coast_distance: float = 0.0
+    for i in range(600):
+        var next_velocity: float = maxf(0.0, velocity - CONTROLLER.COAST_MPS2 * dt)
+        coast_distance += (velocity + next_velocity) * 0.5 * dt
+        velocity = next_velocity
+    if velocity < 23.7 or velocity > 23.9 or coast_distance < 240.0:
+        _fail("coasting behavior outside expected range")
+        return
     var tunnel = TUNNEL.new()
     for z in [120.0, 146.0, 165.0, 178.0, 190.0, 210.0, 250.0]:
         if absf(tunnel.curve_offset(z) - PATH.offset(z)) > 0.00001:
