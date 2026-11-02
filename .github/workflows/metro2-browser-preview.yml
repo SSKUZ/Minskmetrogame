@@ -29,6 +29,10 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+      - name: Install Python for asset restoration
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3
       - name: Restore train and cab assets
         run: |
           set -euo pipefail
