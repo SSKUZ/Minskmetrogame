@@ -93,4 +93,3 @@ func _physics_process(delta: float) -> void:
 func _update_camera() -> void:
     camera.position = train.position + Vector3(0, 1.8, -7.5)
     camera.rotation = Vector3.ZERO
-    camera.rotate_y(PI)
