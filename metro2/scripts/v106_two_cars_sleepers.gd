@@ -15,6 +15,9 @@ var orbit_radius := 4.6
 var touch_dragging := false
 var touch_last := Vector2.ZERO
 var wagon_center := Vector3(0, 1.2, 0)
+var camera_pan := Vector3.ZERO
+var camera_move: Dictionary = {}
+const CAMERA_MOVE_SPEED := 7.0
 
 func _ready() -> void:
     var world := WorldEnvironment.new()
@@ -39,7 +42,6 @@ func _ready() -> void:
     train.add_child(original_car)
     var second_car := CAR02_SCENE.instantiate()
     second_car.name = "OriginalV106Car02"
-    second_car.position.z = 20.23726
     train.add_child(second_car)
     print("V106 SINGLE CAR: imported model instantiated")
     var bounds := _get_model_bounds(original_car)
@@ -47,6 +49,12 @@ func _ready() -> void:
         wagon_center = bounds.get_center()
         orbit_radius = 4.6
         print("V106 BOUNDS: ", bounds)
+    var second_bounds := _get_model_bounds(second_car)
+    if bounds.size.z > 1.0 and second_bounds.size.z > 1.0:
+        # Align bounding-box ends, irrespective of each GLB origin.
+        var gap := 0.55
+        second_car.position.z = bounds.position.z + bounds.size.z + gap - second_bounds.position.z
+        print("CAR02 aligned to CAR01: offset=", second_car.position.z, " gap=", gap)
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
@@ -68,6 +76,7 @@ func _ready() -> void:
     hud.add_theme_font_size_override("font_size", 22)
     hud.add_theme_color_override("font_color", Color.YELLOW)
     ui.add_child(hud)
+    orbit_radius = 9.0
     var row := HBoxContainer.new()
     row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
     row.offset_top = -90
@@ -86,7 +95,28 @@ func _ready() -> void:
     row.add_child(stop)
     stop.button_down.connect(func(): brake = true)
     stop.button_up.connect(func(): brake = false)
+    _add_camera_controls(ui)
     _update_camera()
+
+func _add_camera_controls(ui: CanvasLayer) -> void:
+    var panel := VBoxContainer.new()
+    panel.name = "CameraMovement"
+    panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+    panel.position = Vector2(-184, 55)
+    panel.set_anchor(SIDE_LEFT, 1.0)
+    panel.set_anchor(SIDE_RIGHT, 1.0)
+    ui.add_child(panel)
+    for entry in [["↑ ВПЕРЁД", "forward"], ["↓ НАЗАД", "back"], ["← ВЛЕВО", "left"], ["→ ВПРАВО", "right"], ["▲ ВЫШЕ", "up"], ["▼ НИЖЕ", "down"], ["＋ БЛИЖЕ", "near"], ["－ ДАЛЬШЕ", "far"], ["ЦЕНТР", "reset"]]:
+        var button := Button.new()
+        button.text = entry[0]
+        button.custom_minimum_size = Vector2(175, 42)
+        panel.add_child(button)
+        var action: String = entry[1]
+        if action == "reset":
+            button.pressed.connect(func(): camera_pan = Vector3.ZERO; orbit_radius = 9.0)
+        else:
+            button.button_down.connect(func(): camera_move[action] = true)
+            button.button_up.connect(func(): camera_move[action] = false)
 
 func _remove_intruding_branch_and_shadow_artifacts(tunnel: Node3D) -> void:
     # Diagnostic variant: eliminate the visual-only junction geometry that
@@ -187,7 +217,7 @@ func _unhandled_input(event: InputEvent) -> void:
         orbit_pitch = clampf(orbit_pitch + event.relative.y * 0.006, -1.2, 1.2)
     elif event is InputEventMouseButton and event.pressed:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-            orbit_radius = maxf(4.0, orbit_radius * 0.85)
+            orbit_radius = maxf(0.35, orbit_radius * 0.85)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             orbit_radius = minf(120.0, orbit_radius * 1.15)
 
@@ -212,11 +242,20 @@ func _physics_process(delta: float) -> void:
         speed = maxf(speed - delta * 0.12, 0.0)
     distance = maxf(12.0, distance - speed * delta)
     train.position.z = distance
+    var step := CAMERA_MOVE_SPEED * delta
+    if camera_move.get("forward", false): camera_pan.z -= step
+    if camera_move.get("back", false): camera_pan.z += step
+    if camera_move.get("left", false): camera_pan.x -= step
+    if camera_move.get("right", false): camera_pan.x += step
+    if camera_move.get("up", false): camera_pan.y += step
+    if camera_move.get("down", false): camera_pan.y -= step
+    if camera_move.get("near", false): orbit_radius = maxf(0.35, orbit_radius - step)
+    if camera_move.get("far", false): orbit_radius = minf(90.0, orbit_radius + step)
     _update_camera()
     hud.text = "V106 + MINSK TUNNEL | %.0f km/h | Swipe: rotate | Radius %.1fm" % [speed * 3.6, orbit_radius]
 
 func _update_camera() -> void:
-    var focus := train.global_position + wagon_center
+    var focus := train.global_position + wagon_center + camera_pan
     var offset := Vector3(sin(orbit_yaw) * cos(orbit_pitch), sin(orbit_pitch), cos(orbit_yaw) * cos(orbit_pitch)) * orbit_radius
     camera.global_position = focus + offset
     camera.look_at(focus, Vector3.UP)
