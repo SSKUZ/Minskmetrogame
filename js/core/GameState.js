@@ -1,0 +1,1 @@
+export function gameSnapshot({speed,doors,dist,index,playing,camera}){return Object.freeze({train:Object.freeze({speed,doorsOpen:doors,distanceToStation:dist}),station:Object.freeze({index,stopped:speed<1.5&&Math.abs(dist)<32}),camera,playing})}
