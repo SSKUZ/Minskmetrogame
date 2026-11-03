@@ -52,9 +52,10 @@ func _ready() -> void:
     var second_bounds := _get_model_bounds(second_car)
     if bounds.size.z > 1.0 and second_bounds.size.z > 1.0:
         # Align bounding-box ends, irrespective of each GLB origin.
-        var gap := 0.55
+        var gap := 0.25
         second_car.position.z = bounds.position.z + bounds.size.z + gap - second_bounds.position.z
         print("CAR02 aligned to CAR01: offset=", second_car.position.z, " gap=", gap)
+        _add_visible_coupler(bounds, second_bounds, second_car.position.z, gap)
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
@@ -98,6 +99,51 @@ func _ready() -> void:
     stop.button_up.connect(func(): brake = false)
     _add_camera_controls(ui)
     _update_camera()
+
+func _add_visible_coupler(front: AABB, rear: AABB, rear_offset: float, gap: float) -> void:
+    # Static visual automatic coupler between car-end faces.
+    var z0 := front.position.z + front.size.z
+    var z1 := rear.position.z + rear_offset
+    var mid := (z0 + z1) * 0.5
+    var steel := StandardMaterial3D.new()
+    steel.albedo_color = Color(0.13, 0.14, 0.15)
+    steel.metallic = 0.7
+    steel.roughness = 0.64
+    var coupler := Node3D.new()
+    coupler.name = "VisibleInterCarCoupler"
+    train.add_child(coupler)
+    for y in [0.40, 0.56]:
+        var shaft := MeshInstance3D.new()
+        shaft.name = "CouplerSteelBar"
+        var mesh := CylinderMesh.new()
+        mesh.top_radius = 0.075
+        mesh.bottom_radius = 0.075
+        mesh.height = gap + 0.20
+        shaft.mesh = mesh
+        shaft.material_override = steel
+        shaft.rotation.x = PI * 0.5
+        shaft.position = Vector3(0, y, mid)
+        coupler.add_child(shaft)
+    var head := MeshInstance3D.new()
+    head.name = "AutomaticCouplerHead"
+    var head_mesh := BoxMesh.new()
+    head_mesh.size = Vector3(0.42, 0.22, 0.20)
+    head.mesh = head_mesh
+    head.material_override = steel
+    head.position = Vector3(0, 0.48, mid)
+    coupler.add_child(head)
+    for x in [-0.28, 0.28]:
+        var hose := MeshInstance3D.new()
+        hose.name = "CouplerAirHose"
+        var hose_mesh := CylinderMesh.new()
+        hose_mesh.top_radius = 0.025
+        hose_mesh.bottom_radius = 0.025
+        hose_mesh.height = gap + 0.14
+        hose.mesh = hose_mesh
+        hose.material_override = steel
+        hose.rotation.x = PI * 0.5
+        hose.position = Vector3(x, 0.28, mid)
+        coupler.add_child(hose)
 
 func _add_camera_controls(ui: CanvasLayer) -> void:
     var panel := VBoxContainer.new()
@@ -153,9 +199,8 @@ func _add_tunnel_floor() -> void:
     # Continuous concrete invert under the rails and sleepers.
     # Rail top ~0.0 m, sleeper bottom -0.26 m; floor top -0.29 m.
     # Two straight tunnel sections correspond to the existing main bore.
-    var concrete := StandardMaterial3D.new()
-    concrete.albedo_color = Color(0.27, 0.28, 0.27)
-    concrete.roughness = 0.97
+    var concrete := ShaderMaterial.new()
+    concrete.shader = preload("res://shaders/aged_tunnel_floor.gdshader")
     for segment in [Vector2(110.0, 310.0), Vector2(-220.0, -70.0)]:
         var floor_piece := MeshInstance3D.new()
         floor_piece.name = "ConcreteTunnelFloor"
