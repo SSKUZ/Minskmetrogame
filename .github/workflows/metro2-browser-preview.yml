@@ -35,6 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 metro2/tools/prepare_first_playable_assets.py
+          python3 metro2/assets/v106_original/car02/restore_glb.py
           python3 metro2/tools/prepare_cab.py
           python3 metro2/tools/prepare_announcements.py
       - name: Install Godot Web export templates
@@ -111,6 +112,15 @@ jobs:
           godot --headless --path metro2 --export-release Web build/v106-static-lights/index.html
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/v106-static-lights/index.pck
+      - name: Export V106 two cars and sleepers
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_two_cars_sleepers.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/v106-two-cars
+          godot --headless --path metro2 --export-release Web build/v106-two-cars/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/v106-two-cars/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -146,6 +156,8 @@ jobs:
           cp -a metro2/build/v106-tunnel-fix/. published-site/metro2/v106-tunnel-fix/
           mkdir -p published-site/metro2/v106-static-lights
           cp -a metro2/build/v106-static-lights/. published-site/metro2/v106-static-lights/
+          mkdir -p published-site/metro2/v106-two-cars
+          cp -a metro2/build/v106-two-cars/. published-site/metro2/v106-two-cars/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
