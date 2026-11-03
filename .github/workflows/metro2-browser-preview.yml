@@ -84,6 +84,15 @@ jobs:
           godot --headless --path metro2 --export-release Web build/v106-one/index.html
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/v106-one/index.pck
+      - name: Export isolated V106 rails preview
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_rails_preview.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/v106-rails
+          godot --headless --path metro2 --export-release Web build/v106-rails/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/v106-rails/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -113,6 +122,8 @@ jobs:
           cp -a metro2/build/lite/. published-site/metro2/lite/
           mkdir -p published-site/metro2/v106-one
           cp -a metro2/build/v106-one/. published-site/metro2/v106-one/
+          mkdir -p published-site/metro2/v106-rails
+          cp -a metro2/build/v106-rails/. published-site/metro2/v106-rails/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
