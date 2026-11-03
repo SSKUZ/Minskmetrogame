@@ -64,6 +64,7 @@ func _ready() -> void:
     _stabilize_tunnel_lighting(authentic_tunnel)
     _add_simple_track()
     _add_sleepers()
+    _add_tunnel_floor()
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
@@ -147,6 +148,23 @@ func _stabilize_tunnel_lighting(tunnel: Node3D) -> void:
             node.shadow_enabled = false
         for child in node.get_children():
             pending.append(child)
+
+func _add_tunnel_floor() -> void:
+    # Continuous concrete invert under the rails and sleepers.
+    # Rail top ~0.0 m, sleeper bottom -0.26 m; floor top -0.29 m.
+    # Two straight tunnel sections correspond to the existing main bore.
+    var concrete := StandardMaterial3D.new()
+    concrete.albedo_color = Color(0.27, 0.28, 0.27)
+    concrete.roughness = 0.97
+    for segment in [Vector2(110.0, 310.0), Vector2(-220.0, -70.0)]:
+        var floor_piece := MeshInstance3D.new()
+        floor_piece.name = "ConcreteTunnelFloor"
+        var mesh := BoxMesh.new()
+        mesh.size = Vector3(6.16, 0.18, segment.y - segment.x)
+        floor_piece.mesh = mesh
+        floor_piece.material_override = concrete
+        floor_piece.position = Vector3(0.992, -0.38, (segment.x + segment.y) * 0.5)
+        add_child(floor_piece)
 
 func _add_sleepers() -> void:
     # One instanced draw call for sleepers along the straight preview rails.
