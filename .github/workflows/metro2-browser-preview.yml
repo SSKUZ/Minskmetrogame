@@ -141,6 +141,15 @@ jobs:
           godot --headless --path metro2 --export-release Web build/v106-four-cars/index.html
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/v106-four-cars/index.pck
+      - name: Export isolated car04 diagnostic
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_car04_only.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/v106-car04-only
+          godot --headless --path metro2 --export-release Web build/v106-car04-only/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/v106-car04-only/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -180,6 +189,8 @@ jobs:
           cp -a metro2/build/v106-two-cars/. published-site/metro2/v106-two-cars/
           mkdir -p published-site/metro2/v106-three-cars
           cp -a metro2/build/v106-three-cars/. published-site/metro2/v106-three-cars/
+          mkdir -p published-site/metro2/v106-car04-only
+          cp -a metro2/build/v106-car04-only/. published-site/metro2/v106-car04-only/
           mkdir -p published-site/metro2/v106-four-cars
           cp -a metro2/build/v106-four-cars/. published-site/metro2/v106-four-cars/
           cd published-site
