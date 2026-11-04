@@ -132,6 +132,15 @@ jobs:
           godot --headless --path metro2 --export-release Web build/v106-three-cars/index.html
           mv metro2/project.godot.original metro2/project.godot
           test -s metro2/build/v106-three-cars/index.pck
+      - name: Export four-car preview at a fresh URL
+        run: |
+          set -euo pipefail
+          cp metro2/project.godot metro2/project.godot.original
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_three_cars_preview.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/v106-four-cars
+          godot --headless --path metro2 --export-release Web build/v106-four-cars/index.html
+          mv metro2/project.godot.original metro2/project.godot
+          test -s metro2/build/v106-four-cars/index.pck
       - name: Upload web preview artifact
         uses: actions/upload-artifact@v4
         with:
@@ -171,6 +180,8 @@ jobs:
           cp -a metro2/build/v106-two-cars/. published-site/metro2/v106-two-cars/
           mkdir -p published-site/metro2/v106-three-cars
           cp -a metro2/build/v106-three-cars/. published-site/metro2/v106-three-cars/
+          mkdir -p published-site/metro2/v106-four-cars
+          cp -a metro2/build/v106-four-cars/. published-site/metro2/v106-four-cars/
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
