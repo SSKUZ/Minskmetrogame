@@ -37,6 +37,7 @@ jobs:
           python3 metro2/tools/prepare_first_playable_assets.py
           python3 metro2/assets/v106_original/car02/restore_glb.py
           python3 metro2/assets/v106_original/car03/restore_glb.py
+          python3 metro2/assets/v106_original/car04/restore_glb.py
           python3 metro2/tools/prepare_cab.py
           python3 metro2/tools/prepare_announcements.py
       - name: Install Godot Web export templates
