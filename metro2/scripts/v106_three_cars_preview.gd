@@ -86,6 +86,8 @@ func _ready() -> void:
     _add_sleepers()
     _add_tunnel_floor()
     _extend_track_and_floor()
+    _seal_tunnel_floor_edges()
+    _finish_track_materials()
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
@@ -119,6 +121,47 @@ func _ready() -> void:
     stop.button_up.connect(func(): brake = false)
     _add_camera_controls(ui)
     _update_camera()
+
+func _seal_tunnel_floor_edges() -> void:
+    var concrete := StandardMaterial3D.new()
+    concrete.albedo_color = Color(0.23, 0.24, 0.23)
+    concrete.roughness = 0.98
+    for section in [Vector2(14.0, 310.0), Vector2(-220.0, -70.0)]:
+        for side in [-1.0, 1.0]:
+            var seal := MeshInstance3D.new()
+            seal.name = "TunnelWallFloorJointSeal"
+            var box := BoxMesh.new()
+            box.size = Vector3(0.38, 0.64, section.y - section.x)
+            seal.mesh = box
+            seal.material_override = concrete
+            seal.position = Vector3(0.992 + side * 3.08, -0.16, (section.x + section.y) * 0.5)
+            add_child(seal)
+
+func _finish_track_materials() -> void:
+    var polished := StandardMaterial3D.new()
+    polished.albedo_color = Color(0.79, 0.82, 0.84)
+    polished.metallic = 0.9
+    polished.roughness = 0.17
+    var dark_steel := StandardMaterial3D.new()
+    dark_steel.albedo_color = Color(0.10, 0.095, 0.09)
+    dark_steel.metallic = 0.48
+    dark_steel.roughness = 0.8
+    var tar_wood := StandardMaterial3D.new()
+    tar_wood.albedo_color = Color(0.105, 0.085, 0.07)
+    tar_wood.roughness = 0.95
+    for node in get_children():
+        if node.name in ["PreviewRail", "ExtendedRail"]:
+            node.material_override = dark_steel
+            var top := MeshInstance3D.new()
+            top.name = "PolishedRunningSurface"
+            var mesh := BoxMesh.new()
+            mesh.size = Vector3(0.085, 0.012, node.mesh.size.z)
+            top.mesh = mesh
+            top.position = Vector3(0, 0.086, 0)
+            top.material_override = polished
+            node.add_child(top)
+        elif node.name in ["TrackSleepers", "ExtendedSleepers"]:
+            node.multimesh.mesh.material = tar_wood
 
 func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Node3D, second_bounds: AABB, gap: float) -> void:
     var end_z := first.position.z + first_bounds.position.z + first_bounds.size.z
