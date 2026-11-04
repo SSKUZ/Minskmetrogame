@@ -136,7 +136,7 @@ jobs:
         run: |
           set -euo pipefail
           cp metro2/project.godot metro2/project.godot.original
-          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_three_cars_preview.tscn"|' metro2/project.godot
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_four_cars_preview.tscn"|' metro2/project.godot
           mkdir -p metro2/build/v106-four-cars
           godot --headless --path metro2 --export-release Web build/v106-four-cars/index.html
           mv metro2/project.godot.original metro2/project.godot
