@@ -1,5 +1,4 @@
 extends Node3D
-const CAR04_SCENE = preload("res://assets/v106_original/car04/v106_car_04.glb")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
 const V106_SCENE = preload("res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb")
@@ -66,14 +65,6 @@ func _ready() -> void:
         var third_gap := 0.25
         third_car.position.z = second_car.position.z + second_bounds.position.z + second_bounds.size.z + third_gap - third_bounds.position.z
         _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
-    var fourth_car := CAR04_SCENE.instantiate()
-    fourth_car.name = "OriginalV106Car04"
-    train.add_child(fourth_car)
-    var fourth_bounds := _get_model_bounds(fourth_car)
-    if third_bounds.size.z > 1.0 and fourth_bounds.size.z > 1.0:
-        var gap04 := 0.25
-        fourth_car.position.z = third_car.position.z + third_bounds.position.z + third_bounds.size.z + gap04 - fourth_bounds.position.z
-        _add_visible_coupler_between(third_car, third_bounds, fourth_car, fourth_bounds, gap04)
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
@@ -86,8 +77,6 @@ func _ready() -> void:
     _add_sleepers()
     _add_tunnel_floor()
     _extend_track_and_floor()
-    _seal_tunnel_floor_edges()
-    _finish_track_materials()
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
@@ -122,47 +111,6 @@ func _ready() -> void:
     _add_camera_controls(ui)
     _update_camera()
 
-func _seal_tunnel_floor_edges() -> void:
-    var concrete := StandardMaterial3D.new()
-    concrete.albedo_color = Color(0.23, 0.24, 0.23)
-    concrete.roughness = 0.98
-    for section in [Vector2(14.0, 310.0), Vector2(-220.0, -70.0)]:
-        for side in [-1.0, 1.0]:
-            var seal := MeshInstance3D.new()
-            seal.name = "TunnelWallFloorJointSeal"
-            var box := BoxMesh.new()
-            box.size = Vector3(0.38, 0.64, section.y - section.x)
-            seal.mesh = box
-            seal.material_override = concrete
-            seal.position = Vector3(0.992 + side * 3.08, -0.16, (section.x + section.y) * 0.5)
-            add_child(seal)
-
-func _finish_track_materials() -> void:
-    var polished := StandardMaterial3D.new()
-    polished.albedo_color = Color(0.79, 0.82, 0.84)
-    polished.metallic = 0.9
-    polished.roughness = 0.17
-    var dark_steel := StandardMaterial3D.new()
-    dark_steel.albedo_color = Color(0.10, 0.095, 0.09)
-    dark_steel.metallic = 0.48
-    dark_steel.roughness = 0.8
-    var tar_wood := StandardMaterial3D.new()
-    tar_wood.albedo_color = Color(0.105, 0.085, 0.07)
-    tar_wood.roughness = 0.95
-    for node in get_children():
-        if node.name in ["PreviewRail", "ExtendedRail"]:
-            node.material_override = dark_steel
-            var top := MeshInstance3D.new()
-            top.name = "PolishedRunningSurface"
-            var mesh := BoxMesh.new()
-            mesh.size = Vector3(0.085, 0.012, node.mesh.size.z)
-            top.mesh = mesh
-            top.position = Vector3(0, 0.086, 0)
-            top.material_override = polished
-            node.add_child(top)
-        elif node.name in ["TrackSleepers", "ExtendedSleepers"]:
-            node.multimesh.mesh.material = tar_wood
-
 func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Node3D, second_bounds: AABB, gap: float) -> void:
     var end_z := first.position.z + first_bounds.position.z + first_bounds.size.z
     var next_z := second.position.z + second_bounds.position.z
@@ -193,8 +141,8 @@ func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Nod
 
 func _extend_tunnel(tunnel: Node3D) -> void:
     # Four extra 16m reference modules: 46..110m, ahead of the train travelling toward negative Z.
-    for i in range(6):
-        var start_z := 14.0 + float(i) * 16.0
+    for i in range(4):
+        var start_z := 46.0 + float(i) * 16.0
         var module := Node3D.new()
         module.set_script(load("res://scripts/tunnel_reference_module.gd"))
         module.name = "ExtendedTunnel_%d" % i
@@ -217,9 +165,9 @@ func _extend_track_and_floor() -> void:
         var rail := MeshInstance3D.new()
         rail.name = "ExtendedRail"
         var mesh := BoxMesh.new()
-        mesh.size = Vector3(0.10, 0.16, 96.0)
+        mesh.size = Vector3(0.10, 0.16, 64.0)
         rail.mesh = mesh
-        rail.position = Vector3(0.992 + side, -0.08, 62.0)
+        rail.position = Vector3(0.992 + side, -0.08, 78.0)
         rail.material_override = steel
         add_child(rail)
     var concrete := ShaderMaterial.new()
@@ -241,9 +189,9 @@ func _extend_track_and_floor() -> void:
     var mm := MultiMesh.new()
     mm.transform_format = MultiMesh.TRANSFORM_3D
     mm.mesh = sleeper_mesh
-    mm.instance_count = 147
-    for i in range(147):
-        mm.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, 14.4 + float(i) * 0.65)))
+    mm.instance_count = 98
+    for i in range(98):
+        mm.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, 46.4 + float(i) * 0.65)))
     var sleepers := MultiMeshInstance3D.new()
     sleepers.name = "ExtendedSleepers"
     sleepers.multimesh = mm
