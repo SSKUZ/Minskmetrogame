@@ -88,24 +88,11 @@ func _ready() -> void:
     _extend_track_and_floor()
     _seal_tunnel_floor_edges()
     _finish_track_materials()
-    # Render probe: unshaded marker placed directly in front of the active camera.
-    # If this marker is invisible while UI renders, the 3D viewport itself is failing.
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
     camera.near = 0.04
     add_child(camera)
-    var render_probe := MeshInstance3D.new()
-    render_probe.name = "RenderProbeMagenta"
-    var probe_mesh := BoxMesh.new()
-    probe_mesh.size = Vector3(0.35, 0.35, 0.35)
-    render_probe.mesh = probe_mesh
-    var probe_mat := StandardMaterial3D.new()
-    probe_mat.albedo_color = Color(1.0, 0.0, 1.0)
-    probe_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    render_probe.material_override = probe_mat
-    camera.add_child(render_probe)
-    render_probe.position = Vector3(0, 0, -1.5)
     var ui := CanvasLayer.new()
     add_child(ui)
     hud = Label.new()
