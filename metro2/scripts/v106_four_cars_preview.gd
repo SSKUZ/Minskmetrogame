@@ -1,5 +1,4 @@
 extends Node3D
-const CAR04_SCENE = preload("res://assets/v106_original/car04/v106_car_04.glb")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
 const V106_SCENE = preload("res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb")
@@ -66,14 +65,7 @@ func _ready() -> void:
         var third_gap := 0.25
         third_car.position.z = second_car.position.z + second_bounds.position.z + second_bounds.size.z + third_gap - third_bounds.position.z
         _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
-    var fourth_car := CAR04_SCENE.instantiate()
-    fourth_car.name = "OriginalV106Car04"
-    train.add_child(fourth_car)
-    var fourth_bounds := _get_model_bounds(fourth_car)
-    if third_bounds.size.z > 1.0 and fourth_bounds.size.z > 1.0:
-        var gap04 := 0.25
-        fourth_car.position.z = third_car.position.z + third_bounds.position.z + third_bounds.size.z + gap04 - fourth_bounds.position.z
-        _add_visible_coupler_between(third_car, third_bounds, fourth_car, fourth_bounds, gap04)
+    # Diagnostic: car04 intentionally excluded, all tunnel changes retained.
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
