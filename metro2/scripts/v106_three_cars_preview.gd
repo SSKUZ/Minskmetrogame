@@ -140,9 +140,9 @@ func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Nod
     root.add_child(head)
 
 func _extend_tunnel(tunnel: Node3D) -> void:
-    # Four extra 16m reference modules: 310..374m, adjoining existing 110..310m.
+    # Four extra 16m reference modules: 46..110m, ahead of the train travelling toward negative Z.
     for i in range(4):
-        var start_z := 310.0 + float(i) * 16.0
+        var start_z := 46.0 + float(i) * 16.0
         var module := Node3D.new()
         module.set_script(load("res://scripts/tunnel_reference_module.gd"))
         module.name = "ExtendedTunnel_%d" % i
@@ -167,7 +167,7 @@ func _extend_track_and_floor() -> void:
         var mesh := BoxMesh.new()
         mesh.size = Vector3(0.10, 0.16, 64.0)
         rail.mesh = mesh
-        rail.position = Vector3(0.992 + side, -0.08, 342.0)
+        rail.position = Vector3(0.992 + side, -0.08, 78.0)
         rail.material_override = steel
         add_child(rail)
     var concrete := ShaderMaterial.new()
@@ -177,7 +177,7 @@ func _extend_track_and_floor() -> void:
     var floor_mesh := BoxMesh.new()
     floor_mesh.size = Vector3(6.16, 0.18, 64.0)
     floor_piece.mesh = floor_mesh
-    floor_piece.position = Vector3(0.992, -0.38, 342.0)
+    floor_piece.position = Vector3(0.992, -0.38, 78.0)
     floor_piece.material_override = concrete
     add_child(floor_piece)
     var wood := StandardMaterial3D.new()
@@ -191,7 +191,7 @@ func _extend_track_and_floor() -> void:
     mm.mesh = sleeper_mesh
     mm.instance_count = 98
     for i in range(98):
-        mm.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, 310.4 + float(i) * 0.65)))
+        mm.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, 46.4 + float(i) * 0.65)))
     var sleepers := MultiMeshInstance3D.new()
     sleepers.name = "ExtendedSleepers"
     sleepers.multimesh = mm
