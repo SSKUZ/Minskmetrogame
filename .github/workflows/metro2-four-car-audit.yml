@@ -1,0 +1,99 @@
+name: Metro2 four-car controlled render audit
+on:
+  push:
+    branches: [feature/metro2-tunnel-v2]
+    paths:
+      - '.github/workflows/metro2-four-car-audit.yml'
+      - 'metro2/scripts/v106_four_cars_preview.gd'
+      - 'metro2/scripts/tunnel_lightweight_straight.gd'
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore models and import
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 metro2/tools/prepare_first_playable_assets.py
+          python3 metro2/tools/prepare_cab.py
+          python3 metro2/tools/prepare_announcements.py
+          godot --headless --path metro2 --editor --import --quit > import.log 2>&1
+          cat import.log | tail -30
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_four_cars_preview.tscn"|' metro2/project.godot
+          mkdir -p metro2/build/four
+          godot --headless --path metro2 --export-release Web build/four/index.html > export.log 2>&1
+          cat export.log | tail -10
+          test -s metro2/build/four/index.pck
+      - uses: actions/upload-artifact@v4
+        with:
+          name: four-car-audit-build
+          path: metro2/build/four/
+  browser:
+    needs: export
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: four-car-audit-build
+          path: web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install playwright pngjs
+          npx playwright install --with-deps chromium
+      - name: Compare rendering configurations
+        run: |
+          mkdir -p evidence
+          python3 -m http.server 8000 --directory web > evidence/server.txt 2>&1 &
+          cat > audit.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const {PNG} = require('pngjs');
+          (async()=>{
+            const browser=await chromium.launch({args:['--use-angle=swiftshader']});
+            for(const probe of ['full','no_lights','no_tunnel','three','no_sleepers']){
+              const page=await browser.newPage({viewport:{width:1280,height:720}});
+              const logs=[];
+              page.on('console',m=>{logs.push(m.type()+': '+m.text()); console.log(probe+': '+m.text());});
+              page.on('pageerror',e=>{logs.push('PAGEERROR '+e.message);console.log(probe+' PAGEERROR '+e.message)});
+              await page.goto('http://localhost:8000/?probe='+probe);
+              await page.waitForTimeout(12000);
+              await page.screenshot({path:'evidence/'+probe+'.png'});
+              const gl=await page.evaluate(()=>{
+                const c=document.querySelector('canvas');
+                const g=c.getContext('webgl2');
+                return g?{lost:g.isContextLost(),error:g.getError(),maxTexture:g.getParameter(g.MAX_TEXTURE_SIZE),maxUnits:g.getParameter(g.MAX_TEXTURE_IMAGE_UNITS)}:null;
+              });
+              console.log('WEBGL '+probe+' '+JSON.stringify(gl));
+              fs.writeFileSync('evidence/'+probe+'.txt',logs.join('\n'));
+              const p=PNG.sync.read(fs.readFileSync('evidence/'+probe+'.png'));
+              let changed=0;
+              for(let y=100;y<600;y++)for(let x=100;x<1000;x++){
+                const i=(y*p.width+x)*4;
+                if(Math.abs(p.data[i]-6)+Math.abs(p.data[i+1]-11)+Math.abs(p.data[i+2]-20)>12)changed++;
+              }
+              console.log('SCENE_PIXELS '+probe+' '+changed);
+              await page.close();
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          JS
+          node audit.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: four-car-controlled-evidence
+          path: evidence/

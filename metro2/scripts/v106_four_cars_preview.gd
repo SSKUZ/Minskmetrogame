@@ -107,6 +107,7 @@ func _ready() -> void:
     stop.button_up.connect(func(): brake = false)
     _add_camera_controls(ui)
     _update_camera()
+    call_deferred("_diagnose_render")
 
 func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     var resource := load("res://assets/v106_original/car04/v106_car_04.glb") as PackedScene
@@ -474,3 +475,43 @@ func _update_camera() -> void:
     var offset := Vector3(sin(orbit_yaw) * cos(orbit_pitch), sin(orbit_pitch), cos(orbit_yaw) * cos(orbit_pitch)) * orbit_radius
     camera.global_position = focus + offset
     camera.look_at(focus, Vector3.UP)
+
+# Controlled render probes are opt-in; the default scene uses all four cars.
+func _diagnose_render() -> void:
+    await get_tree().process_frame
+    await get_tree().process_frame
+    var probe := "full"
+    if OS.has_feature("web"):
+        var requested: Variant = JavaScriptBridge.eval("new URLSearchParams(location.search).get('probe') || 'full'")
+        if requested is String:
+            probe = requested
+    var tunnel := get_node("LightweightStraightTunnel") as Node3D
+    if probe == "no_tunnel":
+        tunnel.hide()
+    elif probe == "three":
+        var fourth := train.get_node_or_null("OriginalV106Car04") as Node3D
+        if fourth != null:
+            fourth.hide()
+    elif probe == "no_lights" or probe == "no_sleepers":
+        var pending: Array[Node] = [tunnel]
+        while not pending.is_empty():
+            var item: Node = pending.pop_back()
+            if probe == "no_lights" and item is Light3D:
+                item.hide()
+            if probe == "no_sleepers" and item is MultiMeshInstance3D:
+                item.hide()
+            for child in item.get_children():
+                pending.append(child)
+    await get_tree().create_timer(2.0).timeout
+    print("RENDER_PROBE ", JSON.stringify({
+        "probe": probe,
+        "camera": str(camera.global_position),
+        "cull_mask": camera.cull_mask,
+        "objects": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+        "draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+        "primitives": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
+        "texture_bytes": Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
+        "buffer_bytes": Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED),
+        "static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
+        "fps": Engine.get_frames_per_second()
+    }))
