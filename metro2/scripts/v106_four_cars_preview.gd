@@ -33,8 +33,7 @@ var _car_centers: Array[Vector3] = []
 
 func _ready() -> void:
     print("TZ30_BOOT ready")
-    if OS.has_feature("web"):
-        _diagnostics_enabled = JavaScriptBridge.eval("new URLSearchParams(location.search).has('audit')") == true
+    _diagnostics_enabled = OS.has_feature("web")
     print("TZ30_BOOT diagnostics configured")
     var world := WorldEnvironment.new()
     var env := Environment.new()
@@ -442,7 +441,7 @@ func diagnostic_state() -> Dictionary:
 
 func _publish_diagnostics() -> void:
     if _diagnostics_enabled:
-        JavaScriptBridge.eval("window.metro2Diagnostics = "+JSON.stringify(diagnostic_state()),true)
+        JavaScriptBridge.eval("window.metro2Diagnostics = "+JSON.stringify(diagnostic_state())+"; null",true)
 
 func _cycle_car_focus(direction: int) -> void:
     if _car_centers.is_empty():
