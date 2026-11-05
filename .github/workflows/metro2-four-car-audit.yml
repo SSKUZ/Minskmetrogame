@@ -114,7 +114,7 @@ jobs:
       - name: Install browser
         run: |
           npm install playwright pngjs
-          npx playwright install --with-deps chromium
+          google-chrome --version
       - name: Verify four cars, cameras, motion, recycling and reload
         run: |
           mkdir -p evidence
@@ -125,8 +125,10 @@ jobs:
           const fs=require('fs');
           const assert=require('node:assert/strict');
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const mark=s=>{console.log('CHECKPOINT '+s);fs.appendFileSync('evidence/checkpoints.txt',new Date().toISOString()+' '+s+'\n');};
+          const bounded=(p,label)=>{let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Diagnostic timeout: '+label)),30000);})]).finally(()=>clearTimeout(timer));};
           (async()=>{
-            const browser=await chromium.launch({args:['--use-angle=swiftshader']});
+            const browser=await chromium.launch({channel:'chrome',args:['--use-angle=swiftshader']});
             const page=await browser.newPage({viewport:{width:1280,height:720}});
             const logs=[],errors=[];
             page.on('console',m=>{
@@ -134,7 +136,7 @@ jobs:
               if(m.type()==='error' && !m.text().includes('favicon'))errors.push(line);
             });
             page.on('pageerror',e=>{errors.push(e.message);console.error('PAGEERROR '+e.message);fs.appendFileSync('evidence/browser-console.txt','PAGEERROR '+e.message+'\n');});
-            const state=()=>page.evaluate(()=>window.metro2Diagnostics);
+            const state=()=>bounded(page.evaluate(()=>window.metro2Diagnostics),'state_read');
             const ready=async()=>{
               try{await page.waitForFunction(()=>window.metro2Diagnostics?.cars===4 && window.metro2Diagnostics.coverage,null,{timeout:90000});}
               catch(e){
@@ -144,26 +146,30 @@ jobs:
               }
             };
             async function capture(name){
+              mark('capture_start '+name);
               await sleep(2000);
               const file='evidence/'+name+'.png';
               await page.screenshot({path:file,timeout:120000});
+              mark('image_saved '+name);
               const p=PNG.sync.read(fs.readFileSync(file));let visible=0;
               for(let y=100;y<550;y++)for(let x=100;x<1000;x++){
                 const i=(y*p.width+x)*4;
                 if(p.data[i]+p.data[i+1]+p.data[i+2]>90)visible++;
               }
               assert(visible>5000,'3D geometry not visible: '+name);
-              const gl=await page.evaluate(()=>{
+              mark('webgl_query '+name);
+              const gl=await bounded(page.evaluate(()=>{
                 const g=document.querySelector('canvas').getContext('webgl2');
                 return {lost:g.isContextLost(),error:g.getError()};
-              });
+              }),'webgl_query');
               assert.equal(gl.lost,false);assert.equal(gl.error,0);
+              mark('state_query '+name);
               const d=await state();assert.equal(d.cars,4);assert.equal(d.coverage,true);
               console.log('VERIFIED '+name+' '+JSON.stringify(d));
               fs.writeFileSync('evidence/'+name+'.json',JSON.stringify(d,null,2));
             }
             await page.goto('http://localhost:8000/?audit=1');
-            await ready();await capture('external-car01');
+            await ready();mark('startup_ready');await capture('external-car01');
             for(let car=2;car<=4;car++){
               await page.mouse.click(1180,536);
               await page.waitForFunction(n=>window.metro2Diagnostics?.focused_car===n,car,{timeout:90000});
@@ -208,7 +214,7 @@ jobs:
             console.log('LOCAL_BROWSER_PASS');
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
-          node verify.cjs
+          timeout 12m node verify.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -248,7 +254,7 @@ jobs:
               await new Promise(r=>setTimeout(r,10000));
             }
             assert.equal(info?.source_commit,process.env.GITHUB_SHA,'Pages deployment not available');
-            const b=await chromium.launch({args:['--use-angle=swiftshader']});
+            const b=await chromium.launch({channel:'chrome',args:['--use-angle=swiftshader']});
             const p=await b.newPage({viewport:{width:1280,height:720}});
             const errors=[];
             p.on('pageerror',e=>errors.push(e.message));
@@ -272,7 +278,7 @@ jobs:
             await b.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
-          node published.cjs
+          timeout 10m node published.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
