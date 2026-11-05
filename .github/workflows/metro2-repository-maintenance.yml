@@ -1,0 +1,48 @@
+name: Metro2 repository storage audit and maintenance
+on:
+  workflow_dispatch:
+  push:
+    branches: [maintenance/repository-cleanup-2026-11-06]
+    paths:
+      - '.github/workflows/metro2-repository-maintenance.yml'
+      - 'metro2/tools/repository_maintenance.py'
+      - 'metro2/tools/web_publication.py'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inventory repository artifacts and workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import urllib.request,json,os,collections
+          repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GH_TOKEN']
+          def pages(endpoint,key):
+            result=[]
+            for page in range(1,100):
+              request=urllib.request.Request('https://api.github.com/repos/'+repo+endpoint+f'?per_page=100&page={page}',headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','User-Agent':'MetroRepositoryAudit'})
+              with urllib.request.urlopen(request) as response:data=json.load(response)
+              rows=data[key];result.extend(rows)
+              if len(rows)<100:return result
+          artifacts=pages('/actions/artifacts','artifacts')
+          workflows=pages('/actions/workflows','workflows')
+          groups={}
+          for item in artifacts:
+            group=groups.setdefault(item['name'],{'count':0,'bytes':0,'expired':0})
+            group['count']+=1;group['bytes']+=item['size_in_bytes'];group['expired']+=int(item['expired'])
+          inventory={'artifacts':artifacts,'workflows':workflows,'groups':groups,'artifact_total_bytes':sum(a['size_in_bytes'] for a in artifacts)}
+          open('repository-inventory.json','w').write(json.dumps(inventory,indent=2))
+          print('ARTIFACT_GROUPS',json.dumps(groups))
+          print('ARTIFACT_TOTAL',inventory['artifact_total_bytes'])
+          print('WORKFLOWS',json.dumps([{'id':x['id'],'name':x['name'],'path':x['path'],'state':x['state']} for x in workflows]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repository-audit-inventory
+          path: repository-inventory.json
+          retention-days: 3
