@@ -28,11 +28,8 @@ func _ready() -> void:
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     env.ambient_light_color = Color(0.6, 0.7, 0.9)
     env.ambient_light_energy = 1.0
-    # Dark distance hides the recycled tunnel boundary in cab and exterior views.
-    env.fog_enabled = true
-    env.fog_light_color = Color(0.018, 0.022, 0.03)
-    env.fog_density = 0.075
-    env.fog_sun_scatter = 0.0
+    # Disable distance fog until basic four-car rendering is stable.
+    env.fog_enabled = false
     world.environment = env
     add_child(world)
     var light := DirectionalLight3D.new()
