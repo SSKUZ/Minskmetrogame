@@ -1,8 +1,8 @@
 extends Node3D
 ## Lightweight straight metro tunnel: 16m modular shell, no branches or signals.
 const MODULE_LENGTH := 16.0
-@export var module_count := 6
-@export var start_z := 254.0
+@export var module_count := 8
+@export var start_z := 220.0
 @export var center_x := 0.992
 @export var lit_every := 2
 const PROFILE := [
@@ -79,11 +79,11 @@ func _process(_delta: float) -> void:
     if _train == null:
         return
     var train_z := _train.global_position.z
-    # Keep six 16m sections, recycle those behind the train to its front.
+    # Recycle 16m modules only after they are far behind the train.
     for section in _sections:
         var index := _sections.find(section)
         var center_z := start_z + float(index) * MODULE_LENGTH + 8.0 + section.position.z
-        if center_z > train_z + 48.0:
+        if center_z > train_z + 56.0:
             section.position.z -= float(module_count) * MODULE_LENGTH
 
 func _material(color: Color, roughness_value: float) -> StandardMaterial3D:
