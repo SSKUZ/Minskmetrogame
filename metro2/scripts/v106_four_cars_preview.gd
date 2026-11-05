@@ -45,8 +45,8 @@ func _ready() -> void:
     _environment = env
     env.fog_enabled = true
     env.fog_mode = Environment.FOG_MODE_DEPTH
-    env.fog_depth_begin = 24.0
-    env.fog_depth_end = 56.0
+    env.fog_depth_begin = 60.0
+    env.fog_depth_end = 120.0
     env.fog_depth_curve = 1.2
     env.fog_density = 1.0
     env.fog_light_color = Color(0.006,0.008,0.012)
@@ -360,7 +360,7 @@ func _add_headlight() -> void:
     headlight.position = Vector3(0.0,1.55,_train_bounds.position.z-0.15)
     headlight.light_color = Color(0.92,0.91,0.80)
     headlight.light_energy = 2.0
-    headlight.spot_range = 42.0
+    headlight.spot_range = 72.0
     headlight.spot_angle = 42.0
     headlight.shadow_enabled = true
     train.add_child(headlight)
