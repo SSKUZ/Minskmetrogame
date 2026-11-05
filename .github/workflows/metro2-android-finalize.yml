@@ -1,0 +1,122 @@
+name: Metro2 TZ30 Android finalize from verified Web source
+on:
+  push:
+    branches: [feature/metro2-tunnel-v2]
+    paths: ['.github/workflows/metro2-android-finalize.yml']
+permissions:
+  actions: read
+  contents: write
+env:
+  SOURCE_COMMIT: ae13f50e739af627dacb5caeff06312bfc2df54d
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: four-car-common-source
+          path: stage
+          run-id: 42062888588
+          github-token: ${{ github.token }}
+      - name: Configure Android export and build the same scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3 unzip curl
+          mkdir -p "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot" stage/build/android
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          java_sdk="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+          debug_key="$HOME/.local/share/godot/debug.keystore"
+          if [ ! -f "$debug_key" ]; then keytool -genkeypair -keystore "$debug_key" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000; fi
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$java_sdk"
+          export/android/debug_keystore = "$debug_key"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          curl -fL --retry 3 -o stage/platform-icon.png "https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars-tz30/$SOURCE_COMMIT/index.icon.png"
+          python3 - <<'PY'
+          import pathlib,json,hashlib,os
+          root=pathlib.Path('stage')
+          info=json.loads((root/'build-info.json').read_text())
+          assert info['source_commit']==os.environ['SOURCE_COMMIT']
+          for name,digest in info['models_and_scripts'].items():
+            if name.endswith(('.gd','.glb')):
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
+          p=root/'project.godot'
+          p.write_text(p.read_text().replace('[application]','[application]\nconfig/icon="res://platform-icon.png"'))
+          PY
+          godot --headless --path stage --editor --import --quit > import-android.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' import-android.log; then exit 1; fi
+          godot --headless --path stage --export-debug Android build/android/MinskMetro2-TZ30-arm64.apk > export-android.log 2>&1
+          cat export-android.log | tail -20
+          if grep -E 'SCRIPT ERROR|ERROR:' export-android.log; then exit 1; fi
+          apk_tools="$(dirname "$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)")"
+          "$apk_tools/apksigner" verify --verbose stage/build/android/MinskMetro2-TZ30-arm64.apk | tee stage/build/android/signature.txt
+          "$apk_tools/zipalign" -c -v 4 stage/build/android/MinskMetro2-TZ30-arm64.apk > stage/build/android/alignment.txt
+          "$apk_tools/aapt" dump badging stage/build/android/MinskMetro2-TZ30-arm64.apk > stage/build/android/package.txt
+          cp stage/build-info.json stage/build/android/
+          python3 - <<'PY'
+          import pathlib,zipfile,hashlib,json,os
+          apk=pathlib.Path('stage/build/android/MinskMetro2-TZ30-arm64.apk')
+          with zipfile.ZipFile(apk) as z:
+            assert z.testzip() is None
+            assert any(n.startswith('lib/arm64-v8a/') and n.endswith('.so') for n in z.namelist())
+            assert all(any('v106_car_'+car in n for n in z.namelist()) for car in ['02','03','04'])
+            info=json.loads(z.read('assets/build-info.json'))
+            assert info['source_commit']==os.environ['SOURCE_COMMIT']
+            assert info==json.loads(pathlib.Path('stage/build-info.json').read_text())
+          result={'source_commit':os.environ['SOURCE_COMMIT'],'file':apk.name,'bytes':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'zip_crc':'PASS','signature':'PASS','alignment':'PASS','device_run':'NOT TESTED'}
+          apk.with_name('apk-verification.json').write_text(json.dumps(result,indent=2))
+          print('APK_VERIFIED '+json.dumps(result))
+          PY
+          cd stage/build/android
+          sha256sum MinskMetro2-TZ30-arm64.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-tz30-android-apk
+          path: stage/build/android/
+  publish-apk:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: metro2-tz30-android-apk
+          path: android
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 0
+      - name: Publish APK and verify anonymous download
+        run: |
+          set -euo pipefail
+          test "$(stat -c%s android/MinskMetro2-TZ30-arm64.apk)" -lt 99000000
+          dest="published-site/metro2/v106-four-cars-tz30/$SOURCE_COMMIT"
+          cp android/MinskMetro2-TZ30-arm64.apk android/SHA256SUMS.txt android/apk-verification.json "$dest/"
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "metro2/v106-four-cars-tz30/$SOURCE_COMMIT"
+          git commit -m "Publish verified TZ30 Android APK $SOURCE_COMMIT"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          cd ..
+          url="https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars-tz30/$SOURCE_COMMIT/MinskMetro2-TZ30-arm64.apk"
+          curl --fail --location --retry 30 --retry-all-errors --retry-delay 10 --max-time 900 -o downloaded.apk "$url"
+          cmp android/MinskMetro2-TZ30-arm64.apk downloaded.apk
+          echo "APK_DOWNLOAD_VERIFIED $url"
+          cat android/apk-verification.json
