@@ -13,3 +13,6 @@ window/size/viewport_height=720
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+
+; Godot 4.3 no-thread Web: avoid empty threaded cull results (godot#88192).
+limits/spatial_indexer/threaded_cull_minimum_instances.web=1000000

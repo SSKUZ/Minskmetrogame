@@ -486,6 +486,14 @@ func _diagnose_render() -> void:
         if requested is String:
             probe = requested
     var tunnel := get_node("LightweightStraightTunnel") as Node3D
+    if probe == "inside" or probe == "one_module":
+        orbit_yaw = PI * 0.5
+        orbit_pitch = 0.0
+        orbit_radius = 2.6
+        _update_camera()
+    if probe == "one_module":
+        for section in tunnel.get_children():
+            section.visible = section.get_index() == 5
     if probe == "no_tunnel":
         tunnel.hide()
     elif probe == "three":

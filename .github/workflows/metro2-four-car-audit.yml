@@ -4,6 +4,7 @@ on:
     branches: [feature/metro2-tunnel-v2]
     paths:
       - '.github/workflows/metro2-four-car-audit.yml'
+      - 'metro2/project.godot'
       - 'metro2/scripts/v106_four_cars_preview.gd'
       - 'metro2/scripts/tunnel_lightweight_straight.gd'
 permissions:
@@ -64,7 +65,7 @@ jobs:
           const {PNG} = require('pngjs');
           (async()=>{
             const browser=await chromium.launch({args:['--use-angle=swiftshader']});
-            for(const probe of ['full','no_lights','no_tunnel','three','no_sleepers']){
+            for(const probe of ['full','inside','one_module']){
               const page=await browser.newPage({viewport:{width:1280,height:720}});
               const logs=[];
               page.on('console',m=>{logs.push(m.type()+': '+m.text()); console.log(probe+': '+m.text());});
