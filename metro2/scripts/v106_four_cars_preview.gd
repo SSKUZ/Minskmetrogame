@@ -1,4 +1,6 @@
 extends Node3D
+const CAB_RUNTIME = preload("res://scripts/cab_v33.gd")
+const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
 const V106_SCENE = preload("res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb")
@@ -30,6 +32,9 @@ var _diagnostics_enabled := false
 var _diagnostic_clock := 0.0
 var _focused_car := 0
 var _car_centers: Array[Vector3] = []
+var cab_runtime: Node3D
+var door_system: Node
+var _ui_layer: CanvasLayer
 
 func _ready() -> void:
     print("TZ30_BOOT ready")
@@ -103,6 +108,7 @@ func _ready() -> void:
     camera.near = 0.04
     add_child(camera)
     var ui := CanvasLayer.new()
+    _ui_layer = ui
     add_child(ui)
     hud = Label.new()
     hud.position = Vector2(15, 15)
@@ -151,6 +157,17 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     print("CAR04 attached; bounds=", fourth_bounds, " offset=", fourth_car.position.z)
     _configure_tunnel()
     _add_headlight()
+    door_system = DOOR_SYSTEM.new()
+    door_system.name = "SharedDoorSystem"
+    add_child(door_system)
+    door_system.call("setup",train)
+    cab_runtime = CAB_RUNTIME.new()
+    cab_runtime.name = "OriginalCabIntegration"
+    var lead := train.get_node("OriginalV106Car01") as Node3D
+    lead.add_child(cab_runtime)
+    cab_runtime.call("initialize",self,lead,door_system)
+    cab_runtime.call("make_screen_controls",_ui_layer)
+    _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 
 func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Node3D, second_bounds: AABB, gap: float) -> void:
@@ -270,6 +287,9 @@ func _get_model_bounds(root: Node3D) -> AABB:
     return result
 
 func _unhandled_input(event: InputEvent) -> void:
+    if is_instance_valid(cab_runtime) and cab_runtime.call("handle_input",event,camera):
+        get_viewport().set_input_as_handled()
+        return
     if event is InputEventScreenTouch:
         touch_dragging = event.pressed
         touch_last = event.position
@@ -298,13 +318,25 @@ func _box(parent: Node3D, pos: Vector3, dimensions: Vector3, color: Color) -> vo
     parent.add_child(item)
 
 func _physics_process(delta: float) -> void:
-    if throttle:
-        speed = minf(speed + delta * 1.4, 22.0)
+    var dt := minf(delta,0.1)
+    var direction := 1
+    if is_instance_valid(cab_runtime):
+        var input: Dictionary = cab_runtime.call("physics_inputs",dt,speed,throttle,brake)
+        direction = int(input.direction)
+        if float(input.brake) > 0.001:
+            speed = maxf(speed-dt*3.0*float(input.brake)*float(input.adhesion),0.0)
+        elif float(input.traction) > 0.0:
+            speed = minf(speed+dt*1.4*float(input.traction)*float(input.adhesion),22.0)
+        else:
+            speed = maxf(speed-dt*0.12,0.0)
     elif brake:
-        speed = maxf(speed - delta * 3.0, 0.0)
+        speed = maxf(speed-dt*3.0,0.0)
+    elif throttle:
+        speed = minf(speed+dt*1.4,22.0)
     else:
-        speed = maxf(speed - delta * 0.12, 0.0)
-    distance = maxf(12.0, distance - speed * delta)
+        speed = maxf(speed-dt*0.12,0.0)
+    distance = maxf(12.0,distance-float(direction)*speed*dt)
+    if distance <= 12.0 and direction == 1: speed = 0.0
     train.position.z = distance
     var step := CAMERA_MOVE_SPEED * delta
     if camera_move.get("forward", false): camera_pan.z -= step
@@ -338,6 +370,8 @@ func _update_camera() -> void:
     else:
         var cabin := camera_mode == "cabin"
         var local_eye := Vector3(-0.4 if cabin else 0.0,2.35,_train_bounds.position.z+1.35 if cabin else -2.0)
+        if cabin and is_instance_valid(cab_runtime):
+            local_eye = cab_runtime.call("eye_in_train")
         var desired := train.to_global(local_eye + camera_pan)
         camera.global_position = _tunnel.call("constrain_camera",desired) if is_instance_valid(_tunnel) else desired
         camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
@@ -411,6 +445,7 @@ func _illuminate_headlamp_lenses(lead: Node3D) -> void:
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
+    if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
     _focused_car = 0
     if not _car_centers.is_empty():
         wagon_center = _car_centers[0]
@@ -458,6 +493,8 @@ func diagnostic_state() -> Dictionary:
         if str(child.name).begins_with("OriginalV106Car"):
             cars += 1
     return {
+        "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
+        "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
         "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
         "length":_train_bounds.size.z,
