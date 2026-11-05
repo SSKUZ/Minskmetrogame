@@ -122,9 +122,16 @@ jobs:
               const line=m.type()+': '+m.text();logs.push(line);console.log(line);fs.appendFileSync('evidence/browser-console.txt',line+'\n');
               if(m.type()==='error' && !m.text().includes('favicon'))errors.push(line);
             });
-            page.on('pageerror',e=>errors.push(e.message));
+            page.on('pageerror',e=>{errors.push(e.message);console.error('PAGEERROR '+e.message);fs.appendFileSync('evidence/browser-console.txt','PAGEERROR '+e.message+'\n');});
             const state=()=>page.evaluate(()=>window.metro2Diagnostics);
-            const ready=()=>page.waitForFunction(()=>window.metro2Diagnostics?.cars===4 && window.metro2Diagnostics.coverage,null,{timeout:180000});
+            const ready=async()=>{
+              try{await page.waitForFunction(()=>window.metro2Diagnostics?.cars===4 && window.metro2Diagnostics.coverage,null,{timeout:90000});}
+              catch(e){
+                await page.screenshot({path:'evidence/startup-failure.png',timeout:30000});
+                console.log('STARTUP_DOM '+await page.locator('body').innerText());
+                throw e;
+              }
+            };
             async function capture(name){
               await sleep(2000);
               const file='evidence/'+name+'.png';
