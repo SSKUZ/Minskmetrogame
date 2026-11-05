@@ -34,6 +34,17 @@ jobs:
             await page.goto('https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars/index.html', {waitUntil:'domcontentloaded'});
             await page.waitForTimeout(45000);
             await page.screenshot({path:'evidence/published-baseline.png'});
+            await page.mouse.move(1180,350);
+            await page.mouse.down(); await page.waitForTimeout(950); await page.mouse.up();
+            await page.waitForTimeout(2000);
+            await page.screenshot({path:'evidence/zoom-inside.png'});
+            await page.mouse.move(1180,350);
+            await page.mouse.down(); await page.waitForTimeout(1500); await page.mouse.up();
+            await page.waitForTimeout(2000);
+            await page.screenshot({path:'evidence/zoom-close.png'});
+            await page.mouse.move(500,350); await page.mouse.down(); await page.mouse.move(800,350,{steps:30}); await page.mouse.up();
+            await page.waitForTimeout(2000);
+            await page.screenshot({path:'evidence/rotated.png'});
             fs.writeFileSync('evidence/browser-console.txt',logs.join('\n'));
             console.log('DOM: '+await page.locator('body').innerText());
             await browser.close();
