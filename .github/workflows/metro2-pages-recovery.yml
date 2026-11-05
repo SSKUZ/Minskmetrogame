@@ -1,0 +1,87 @@
+name: Metro2 Pages size recovery - no game build
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/metro2-cab-integration-v33]
+    paths:
+      - '.github/workflows/metro2-pages-recovery.yml'
+      - 'metro2/tools/share_web_runtime.py'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-pages-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tools-source
+          sparse-checkout: metro2/tools/share_web_runtime.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 1
+      - name: Share byte-identical engine copies while keeping every game pack
+        run: python3 tools-source/metro2/tools/share_web_runtime.py published-site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check the changed loader without screenshots or gameplay testing
+        run: |
+          npm install playwright@1.56.1
+          mkdir served
+          ln -s "$(realpath published-site)" served/Minskmetrogame
+          python3 -m http.server 8000 --directory served > /tmp/metro-loader-server.log 2>&1 &
+          cat > loader.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const browser=await chromium.launch({channel:'chrome',args:['--use-angle=swiftshader']});
+            const page=await browser.newPage();
+            const errors=[];
+            const wasm=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('favicon'))errors.push(m.text());});
+            page.on('response',r=>{if(r.url().endsWith('.wasm'))wasm.push({url:r.url(),status:r.status()});});
+            await page.goto('http://localhost:8000/Minskmetrogame/metro2/probe/');
+            await page.waitForFunction(()=>!document.querySelector('#status'),null,{timeout:90000});
+            assert(wasm.some(r=>r.url().endsWith('/metro2/index.wasm')&&r.status===200));
+            assert.deepEqual(errors,[]);
+            console.log('SHARED_ENGINE_LOADER_PASS');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          timeout 3m node loader.cjs
+      - name: Publish reduced site and await the existing cab URL
+        run: |
+          set -euo pipefail
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u -- metro2
+          if ! git diff --cached --quiet; then
+            git commit -m "Share identical Godot runtime in diagnostic previews; preserve all game packs"
+            git pull --rebase origin gh-pages
+            git push origin HEAD:gh-pages
+          fi
+          cd ..
+          python3 - <<'PY'
+          import urllib.request,json,time
+          url='https://sskuz.github.io/Minskmetrogame/metro2/cab-integration-v33/3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed/'
+          for attempt in range(90):
+            try:
+              with urllib.request.urlopen(url+'build-info.json?publish='+str(time.time()),timeout=15) as response:data=json.load(response)
+              if data['source_commit']=='3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed':
+                with urllib.request.urlopen(url+'index.html?publish='+str(time.time()),timeout=15) as response:
+                  assert response.status==200
+                print('CAB_PUBLICATION_VERIFIED '+url)
+                break
+            except Exception:pass
+            time.sleep(10)
+          else:raise RuntimeError('Pages still unavailable after site size recovery')
+          PY
