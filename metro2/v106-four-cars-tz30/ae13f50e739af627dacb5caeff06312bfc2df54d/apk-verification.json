@@ -1,0 +1,10 @@
+{
+  "source_commit": "ae13f50e739af627dacb5caeff06312bfc2df54d",
+  "file": "MinskMetro2-TZ30-arm64.apk",
+  "bytes": 54683355,
+  "sha256": "18e59df2fdca5409e6f88cc9ed1de5042033028b3138eb298331c7917ce1096e",
+  "zip_crc": "PASS",
+  "signature": "PASS",
+  "alignment": "PASS",
+  "device_run": "NOT TESTED"
+}
