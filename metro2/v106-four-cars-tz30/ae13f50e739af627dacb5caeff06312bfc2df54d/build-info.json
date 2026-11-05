@@ -1,0 +1,16 @@
+{
+  "source_commit": "ae13f50e739af627dacb5caeff06312bfc2df54d",
+  "godot": "4.3",
+  "models_and_scripts": {
+    "assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb": "4d7db8f979e6688f34ac670f63476166a8129da9e455bed1eef6b9ff1f853d2c",
+    "assets/v106_original/car04/v106_car_04.glb": "d97a03970091b06a8e95fb1bc7a9b67d6aa63939e84d3b82f494614c4307b3a0",
+    "assets/v106_original/car02/v106_car_02.glb": "e9ace724b2d98ac81f831cad399498a0f75c540e06146ecd3657a754598348c5",
+    "assets/v106_original/car03/v106_car_03.glb": "05b2ba46f8080fd5aa2ed4415b207084777c96c6d17c0d3b6313ef5656f898b3",
+    "assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import": "4615edb497f07bcf21e00369095aedc9a756fb42f459f8b6e773c9a8dbe54cef",
+    "assets/v106_original/car04/v106_car_04.glb.import": "92c24528f3f1cfc488ce86faa40a9af4c36addcb9a81b5856d7a72f110270196",
+    "assets/v106_original/car02/v106_car_02.glb.import": "cd46fe40f17c83889e51410b515a71d175e745c4b9250ac93b50f6d8b625cf46",
+    "assets/v106_original/car03/v106_car_03.glb.import": "40ab31d1abea9c7035a27b2b93ccaae823e7a2ccd4f674509a506f5c10f48c4f",
+    "scripts/v106_four_cars_preview.gd": "2de228e5df9d9bc4784d04483a599b34fc96575611c4721159e15c817b226d9a",
+    "scripts/tunnel_lightweight_straight.gd": "768aebe9c9c356f1bb255a317dc721ae5b0fd3fcb6643a194da9622814436d12"
+  }
+}
