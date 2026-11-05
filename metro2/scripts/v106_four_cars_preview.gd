@@ -65,7 +65,8 @@ func _ready() -> void:
         var third_gap := 0.25
         third_car.position.z = second_car.position.z + second_bounds.position.z + second_bounds.size.z + third_gap - third_bounds.position.z
         _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
-    # Diagnostic: car04 intentionally excluded, all tunnel changes retained.
+    # Car04 is loaded after the first frame; avoid blocking initial scene setup.
+    call_deferred("_attach_fourth_car", third_car, third_bounds)
     var authentic_tunnel := Node3D.new()
     authentic_tunnel.name = "ExistingTunnelRoute"
     authentic_tunnel.position.x = 0.992
@@ -113,6 +114,23 @@ func _ready() -> void:
     stop.button_up.connect(func(): brake = false)
     _add_camera_controls(ui)
     _update_camera()
+
+func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
+    var resource := load("res://assets/v106_original/car04/v106_car_04.glb") as PackedScene
+    if resource == null:
+        push_error("CAR04: GLB resource failed to load")
+        return
+    var fourth_car := resource.instantiate() as Node3D
+    if fourth_car == null:
+        push_error("CAR04: GLB scene failed to instantiate")
+        return
+    fourth_car.name = "OriginalV106Car04"
+    train.add_child(fourth_car)
+    var fourth_bounds := _get_model_bounds(fourth_car)
+    if third_bounds.size.z > 1.0 and fourth_bounds.size.z > 1.0:
+        var gap04 := 0.25
+        fourth_car.position.z = third_car.position.z + third_bounds.position.z + third_bounds.size.z + gap04 - fourth_bounds.position.z
+    print("CAR04 attached; bounds=", fourth_bounds, " offset=", fourth_car.position.z)
 
 func _seal_tunnel_floor_edges() -> void:
     var concrete := StandardMaterial3D.new()
