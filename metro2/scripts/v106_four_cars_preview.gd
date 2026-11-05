@@ -67,13 +67,15 @@ func _ready() -> void:
         _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
     # Car04 is loaded after the first frame; avoid blocking initial scene setup.
     call_deferred("_attach_fourth_car", third_car, third_bounds)
-    # Isolation stage 2: original tunnel only; no extensions, rails or floor.
-    var authentic_tunnel := Node3D.new()
-    authentic_tunnel.name = "ExistingTunnelRoute"
-    authentic_tunnel.position.x = 0.992
-    authentic_tunnel.set_script(load("res://scripts/tunnel_v2.gd"))
-    add_child(authentic_tunnel)
-
+    # Isolation stage 3: ONE 16m reference tunnel module, not the full 350m route.
+    var test_module := Node3D.new()
+    test_module.name = "SingleTunnelModule16m"
+    test_module.set_script(load("res://scripts/tunnel_reference_module.gd"))
+    test_module.set("route_start_z", 286.0)
+    test_module.set("include_track", false)
+    test_module.set("include_service_cabinet", false)
+    test_module.position = Vector3(0.992, 0.0, 286.0)
+    add_child(test_module)
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
