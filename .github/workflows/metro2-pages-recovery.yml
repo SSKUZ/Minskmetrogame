@@ -50,7 +50,7 @@ jobs:
             page.on('response',r=>{if(r.url().endsWith('.wasm'))wasm.push({url:r.url(),status:r.status()});});
             await page.goto('http://localhost:8000/Minskmetrogame/metro2/probe/');
             await page.waitForFunction(()=>!document.querySelector('#status'),null,{timeout:90000});
-            assert(wasm.some(r=>r.url().endsWith('/metro2/index.wasm')&&r.status===200));
+            assert(wasm.some(r=>r.url.endsWith('/metro2/index.wasm')&&r.status===200));
             assert.deepEqual(errors,[]);
             console.log('SHARED_ENGINE_LOADER_PASS');
             await browser.close();
