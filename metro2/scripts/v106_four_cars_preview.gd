@@ -67,20 +67,7 @@ func _ready() -> void:
         _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
     # Car04 is loaded after the first frame; avoid blocking initial scene setup.
     call_deferred("_attach_fourth_car", third_car, third_bounds)
-    var authentic_tunnel := Node3D.new()
-    authentic_tunnel.name = "ExistingTunnelRoute"
-    authentic_tunnel.position.x = 0.992
-    authentic_tunnel.set_script(load("res://scripts/tunnel_v2.gd"))
-    add_child(authentic_tunnel)
-    _remove_intruding_branch_and_shadow_artifacts(authentic_tunnel)
-    _stabilize_tunnel_lighting(authentic_tunnel)
-    _extend_tunnel(authentic_tunnel)
-    _add_simple_track()
-    _add_sleepers()
-    _add_tunnel_floor()
-    _extend_track_and_floor()
-    _seal_tunnel_floor_edges()
-    _finish_track_materials()
+    # Isolation test: four cars without tunnel, track, sleepers or floor.
     camera = Camera3D.new()
     camera.current = true
     camera.far = 450
