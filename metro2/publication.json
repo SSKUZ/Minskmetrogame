@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "maintenance_commit": "5f8786a07035bc480d21c19e34e56571912db50e",
+  "current": {
+    "path": "metro2/cab-integration-v33/3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed",
+    "source_commit": "3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed"
+  },
+  "previous": {
+    "path": "metro2/tunnel-lighting-v32/f0dcd42f2b37b502d8db561c1f4724388265e030",
+    "source_commit": "f0dcd42f2b37b502d8db561c1f4724388265e030"
+  },
+  "protected_three_cars": "metro2/v106-three-cars",
+  "archive_release": "https://github.com/SSKUZ/Minskmetrogame/releases/tag/metro2-build-archive",
+  "archive_tag": "metro2-build-archive",
+  "archives": {
+    "metro2": {
+      "asset": "web-legacy-root-ed57c4359878.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-legacy-root-ed57c4359878.zip",
+      "zip_sha256": "1c6e618f9d2ca180cf0e3a8f5d83d29fedbb9040206c7b460ffdea96f6605635",
+      "pack_sha256": "ed57c4359878c210c7422b7bbc52157035fbd0363c0db8af5b4464d9ce671222",
+      "bytes": 35577269
+    },
+    "metro2/cab-integration-v33/3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed": {
+      "asset": "web-cab-integration-v33-3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed-6f1a5f5a5e89.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-cab-integration-v33-3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed-6f1a5f5a5e89.zip",
+      "zip_sha256": "238c736d51239e66aa328a734504430bcb342811db8b5562316b0cff38d2b8c1",
+      "pack_sha256": "6f1a5f5a5e89c1b0eccf33850ee8dd480b99f1dd8f38ca2add4224e41640cbcf",
+      "bytes": 34196961
+    },
+    "metro2/lite": {
+      "asset": "web-lite-87efcaf4c329.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-lite-87efcaf4c329.zip",
+      "zip_sha256": "71a58fc5c778440a98fd0fe8e0c2c0efa9eb8d1b2756bc13b9d2f0e05ecd6cf1",
+      "pack_sha256": "87efcaf4c329d8487c40a2b6901a8fe7070b620db758a42a6337b61892176a71",
+      "bytes": 35601399
+    },
+    "metro2/probe": {
+      "asset": "web-probe-7376e8aeeba5.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-probe-7376e8aeeba5.zip",
+      "zip_sha256": "74ad0389eb61caae53d3625f7c9ff83df6b3febb93606a3260f5757f23333651",
+      "pack_sha256": "7376e8aeeba54653479ac63c981a761e88521c2fe226e1003aee7de1cd56cdfb",
+      "bytes": 35600787
+    },
+    "metro2/tunnel-lighting-v32/178c6f84b3016ab87966cfd5788d37c7a520c9cf": {
+      "asset": "web-tunnel-lighting-v32-178c6f84b3016ab87966cfd5788d37c7a520c9cf-cd6fd8c3e3a3.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-tunnel-lighting-v32-178c6f84b3016ab87966cfd5788d37c7a520c9cf-cd6fd8c3e3a3.zip",
+      "zip_sha256": "77d34912fa7d8bb7ae7f2c94fc082e30ccfc3277a7e384c4d5fbc4a5103b529b",
+      "pack_sha256": "cd6fd8c3e3a346f2a72a54f16ac743e336f1012bc96c8a5966060557c7a3f683",
+      "bytes": 32909360
+    },
+    "metro2/tunnel-lighting-v32/f0dcd42f2b37b502d8db561c1f4724388265e030": {
+      "asset": "web-tunnel-lighting-v32-f0dcd42f2b37b502d8db561c1f4724388265e030-3c52356711ff.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-tunnel-lighting-v32-f0dcd42f2b37b502d8db561c1f4724388265e030-3c52356711ff.zip",
+      "zip_sha256": "5ae2ede2f671671c0271c3cb87aee9476a5ff420edcf230016ea9536b48296d6",
+      "pack_sha256": "3c52356711ffe58297aedccd1186387fb24e0b29978194b95b35e2f557229656",
+      "bytes": 32910734
+    },
+    "metro2/tunnel-realistic-v31/3257ac1f3965291f4c2e4a7f019c56fd54541ad3": {
+      "asset": "web-tunnel-realistic-v31-3257ac1f3965291f4c2e4a7f019c56fd54541ad3-1e9f3ea19ee6.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-tunnel-realistic-v31-3257ac1f3965291f4c2e4a7f019c56fd54541ad3-1e9f3ea19ee6.zip",
+      "zip_sha256": "bd3b3acd45a2c06a2c84dbed35f2e605b9e68a69c0328a1832237cdbdb3e0ed7",
+      "pack_sha256": "1e9f3ea19ee6e7c3d861b216d912e9e2df0cf935715108616ff4807db82b9a1f",
+      "bytes": 32905453
+    },
+    "metro2/v106-car04-only": {
+      "asset": "web-v106-car04-only-c93f48a8b568.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-car04-only-c93f48a8b568.zip",
+      "zip_sha256": "a8b8df94ee26d64949ac34f33b64aaadd76055c968e2939af384de1db5fcff32",
+      "pack_sha256": "c93f48a8b56872373417db793a6aade0576a0555a69e54c68aa05dd6a98d8562",
+      "bytes": 35610319
+    },
+    "metro2/v106-four-cars": {
+      "asset": "web-v106-four-cars-ac245d1e16c5.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-four-cars-ac245d1e16c5.zip",
+      "zip_sha256": "6a1c774af4d2bbc86ddf8e890fc83ecdb2ee11dd1ca8bcff69206aadfed02a3c",
+      "pack_sha256": "ac245d1e16c5d7ab1b400f824fcbdd76dbb36d3cea29a56a11c131615165a3b9",
+      "bytes": 35610772
+    },
+    "metro2/v106-four-cars-tz30/ae13f50e739af627dacb5caeff06312bfc2df54d": {
+      "asset": "web-v106-four-cars-tz30-ae13f50e739af627dacb5caeff06312bfc2df54d-51b7b1b57ec4.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-four-cars-tz30-ae13f50e739af627dacb5caeff06312bfc2df54d-51b7b1b57ec4.zip",
+      "zip_sha256": "bbfef3c1092af30caef48f6cfbfbc5a7ee164f13c66d3e844b539d86b3866f7a",
+      "pack_sha256": "51b7b1b57ec4533c9272dce5f33e452f6cc4bf15bb7d5404f9dbc00bd96c446b",
+      "bytes": 32903326
+    },
+    "metro2/v106-one": {
+      "asset": "web-v106-one-d1c254af30a4.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-one-d1c254af30a4.zip",
+      "zip_sha256": "80f313d13de9bbadf70b0fe9be1b687513ede9f42d25b31fe275ff5b419e3519",
+      "pack_sha256": "d1c254af30a4dde5b625bc3bc20ee2a21b9ada9a0a786c2355788310f0380442",
+      "bytes": 35601928
+    },
+    "metro2/v106-rails": {
+      "asset": "web-v106-rails-c84eb29cfdd5.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-rails-c84eb29cfdd5.zip",
+      "zip_sha256": "721a87556091210bc98777f9219209f932920bfde6dd573ef7d287c30f350983",
+      "pack_sha256": "c84eb29cfdd580367c7b2e7ddafff6279df9e2df0d4c90d8893457fd3b42f838",
+      "bytes": 35602897
+    },
+    "metro2/v106-static-lights": {
+      "asset": "web-v106-static-lights-8cfde0a5e463.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-static-lights-8cfde0a5e463.zip",
+      "zip_sha256": "7dc416469388e5688fe1993bf8691d86faa441e2c8866399770395f6e69f78e4",
+      "pack_sha256": "8cfde0a5e46341a904726269dedc8a7266bcc46bc9f3896b222d377e9dddf5cc",
+      "bytes": 35605973
+    },
+    "metro2/v106-three-cars": {
+      "asset": "web-v106-three-cars-e1cee26c7651.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-three-cars-e1cee26c7651.zip",
+      "zip_sha256": "03831f7a47a082b7091866068314b4b4aede3c1747d5cce64287551500909881",
+      "pack_sha256": "e1cee26c7651243770f919e172bff14bf3e7bfae1095b5a7dea0d8b5bf263764",
+      "bytes": 35608235
+    },
+    "metro2/v106-tunnel-fix": {
+      "asset": "web-v106-tunnel-fix-7d7a92db37ab.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-tunnel-fix-7d7a92db37ab.zip",
+      "zip_sha256": "be6824a60842fed633b38e2654742137fcd1bece22a04bb5b465edc999b33d25",
+      "pack_sha256": "7d7a92db37abf36e522edf3e021c68f51b26eb7080554be4d6e126ce1d9da786",
+      "bytes": 35604343
+    },
+    "metro2/v106-two-cars": {
+      "asset": "web-v106-two-cars-8f360919c0e0.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-v106-two-cars-8f360919c0e0.zip",
+      "zip_sha256": "16955068eca5906213a69192dda3384f68fa2f4e69107edb0ce35f4c4807b8e2",
+      "pack_sha256": "8f360919c0e03e8d01db620cba51af5917dd1b45ac233b644d6f9933c7909db7",
+      "bytes": 35606683
+    }
+  },
+  "apk": {
+    "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/MinskMetro2-TZ30-arm64.apk",
+    "bytes": 54683355,
+    "sha256": "18e59df2fdca5409e6f88cc9ed1de5042033028b3138eb298331c7917ce1096e",
+    "compatibility_path": "metro2/v106-four-cars-tz30/ae13f50e739af627dacb5caeff06312bfc2df54d/MinskMetro2-TZ30-arm64.apk"
+  },
+  "site_budget_bytes": 500000000,
+  "runtime_paths": [
+    "metro2/runtime/godot-4.3-ea719c20bf372d61"
+  ],
+  "site_bytes": 212284551
+}
