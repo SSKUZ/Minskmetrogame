@@ -47,20 +47,29 @@ def prepare(args):
     inventory={'repository_size_kib':repository['size'],'source_head':source_head,'source_asset_tree':assets_tree,'source_files_bytes':sum(x.get('size',0) for x in source_tree['tree']),'pages_head':pages_head,'pages_bytes':site_bytes(root),'branches':branches,'artifacts':artifacts,'artifact_bytes':sum(x['size_in_bytes'] for x in artifacts if not x['expired']),'workflows':workflows,'rollback_tags':snapshots,'policy_commit':os.environ['GITHUB_SHA']}
     # Retain every CI source commit before removing reproducible compiled output.
     sources=sorted({a.get('workflow_run',{}).get('head_sha') for a in artifacts if a.get('workflow_run',{}).get('head_sha')})
-    existing={x['ref']:x['object']['sha'] for x in api.request(f'/repos/{REPO}/git/matching-refs/tags/archive/ci-source-')}
+    # A self-contained Git bundle also preserves CI commits that GITHUB_TOKEN
+    # cannot tag because their historical workflows differ from this workflow.
     archived_sources={}
+    fetch=['git','fetch','--no-recurse-submodules','--no-tags']
+    if subprocess.check_output(['git','rev-parse','--is-shallow-repository'],cwd=root).decode().strip()=='true':fetch.append('--unshallow')
+    fetch+=['origin','+refs/heads/*:refs/remotes/origin/*','+refs/tags/*:refs/tags/*']
+    subprocess.run(fetch,cwd=root,check=True)
     for source in sources:
-        name='refs/tags/archive/ci-source-'+source[:12]
-        if name not in existing:
-            try:api.request(f'/repos/{REPO}/git/refs','POST',{'ref':name,'sha':source})
-            except urllib.error.HTTPError as error:
-                if error.code!=422 or ref(api,name.removeprefix('refs/'))!=source:raise
-        elif existing[name]!=source:raise RuntimeError('CI source archive tag collision')
+        exists=subprocess.run(['git','cat-file','-e',source+'^{commit}'],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+        if not exists:subprocess.run(['git','fetch','--no-tags','origin',source],cwd=root,check=True)
+        name='refs/archive/ci-source/'+source
+        subprocess.run(['git','update-ref',name,source],cwd=root,check=True)
         archived_sources[name]=source
     inventory['ci_source_refs']=archived_sources
     file=out/'inventory-before.json';file.write_text(json.dumps(inventory,indent=2))
     archive=Archive(api,pages_head)
     archive.upload(file,'revision-before-'+suffix()+'.json')
+    bundle=out/'repository-before-cleanup.bundle'
+    subprocess.run(['git','bundle','create',str(bundle),'--all'],cwd=root,check=True)
+    subprocess.run(['git','bundle','verify',str(bundle)],cwd=root,check=True)
+    archive.upload(bundle,'repository-before-cleanup-'+suffix()+'.bundle')
+    inventory['repository_bundle']='repository-before-cleanup-'+suffix()+'.bundle'
+    bundle.unlink()
     newest={}
     for a in artifacts:
         if not a['expired']:newest[a['name']]=max(newest.get(a['name'],0),a['id'])
@@ -88,6 +97,7 @@ def prepare(args):
                     z.writestr(str(item['id'])+'.zip',data);archived_ids.append(item['id'])
             z.writestr('inventory.json',json.dumps(evidence,indent=2))
         archive.upload(target,'diagnostic-evidence-'+suffix()+'.zip')
+        target.unlink()
     manifest=compact(root,archive,INITIAL_CURRENT,INITIAL_PREVIOUS,os.environ['GITHUB_SHA'])
     state={'inventory':inventory,'manifest':manifest,'archived_evidence_ids':archived_ids,'evidence_skipped':skipped,'release_url':archive.release['html_url']}
     (out/'maintenance-state.json').write_text(json.dumps(state,indent=2))
