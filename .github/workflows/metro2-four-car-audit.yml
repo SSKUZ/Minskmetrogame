@@ -34,9 +34,17 @@ jobs:
           cp metro2/scenes/v106_four_cars_preview.tscn stage/scenes/
           cp metro2/tests/test_four_car_pool.gd stage/tests/
           cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb stage/assets/v106_lod1/
+          cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import stage/assets/v106_lod1/
+          for file in metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_*.png*; do
+            if [ -f "$file" ]; then cp "$file" stage/assets/v106_lod1/; fi
+          done
           for car in 02 03 04; do
             mkdir -p "stage/assets/v106_original/car$car"
             cp "metro2/assets/v106_original/car$car/v106_car_$car.glb" "stage/assets/v106_original/car$car/"
+            cp "metro2/assets/v106_original/car$car/v106_car_$car.glb.import" "stage/assets/v106_original/car$car/"
+            for file in "metro2/assets/v106_original/car$car/"*.png*; do
+              if [ -f "$file" ]; then cp "$file" "stage/assets/v106_original/car$car/"; fi
+            done
           done
           python3 - <<'PY'
           import pathlib,hashlib,json,os
@@ -53,7 +61,10 @@ jobs:
           s=s.replace('org.minskmetro.metro2alpha01','org.minskmetro.metro2tz30')
           s=s.replace('Minsk Metro 2 First Playable','Minsk Metro 2.0 TZ30')
           p.write_text(s)
-          files=list(root.rglob('*.glb'))+list((root/'scripts').glob('*.gd'))
+          files=list(root.rglob('*.glb'))+list(root.rglob('*.glb.import'))+list((root/'scripts').glob('*.gd'))
+          for meta in root.rglob('*.glb.import'):
+            assert 'meshes/generate_lods=false' in meta.read_text()
+            assert 'meshes/force_disable_compression=true' in meta.read_text()
           manifest={'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','models_and_scripts':{
             str(f.relative_to(root)):hashlib.sha256(f.read_bytes()).hexdigest() for f in files}}
           (root/'build-info.json').write_text(json.dumps(manifest,indent=2))
