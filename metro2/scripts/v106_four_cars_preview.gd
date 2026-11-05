@@ -32,8 +32,10 @@ var _focused_car := 0
 var _car_centers: Array[Vector3] = []
 
 func _ready() -> void:
+    print("TZ30_BOOT ready")
     if OS.has_feature("web"):
         _diagnostics_enabled = JavaScriptBridge.eval("new URLSearchParams(location.search).has('audit')") == true
+    print("TZ30_BOOT diagnostics configured")
     var world := WorldEnvironment.new()
     var env := Environment.new()
     env.background_mode = Environment.BG_COLOR

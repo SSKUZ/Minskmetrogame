@@ -49,7 +49,7 @@ jobs:
           s=p.read_text().replace('export_filter="scenes"','export_filter="all_resources"')
           s=s.replace('include_filter=""','include_filter="build-info.json"')
           s=s.replace('include_filter="*v106_door_controller.gd"','include_filter="build-info.json"')
-          s=s.replace('vram_texture_compression/for_mobile=false','vram_texture_compression/for_mobile=true')
+          s=s.replace('vram_texture_compression/for_mobile=true','vram_texture_compression/for_mobile=false')
           s=s.replace('org.minskmetro.metro2alpha01','org.minskmetro.metro2tz30')
           s=s.replace('Minsk Metro 2 First Playable','Minsk Metro 2.0 TZ30')
           p.write_text(s)
