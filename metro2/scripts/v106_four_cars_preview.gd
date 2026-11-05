@@ -10,8 +10,8 @@ var throttle := false
 var brake := false
 var hud: Label
 var distance := 300.0
-var orbit_yaw := -0.45
-var orbit_pitch := 0.20
+var orbit_yaw := 0.35
+var orbit_pitch := 0.10
 var orbit_radius := 4.6
 var touch_dragging := false
 var touch_last := Vector2.ZERO
@@ -19,22 +19,31 @@ var wagon_center := Vector3(0, 1.2, 0)
 var camera_pan := Vector3.ZERO
 var camera_move: Dictionary = {}
 const CAMERA_MOVE_SPEED := 7.0
+signal station_approach_changed(distance_m: float, illumination: float)
+var _tunnel: Node3D
+var _train_bounds := AABB()
+var camera_mode := "external"
+var _environment: Environment
+var _station: Node3D
+var _station_stop_z := 0.0
+var _last_station_zone := -1
 
 func _ready() -> void:
     var world := WorldEnvironment.new()
     var env := Environment.new()
     env.background_mode = Environment.BG_COLOR
-    env.background_color = Color(0.025, 0.045, 0.08)
+    env.background_color = Color(0.006, 0.008, 0.012)
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     env.ambient_light_color = Color(0.6, 0.7, 0.9)
-    env.ambient_light_energy = 1.0
+    env.ambient_light_energy = 0.55
+    _environment = env
     # Disable distance fog until basic four-car rendering is stable.
     env.fog_enabled = false
     world.environment = env
     add_child(world)
     var light := DirectionalLight3D.new()
     light.rotation_degrees = Vector3(-40, -25, 0)
-    light.light_energy = 1.5
+    light.light_energy = 0.45
     add_child(light)
     train = Node3D.new()
     train.name = "PlayerTrainPlacement"
@@ -71,12 +80,13 @@ func _ready() -> void:
     call_deferred("_attach_fourth_car", third_car, third_bounds)
     # Lightweight straight route, independent from legacy tunnel_v2.gd.
     var tunnel := Node3D.new()
+    _tunnel = tunnel
     tunnel.name = "LightweightStraightTunnel"
     tunnel.set_script(load("res://scripts/tunnel_lightweight_straight.gd"))
     add_child(tunnel)
     camera = Camera3D.new()
     camera.current = true
-    camera.far = 450
+    camera.far = 120
     camera.near = 0.04
     add_child(camera)
     var ui := CanvasLayer.new()
@@ -86,7 +96,7 @@ func _ready() -> void:
     hud.add_theme_font_size_override("font_size", 22)
     hud.add_theme_color_override("font_color", Color.YELLOW)
     ui.add_child(hud)
-    orbit_radius = 9.0
+    orbit_radius = 8.0
     var row := HBoxContainer.new()
     row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
     row.offset_top = -90
@@ -106,8 +116,10 @@ func _ready() -> void:
     stop.button_down.connect(func(): brake = true)
     stop.button_up.connect(func(): brake = false)
     _add_camera_controls(ui)
+    _add_view_modes(ui)
     _update_camera()
-    call_deferred("_diagnose_render")
+    _configure_tunnel()
+    call_deferred("_log_render_metrics")
 
 func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     var resource := load("res://assets/v106_original/car04/v106_car_04.glb") as PackedScene
@@ -125,47 +137,9 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
         var gap04 := 0.25
         fourth_car.position.z = third_car.position.z + third_bounds.position.z + third_bounds.size.z + gap04 - fourth_bounds.position.z
     print("CAR04 attached; bounds=", fourth_bounds, " offset=", fourth_car.position.z)
-
-func _seal_tunnel_floor_edges() -> void:
-    var concrete := StandardMaterial3D.new()
-    concrete.albedo_color = Color(0.23, 0.24, 0.23)
-    concrete.roughness = 0.98
-    for section in [Vector2(14.0, 310.0), Vector2(-220.0, -70.0)]:
-        for side in [-1.0, 1.0]:
-            var seal := MeshInstance3D.new()
-            seal.name = "TunnelWallFloorJointSeal"
-            var box := BoxMesh.new()
-            box.size = Vector3(0.38, 0.64, section.y - section.x)
-            seal.mesh = box
-            seal.material_override = concrete
-            seal.position = Vector3(0.992 + side * 3.08, -0.16, (section.x + section.y) * 0.5)
-            add_child(seal)
-
-func _finish_track_materials() -> void:
-    var polished := StandardMaterial3D.new()
-    polished.albedo_color = Color(0.79, 0.82, 0.84)
-    polished.metallic = 0.9
-    polished.roughness = 0.17
-    var dark_steel := StandardMaterial3D.new()
-    dark_steel.albedo_color = Color(0.10, 0.095, 0.09)
-    dark_steel.metallic = 0.48
-    dark_steel.roughness = 0.8
-    var tar_wood := StandardMaterial3D.new()
-    tar_wood.albedo_color = Color(0.105, 0.085, 0.07)
-    tar_wood.roughness = 0.95
-    for node in get_children():
-        if node.name in ["PreviewRail", "ExtendedRail"]:
-            node.material_override = dark_steel
-            var top := MeshInstance3D.new()
-            top.name = "PolishedRunningSurface"
-            var mesh := BoxMesh.new()
-            mesh.size = Vector3(0.085, 0.012, node.mesh.size.z)
-            top.mesh = mesh
-            top.position = Vector3(0, 0.086, 0)
-            top.material_override = polished
-            node.add_child(top)
-        elif node.name in ["TrackSleepers", "ExtendedSleepers"]:
-            node.multimesh.mesh.material = tar_wood
+    _configure_tunnel()
+    _add_headlight()
+    print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 
 func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Node3D, second_bounds: AABB, gap: float) -> void:
     var end_z := first.position.z + first_bounds.position.z + first_bounds.size.z
@@ -194,64 +168,6 @@ func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Nod
     head.position = Vector3(0, 0.46, midpoint)
     head.material_override = metal
     root.add_child(head)
-
-func _extend_tunnel(tunnel: Node3D) -> void:
-    # Four extra 16m reference modules: 46..110m, ahead of the train travelling toward negative Z.
-    for i in range(6):
-        var start_z := 14.0 + float(i) * 16.0
-        var module := Node3D.new()
-        module.set_script(load("res://scripts/tunnel_reference_module.gd"))
-        module.name = "ExtendedTunnel_%d" % i
-        module.set("route_start_z", start_z)
-        module.set("include_track", false)
-        module.set("include_service_cabinet", i == 2)
-        module.set("illumination", 0.9 if i % 3 != 1 else 0.55)
-        module.position.z = start_z
-        tunnel.add_child(module)
-        for child in module.get_children():
-            if child is OmniLight3D:
-                child.shadow_enabled = false
-                child.distance_fade_enabled = false
-
-func _extend_track_and_floor() -> void:
-    var steel := StandardMaterial3D.new()
-    steel.albedo_color = Color(0.68, 0.72, 0.76)
-    steel.metallic = 0.4
-    for side in [-0.9, 0.9]:
-        var rail := MeshInstance3D.new()
-        rail.name = "ExtendedRail"
-        var mesh := BoxMesh.new()
-        mesh.size = Vector3(0.10, 0.16, 96.0)
-        rail.mesh = mesh
-        rail.position = Vector3(0.992 + side, -0.08, 62.0)
-        rail.material_override = steel
-        add_child(rail)
-    var concrete := ShaderMaterial.new()
-    concrete.shader = preload("res://shaders/aged_tunnel_floor.gdshader")
-    var floor_piece := MeshInstance3D.new()
-    floor_piece.name = "ExtendedConcreteFloor"
-    var floor_mesh := BoxMesh.new()
-    floor_mesh.size = Vector3(6.16, 0.18, 64.0)
-    floor_piece.mesh = floor_mesh
-    floor_piece.position = Vector3(0.992, -0.38, 78.0)
-    floor_piece.material_override = concrete
-    add_child(floor_piece)
-    var wood := StandardMaterial3D.new()
-    wood.albedo_color = Color(0.32, 0.30, 0.28)
-    wood.roughness = 0.95
-    var sleeper_mesh := BoxMesh.new()
-    sleeper_mesh.size = Vector3(2.30, 0.12, 0.22)
-    sleeper_mesh.material = wood
-    var mm := MultiMesh.new()
-    mm.transform_format = MultiMesh.TRANSFORM_3D
-    mm.mesh = sleeper_mesh
-    mm.instance_count = 147
-    for i in range(147):
-        mm.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, 14.4 + float(i) * 0.65)))
-    var sleepers := MultiMeshInstance3D.new()
-    sleepers.name = "ExtendedSleepers"
-    sleepers.multimesh = mm
-    add_child(sleepers)
 
 func _add_visible_coupler(front: AABB, rear: AABB, rear_offset: float, gap: float) -> void:
     # Static visual automatic coupler between car-end faces.
@@ -306,99 +222,17 @@ func _add_camera_controls(ui: CanvasLayer) -> void:
     panel.set_anchor(SIDE_LEFT, 1.0)
     panel.set_anchor(SIDE_RIGHT, 1.0)
     ui.add_child(panel)
-    for entry in [["↑ ВПЕРЁД", "forward"], ["↓ НАЗАД", "back"], ["← ВЛЕВО", "left"], ["→ ВПРАВО", "right"], ["▲ ВЫШЕ", "up"], ["▼ НИЖЕ", "down"], ["＋ БЛИЖЕ", "near"], ["－ ДАЛЬШЕ", "far"], ["ЦЕНТР", "reset"]]:
+    for entry in [["ВПЕРЁД", "forward"], ["НАЗАД", "back"], ["ВЛЕВО", "left"], ["ВПРАВО", "right"], ["ВЫШЕ", "up"], ["НИЖЕ", "down"], ["БЛИЖЕ", "near"], ["ДАЛЬШЕ", "far"], ["ЦЕНТР", "reset"]]:
         var button := Button.new()
         button.text = entry[0]
         button.custom_minimum_size = Vector2(175, 42)
         panel.add_child(button)
         var action: String = entry[1]
         if action == "reset":
-            button.pressed.connect(func(): camera_pan = Vector3.ZERO; orbit_radius = 9.0)
+            button.pressed.connect(func(): _set_camera_mode("external"))
         else:
             button.button_down.connect(func(): camera_move[action] = true)
             button.button_up.connect(func(): camera_move[action] = false)
-
-func _remove_intruding_branch_and_shadow_artifacts(tunnel: Node3D) -> void:
-    # Diagnostic variant: eliminate the visual-only junction geometry that
-    # intersects the running clearance; preserve the main bore and V106.
-    for name in ["DepotSideBranch_Curved_VisualOnly", "DepotSwitchConnection_VisualOnly", "DepotBranchTrack_VisualOnly"]:
-        var extra := tunnel.get_node_or_null(name)
-        if extra != null:
-            tunnel.remove_child(extra)
-            extra.queue_free()
-    # Mobile Web: disable dynamic shadows from small wall fixtures.
-    # Diffuser emission and the rest of the tunnel lighting remain.
-    var pending: Array[Node] = [tunnel]
-    while not pending.is_empty():
-        var node: Node = pending.pop_back()
-        if node is OmniLight3D:
-            node.shadow_enabled = false
-        for child in node.get_children():
-            pending.append(child)
-
-func _stabilize_tunnel_lighting(tunnel: Node3D) -> void:
-    # Fixed electrical lighting: intensity is determined by the authored
-    # tunnel segment, never by camera distance or approaching train.
-    var pending: Array[Node] = [tunnel]
-    while not pending.is_empty():
-        var node: Node = pending.pop_back()
-        if node is OmniLight3D:
-            node.distance_fade_enabled = false
-            node.shadow_enabled = false
-        for child in node.get_children():
-            pending.append(child)
-
-func _add_tunnel_floor() -> void:
-    # Continuous concrete invert under the rails and sleepers.
-    # Rail top ~0.0 m, sleeper bottom -0.26 m; floor top -0.29 m.
-    # Two straight tunnel sections correspond to the existing main bore.
-    var concrete := ShaderMaterial.new()
-    concrete.shader = preload("res://shaders/aged_tunnel_floor.gdshader")
-    for segment in [Vector2(110.0, 310.0), Vector2(-220.0, -70.0)]:
-        var floor_piece := MeshInstance3D.new()
-        floor_piece.name = "ConcreteTunnelFloor"
-        var mesh := BoxMesh.new()
-        mesh.size = Vector3(6.16, 0.18, segment.y - segment.x)
-        floor_piece.mesh = mesh
-        floor_piece.material_override = concrete
-        floor_piece.position = Vector3(0.992, -0.38, (segment.x + segment.y) * 0.5)
-        add_child(floor_piece)
-
-func _add_sleepers() -> void:
-    # One instanced draw call for sleepers along the straight preview rails.
-    var wood := StandardMaterial3D.new()
-    wood.albedo_color = Color(0.32, 0.30, 0.28)
-    wood.roughness = 0.95
-    var sleeper_mesh := BoxMesh.new()
-    sleeper_mesh.size = Vector3(2.30, 0.12, 0.22)
-    sleeper_mesh.material = wood
-    var sleepers := MultiMesh.new()
-    sleepers.transform_format = MultiMesh.TRANSFORM_3D
-    sleepers.mesh = sleeper_mesh
-    sleepers.instance_count = 307
-    for i in range(307):
-        var z := 110.0 + float(i) * 0.65
-        sleepers.set_instance_transform(i, Transform3D(Basis(), Vector3(0.992, -0.20, z)))
-    var node := MultiMeshInstance3D.new()
-    node.name = "TrackSleepers"
-    node.multimesh = sleepers
-    add_child(node)
-
-func _add_simple_track() -> void:
-    # Isolated preview only: straight rails underneath V106 at z=110..310.
-    # Do not use dynamic path scripts or MultiMesh until basic rendering is confirmed.
-    var steel := StandardMaterial3D.new()
-    steel.albedo_color = Color(0.68, 0.72, 0.76)
-    steel.metallic = 0.4
-    for x_offset in [-0.9, 0.9]:
-        var rail := MeshInstance3D.new()
-        rail.name = "PreviewRail"
-        var shape := BoxMesh.new()
-        shape.size = Vector3(0.10, 0.16, 200.0)
-        rail.mesh = shape
-        rail.material_override = steel
-        rail.position = Vector3(0.992 + x_offset, -0.08, 210.0)
-        add_child(rail)
 
 func _get_model_bounds(root: Node3D) -> AABB:
     var found := false
@@ -468,58 +302,91 @@ func _physics_process(delta: float) -> void:
     if camera_move.get("near", false): orbit_radius = maxf(0.35, orbit_radius - step)
     if camera_move.get("far", false): orbit_radius = minf(90.0, orbit_radius + step)
     _update_camera()
-    hud.text = "V106 + MINSK TUNNEL | %.0f km/h | Swipe: rotate | Radius %.1fm" % [speed * 3.6, orbit_radius]
+    var station_distance := maxf(0.0, distance + _train_bounds.position.z - _station_stop_z)
+    var illumination := station_illumination(station_distance)
+    station_approach_changed.emit(station_distance, illumination)
+    hud.text = "V106 · 4 ВАГОНА | %.0f км/ч | %.1f м | %s" % [speed * 3.6, distance, camera_mode]
 
 func _update_camera() -> void:
-    var focus := train.global_position + wagon_center + camera_pan
-    var offset := Vector3(sin(orbit_yaw) * cos(orbit_pitch), sin(orbit_pitch), cos(orbit_yaw) * cos(orbit_pitch)) * orbit_radius
-    camera.global_position = focus + offset
-    camera.look_at(focus, Vector3.UP)
+    if camera_mode == "external":
+        var focus := train.global_position + wagon_center + camera_pan
+        var offset := Vector3(sin(orbit_yaw)*cos(orbit_pitch),sin(orbit_pitch),cos(orbit_yaw)*cos(orbit_pitch))*orbit_radius
+        var desired := focus + offset
+        if is_instance_valid(_tunnel) and _tunnel.has_method("constrain_camera"):
+            desired = _tunnel.call("constrain_camera",desired)
+        camera.global_position = desired
+        if desired.distance_squared_to(focus) > 0.001:
+            camera.look_at(focus, Vector3.UP)
+    else:
+        var cabin := camera_mode == "cabin"
+        var local_eye := Vector3(-0.4 if cabin else 0.0,2.35,_train_bounds.position.z+1.35 if cabin else -2.0)
+        camera.global_position = train.to_global(local_eye + camera_pan)
+        camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
 
-# Controlled render probes are opt-in; the default scene uses all four cars.
-func _diagnose_render() -> void:
-    await get_tree().process_frame
-    await get_tree().process_frame
-    var probe := "full"
-    if OS.has_feature("web"):
-        var requested: Variant = JavaScriptBridge.eval("new URLSearchParams(location.search).get('probe') || 'full'")
-        if requested is String:
-            probe = requested
-    var tunnel := get_node("LightweightStraightTunnel") as Node3D
-    if probe == "inside" or probe == "one_module":
-        orbit_yaw = PI * 0.5
-        orbit_pitch = 0.0
-        orbit_radius = 2.6
-        _update_camera()
-    if probe == "one_module":
-        for section in tunnel.get_children():
-            section.visible = section.get_index() == 5
-    if probe == "no_tunnel":
-        tunnel.hide()
-    elif probe == "three":
-        var fourth := train.get_node_or_null("OriginalV106Car04") as Node3D
-        if fourth != null:
-            fourth.hide()
-    elif probe == "no_lights" or probe == "no_sleepers":
-        var pending: Array[Node] = [tunnel]
-        while not pending.is_empty():
-            var item: Node = pending.pop_back()
-            if probe == "no_lights" and item is Light3D:
-                item.hide()
-            if probe == "no_sleepers" and item is MultiMeshInstance3D:
-                item.hide()
-            for child in item.get_children():
-                pending.append(child)
-    await get_tree().create_timer(2.0).timeout
-    print("RENDER_PROBE ", JSON.stringify({
-        "probe": probe,
-        "camera": str(camera.global_position),
-        "cull_mask": camera.cull_mask,
-        "objects": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
-        "draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
-        "primitives": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
-        "texture_bytes": Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
-        "buffer_bytes": Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED),
-        "static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
-        "fps": Engine.get_frames_per_second()
+func _configure_tunnel() -> void:
+    _train_bounds = _get_model_bounds(train)
+    if is_instance_valid(_tunnel) and camera != null:
+        _tunnel.call("configure",train,_train_bounds,camera)
+
+func _add_headlight() -> void:
+    var headlight := SpotLight3D.new()
+    headlight.name = "TrainHeadlight"
+    headlight.position = Vector3(0.0,1.55,_train_bounds.position.z-0.15)
+    headlight.light_color = Color(0.92,0.91,0.80)
+    headlight.light_energy = 2.0
+    headlight.spot_range = 42.0
+    headlight.spot_angle = 42.0
+    headlight.shadow_enabled = true
+    train.add_child(headlight)
+
+func _set_camera_mode(mode: String) -> void:
+    camera_mode = mode
+    camera_pan = Vector3.ZERO
+    orbit_radius = 8.0
+    orbit_yaw = 0.35 if mode == "external" else 0.0
+    orbit_pitch = 0.10 if mode == "external" else 0.0
+    _update_camera()
+
+func _add_view_modes(ui: CanvasLayer) -> void:
+    var row := HBoxContainer.new()
+    row.name = "ViewModes"
+    row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    row.offset_top = -145
+    row.offset_bottom = -97
+    ui.add_child(row)
+    for entry in [["СНАРУЖИ","external"],["КАБИНА","cabin"],["САЛОН","salon"]]:
+        var button := Button.new()
+        button.text = entry[0]
+        button.custom_minimum_size = Vector2(150,48)
+        button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        row.add_child(button)
+        var mode: String = entry[1]
+        button.pressed.connect(func(): _set_camera_mode(mode))
+
+# A station is attached once, before entering the 150 m approach zone.
+# StationBase can be supplied by the route scene without duplicating its assets.
+func attach_station(scene: PackedScene, placement: Transform3D, stop_z: float) -> void:
+    if is_instance_valid(_station):
+        _station.queue_free()
+    _station = scene.instantiate() as Node3D
+    assert(_station != null,"Station root must be Node3D")
+    add_child(_station)
+    _station.global_transform = placement
+    _station_stop_z = stop_z
+
+func station_illumination(distance_m: float) -> float:
+    return 1.0 - smoothstep(30.0,150.0,distance_m)
+
+func _log_render_metrics() -> void:
+    await get_tree().create_timer(3.0).timeout
+    print("RENDER_METRICS ",JSON.stringify({
+        "camera_mode":camera_mode,
+        "objects":Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+        "draw_calls":Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+        "primitives":Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
+        "texture_bytes":Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
+        "buffer_bytes":Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED),
+        "fps":Engine.get_frames_per_second(),
+        "modules":_tunnel.call("active_module_count"),
+        "coverage":_tunnel.call("coverage_is_valid")
     }))

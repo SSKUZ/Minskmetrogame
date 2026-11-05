@@ -7,6 +7,7 @@ on:
       - 'metro2/project.godot'
       - 'metro2/scripts/v106_four_cars_preview.gd'
       - 'metro2/scripts/tunnel_lightweight_straight.gd'
+      - 'metro2/tests/test_four_car_pool.gd'
 permissions:
   contents: read
 jobs:
@@ -31,6 +32,9 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates"
           cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
           sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_four_cars_preview.tscn"|' metro2/project.godot
+          godot --headless --path metro2 --script res://tests/test_four_car_pool.gd > pool.log 2>&1
+          cat pool.log | head -12
+          grep -q POOL_TEST_PASS pool.log
           mkdir -p metro2/build/four
           godot --headless --path metro2 --export-release Web build/four/index.html > export.log 2>&1
           cat export.log | tail -10
@@ -65,13 +69,17 @@ jobs:
           const {PNG} = require('pngjs');
           (async()=>{
             const browser=await chromium.launch({args:['--use-angle=swiftshader']});
-            for(const probe of ['full','inside','one_module']){
+            for(const probe of ['full','cabin','salon']){
               const page=await browser.newPage({viewport:{width:1280,height:720}});
               const logs=[];
               page.on('console',m=>{logs.push(m.type()+': '+m.text()); console.log(probe+': '+m.text());});
               page.on('pageerror',e=>{logs.push('PAGEERROR '+e.message);console.log(probe+' PAGEERROR '+e.message)});
               await page.goto('http://localhost:8000/?probe='+probe);
               await page.waitForTimeout(12000);
+              if(probe!=='full'){
+                await page.mouse.click(probe==='cabin'?640:1066,599);
+                await page.waitForTimeout(3000);
+              }
               await page.screenshot({path:'evidence/'+probe+'.png'});
               const gl=await page.evaluate(()=>{
                 const c=document.querySelector('canvas');
@@ -82,11 +90,20 @@ jobs:
               fs.writeFileSync('evidence/'+probe+'.txt',logs.join('\n'));
               const p=PNG.sync.read(fs.readFileSync('evidence/'+probe+'.png'));
               let changed=0;
-              for(let y=100;y<600;y++)for(let x=100;x<1000;x++){
+              for(let y=100;y<550;y++)for(let x=100;x<1000;x++){
                 const i=(y*p.width+x)*4;
-                if(Math.abs(p.data[i]-6)+Math.abs(p.data[i+1]-11)+Math.abs(p.data[i+2]-20)>12)changed++;
+                if(p.data[i]+p.data[i+1]+p.data[i+2]>90)changed++;
               }
               console.log('SCENE_PIXELS '+probe+' '+changed);
+              if(changed<5000) throw new Error('3D image not visible: '+probe);
+              if(probe==='full'){
+                await page.mouse.move(320,675);await page.mouse.down();await page.waitForTimeout(8000);await page.mouse.up();
+                await page.screenshot({path:'evidence/moving.png'});
+                await page.mouse.move(960,675);await page.mouse.down();await page.waitForTimeout(5000);await page.mouse.up();
+                await page.screenshot({path:'evidence/braked.png'});
+                await page.reload();await page.waitForTimeout(12000);
+                await page.screenshot({path:'evidence/reloaded.png'});
+              }
               await page.close();
             }
             await browser.close();
