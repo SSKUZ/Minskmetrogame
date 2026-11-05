@@ -355,6 +355,7 @@ func _configure_tunnel() -> void:
 
 func _add_headlight() -> void:
     var lead := train.get_node("OriginalV106Car01") as Node3D
+    _illuminate_headlamp_lenses(lead)
     # Use the actual outer lamp nodes of the preserved V106 GLB.
     for index in range(2):
         var lamp := lead.find_child("headlamp-0" if index == 0 else "headlamp-5",true,false) as Node3D
@@ -374,6 +375,39 @@ func _add_headlight() -> void:
         headlight.spot_angle_attenuation = 1.5
         headlight.shadow_enabled = true
 
+
+func _illuminate_headlamp_lenses(lead: Node3D) -> void:
+    # Emission changes only the existing front glass surfaces. Shared GLB
+    # materials, lamp housings and the two lighting beams remain untouched.
+    var glowing_lens: BaseMaterial3D
+    var lit_lamps := 0
+    for index in range(6):
+        var lamp := lead.find_child("headlamp-%d" % index,true,false) as Node3D
+        if lamp == null:
+            push_error("V106 headlamp lens node missing")
+            continue
+        var lit := false
+        for child in lamp.find_children("*","MeshInstance3D",true,false):
+            var lens := child as MeshInstance3D
+            if lens.mesh == null:
+                continue
+            for surface in range(lens.mesh.get_surface_count()):
+                var original := lens.get_active_material(surface) as BaseMaterial3D
+                if original == null or original.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED or original.albedo_color.a >= 0.5:
+                    continue
+                if glowing_lens == null:
+                    glowing_lens = original.duplicate() as BaseMaterial3D
+                    glowing_lens.albedo_color = Color(0.65,0.60,0.49,1.0)
+                    glowing_lens.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+                    glowing_lens.emission_enabled = true
+                    glowing_lens.emission = Color(1.0,0.94,0.82)
+                    glowing_lens.emission_energy_multiplier = 1.5
+                lens.set_surface_override_material(surface,glowing_lens)
+                lit = true
+        if lit:
+            lit_lamps += 1
+    if lit_lamps != 6:
+        push_error("V106: expected six illuminated headlamp lenses, found %d" % lit_lamps)
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
