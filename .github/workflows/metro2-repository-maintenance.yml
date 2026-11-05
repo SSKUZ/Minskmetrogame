@@ -46,3 +46,87 @@ jobs:
           name: repository-audit-inventory
           path: repository-inventory.json
           retention-days: 3
+  cleanup:
+    needs: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tools-source
+          sparse-checkout: |
+            metro2/tools/web_publication.py
+            metro2/tools/repository_maintenance.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 1
+      - name: Create rollback refs, verify Release archives, and compact the site
+        run: python3 tools-source/metro2/tools/repository_maintenance.py prepare --site published-site --out maintenance-out
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Minimal startup with the shared runtime, no screenshots or control tests
+        run: |
+          npm install playwright@1.56.1
+          mkdir served
+          ln -s "$(realpath published-site)" served/Minskmetrogame
+          python3 -m http.server 8000 --directory served > /tmp/metro-maintenance-server.log 2>&1 &
+          cat > startup.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const fs=require('fs');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const info=JSON.parse(fs.readFileSync('published-site/metro2/publication.json'));
+            const browser=await chromium.launch({channel:'chrome',args:['--use-angle=swiftshader']});
+            const page=await browser.newPage({viewport:{width:1280,height:720}});
+            const errors=[];
+            page.on('pageerror',e=>errors.push(e.message));
+            page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('favicon'))errors.push(m.text());});
+            await page.goto('http://localhost:8000/Minskmetrogame/'+info.current.path+'/index.html');
+            await page.waitForFunction(()=>window.metro2Diagnostics?.cars===4&&window.metro2Diagnostics.cab_loaded&&window.metro2Diagnostics.door_system_ready,null,{timeout:180000});
+            assert.deepEqual(errors,[]);
+            await browser.close();
+            console.log('MAINTENANCE_STARTUP_PASS original_game_pack_unchanged=true');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          timeout 5m node startup.cjs
+      - name: Publish the compact site and confirm its unique maintenance marker
+        run: |
+          set -euo pipefail
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2
+          git commit -m "Compact Metro2 hosting: verified archives, shared runtime, current and previous versions"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          cd ..
+          python3 - <<'PY'
+          import urllib.request,json,time,os
+          url='https://sskuz.github.io/Minskmetrogame/metro2/publication.json'
+          for attempt in range(90):
+            try:
+              with urllib.request.urlopen(url+'?cleanup='+str(time.time()),timeout=15) as response:info=json.load(response)
+              if info.get('maintenance_commit')==os.environ['GITHUB_SHA']:
+                print('COMPACT_SITE_DEPLOYED',info['site_bytes'])
+                break
+            except Exception:pass
+            time.sleep(10)
+          else:raise RuntimeError('Compact site deployment not confirmed; CI artifacts will not be deleted')
+          PY
+      - name: Remove archived CI output, empty placeholder refs and obsolete auto-publishers
+        run: python3 tools-source/metro2/tools/repository_maintenance.py finalize --site published-site --out maintenance-out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: repository-maintenance-result
+          path: maintenance-out/
+          retention-days: 3

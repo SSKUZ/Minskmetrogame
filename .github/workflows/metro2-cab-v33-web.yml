@@ -18,6 +18,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   export:
+    if: ${{ !contains(github.event.head_commit.message, '[repo-maintenance]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -89,13 +90,22 @@ jobs:
         with:
           name: tz33-web-build
           path: stage/build/web/
+          retention-days: 7
   publish:
     needs: export
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
     permissions:
       contents: write
+      actions: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: release-tools
+          sparse-checkout: metro2/tools/web_publication.py
+          sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v4
         with:
           name: tz33-web-build
@@ -140,13 +150,11 @@ jobs:
       - name: Publish separate TZ33 Web version and await deployment
         run: |
           set -euo pipefail
-          dest="published-site/metro2/cab-integration-v33/$GITHUB_SHA"
-          mkdir -p "$dest"
-          cp -a web/. "$dest/"
+          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA"
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- "metro2/cab-integration-v33/$GITHUB_SHA"
+          git add -A -- metro2
           git commit -m "Publish TZ33 original cab integration Web $GITHUB_SHA"
           git pull --rebase origin gh-pages
           git push origin HEAD:gh-pages
@@ -154,7 +162,7 @@ jobs:
           python3 - <<'PYTHON'
           import urllib.request,time,json,os
           url='https://sskuz.github.io/Minskmetrogame/metro2/cab-integration-v33/'+os.environ['GITHUB_SHA']+'/'
-          for attempt in range(40):
+          for attempt in range(72):
             try:
               with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
                 data=json.load(response)
@@ -167,3 +175,5 @@ jobs:
           else:
             raise RuntimeError('Pages deployment timeout')
           PYTHON
+      - name: Keep only recent generated publication artifacts
+        run: python3 release-tools/metro2/tools/web_publication.py prune-artifacts
