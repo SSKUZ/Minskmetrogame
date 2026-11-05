@@ -34,19 +34,24 @@ func _ready() -> void:
     _concrete = _material(Color(0.30, 0.30, 0.28), 0.98)
     _steel = _material(Color(0.43, 0.45, 0.46), 0.4)
     _wood = _material(Color(0.13, 0.105, 0.08), 1.0)
-    _seam = _material(Color(0.15, 0.15, 0.14), 1.0)
+    _seam = _material(Color(0.20, 0.20, 0.18), 1.0)
     _glow = _material(Color(0.72, 0.70, 0.60), 0.8)
     _glow.emission_enabled = true
     _glow.emission = Color(0.72, 0.70, 0.60)
     _glow.emission_energy_multiplier = 1.5
+    var visual_profile: Array[Vector2] = []
+    for step in range((PROFILE.size()-1)*4+1):
+        visual_profile.append(_smooth_profile(float(step)/4.0))
     var shell := SurfaceTool.new()
     shell.begin(Mesh.PRIMITIVE_TRIANGLES)
-    for j in range(PROFILE.size() - 1):
-        var a: Vector2 = PROFILE[j]
-        var b: Vector2 = PROFILE[j + 1]
+    shell.set_smooth_group(0)
+    for j in range(visual_profile.size() - 1):
+        var a: Vector2 = visual_profile[j]
+        var b: Vector2 = visual_profile[j + 1]
         for v in [Vector3(a.x,a.y,0), Vector3(a.x,a.y,16), Vector3(b.x,b.y,0),
                 Vector3(b.x,b.y,0), Vector3(a.x,a.y,16), Vector3(b.x,b.y,16)]:
             shell.add_vertex(v)
+    shell.index()
     shell.generate_normals()
     _shell = shell.commit()
     _floor = BoxMesh.new()
@@ -66,11 +71,13 @@ func _ready() -> void:
     var edge := BoxMesh.new()
     edge.size = Vector3(0.025, 1.0, 0.035)
     for z in range(0,16,2):
-        for j in range(PROFILE.size()-1):
-            var a: Vector2 = PROFILE[j]
-            var b: Vector2 = PROFILE[j+1]
+        for j in range(visual_profile.size()-1):
+            var a: Vector2 = visual_profile[j]
+            var b: Vector2 = visual_profile[j+1]
+            a += (Vector2(0,3.3)-a).normalized()*0.02
+            b += (Vector2(0,3.3)-b).normalized()*0.02
             var basis := Basis(Vector3.BACK,-atan2(b.x-a.x,b.y-a.y)).scaled(Vector3(1,a.distance_to(b),1))
-            joints.append_from(edge,0,Transform3D(basis,Vector3((a.x+b.x)*0.498,(a.y+b.y)*0.5,float(z))))
+            joints.append_from(edge,0,Transform3D(basis,Vector3((a.x+b.x)*0.5,(a.y+b.y)*0.5,float(z))))
     _joints = joints.commit()
     _lamp = BoxMesh.new()
     _lamp.size = Vector3(0.08,0.16,0.8)
@@ -189,3 +196,13 @@ func constrain_camera(world_position: Vector3) -> Vector3:
             break
     p.x = clampf(p.x-center_x,-width+0.15,width-0.15)+center_x
     return to_global(p)
+
+# Same Catmull-Rom profile interpolation as the existing reference module.
+func _smooth_profile(t: float) -> Vector2:
+    var i := mini(int(floor(t)),PROFILE.size()-2)
+    var f := clampf(t-float(i),0.0,1.0)
+    var a: Vector2 = PROFILE[maxi(i-1,0)]
+    var b: Vector2 = PROFILE[i]
+    var c: Vector2 = PROFILE[i+1]
+    var d: Vector2 = PROFILE[mini(i+2,PROFILE.size()-1)]
+    return 0.5*((2.0*b)+(-a+c)*f+(2.0*a-5.0*b+4.0*c-d)*f*f+(-a+3.0*b-3.0*c+d)*f*f*f)

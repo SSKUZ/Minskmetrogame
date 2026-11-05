@@ -1,4 +1,4 @@
-name: Metro2 four-car controlled render audit
+name: Metro2 TZ30 verified Web and Android
 on:
   push:
     branches: [feature/metro2-tunnel-v2]
@@ -18,39 +18,79 @@ jobs:
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
-      - name: Restore models and import
+      - name: Prepare isolated four-car project from this commit
         shell: bash
         run: |
           set -euo pipefail
           apt-get update -qq
           apt-get install -y -qq python3
           python3 metro2/tools/prepare_first_playable_assets.py
-          python3 metro2/tools/prepare_cab.py
-          python3 metro2/tools/prepare_announcements.py
-          godot --headless --path metro2 --editor --import --quit > import.log 2>&1
-          cat import.log | tail -30
+          mkdir -p stage/scripts stage/scenes stage/tests stage/assets/v106_lod1 stage/build/web
+          cp metro2/project.godot metro2/export_presets.cfg stage/
+          cp metro2/scripts/v106_four_cars_preview.gd metro2/scripts/tunnel_lightweight_straight.gd stage/scripts/
+          cp metro2/scenes/v106_four_cars_preview.tscn stage/scenes/
+          cp metro2/tests/test_four_car_pool.gd stage/tests/
+          cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb stage/assets/v106_lod1/
+          for car in 02 03 04; do
+            mkdir -p "stage/assets/v106_original/car$car"
+            cp "metro2/assets/v106_original/car$car/v106_car_$car.glb" "stage/assets/v106_original/car$car/"
+          done
+          python3 - <<'PY'
+          import pathlib,hashlib,json,os
+          root=pathlib.Path('stage')
+          p=root/'project.godot'
+          p.write_text(p.read_text().replace('res://scenes/station_v106_first_playable.tscn','res://scenes/v106_four_cars_preview.tscn'))
+          p=root/'export_presets.cfg'
+          s=p.read_text().replace('export_filter="scenes"','export_filter="all_resources"')
+          s=s.replace('include_filter=""','include_filter="build-info.json"')
+          s=s.replace('include_filter="*v106_door_controller.gd"','include_filter="build-info.json"')
+          s=s.replace('vram_texture_compression/for_mobile=false','vram_texture_compression/for_mobile=true')
+          s=s.replace('org.minskmetro.metro2alpha01','org.minskmetro.metro2tz30')
+          s=s.replace('Minsk Metro 2 First Playable','Minsk Metro 2.0 TZ30')
+          p.write_text(s)
+          files=list(root.rglob('*.glb'))+list((root/'scripts').glob('*.gd'))
+          manifest={'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','models_and_scripts':{
+            str(f.relative_to(root)):hashlib.sha256(f.read_bytes()).hexdigest() for f in files}}
+          (root/'build-info.json').write_text(json.dumps(manifest,indent=2))
+          PY
           mkdir -p "$HOME/.local/share/godot/export_templates"
-          cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
-          sed -i 's|^run/main_scene=.*|run/main_scene="res://scenes/v106_four_cars_preview.tscn"|' metro2/project.godot
-          godot --headless --path metro2 --script res://tests/test_four_car_pool.gd > pool.log 2>&1
-          cat pool.log | head -12
-          grep -q POOL_TEST_PASS pool.log
-          mkdir -p metro2/build/four
-          godot --headless --path metro2 --export-release Web build/four/index.html > export.log 2>&1
-          cat export.log | tail -10
-          test -s metro2/build/four/index.pck
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          godot --headless --path stage --editor --import --quit > import.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' import.log; then exit 1; fi
+          godot --headless --path stage --script res://tests/test_four_car_pool.gd > pool.log 2>&1
+          grep POOL_TEST_PASS pool.log
+          if grep 'SCRIPT ERROR' pool.log; then exit 1; fi
+          godot --headless --path stage --export-release Web build/web/index.html > export.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' export.log; then exit 1; fi
+          test -s stage/build/web/index.pck
+          cp stage/build-info.json stage/build/web/
       - uses: actions/upload-artifact@v4
         with:
-          name: four-car-audit-build
-          path: metro2/build/four/
+          name: four-car-web-build
+          path: stage/build/web/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: four-car-common-source
+          path: |
+            stage/project.godot
+            stage/export_presets.cfg
+            stage/build-info.json
+            stage/scripts/
+            stage/scenes/
+            stage/tests/
+            stage/assets/
   browser:
     needs: export
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: four-car-audit-build
+          name: four-car-web-build
           path: web
       - uses: actions/setup-node@v4
         with:
@@ -59,59 +99,248 @@ jobs:
         run: |
           npm install playwright pngjs
           npx playwright install --with-deps chromium
-      - name: Compare rendering configurations
+      - name: Verify four cars, cameras, motion, recycling and reload
         run: |
           mkdir -p evidence
           python3 -m http.server 8000 --directory web > evidence/server.txt 2>&1 &
-          cat > audit.cjs <<'JS'
-          const { chromium } = require('playwright');
-          const fs = require('fs');
-          const {PNG} = require('pngjs');
+          cat > verify.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const {PNG}=require('pngjs');
+          const fs=require('fs');
+          const assert=require('node:assert/strict');
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
           (async()=>{
             const browser=await chromium.launch({args:['--use-angle=swiftshader']});
-            for(const probe of ['full','cabin','salon']){
-              const page=await browser.newPage({viewport:{width:1280,height:720}});
-              const logs=[];
-              page.on('console',m=>{logs.push(m.type()+': '+m.text()); console.log(probe+': '+m.text());});
-              page.on('pageerror',e=>{logs.push('PAGEERROR '+e.message);console.log(probe+' PAGEERROR '+e.message)});
-              await page.goto('http://localhost:8000/?probe='+probe);
-              await page.waitForTimeout(12000);
-              if(probe!=='full'){
-                await page.mouse.click(probe==='cabin'?640:1066,599);
-                await page.waitForTimeout(3000);
-              }
-              await page.screenshot({path:'evidence/'+probe+'.png'});
-              const gl=await page.evaluate(()=>{
-                const c=document.querySelector('canvas');
-                const g=c.getContext('webgl2');
-                return g?{lost:g.isContextLost(),error:g.getError(),maxTexture:g.getParameter(g.MAX_TEXTURE_SIZE),maxUnits:g.getParameter(g.MAX_TEXTURE_IMAGE_UNITS)}:null;
-              });
-              console.log('WEBGL '+probe+' '+JSON.stringify(gl));
-              fs.writeFileSync('evidence/'+probe+'.txt',logs.join('\n'));
-              const p=PNG.sync.read(fs.readFileSync('evidence/'+probe+'.png'));
-              let changed=0;
+            const page=await browser.newPage({viewport:{width:1280,height:720}});
+            const logs=[],errors=[];
+            page.on('console',m=>{
+              const line=m.type()+': '+m.text();logs.push(line);console.log(line);
+              if(m.type()==='error' && !m.text().includes('favicon'))errors.push(line);
+            });
+            page.on('pageerror',e=>errors.push(e.message));
+            const state=()=>page.evaluate(()=>window.metro2Diagnostics);
+            const ready=()=>page.waitForFunction(()=>window.metro2Diagnostics?.cars===4 && window.metro2Diagnostics.coverage,null,{timeout:180000});
+            async function capture(name){
+              await sleep(2000);
+              const file='evidence/'+name+'.png';
+              await page.screenshot({path:file,timeout:120000});
+              const p=PNG.sync.read(fs.readFileSync(file));let visible=0;
               for(let y=100;y<550;y++)for(let x=100;x<1000;x++){
                 const i=(y*p.width+x)*4;
-                if(p.data[i]+p.data[i+1]+p.data[i+2]>90)changed++;
+                if(p.data[i]+p.data[i+1]+p.data[i+2]>90)visible++;
               }
-              console.log('SCENE_PIXELS '+probe+' '+changed);
-              if(changed<5000) throw new Error('3D image not visible: '+probe);
-              if(probe==='full'){
-                await page.mouse.move(320,675);await page.mouse.down();await page.waitForTimeout(8000);await page.mouse.up();
-                await page.screenshot({path:'evidence/moving.png'});
-                await page.mouse.move(960,675);await page.mouse.down();await page.waitForTimeout(5000);await page.mouse.up();
-                await page.screenshot({path:'evidence/braked.png'});
-                await page.reload();await page.waitForTimeout(12000);
-                await page.screenshot({path:'evidence/reloaded.png'});
-              }
-              await page.close();
+              assert(visible>5000,'3D geometry not visible: '+name);
+              const gl=await page.evaluate(()=>{
+                const g=document.querySelector('canvas').getContext('webgl2');
+                return {lost:g.isContextLost(),error:g.getError()};
+              });
+              assert.equal(gl.lost,false);assert.equal(gl.error,0);
+              const d=await state();assert.equal(d.cars,4);assert.equal(d.coverage,true);
+              console.log('VERIFIED '+name+' '+JSON.stringify(d));
+              fs.writeFileSync('evidence/'+name+'.json',JSON.stringify(d,null,2));
             }
+            await page.goto('http://localhost:8000/?audit=1');
+            await ready();await capture('external-car01');
+            for(let car=2;car<=4;car++){
+              await page.mouse.click(1180,536);
+              await page.waitForFunction(n=>window.metro2Diagnostics?.focused_car===n,car,{timeout:90000});
+              await capture('external-car0'+car);
+            }
+            await page.mouse.click(213,599);
+            await page.waitForFunction(()=>window.metro2Diagnostics?.focused_car===1,null,{timeout:90000});
+            const initial=await state();
+            await page.mouse.move(320,675);await page.mouse.down();
+            for(let t=0;t<120;t++){
+              await sleep(1000);
+              const d=await state();
+              if(d.distance<initial.distance-20 && d.recycles>0)break;
+            }
+            await page.mouse.up();
+            const moving=await state();
+            assert(moving.speed>0 && moving.distance<initial.distance-16 && moving.recycles>0,'Movement/recycling did not occur');
+            await capture('moving-recycled');
+            await page.mouse.move(960,675);await page.mouse.down();
+            for(let t=0;t<120;t++){await sleep(1000);if((await state()).speed===0)break;}
+            await page.mouse.up();
+            assert.equal((await state()).speed,0);
+            await capture('braked');
+            for(const [view,x] of [['cabin',640],['salon',1066]]){
+              await page.mouse.click(x,599);
+              await page.waitForFunction(v=>window.metro2Diagnostics?.view===v,view,{timeout:90000});
+              await capture(view);
+            }
+            await page.reload();await ready();await capture('reloaded');
+            fs.writeFileSync('evidence/browser-console.txt',logs.join('\n'));
+            assert.deepEqual(errors,[]);
             await browser.close();
+            console.log('LOCAL_BROWSER_PASS');
           })().catch(e=>{console.error(e);process.exitCode=1});
           JS
-          node audit.cjs
+          node verify.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: four-car-controlled-evidence
+          name: four-car-browser-evidence
           path: evidence/
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 0
+      - name: Publish verified Web version without replacing earlier versions
+        run: |
+          set -euo pipefail
+          dest="published-site/metro2/v106-four-cars-tz30/$GITHUB_SHA"
+          mkdir -p "$dest"
+          cp -a web/. "$dest/"
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "metro2/v106-four-cars-tz30/$GITHUB_SHA"
+          git commit -m "Publish verified TZ30 Web $GITHUB_SHA"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+      - name: Verify the actual published Web page
+        run: |
+          mkdir -p published-evidence
+          cat > published.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const {PNG}=require('pngjs');
+          const fs=require('fs');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const base='https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars-tz30/'+process.env.GITHUB_SHA+'/';
+            let info;
+            for(let i=0;i<40;i++){
+              try{const r=await fetch(base+'build-info.json?check='+Date.now(),{cache:'no-store'});if(r.ok){info=await r.json();break;}}catch{}
+              await new Promise(r=>setTimeout(r,10000));
+            }
+            assert.equal(info?.source_commit,process.env.GITHUB_SHA,'Pages deployment not available');
+            const b=await chromium.launch({args:['--use-angle=swiftshader']});
+            const p=await b.newPage({viewport:{width:1280,height:720}});
+            const errors=[];
+            p.on('pageerror',e=>errors.push(e.message));
+            p.on('console',m=>{console.log(m.type()+': '+m.text());if(m.type()==='error'&&!m.text().includes('favicon'))errors.push(m.text());});
+            await p.goto(base+'?audit=1');
+            await p.waitForFunction(()=>window.metro2Diagnostics?.cars===4&&window.metro2Diagnostics.coverage,null,{timeout:180000});
+            await p.screenshot({path:'published-evidence/published-external.png',timeout:120000});
+            const png=PNG.sync.read(fs.readFileSync('published-evidence/published-external.png'));
+            let visible=0;
+            for(let y=100;y<550;y++)for(let x=100;x<1000;x++){
+              const i=(y*png.width+x)*4;if(png.data[i]+png.data[i+1]+png.data[i+2]>90)visible++;
+            }
+            assert(visible>5000);
+            console.log('PUBLISHED_STATE '+JSON.stringify(await p.evaluate(()=>window.metro2Diagnostics)));
+            await p.reload();
+            await p.waitForFunction(()=>window.metro2Diagnostics?.cars===4&&window.metro2Diagnostics.coverage,null,{timeout:180000});
+            await p.screenshot({path:'published-evidence/published-reloaded.png',timeout:120000});
+            assert.deepEqual(errors,[]);
+            console.log('PUBLISHED_BROWSER_PASS '+base);
+            fs.writeFileSync('published-evidence/url.txt',base);
+            await b.close();
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          JS
+          node published.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: four-car-published-evidence
+          path: published-evidence/
+  android:
+    needs: browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: four-car-common-source
+          path: stage
+      - name: Configure Android export and build the same scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3 unzip
+          mkdir -p "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot" stage/build/android
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          java_sdk="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+          debug_key="$HOME/.local/share/godot/debug.keystore"
+          if [ ! -f "$debug_key" ]; then keytool -genkeypair -keystore "$debug_key" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000; fi
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$java_sdk"
+          export/android/debug_keystore = "$debug_key"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          godot --headless --path stage --editor --import --quit > import-android.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' import-android.log; then exit 1; fi
+          godot --headless --path stage --export-debug Android build/android/MinskMetro2-TZ30-arm64.apk > export-android.log 2>&1
+          cat export-android.log | tail -20
+          if grep -E 'SCRIPT ERROR|ERROR:' export-android.log; then exit 1; fi
+          apk_tools="$(dirname "$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)")"
+          "$apk_tools/apksigner" verify --verbose stage/build/android/MinskMetro2-TZ30-arm64.apk | tee stage/build/android/signature.txt
+          "$apk_tools/zipalign" -c -v 4 stage/build/android/MinskMetro2-TZ30-arm64.apk > stage/build/android/alignment.txt
+          "$apk_tools/aapt" dump badging stage/build/android/MinskMetro2-TZ30-arm64.apk > stage/build/android/package.txt
+          cp stage/build-info.json stage/build/android/
+          python3 - <<'PY'
+          import pathlib,zipfile,hashlib,json,os
+          apk=pathlib.Path('stage/build/android/MinskMetro2-TZ30-arm64.apk')
+          with zipfile.ZipFile(apk) as z:
+            assert z.testzip() is None
+            assert any(n.startswith('lib/arm64-v8a/') and n.endswith('.so') for n in z.namelist())
+            assert all(any('v106_car_'+car in n for n in z.namelist()) for car in ['02','03','04'])
+            info=json.loads(z.read('assets/build-info.json'))
+            assert info['source_commit']==os.environ['GITHUB_SHA']
+            assert info==json.loads(pathlib.Path('stage/build-info.json').read_text())
+          result={'source_commit':os.environ['GITHUB_SHA'],'file':apk.name,'bytes':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'zip_crc':'PASS','signature':'PASS','alignment':'PASS','device_run':'NOT TESTED'}
+          apk.with_name('apk-verification.json').write_text(json.dumps(result,indent=2))
+          print('APK_VERIFIED '+json.dumps(result))
+          PY
+          cd stage/build/android
+          sha256sum MinskMetro2-TZ30-arm64.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-tz30-android-apk
+          path: stage/build/android/
+  publish-apk:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: metro2-tz30-android-apk
+          path: android
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 0
+      - name: Publish APK and verify anonymous download
+        run: |
+          set -euo pipefail
+          test "$(stat -c%s android/MinskMetro2-TZ30-arm64.apk)" -lt 99000000
+          dest="published-site/metro2/v106-four-cars-tz30/$GITHUB_SHA"
+          cp android/MinskMetro2-TZ30-arm64.apk android/SHA256SUMS.txt android/apk-verification.json "$dest/"
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "metro2/v106-four-cars-tz30/$GITHUB_SHA"
+          git commit -m "Publish verified TZ30 Android APK $GITHUB_SHA"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          cd ..
+          url="https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars-tz30/$GITHUB_SHA/MinskMetro2-TZ30-arm64.apk"
+          curl --fail --location --retry 30 --retry-all-errors --retry-delay 10 --max-time 900 -o downloaded.apk "$url"
+          cmp android/MinskMetro2-TZ30-arm64.apk downloaded.apk
+          echo "APK_DOWNLOAD_VERIFIED $url"
+          cat android/apk-verification.json

@@ -26,9 +26,14 @@ var camera_mode := "external"
 var _environment: Environment
 var _station: Node3D
 var _station_stop_z := 0.0
-var _last_station_zone := -1
+var _diagnostics_enabled := false
+var _diagnostic_clock := 0.0
+var _focused_car := 0
+var _car_centers: Array[Vector3] = []
 
 func _ready() -> void:
+    if OS.has_feature("web"):
+        _diagnostics_enabled = JavaScriptBridge.eval("new URLSearchParams(location.search).has('audit')") == true
     var world := WorldEnvironment.new()
     var env := Environment.new()
     env.background_mode = Environment.BG_COLOR
@@ -37,8 +42,14 @@ func _ready() -> void:
     env.ambient_light_color = Color(0.6, 0.7, 0.9)
     env.ambient_light_energy = 0.55
     _environment = env
-    # Disable distance fog until basic four-car rendering is stable.
-    env.fog_enabled = false
+    env.fog_enabled = true
+    env.fog_mode = Environment.FOG_MODE_DEPTH
+    env.fog_depth_begin = 24.0
+    env.fog_depth_end = 56.0
+    env.fog_depth_curve = 1.2
+    env.fog_light_color = Color(0.006,0.008,0.012)
+    env.fog_light_energy = 0.15
+    env.fog_sun_scatter = 0.0
     world.environment = env
     add_child(world)
     var light := DirectionalLight3D.new()
@@ -107,14 +118,14 @@ func _ready() -> void:
     go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     row.add_child(go)
     go.button_down.connect(func(): throttle = true)
-    go.button_up.connect(func(): throttle = false)
+    go.button_up.connect(func(): throttle = false; _publish_diagnostics())
     var stop := Button.new()
     stop.text = "ТОРМОЗ"
     stop.custom_minimum_size = Vector2(180, 75)
     stop.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     row.add_child(stop)
     stop.button_down.connect(func(): brake = true)
-    stop.button_up.connect(func(): brake = false)
+    stop.button_up.connect(func(): brake = false; _publish_diagnostics())
     _add_camera_controls(ui)
     _add_view_modes(ui)
     _update_camera()
@@ -222,13 +233,15 @@ func _add_camera_controls(ui: CanvasLayer) -> void:
     panel.set_anchor(SIDE_LEFT, 1.0)
     panel.set_anchor(SIDE_RIGHT, 1.0)
     ui.add_child(panel)
-    for entry in [["ВПЕРЁД", "forward"], ["НАЗАД", "back"], ["ВЛЕВО", "left"], ["ВПРАВО", "right"], ["ВЫШЕ", "up"], ["НИЖЕ", "down"], ["БЛИЖЕ", "near"], ["ДАЛЬШЕ", "far"], ["ЦЕНТР", "reset"]]:
+    for entry in [["ВПЕРЁД", "forward"], ["НАЗАД", "back"], ["ВЛЕВО", "left"], ["ВПРАВО", "right"], ["ВЫШЕ", "up"], ["НИЖЕ", "down"], ["БЛИЖЕ", "near"], ["ДАЛЬШЕ", "far"], ["ЦЕНТР", "reset"], ["ВАГОН -", "previous_car"], ["ВАГОН +", "next_car"]]:
         var button := Button.new()
         button.text = entry[0]
         button.custom_minimum_size = Vector2(175, 42)
         panel.add_child(button)
         var action: String = entry[1]
-        if action == "reset":
+        if action == "previous_car" or action == "next_car":
+            button.pressed.connect(func(): _cycle_car_focus(-1 if action == "previous_car" else 1))
+        elif action == "reset":
             button.pressed.connect(func(): _set_camera_mode("external"))
         else:
             button.button_down.connect(func(): camera_move[action] = true)
@@ -305,6 +318,10 @@ func _physics_process(delta: float) -> void:
     var station_distance := maxf(0.0, distance + _train_bounds.position.z - _station_stop_z)
     var illumination := station_illumination(station_distance)
     station_approach_changed.emit(station_distance, illumination)
+    _diagnostic_clock += delta
+    if _diagnostic_clock >= 1.0:
+        _diagnostic_clock = 0.0
+        _publish_diagnostics()
     hud.text = "V106 · 4 ВАГОНА | %.0f км/ч | %.1f м | %s" % [speed * 3.6, distance, camera_mode]
 
 func _update_camera() -> void:
@@ -320,11 +337,18 @@ func _update_camera() -> void:
     else:
         var cabin := camera_mode == "cabin"
         var local_eye := Vector3(-0.4 if cabin else 0.0,2.35,_train_bounds.position.z+1.35 if cabin else -2.0)
-        camera.global_position = train.to_global(local_eye + camera_pan)
+        var desired := train.to_global(local_eye + camera_pan)
+        camera.global_position = _tunnel.call("constrain_camera",desired) if is_instance_valid(_tunnel) else desired
         camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
 
 func _configure_tunnel() -> void:
     _train_bounds = _get_model_bounds(train)
+    _car_centers.clear()
+    for child in train.get_children():
+        if str(child.name).begins_with("OriginalV106Car"):
+            _car_centers.append(child.position+_get_model_bounds(child).get_center())
+    _focused_car = mini(_focused_car,_car_centers.size()-1)
+    wagon_center = _car_centers[_focused_car]
     if is_instance_valid(_tunnel) and camera != null:
         _tunnel.call("configure",train,_train_bounds,camera)
 
@@ -341,11 +365,16 @@ func _add_headlight() -> void:
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
+    _focused_car = 0
+    if not _car_centers.is_empty():
+        wagon_center = _car_centers[0]
     camera_pan = Vector3.ZERO
     orbit_radius = 8.0
     orbit_yaw = 0.35 if mode == "external" else 0.0
     orbit_pitch = 0.10 if mode == "external" else 0.0
     _update_camera()
+    _publish_diagnostics()
+    print("CAMERA_MODE ",mode)
 
 func _add_view_modes(ui: CanvasLayer) -> void:
     var row := HBoxContainer.new()
@@ -390,3 +419,34 @@ func _log_render_metrics() -> void:
         "modules":_tunnel.call("active_module_count"),
         "coverage":_tunnel.call("coverage_is_valid")
     }))
+
+func diagnostic_state() -> Dictionary:
+    var cars := 0
+    for child in train.get_children():
+        if str(child.name).begins_with("OriginalV106Car"):
+            cars += 1
+    return {
+        "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
+        "length":_train_bounds.size.z,
+        "modules":_tunnel.call("active_module_count"),
+        "recycles":_tunnel.get("recycle_count"),
+        "coverage":_tunnel.call("coverage_is_valid"),
+        "fps":Engine.get_frames_per_second(),
+        "draw_calls":Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+        "texture_bytes":Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
+        "buffer_bytes":Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED)
+    }
+
+func _publish_diagnostics() -> void:
+    if _diagnostics_enabled:
+        JavaScriptBridge.eval("window.metro2Diagnostics = "+JSON.stringify(diagnostic_state()),true)
+
+func _cycle_car_focus(direction: int) -> void:
+    if _car_centers.is_empty():
+        return
+    var next := posmod(_focused_car+direction,_car_centers.size())
+    _set_camera_mode("external")
+    _focused_car = next
+    wagon_center = _car_centers[_focused_car]
+    _update_camera()
+    _publish_diagnostics()
