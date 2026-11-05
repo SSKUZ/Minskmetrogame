@@ -329,7 +329,7 @@ func _remove_intruding_branch_and_shadow_artifacts(tunnel: Node3D) -> void:
     # Diffuser emission and the rest of the tunnel lighting remain.
     var pending: Array[Node] = [tunnel]
     while not pending.is_empty():
-        var node := pending.pop_back()
+        var node: Node = pending.pop_back()
         if node is OmniLight3D:
             node.shadow_enabled = false
         for child in node.get_children():
@@ -340,7 +340,7 @@ func _stabilize_tunnel_lighting(tunnel: Node3D) -> void:
     # tunnel segment, never by camera distance or approaching train.
     var pending: Array[Node] = [tunnel]
     while not pending.is_empty():
-        var node := pending.pop_back()
+        var node: Node = pending.pop_back()
         if node is OmniLight3D:
             node.distance_fade_enabled = false
             node.shadow_enabled = false
@@ -404,7 +404,7 @@ func _get_model_bounds(root: Node3D) -> AABB:
     var result := AABB()
     var pending: Array[Node] = [root]
     while not pending.is_empty():
-        var node := pending.pop_back()
+        var node: Node = pending.pop_back()
         if node is MeshInstance3D:
             var mesh_node := node as MeshInstance3D
             if mesh_node.mesh != null:
