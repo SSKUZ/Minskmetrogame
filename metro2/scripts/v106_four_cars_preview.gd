@@ -40,8 +40,8 @@ func _ready() -> void:
     env.background_mode = Environment.BG_COLOR
     env.background_color = Color(0.006, 0.008, 0.012)
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    env.ambient_light_color = Color(0.6, 0.7, 0.9)
-    env.ambient_light_energy = 0.55
+    env.ambient_light_color = Color(0.50, 0.49, 0.46)
+    env.ambient_light_energy = 0.085
     _environment = env
     env.fog_enabled = true
     env.fog_mode = Environment.FOG_MODE_DEPTH
@@ -50,13 +50,13 @@ func _ready() -> void:
     env.fog_depth_curve = 1.2
     env.fog_density = 1.0
     env.fog_light_color = Color(0.006,0.008,0.012)
-    env.fog_light_energy = 0.15
+    env.fog_light_energy = 0.025
     env.fog_sun_scatter = 0.0
     world.environment = env
     add_child(world)
     var light := DirectionalLight3D.new()
     light.rotation_degrees = Vector3(-40, -25, 0)
-    light.light_energy = 0.45
+    light.light_energy = 0.025
     add_child(light)
     train = Node3D.new()
     train.name = "PlayerTrainPlacement"
@@ -132,7 +132,6 @@ func _ready() -> void:
     _add_view_modes(ui)
     _update_camera()
     _configure_tunnel()
-    call_deferred("_log_render_metrics")
 
 func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     var resource := load("res://assets/v106_original/car04/v106_car_04.glb") as PackedScene
@@ -355,15 +354,26 @@ func _configure_tunnel() -> void:
         _tunnel.call("configure",train,_train_bounds,camera)
 
 func _add_headlight() -> void:
-    var headlight := SpotLight3D.new()
-    headlight.name = "TrainHeadlight"
-    headlight.position = Vector3(0.0,1.55,_train_bounds.position.z-0.15)
-    headlight.light_color = Color(0.92,0.91,0.80)
-    headlight.light_energy = 2.0
-    headlight.spot_range = 72.0
-    headlight.spot_angle = 42.0
-    headlight.shadow_enabled = true
-    train.add_child(headlight)
+    var lead := train.get_node("OriginalV106Car01") as Node3D
+    # Use the actual outer lamp nodes of the preserved V106 GLB.
+    for index in range(2):
+        var lamp := lead.find_child("headlamp-0" if index == 0 else "headlamp-5",true,false) as Node3D
+        if lamp == null:
+            push_error("V106 headlamp attachment node missing")
+            continue
+        var headlight := SpotLight3D.new()
+        headlight.name = "TrainHeadlightLeft" if index == 0 else "TrainHeadlightRight"
+        lead.add_child(headlight)
+        headlight.position = lead.to_local(lamp.global_position)+Vector3(0,0,-0.07)
+        headlight.rotation = Vector3(deg_to_rad(-1.5),deg_to_rad(1.8 if index == 0 else -1.8),0)
+        headlight.light_color = Color(1.0,0.94,0.82)
+        headlight.light_energy = 3.5
+        headlight.spot_range = 105.0
+        headlight.spot_angle = 32.0
+        headlight.spot_attenuation = 1.2
+        headlight.spot_angle_attenuation = 1.5
+        headlight.shadow_enabled = true
+
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
@@ -408,35 +418,19 @@ func attach_station(scene: PackedScene, placement: Transform3D, stop_z: float) -
 func station_illumination(distance_m: float) -> float:
     return 1.0 - smoothstep(30.0,150.0,distance_m)
 
-func _log_render_metrics() -> void:
-    await get_tree().create_timer(3.0).timeout
-    print("RENDER_METRICS ",JSON.stringify({
-        "camera_mode":camera_mode,
-        "objects":Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
-        "draw_calls":Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
-        "primitives":Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
-        "texture_bytes":Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
-        "buffer_bytes":Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED),
-        "fps":Engine.get_frames_per_second(),
-        "modules":_tunnel.call("active_module_count"),
-        "coverage":_tunnel.call("coverage_is_valid")
-    }))
-
 func diagnostic_state() -> Dictionary:
     var cars := 0
     for child in train.get_children():
         if str(child.name).begins_with("OriginalV106Car"):
             cars += 1
     return {
+        "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
         "length":_train_bounds.size.z,
         "modules":_tunnel.call("active_module_count"),
         "recycles":_tunnel.get("recycle_count"),
         "coverage":_tunnel.call("coverage_is_valid"),
-        "fps":Engine.get_frames_per_second(),
-        "draw_calls":Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
-        "texture_bytes":Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
-        "buffer_bytes":Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED)
+        "headlights":train.get_node("OriginalV106Car01").find_children("TrainHeadlight*","SpotLight3D",true,false).size()
     }
 
 func _publish_diagnostics() -> void:

@@ -24,6 +24,14 @@ var _sleepers: MultiMesh
 var _joints: ArrayMesh
 var _lamp: BoxMesh
 var _concrete: ShaderMaterial
+var _rail_material: ShaderMaterial
+var _bed_material: ShaderMaterial
+var _contact_meshes: Array[ArrayMesh] = []
+var _contact_materials: Array[StandardMaterial3D] = []
+var _insulators: MultiMesh
+var _rail_clips: MultiMesh
+var _porcelain: StandardMaterial3D
+var _door_meshes: Array[ArrayMesh] = []
 var _steel: StandardMaterial3D
 var _wood: StandardMaterial3D
 var _seam: StandardMaterial3D
@@ -42,13 +50,16 @@ func _ready() -> void:
     _concrete = _concrete_material()
     _steel = _material(Color(0.34, 0.37, 0.39), 0.52)
     _steel.metallic = 0.65
-    _wood = _material(Color(0.13, 0.105, 0.08), 1.0)
+    _wood = _material(Color(0.045, 0.037, 0.028), 0.98)
+    _rail_material = _running_rail_material()
+    _bed_material = _trackbed_material()
+    _porcelain = _material(Color("#777064"),0.60)
     _seam = _material(Color(0.13, 0.135, 0.125), 1.0)
     _grime = _material(Color(0.12, 0.135, 0.12), 0.96)
     _glow = _material(Color(0.72, 0.70, 0.60), 0.8)
     _glow.emission_enabled = true
     _glow.emission = Color(0.72, 0.70, 0.60)
-    _glow.emission_energy_multiplier = 1.5
+    _glow.emission_energy_multiplier = 0.35
     var visual_profile: Array[Vector2] = []
     for step in range((PROFILE.size()-1)*4+1):
         visual_profile.append(_smooth_profile(float(step)/4.0))
@@ -94,6 +105,7 @@ func _ready() -> void:
     _damp_strip = BoxMesh.new()
     _damp_strip.size = Vector3(0.022,0.45,MODULE_LENGTH)
     _prepare_service_details(visual_profile)
+    _prepare_track_infrastructure()
 
 func configure(train: Node3D, bounds: AABB, camera: Camera3D) -> void:
     _train = train
@@ -136,8 +148,10 @@ func sync_to_view() -> void:
         section.position = Vector3(center_x,0,float(slot)*MODULE_LENGTH)
         section.set_meta("slot",slot)
         section.get_node("WallLight").visible = posmod(int(slot),2) == 0
-        section.get_node("ServiceCabinet").visible = posmod(int(slot),4) == 1
-        section.get_node("JunctionBox").visible = posmod(int(slot),3) == 0
+        section.get_node("ServiceCabinet").visible = posmod(int(slot),3) == 1
+        section.get_node("JunctionBox").visible = posmod(int(slot),2) == 0
+        section.get_node("TechnicalDoor").visible = posmod(int(slot),11) == 3
+        section.get_node("TransformerEnclosure").visible = posmod(int(slot),7) == 4
         section.show()
         _active[slot] = section
 
@@ -147,9 +161,9 @@ func _new_section() -> Node3D:
     add_child(section)
     _sections.append(section)
     _mesh(section,"ConcreteArch",_shell,_concrete,Vector3.ZERO)
-    _mesh(section,"TrackFoundation",_floor,_concrete,Vector3(0,-0.38,8))
+    _mesh(section,"TrackFoundation",_floor,_bed_material,Vector3(0,-0.38,8))
     for side in [-0.9,0.9]:
-        _mesh(section,"Rail",_rail,_steel,Vector3(side,-0.08,8))
+        _mesh(section,"Rail",_rail,_rail_material,Vector3(side,-0.08,8))
     var ties := MultiMeshInstance3D.new()
     ties.name = "Sleepers"
     ties.multimesh = _sleepers
@@ -161,8 +175,8 @@ func _new_section() -> Node3D:
     light.name = "WallLight"
     light.position = Vector3(-2.8,3.4,8)
     light.light_color = Color(0.88,0.86,0.74)
-    light.light_energy = 0.85
-    light.omni_range = 23.0
+    light.light_energy = 0.15
+    light.omni_range = 11.0
     light.omni_attenuation = 1.3
     light.shadow_enabled = false
     section.add_child(light)
@@ -186,7 +200,32 @@ func _new_section() -> Node3D:
             if i == 1:
                 detail.scale = Vector3(0.8,0.48,0.6)
                 detail.rotation.y = PI
+    for part in range(_contact_meshes.size()):
+        _mesh(section,"ContactRailPart%d" % part,_contact_meshes[part],_contact_materials[part],Vector3.ZERO)
+    _multimesh(section,"ContactRailInsulators",_insulators,_porcelain)
+    _multimesh(section,"RailFastenings",_rail_clips,_steel)
+    var door := Node3D.new()
+    door.name = "TechnicalDoor"
+    door.position = Vector3(-3.09,1.08,6.0)
+    section.add_child(door)
+    for part in range(_door_meshes.size()):
+        _mesh(door,"ServiceDoorPart%d" % part,_door_meshes[part],_equipment_materials[mini(part,2)],Vector3.ZERO)
+    var enclosure := Node3D.new()
+    enclosure.name = "TransformerEnclosure"
+    enclosure.position = Vector3(2.90,0.95,11.0)
+    enclosure.rotation.y = PI
+    enclosure.scale = Vector3(1.1,1.6,1.45)
+    section.add_child(enclosure)
+    for part in range(_equipment_meshes.size()):
+        _mesh(enclosure,"VentilatedEnclosurePart%d" % part,_equipment_meshes[part],_equipment_materials[part],Vector3.ZERO)
     return section
+
+func _multimesh(parent: Node3D, label: String, mesh: MultiMesh, material: Material) -> void:
+    var instance := MultiMeshInstance3D.new()
+    instance.name = label
+    instance.multimesh = mesh
+    instance.material_override = material
+    parent.add_child(instance)
 
 func _mesh(parent: Node3D, label: String, mesh: Mesh, material: Material, at: Vector3) -> MeshInstance3D:
     var instance := MeshInstance3D.new()
@@ -351,3 +390,107 @@ func _prepare_service_details(profile: Array[Vector2]) -> void:
             _append_box(st,Vector3(0.025,0.10,0.13),Vector3(0.15,0.23,0))
         _equipment_meshes.append(st.commit())
     _equipment_materials = [_material(Color("#535a58"),0.8),_material(Color("#2c3333"),0.72),_material(Color("#a38d49"),0.85)]
+
+
+func _running_rail_material() -> ShaderMaterial:
+    var shader := Shader.new()
+    shader.code = """shader_type spatial;
+varying float running_surface;
+varying vec3 world_pos;
+void vertex() {
+    running_surface=step(0.5,NORMAL.y);
+    world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;
+}
+void fragment() {
+    float wear=fract(sin(dot(floor(world_pos.xz*vec2(80.0,9.0)),vec2(127.1,311.7)))*43758.5453);
+    ALBEDO=mix(vec3(0.105,0.085,0.070),vec3(0.43,0.46,0.47),running_surface)*(0.94+wear*0.06);
+    METALLIC=mix(0.38,0.85,running_surface);
+    ROUGHNESS=mix(0.85,0.30,running_surface);
+}
+"""
+    var material := ShaderMaterial.new()
+    material.shader = shader
+    return material
+
+func _trackbed_material() -> ShaderMaterial:
+    var shader := Shader.new()
+    shader.code = """shader_type spatial;
+render_mode specular_disabled;
+varying vec3 world_pos;
+void vertex() { world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; }
+float h(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+void fragment() {
+    vec2 uv=world_pos.xz;
+    float grain=h(floor(uv*120.0));
+    float broad=h(floor(uv*vec2(2.0,0.5)));
+    float seam=1.0-smoothstep(0.008,0.025,abs(fract(world_pos.z/4.0+0.5)-0.5));
+    float oil=(1.0-smoothstep(0.20,0.85,abs(world_pos.x-0.992)))*(0.5+broad*0.5);
+    float base=0.245+(grain-0.5)*0.055+(broad-0.5)*0.065-seam*0.075-oil*0.065;
+    ALBEDO=vec3(base*1.03,base,base*0.92);
+    ROUGHNESS=0.98;
+}
+"""
+    var material := ShaderMaterial.new()
+    material.shader = shader
+    return material
+
+func _prepare_track_infrastructure() -> void:
+    # Side conductor uses the same 0..16 m extent as the running rails.
+    # Protected underside contact is above the rail head and outside wheel gauge;
+    # there is no overhead wire, electrical simulation or change to the bogies.
+    for part in range(3):
+        var st := SurfaceTool.new()
+        st.begin(Mesh.PRIMITIVE_TRIANGLES)
+        if part == 0:
+            _append_box(st,Vector3(0.085,0.12,16),Vector3(1.48,0.225,8))
+            _append_box(st,Vector3(0.13,0.035,16),Vector3(1.48,0.15,8))
+        elif part == 1:
+            _append_box(st,Vector3(0.27,0.055,16),Vector3(1.48,0.325,8))
+            _append_box(st,Vector3(0.025,0.16,16),Vector3(1.625,0.245,8))
+        else:
+            for z in [0.0,8.0]:
+                _append_box(st,Vector3(0.15,0.09,0.035),Vector3(1.48,0.235,z+0.02))
+            for index in range(8):
+                var z := 1.0+float(index)*2.0
+                _append_box(st,Vector3(0.55,0.05,0.13),Vector3(1.28,-0.12,z))
+                _append_box(st,Vector3(0.21,0.04,0.20),Vector3(1.48,-0.075,z))
+        _contact_meshes.append(st.commit())
+    var conductor := _material(Color("#555b5a"),0.42)
+    conductor.metallic = 0.78
+    _contact_materials = [conductor,_material(Color("#594d39"),0.95),_steel]
+    var insulator := CylinderMesh.new()
+    insulator.top_radius = 0.07
+    insulator.bottom_radius = 0.085
+    insulator.height = 0.16
+    insulator.radial_segments = 8
+    insulator.rings = 1
+    _insulators = MultiMesh.new()
+    _insulators.transform_format = MultiMesh.TRANSFORM_3D
+    _insulators.mesh = insulator
+    _insulators.instance_count = 8
+    for index in range(8):
+        _insulators.set_instance_transform(index,Transform3D(Basis(),Vector3(1.48,0.025,1.0+float(index)*2.0)))
+    var clip := BoxMesh.new()
+    clip.size = Vector3(0.23,0.04,0.16)
+    _rail_clips = MultiMesh.new()
+    _rail_clips.transform_format = MultiMesh.TRANSFORM_3D
+    _rail_clips.mesh = clip
+    _rail_clips.instance_count = 50
+    for tie in range(25):
+        for side in range(2):
+            _rail_clips.set_instance_transform(tie*2+side,Transform3D(Basis(),Vector3(-0.9 if side == 0 else 0.9,-0.145,0.32+float(tie)*0.64)))
+    # Closed inset service door: dark surround, metal leaf and hardware. No branch.
+    for part in range(3):
+        var st := SurfaceTool.new()
+        st.begin(Mesh.PRIMITIVE_TRIANGLES)
+        if part == 0:
+            _append_box(st,Vector3(0.035,1.90,0.96),Vector3.ZERO)
+        elif part == 1:
+            _append_box(st,Vector3(0.055,1.72,0.78),Vector3(0.045,0,0))
+            for z in [-0.47,0.47]:
+                _append_box(st,Vector3(0.13,1.96,0.055),Vector3(0.035,0,z))
+            _append_box(st,Vector3(0.13,0.055,1.0),Vector3(0.035,0.98,0))
+        else:
+            _append_box(st,Vector3(0.09,0.15,0.035),Vector3(0.1,-0.05,0.26))
+            _append_box(st,Vector3(0.025,0.12,0.18),Vector3(0.08,0.50,0))
+        _door_meshes.append(st.commit())
