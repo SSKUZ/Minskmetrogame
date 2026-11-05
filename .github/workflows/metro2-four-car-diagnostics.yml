@@ -1,0 +1,47 @@
+name: Metro2 four-car browser diagnostics
+on:
+  push:
+    branches: [feature/metro2-tunnel-v2]
+    paths: ['.github/workflows/metro2-four-car-diagnostics.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser diagnostics
+        run: |
+          npm install playwright pngjs
+          npx playwright install --with-deps chromium
+      - name: Capture published game and console
+        run: |
+          mkdir -p evidence
+          cat > diagnose.cjs <<'JS'
+          const {chromium} = require('playwright');
+          const fs = require('fs');
+          (async () => {
+            const browser = await chromium.launch({args:['--use-angle=swiftshader']});
+            const page = await browser.newPage({viewport:{width:1280,height:720}});
+            const logs = [];
+            page.on('console', m => {logs.push(m.type()+': '+m.text()); console.log(m.type()+': '+m.text());});
+            page.on('pageerror', e => {logs.push('PAGEERROR: '+e.message); console.log('PAGEERROR: '+e.message);});
+            page.on('requestfailed', r => console.log('REQUESTFAILED: '+r.url()+' '+r.failure()?.errorText));
+            await page.goto('https://sskuz.github.io/Minskmetrogame/metro2/v106-four-cars/index.html', {waitUntil:'domcontentloaded'});
+            await page.waitForTimeout(45000);
+            await page.screenshot({path:'evidence/published-baseline.png'});
+            fs.writeFileSync('evidence/browser-console.txt',logs.join('\n'));
+            console.log('DOM: '+await page.locator('body').innerText());
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          JS
+          node diagnose.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metro2-four-car-browser-evidence
+          path: evidence/
