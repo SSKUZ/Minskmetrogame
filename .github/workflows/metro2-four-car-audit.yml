@@ -119,7 +119,7 @@ jobs:
             const page=await browser.newPage({viewport:{width:1280,height:720}});
             const logs=[],errors=[];
             page.on('console',m=>{
-              const line=m.type()+': '+m.text();logs.push(line);console.log(line);
+              const line=m.type()+': '+m.text();logs.push(line);console.log(line);fs.appendFileSync('evidence/browser-console.txt',line+'\n');
               if(m.type()==='error' && !m.text().includes('favicon'))errors.push(line);
             });
             page.on('pageerror',e=>errors.push(e.message));
@@ -188,7 +188,7 @@ jobs:
             await mobile.close();
             await browser.close();
             console.log('LOCAL_BROWSER_PASS');
-          })().catch(e=>{console.error(e);process.exitCode=1});
+          })().catch(e=>{console.error(e);process.exit(1)});
           JS
           node verify.cjs
       - uses: actions/upload-artifact@v4
@@ -252,7 +252,7 @@ jobs:
             console.log('PUBLISHED_BROWSER_PASS '+base);
             fs.writeFileSync('published-evidence/url.txt',base);
             await b.close();
-          })().catch(e=>{console.error(e);process.exitCode=1});
+          })().catch(e=>{console.error(e);process.exit(1)});
           JS
           node published.cjs
       - uses: actions/upload-artifact@v4
