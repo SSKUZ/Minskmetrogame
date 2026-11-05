@@ -10,6 +10,9 @@ on:
       - 'metro2/tests/test_four_car_pool.gd'
 permissions:
   contents: read
+concurrency:
+  group: metro2-tz30-release
+  cancel-in-progress: true
 jobs:
   export:
     runs-on: ubuntu-latest
@@ -39,7 +42,9 @@ jobs:
           import pathlib,hashlib,json,os
           root=pathlib.Path('stage')
           p=root/'project.godot'
-          p.write_text(p.read_text().replace('res://scenes/station_v106_first_playable.tscn','res://scenes/v106_four_cars_preview.tscn'))
+          s=p.read_text().replace('res://scenes/station_v106_first_playable.tscn','res://scenes/v106_four_cars_preview.tscn')
+          s=s.replace('[display]\n','[display]\nwindow/stretch/mode="canvas_items"\nwindow/stretch/aspect="expand"\n')
+          p.write_text(s)
           p=root/'export_presets.cfg'
           s=p.read_text().replace('export_filter="scenes"','export_filter="all_resources"')
           s=s.replace('include_filter=""','include_filter="build-info.json"')
@@ -172,6 +177,15 @@ jobs:
             await page.reload();await ready();await capture('reloaded');
             fs.writeFileSync('evidence/browser-console.txt',logs.join('\n'));
             assert.deepEqual(errors,[]);
+            const mobile=await browser.newContext({viewport:{width:915,height:412},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+            const mp=await mobile.newPage();
+            await mp.goto('http://localhost:8000/?audit=1');
+            await mp.waitForFunction(()=>window.metro2Diagnostics?.cars===4&&window.metro2Diagnostics.coverage,null,{timeout:180000});
+            await mp.touchscreen.tap(457,343);
+            await mp.waitForFunction(()=>window.metro2Diagnostics?.view==='cabin',null,{timeout:90000});
+            await mp.screenshot({path:'evidence/mobile-layout-touch.png',timeout:120000});
+            console.log('MOBILE_LAYOUT_TOUCH_PASS (desktop Chromium emulation, not S24 hardware)');
+            await mobile.close();
             await browser.close();
             console.log('LOCAL_BROWSER_PASS');
           })().catch(e=>{console.error(e);process.exitCode=1});
