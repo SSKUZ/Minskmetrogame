@@ -1,8 +1,8 @@
 extends Node3D
 ## Lightweight straight metro tunnel: 16m modular shell, no branches or signals.
 const MODULE_LENGTH := 16.0
-@export var module_count := 20
-@export var start_z := 14.0
+@export var module_count := 6
+@export var start_z := 254.0
 @export var center_x := 0.992
 @export var lit_every := 2
 const PROFILE := [
@@ -17,6 +17,8 @@ var concrete: StandardMaterial3D
 var seam_mat: StandardMaterial3D
 var rail_mat: StandardMaterial3D
 var wood_mat: StandardMaterial3D
+var _sections: Array[Node3D] = []
+var _train: Node3D
 
 func _ready() -> void:
     concrete = _material(Color(0.23, 0.24, 0.235), 0.98)
@@ -31,24 +33,29 @@ func _ready() -> void:
     rail_mesh.size = Vector3(0.095, 0.16, MODULE_LENGTH)
     var sleeper_mesh := BoxMesh.new()
     sleeper_mesh.size = Vector3(2.3, 0.12, 0.23)
+    _train = get_parent().get_node_or_null("PlayerTrainPlacement") as Node3D
     for i in range(module_count):
+        var section_root := Node3D.new()
+        section_root.name = "ReusableTunnel16m_%d" % i
+        add_child(section_root)
+        _sections.append(section_root)
         var z0 := start_z + float(i) * MODULE_LENGTH
         var shell_node := MeshInstance3D.new()
         shell_node.mesh = shell
         shell_node.material_override = concrete
         shell_node.position = Vector3(center_x, 0, z0)
-        add_child(shell_node)
+        section_root.add_child(shell_node)
         var floor_node := MeshInstance3D.new()
         floor_node.mesh = floor_mesh
         floor_node.material_override = concrete
         floor_node.position = Vector3(center_x, -0.29, z0 + 8.0)
-        add_child(floor_node)
+        section_root.add_child(floor_node)
         for side in [-0.9, 0.9]:
             var rail := MeshInstance3D.new()
             rail.mesh = rail_mesh
             rail.material_override = rail_mat
             rail.position = Vector3(center_x + side, -0.08, z0 + 8.0)
-            add_child(rail)
+            section_root.add_child(rail)
         var sleepers := MultiMeshInstance3D.new()
         var mm := MultiMesh.new()
         mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -58,7 +65,7 @@ func _ready() -> void:
             mm.set_instance_transform(j, Transform3D(Basis(), Vector3(center_x, -0.22, z0 + 0.33 + float(j) * 0.65)))
         sleepers.multimesh = mm
         sleepers.material_override = wood_mat
-        add_child(sleepers)
+        section_root.add_child(sleepers)
         if i % maxi(1, lit_every) == 0:
             var lamp := OmniLight3D.new()
             lamp.position = Vector3(center_x - 2.8, 3.3, z0 + 8.0)
@@ -66,7 +73,18 @@ func _ready() -> void:
             lamp.light_energy = 0.55
             lamp.omni_range = 17.0
             lamp.shadow_enabled = false
-            add_child(lamp)
+            section_root.add_child(lamp)
+
+func _process(_delta: float) -> void:
+    if _train == null:
+        return
+    var train_z := _train.global_position.z
+    # Keep six 16m sections, recycle those behind the train to its front.
+    for section in _sections:
+        var index := _sections.find(section)
+        var center_z := start_z + float(index) * MODULE_LENGTH + 8.0 + section.position.z
+        if center_z > train_z + 48.0:
+            section.position.z -= float(module_count) * MODULE_LENGTH
 
 func _material(color: Color, roughness_value: float) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
