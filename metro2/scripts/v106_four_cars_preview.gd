@@ -47,6 +47,7 @@ func _ready() -> void:
     env.fog_depth_begin = 24.0
     env.fog_depth_end = 56.0
     env.fog_depth_curve = 1.2
+    env.fog_density = 1.0
     env.fog_light_color = Color(0.006,0.008,0.012)
     env.fog_light_energy = 0.15
     env.fog_sun_scatter = 0.0
