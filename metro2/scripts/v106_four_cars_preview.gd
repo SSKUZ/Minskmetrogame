@@ -11,6 +11,8 @@ var speed := 0.0
 var throttle := false
 var brake := false
 var hud: Label
+@export var route_end_distance := 12.0
+@export var tunnel_script: Script
 var distance := 300.0
 var orbit_yaw := 0.35
 var orbit_pitch := 0.10
@@ -104,7 +106,7 @@ func _ready() -> void:
     var tunnel := Node3D.new()
     _tunnel = tunnel
     tunnel.name = "LightweightStraightTunnel"
-    tunnel.set_script(load("res://scripts/tunnel_lightweight_straight.gd"))
+    tunnel.set_script(tunnel_script if tunnel_script != null else load("res://scripts/tunnel_lightweight_straight.gd"))
     add_child(tunnel)
     camera = Camera3D.new()
     camera.current = true
@@ -378,8 +380,8 @@ func _physics_process(delta: float) -> void:
         speed = minf(speed+dt*1.4,22.0)
     else:
         speed = maxf(speed-dt*0.12,0.0)
-    distance = maxf(12.0,distance-float(direction)*speed*dt)
-    if distance <= 12.0 and direction == 1: speed = 0.0
+    distance = maxf(route_end_distance,distance-float(direction)*speed*dt)
+    if distance <= route_end_distance and direction == 1: speed = 0.0
     train.position.z = distance
     var step := CAMERA_MOVE_SPEED * delta
     if camera_mode == "cabin":
@@ -573,4 +575,5 @@ func _cycle_car_focus(direction: int) -> void:
     wagon_center = _car_centers[_focused_car]
     _update_camera()
     _publish_diagnostics()
+
 

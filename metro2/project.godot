@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="Minsk Metro 2.0 - Station V106 Integration"
-run/main_scene="res://scenes/station_v106_first_playable.tscn"
+run/main_scene="res://scenes/depot/surface_depot_v40.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [display]
@@ -16,3 +16,4 @@ textures/vram_compression/import_etc2_astc=true
 
 ; Godot 4.3 no-thread Web: avoid empty threaded cull results (godot#88192).
 limits/spatial_indexer/threaded_cull_minimum_instances.web=1000000
+

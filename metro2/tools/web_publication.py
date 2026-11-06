@@ -217,7 +217,7 @@ def compact(root,archive,current,previous,maintenance_commit,catalog=None):
     packs=sorted(str(p.parent.relative_to(root)) for p in (root/'metro2').rglob('index.pck'))
     for prefix in packs:archive.archive_build(root,prefix,catalog)
     active={current,previous,THREE_CARS}
-    active.update(prefix for prefix in packs if prefix.startswith('metro2/cab-view-v37/'))
+    active.update(packs) # Keep every previously live build online for this new route.
     for prefix in active:
         if not (root/prefix/'index.pck').is_file():raise RuntimeError('Protected build missing: '+prefix)
     # Copy canonical runtime before retiring legacy root resources.
@@ -275,16 +275,16 @@ def publish(args):
     manifest=json.loads((root/'metro2/publication.json').read_text())
     if manifest.get('schema')!=1:raise RuntimeError('Run repository maintenance before publishing')
     current=manifest['current']['path']
-    destination='metro2/cab-fixes-v39/'+args.commit
+    destination='metro2/surface-depot-v40/'+args.commit
     folder=root/destination;folder.mkdir(parents=True,exist_ok=True)
     shutil.copytree(args.new_build,folder,dirs_exist_ok=True)
     info=json.loads((folder/'build-info.json').read_text())
     if info['source_commit']!=args.commit:raise RuntimeError('Build provenance mismatch')
     archive=Archive(api,args.commit)
     previous=current if current!=destination else manifest['previous']['path']
-    entry=root/'metro2/cab-fixes-v39/index.html'
+    entry=root/'metro2/surface-depot-v40/index.html'
     entry.parent.mkdir(parents=True,exist_ok=True)
-    entry.write_text(redirect_html(BASE+destination+'/index.html','Минское метро 2.0 — кабина V39'))
+    entry.write_text(redirect_html(BASE+destination+'/index.html','Минское метро 2.0 — наземное электродепо'))
     compact(root,archive,destination,previous,args.commit,manifest.get('archives',{}))
 
 def prune_generated_artifacts():
@@ -305,4 +305,5 @@ if __name__=='__main__':
     args=parser.parse_args()
     if args.command=='publish':publish(args)
     else:prune_generated_artifacts()
+
 
