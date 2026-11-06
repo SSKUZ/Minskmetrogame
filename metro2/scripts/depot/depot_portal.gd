@@ -19,7 +19,7 @@ func _ready() -> void:
         var floor_b := Route.height(end)-0.34
         b.quad(concrete,Vector3(x0-4.8,floor_a,z),Vector3(x0-4.8,floor_b,end),Vector3(x0+4.8,floor_b,end),Vector3(x0+4.8,floor_a,z))
         for side in [-1.0,1.0]:
-            var x := x0+side*4.8
+            var x: float = x0+side*4.8
             var top_a := Route.ground(x,z)+0.035
             var top_b := Route.ground(x,end)+0.035
             b.quad(concrete,Vector3(x,floor_a,z),Vector3(x,top_a,z),Vector3(x,top_b,end),Vector3(x,floor_b,end))

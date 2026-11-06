@@ -38,8 +38,8 @@ func _ready() -> void:
         b.box(concrete,Vector3(Route.CENTER_X+side*44.0,5.75,455),Vector3(1.65,0.18,260))
         for z in range(330,570,12): b.box(yellow,Vector3(Route.CENTER_X+side*42.7,5.805,z),Vector3(0.06,0.025,3.0))
     for side in [-1.0,1.0]:
-        var xa := Route.CENTER_X+side*1.90
-        var xb := Route.CENTER_X+side*6.0
+        var xa: float = Route.CENTER_X+side*1.90
+        var xb: float = Route.CENTER_X+side*6.0
         b.quad(asphalt,Vector3(xa,5.99,351.5),Vector3(xa,5.99,358.5),Vector3(xb,5.71,358.5),Vector3(xb,5.71,351.5))
         b.box(grass,Vector3(Route.CENTER_X+side*90,5.71,460),Vector3(7.0,0.08,225.0))
     for x in [-83.0,80.0]: b.box(asphalt,Vector3(Route.CENTER_X+x,5.66,480),Vector3(7,0.08,220))

@@ -57,7 +57,7 @@ func _rail_pair(a: Vector3,c: Vector3) -> void:
     var basis := Basis(lateral,direction,lateral.cross(direction))
     var length := a.distance_to(c)
     for side in [-1.0,1.0]:
-        var middle := (a+c)*0.5+lateral*side*Route.RAIL_CENTER
+        var middle: Vector3 = (a+c)*0.5+lateral*side*Route.RAIL_CENTER
         b.box(side_steel,middle+Vector3(0,-0.1475,0),Vector3(0.14,length,0.025),basis)
         b.box(side_steel,middle+Vector3(0,-0.09,0),Vector3(0.04,length,0.09),basis)
         b.box(rail,middle+Vector3(0,-0.0225,0),Vector3(0.095,length,0.045),basis)
