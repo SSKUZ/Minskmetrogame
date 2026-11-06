@@ -141,24 +141,26 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
     var banner := lead.find_child("goodmix-duo-cab-bulkhead-banner",true,false) as Node3D
     cleanup_ready = banner != null and banner.is_visible_in_tree() and _mirrors.size() == 2 and not model.find_child("LiveRearMonitor",true,false).is_visible_in_tree()
     ready_for_play = controls.size() == CONTROL_IDS.size()
-    print("CAB_V39_READY version=cab-r2.1 controls=",controls.size())
+    print("CAB_V39_R2_READY version=cab-r2.1 controls=",controls.size())
 
 func _relocate_mirror_panel() -> void:
     var left := model.find_child("Control_mirrorLeft",true,false) as Node3D
-    var block := model.find_child("CabCCTV",true,false) as Node3D
+    var block := model.find_child("RadioConsole",true,false) as Node3D
     if left == null or block == null: return
     var panel := left.get_parent() as Node3D
-    # Reuse the original right-hand black equipment housing, without its
-    # electronic monitor. Move the entire authored panel; do not clone it.
-    block.show()
-    var casing := true
-    for item in block.get_children():
-        if item is Node3D:
-            (item as Node3D).visible = casing and item is MeshInstance3D
-            casing = false
-    panel.reparent(block,false)
-    panel.transform = Transform3D(Basis.IDENTITY,Vector3(0.0,0.085,0.046))
-    panel.show()
+    var auxiliary := panel.get_parent() as Node3D
+    # Keep the handset, radio face and all its buttons untouched. Extend only
+    # its existing black backing downwards for the complete auxiliary panel.
+    for child in block.get_children():
+        if child is MeshInstance3D:
+            (child as Node3D).scale.y *= 1.85
+            (child as Node3D).position.y -= 0.24
+            break
+    # Move both authored plates, their labels, screws and controls as one group.
+    # No panel or monitor remains on the right side or on the blue wall.
+    auxiliary.reparent(block,false)
+    auxiliary.transform = Transform3D(Basis.IDENTITY,Vector3(0.0,-0.48,0.065))
+    auxiliary.show()
 
 func _fit_cab_to_v106() -> void:
     var shell := model.find_child("CabInteriorShell",true,false) as Node3D
@@ -334,6 +336,27 @@ func _add_pick_volume(root: Node3D, id: String) -> void:
     collision.position = box.get_center()
     body.add_child(collision)
 
+func _master_hit(point: Vector2, camera: Camera3D) -> bool:
+    if not moving.has("master"): return false
+    var handle := moving["master"] as Node3D
+    if not handle.is_visible_in_tree(): return false
+    var low := Vector2(INF,INF)
+    var high := Vector2(-INF,-INF)
+    var found := false
+    for child in handle.find_children("*","MeshInstance3D",true,false):
+        var mesh := child as MeshInstance3D
+        if not mesh.is_visible_in_tree(): continue
+        var box := mesh.get_aabb()
+        for corner in range(8):
+            var vertex := box.position+Vector3(box.size.x if (corner & 1) != 0 else 0.0,box.size.y if (corner & 2) != 0 else 0.0,box.size.z if (corner & 4) != 0 else 0.0)
+            var world := mesh.to_global(vertex)
+            if camera.is_position_behind(world): continue
+            var pixel := camera.unproject_position(world)
+            low = low.min(pixel)
+            high = high.max(pixel)
+            found = true
+    return found and Rect2(low,high-low).grow(16.0).has_point(point)
+
 func handle_input(event: InputEvent, camera: Camera3D) -> bool:
     if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_C,KEY_V,KEY_HOME,KEY_END]:
         command({KEY_C:"carriage",KEY_V:"platform",KEY_HOME:"forward",KEY_END:"desk"}[event.physical_keycode])
@@ -375,13 +398,15 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         return false
     if press:
         if not _active.is_empty(): return true
-        var start := camera.project_ray_origin(point)
-        var ray := PhysicsRayQueryParameters3D.create(start,start+camera.project_ray_normal(point)*5.0,PICK_MASK)
-        var hit := get_world_3d().direct_space_state.intersect_ray(ray)
-        if hit.is_empty():
-            return false
-        var body := hit["collider"] as Node
-        _active = str(body.get_meta("cab_control",""))
+        if _master_hit(point,camera):
+            _active = "master"
+        else:
+            var start := camera.project_ray_origin(point)
+            var ray := PhysicsRayQueryParameters3D.create(start,start+camera.project_ray_normal(point)*5.0,PICK_MASK)
+            var hit := get_world_3d().direct_space_state.intersect_ray(ray)
+            if hit.is_empty(): return false
+            var body := hit["collider"] as Node
+            _active = str(body.get_meta("cab_control",""))
         _pointer = pointer
         _drag_origin = point
         _dragged = false
@@ -849,6 +874,17 @@ func _notification(what: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
+    # Capture the physical master before GUI/unhandled-input routing. Once held,
+    # continue receiving the same finger even over other controls or outside the
+    # projected grip; the camera must never consume a controller drag.
+    if ready_for_play and is_instance_valid(game) and str(game.get("camera_mode")) == "cabin":
+        var camera := game.get("camera") as Camera3D
+        var pressing: bool = (event is InputEventScreenTouch and event.pressed) or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
+        var captured := _active == "master"
+        if captured or (pressing and _master_hit(event.position,camera)):
+            if handle_input(event,camera):
+                get_viewport().set_input_as_handled()
+                return
     # Release a captured 3D control even if the pointer ends over screen UI.
     var released: bool = (event is InputEventScreenTouch and not event.pressed) or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed)
     if released and not _active.is_empty() and is_instance_valid(game):

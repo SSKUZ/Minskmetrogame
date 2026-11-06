@@ -545,7 +545,7 @@ func diagnostic_state() -> Dictionary:
             cars += 1
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
-        "cab_version":"cab-r2.1-v39",
+        "cab_version":"cab-r2.1-v39-r2",
         "cab_cleanup_ready":bool(cab_runtime.get("cleanup_ready")) if is_instance_valid(cab_runtime) else false,
         "saloon_lights":get_node("TrainInteriorLighting").get("lights").size() if has_node("TrainInteriorLighting") else 0,
         "saloon_cars":int(get_node("TrainInteriorLighting").get("cars_lit")) if has_node("TrainInteriorLighting") else 0,

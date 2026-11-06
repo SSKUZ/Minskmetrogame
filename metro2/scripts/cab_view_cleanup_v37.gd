@@ -1,9 +1,9 @@
 extends RefCounted
 ## Modify only the instantiated head car; never rewrite imported GLBs.
-const WINDOW_LOW_Y := 2.03
-const WINDOW_HIGH_Y := 2.98
-const WINDOW_LOW_Z := -9.20
-const WINDOW_HIGH_Z := -7.98
+const WINDOW_LOW_Y := 1.92
+const WINDOW_HIGH_Y := 3.08
+const WINDOW_LOW_Z := -9.32
+const WINDOW_HIGH_Z := -7.82
 
 static func _triangle_bounds(a: Vector3,b: Vector3,c: Vector3) -> AABB:
     var low := a.min(b).min(c)
@@ -38,8 +38,9 @@ static func _subtract(poly: Array, volume: AABB) -> Array:
 
 static func apply(lead: Node3D) -> void:
     var paint: Material
-    var windows := [AABB(Vector3(-1.40,WINDOW_LOW_Y,WINDOW_LOW_Z),Vector3(0.22,0.95,1.22)),AABB(Vector3(1.18,WINDOW_LOW_Y,WINDOW_LOW_Z),Vector3(0.22,0.95,1.22))]
-    var right_door := AABB(Vector3(1.24,0.932,-8.93),Vector3(0.13,2.268,0.82))
+    # Replace the entire old side-door skin, inside AND outside. This removes
+    # all old door seams/handles/small-window frames before making one blue skin.
+    var sides := [AABB(Vector3(-1.40,0.97,-9.505),Vector3(0.22,2.28,1.845)),AABB(Vector3(1.18,0.97,-9.505),Vector3(0.22,2.28,1.845))]
     for child in lead.find_children("*","MeshInstance3D",true,false):
         var instance := child as MeshInstance3D
         if not instance.visible: continue
@@ -49,8 +50,7 @@ static func apply(lead: Node3D) -> void:
         var metal := box.size.z > 18.0 and absf(box.position.y-0.09) < 0.01 and absf(box.end.y-3.1075) < 0.01
         if box.position.x < -1.33 and box.end.x > 1.33 and absf(box.end.z+6.99) < 0.02:
             paint = instance.get_active_material(0)
-        var volumes: Array = windows.duplicate()
-        volumes.append(right_door)
+        var volumes: Array = sides.duplicate()
         if metal: volumes.append(AABB(Vector3(-1.32,0.95,-9.60),Vector3(2.64,2.35,2.0)))
         var relevant := false
         for volume in volumes:
@@ -78,6 +78,9 @@ static func apply(lead: Node3D) -> void:
                 var a: Vector3 = transform*vertices[ids[0]]
                 var b: Vector3 = transform*vertices[ids[1]]
                 var c: Vector3 = transform*vertices[ids[2]]
+                if maxf(a.y,maxf(b.y,c.y)) <= 0.97:
+                    kept.append_array(PackedInt32Array(ids))
+                    continue
                 var tri_box := _triangle_bounds(a,b,c)
                 var cuts: Array = []
                 for volume in volumes:
@@ -114,47 +117,105 @@ static func apply(lead: Node3D) -> void:
             else:
                 instance.mesh = replacement
                 for surface in range(replacement.get_surface_count()): instance.set_surface_override_material(surface,null)
-    # New panes occupy actual holes; all old glass, seals and wall fragments in
-    # those holes were subtracted above, including large cross-boundary faces.
-    var glazing := StandardMaterial3D.new()
-    glazing.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    glazing.albedo_color = Color(0.0,0.0,0.0,0.018)
-    glazing.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    glazing.cull_mode = BaseMaterial3D.CULL_DISABLED
-    glazing.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    if paint == null:
+        var fallback := StandardMaterial3D.new()
+        fallback.albedo_color = Color(0.0168,0.0844,0.1714)
+        paint = fallback
+    var blue := paint.duplicate() as StandardMaterial3D
+    blue.cull_mode = BaseMaterial3D.CULL_DISABLED
+    blue.roughness = 0.7
     var rubber := StandardMaterial3D.new()
     rubber.albedo_color = Color(0.018,0.022,0.026)
     rubber.roughness = 0.92
+    rubber.cull_mode = BaseMaterial3D.CULL_DISABLED
+    var glass := StandardMaterial3D.new()
+    glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    glass.albedo_color = Color(0.0,0.0,0.0,0.018)
+    glass.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+    glass.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
     for side in [-1.0,1.0]:
-        var pane := MeshInstance3D.new()
-        pane.name = "FullCabSideWindowLeft" if side < 0.0 else "FullCabSideWindowRight"
-        var glass_mesh := QuadMesh.new()
-        glass_mesh.size = Vector2(1.22,0.95)
-        pane.mesh = glass_mesh
-        pane.material_override = glazing
-        pane.position = Vector3(side*1.29,2.505,-8.59)
-        pane.rotation.y = PI*0.5
-        pane.layers = 4
-        pane.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        lead.add_child(pane)
-        for rect in [AABB(Vector3(-0.018,2.008,-9.222),Vector3(0.036,0.022,1.264)),AABB(Vector3(-0.018,2.98,-9.222),Vector3(0.036,0.022,1.264)),AABB(Vector3(-0.018,2.03,-9.222),Vector3(0.036,0.95,0.022)),AABB(Vector3(-0.018,2.03,-7.98),Vector3(0.036,0.95,0.022))]:
-            _box(lead,AABB(rect.position+Vector3(side*1.29,0,0),rect.size),rubber,"CabWindowGasket")
-    # Close only the lower and upper parts of the former right door. There is
-    # no door handle, door outline or panel through the new window opening.
-    if paint != null:
-        _box(lead,AABB(Vector3(1.262,0.95,-8.93),Vector3(0.07,1.08,0.82)),paint,"RightCabWallBelowWindow")
-        _box(lead,AABB(Vector3(1.262,2.98,-8.93),Vector3(0.07,0.22,0.82)),paint,"RightCabWallAboveWindow")
+        _make_side(lead,side,blue,rubber,glass)
 
-static func _box(lead: Node3D, box: AABB, material: Material, label: String) -> void:
-    var node := MeshInstance3D.new()
-    var mesh := BoxMesh.new()
-    mesh.size = box.size
-    node.mesh = mesh
-    node.position = box.get_center()
-    node.material_override = material
-    node.name = label
-    node.layers = 3
-    lead.add_child(node)
+static func _emit(tool: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, normal: Vector3) -> void:
+    tool.set_normal(normal)
+    tool.add_vertex(a)
+    tool.add_vertex(b)
+    tool.add_vertex(c)
+
+static func _quad(tool: SurfaceTool, a: Vector3,b: Vector3,c: Vector3,d: Vector3,normal: Vector3) -> void:
+    _emit(tool,a,b,c,normal)
+    _emit(tool,a,c,d,normal)
+
+static func _rect(tool: SurfaceTool,x: float,y0: float,y1: float,z0: float,z1: float,n: Vector3) -> void:
+    _quad(tool,Vector3(x,y0,z0),Vector3(x,y1,z0),Vector3(x,y1,z1),Vector3(x,y0,z1),n)
+
+static func _contour(y0: float,y1: float,z0: float,z1: float,radius: float) -> Array[Vector2]:
+    var points: Array[Vector2] = []
+    # XY here are longitudinal Z and height Y. Same outline on both skins.
+    var corners := [Vector2(z1-radius,y1-radius),Vector2(z0+radius,y1-radius),Vector2(z0+radius,y0+radius),Vector2(z1-radius,y0+radius)]
+    for corner in range(4):
+        for step in range(9):
+            var angle := float(corner)*PI*0.5+float(step)*PI/16.0
+            points.append(corners[corner]+Vector2(cos(angle),sin(angle))*radius)
+    return points
+
+static func _node(lead: Node3D,tool: SurfaceTool,material: Material,label: String,layers: int) -> void:
+    tool.set_material(material)
+    var instance := MeshInstance3D.new()
+    instance.name = label
+    instance.mesh = tool.commit()
+    instance.layers = layers
+    if layers == 4: instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    lead.add_child(instance)
+
+static func _make_side(lead: Node3D, side: float, blue: Material,rubber: Material,glass: Material) -> void:
+    var y0 := WINDOW_LOW_Y
+    var y1 := WINDOW_HIGH_Y
+    var z0 := WINDOW_LOW_Z
+    var z1 := WINDOW_HIGH_Z
+    var radius := 0.085
+    var inside := side*1.252
+    var outside := side*1.345
+    var wall := SurfaceTool.new()
+    wall.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for face in [inside,outside]:
+        var normal := Vector3(-side if face == inside else side,0,0)
+        _rect(wall,face,0.95,y0,-9.505,-7.66,normal)
+        _rect(wall,face,y1,3.25,-9.505,-7.66,normal)
+        _rect(wall,face,y0,y1,-9.505,z0,normal)
+        _rect(wall,face,y0,y1,z1,-7.66,normal)
+        # Fill just the four outer corner wedges; the center stays a real hole.
+        var centers := [Vector2(z1-radius,y1-radius),Vector2(z0+radius,y1-radius),Vector2(z0+radius,y0+radius),Vector2(z1-radius,y0+radius)]
+        var corners := [Vector2(z1,y1),Vector2(z0,y1),Vector2(z0,y0),Vector2(z1,y0)]
+        for corner in range(4):
+            for step in range(8):
+                var a := float(corner)*PI*0.5+float(step)*PI/16.0
+                var b := a+PI/16.0
+                var v: Vector2 = centers[corner]+Vector2(cos(a),sin(a))*radius
+                var w: Vector2 = centers[corner]+Vector2(cos(b),sin(b))*radius
+                _emit(wall,Vector3(face,corners[corner].y,corners[corner].x),Vector3(face,v.y,v.x),Vector3(face,w.y,w.x),normal)
+    var opening := _contour(y0,y1,z0,z1,radius)
+    for i in range(opening.size()):
+        var a := opening[i]
+        var b := opening[(i+1)%opening.size()]
+        var n := Vector3(0,(a.y+b.y)*0.5-(y0+y1)*0.5,(a.x+b.x)*0.5-(z0+z1)*0.5).normalized()
+        _quad(wall,Vector3(inside,a.y,a.x),Vector3(outside,a.y,a.x),Vector3(outside,b.y,b.x),Vector3(inside,b.y,b.x),-n)
+    _node(lead,wall,blue,"SeamlessBlueCabSideLeft" if side < 0.0 else "SeamlessBlueCabSideRight",3)
+    var seal := SurfaceTool.new()
+    seal.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var border := _contour(y0-0.028,y1+0.028,z0-0.028,z1+0.028,radius+0.028)
+    for x in [inside-side*0.002,outside+side*0.002]:
+        for i in range(opening.size()):
+            var j := (i+1)%opening.size()
+            _quad(seal,Vector3(x,opening[i].y,opening[i].x),Vector3(x,border[i].y,border[i].x),Vector3(x,border[j].y,border[j].x),Vector3(x,opening[j].y,opening[j].x),Vector3(-side if x*side < 1.3 else side,0,0))
+    _node(lead,seal,rubber,"CabSideWindowRubber",3)
+    var pane := SurfaceTool.new()
+    pane.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for i in range(opening.size()):
+        var j := (i+1)%opening.size()
+        _emit(pane,Vector3(side*1.29,(y0+y1)*0.5,(z0+z1)*0.5),Vector3(side*1.29,opening[i].y,opening[i].x),Vector3(side*1.29,opening[j].y,opening[j].x),Vector3(-side,0,0))
+    _node(lead,pane,glass,"FullCabSideWindow",4)
 
 static func mirror_parts(lead: Node3D) -> Dictionary:
     var result := {-1.0:[],1.0:[]}
