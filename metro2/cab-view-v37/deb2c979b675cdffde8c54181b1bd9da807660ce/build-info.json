@@ -1,5 +1,5 @@
 {
-  "source_commit": "3e73e25ef95cca3c5bd2588f79b77ea13ded1020",
+  "source_commit": "deb2c979b675cdffde8c54181b1bd9da807660ce",
   "godot": "4.3",
   "cab_source": {
     "branch": "cab-development",
@@ -22,7 +22,7 @@
     "scripts/v33_door_controller.gd": "4a27a894838a5d10b92a4878ad2b7455d96bfa28675363635fa6262ac65e85c4",
     "scripts/v106_four_cars_preview.gd": "402db7a38f8bbe9ac5b9b4718ec3b7a40e7e9ec0c1fd4edb4b30ce2ad4b8c46f",
     "scripts/cab_view_cleanup_v37.gd": "6b1fc3ae8b5633ac31578567253aa2c48a797603c6d9c8efdb82ce1b55bd8605",
-    "scripts/cab_v37.gd": "22b738e2845f03fece666efeb3c8e78fb978b323a4f1e856228b0ffcfb8af70f",
+    "scripts/cab_v37.gd": "9d2c5c898c01d76cc416660ae91abe37fc45b600302de4dfeaa63f826653f34e",
     "scripts/tunnel_lightweight_straight.gd": "468f3a90cb4662428eab1f8b80285c389a639f19b875ef6fa6c6b004d286ae60",
     "scripts/cab_r36_material.gdshader": "4fbb1c598fd106360c86836b0a91d5de2562a509e12554d5eac63b04867c62cb",
     "assets/cab_r21/cab_r21.json": "6edf4fea7ad134e1e2e51c1f7dd85d40622d0fec49b56c50b0890201335f4444"
