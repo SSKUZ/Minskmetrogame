@@ -616,7 +616,7 @@ func _tone(frequency: float, seconds: float, loop: bool) -> AudioStreamWAV:
     for i in range(samples):
         var t := float(i)/22050.0
         var envelope := minf(1.0,float(mini(i,samples-1-i))/220.0)
-        bytes.encode_s16(i*2,int((sin(t*frequency*TAU)+sin(t*440.0*TAU))*5000.0*envelope))
+        bytes.encode_s16(i*2,int((sin(t*frequency*TAU)+sin(t*440.0*TAU))*2300.0*envelope))
     stream.data = bytes
     if loop:
         stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
@@ -728,7 +728,7 @@ func make_screen_controls(ui: CanvasLayer) -> void:
     timer.autostart = true
     panel.add_child(timer)
     timer.timeout.connect(func():
-        status.text = "%s · Тяга %d · Тормоз %.0f%%\nТормоз: %.1f / %.1f · %.0f / %.0f\nРадио: %s · %s\n%s" % ["ВПЕРЁД" if direction == 1 else "НАЗАД" if direction == -1 else "НЕЙТРАЛЬ",controller_notch,applied_brake*100,line_pressure,cylinder_pressure,window_temperature.x,window_temperature.y,radio_channel,"ПЕРЕДАЧА" if radio_tx else "ВЫЗОВ" if radio_call else "ПРИЁМ",notice]
+        status.text = "%s · Тяга %d · Тормоз %.0f%%\n%s" % ["ВПЕРЁД" if direction == 1 else "НАЗАД" if direction == -1 else "НЕЙТРАЛЬ",controller_notch,applied_brake*100,notice]
     )
 
 func cancel_interaction() -> void:
