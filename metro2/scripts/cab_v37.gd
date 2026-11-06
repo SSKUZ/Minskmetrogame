@@ -363,18 +363,14 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         _pointer = pointer
         _drag_origin = point
         _dragged = false
-        _lever_start = float(controller_notch)/5.0 if _active == "master" else brake_demand
+        _lever_start = (float(controller_notch)/5.0 if controller_notch >= 0 else -brake_demand) if _active == "master" else brake_demand
         if _active not in ["master","brake","brake1","brake2"]:
             command(_active)
         return true
     if _active.is_empty() or pointer != _pointer:
         return false
     if release:
-        if _active in ["master","brake","brake1","brake2"] and not _dragged:
-            if _active == "master":
-                command("tractionUp")
-            else:
-                command("brake",fmod(brake_demand+0.25,1.25))
+        # A tap must not unexpectedly increase traction; only dragging moves the handle.
         command(_active,0.0,"release")
         _active = ""
         _pointer = -2
@@ -382,8 +378,12 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
     if relative != Vector2.ZERO and _active in ["master","brake","brake1","brake2"]:
         if point.distance_to(_drag_origin) > 4.0:
             _dragged = true
-            var value := _lever_start+(_drag_origin.y-point.y)*0.008
-            command(_active,clampf(value,-1.0,1.0) if _active == "master" else clampf(-value+2.0*_lever_start,0.0,1.0))
+            var travel := (_drag_origin.y-point.y)*0.008
+            var value := clampf(_lever_start+travel,-1.0,1.0)
+            if _active == "master":
+                command("master",value)
+            else:
+                command(_active,clampf(_lever_start-travel,0.0,1.0))
     return true
 
 func command(id: String, value: float = 0.0, phase: String = "press") -> void:
@@ -716,7 +716,8 @@ func _install_video(lead: Node3D) -> void:
         # Move and enlarge the complete original yellow assembly, including its
         # old bracket and glass. No second mirror or added reflection quad.
         pivot.position = Vector3(side*1.57,2.70,-8.65)
-        pivot.scale = Vector3.ONE*1.5
+        pivot.scale = Vector3.ONE*1.8
+        pivot.rotation.y = -side*deg_to_rad(13.0)
         _mirrors.append(video)
 
 func _update_video() -> void:
@@ -725,13 +726,13 @@ func _update_video() -> void:
     for video in _mirrors:
         var enabled := bool(switches.mirrorLeft if video.side < 0.0 else switches.mirrorRight)
         var pivot := video.pivot as Node3D
-        pivot.rotation.y = 0.0 if enabled else float(video.side)*PI*0.5
+        pivot.rotation.y = -float(video.side)*deg_to_rad(13.0) if enabled else float(video.side)*PI*0.5
         if not enabled: continue
         var viewer := game.get("camera") as Camera3D
         if not viewer.is_position_in_frustum(pivot.global_position): continue
         var camera := video.camera as Camera3D
         camera.global_position = pivot.to_global(Vector3(0,0,0.04))
-        camera.look_at(train.to_global(Vector3(float(video.side)*1.65,2.55,60.0)),Vector3.UP)
+        camera.look_at(train.to_global(Vector3(float(video.side)*1.65,2.55,45.0)),Vector3.UP)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
 func make_screen_controls(ui: CanvasLayer) -> void:
