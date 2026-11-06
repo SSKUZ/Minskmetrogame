@@ -19,6 +19,14 @@ static func _discard(a: Vector3, b: Vector3, c: Vector3, metal: bool, opaque: bo
     # batch with the passenger saloon. Remove only triangles inside this cab.
     if metal and _inside(a,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)) and _inside(b,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)) and _inside(c,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)):
         return true
+    # Open the entire enlarged side-window aperture. The old small window
+    # was only a transparent patch inside an opaque blue door/shell.
+    # Clip triangles inside the new opening before adding full-size glass.
+    var left_window := AABB(Vector3(-1.34,2.035,-9.195),Vector3(0.12,0.94,1.205))
+    var right_window := AABB(Vector3(1.22,2.035,-9.195),Vector3(0.12,0.94,1.205))
+    for window in [left_window,right_window]:
+        if _inside(a,window.position,window.end) and _inside(b,window.position,window.end) and _inside(c,window.position,window.end):
+            return true
     # Remove the original right-hand door leaf and its outer rubber seal.
     # The smaller window seal remains and follows the enlarged glazing.
     for region in [AABB(Vector3(1.258,0.953,-8.886),Vector3(0.034,1.935,0.732)),AABB(Vector3(1.314,0.934,-8.906),Vector3(0.024,1.972,0.773))]:
@@ -76,6 +84,26 @@ static func apply(lead: Node3D) -> void:
             else:
                 instance.mesh = replacement
                 for surface in range(replacement.get_surface_count()): instance.set_surface_override_material(surface,null)
+    # A single transparent pane spans each enlarged side-window outline.
+    # The old small glass and opaque center have been removed above.
+    var glazing := StandardMaterial3D.new()
+    glazing.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    glazing.albedo_color = Color(0.77,0.88,0.95,0.075)
+    glazing.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    glazing.cull_mode = BaseMaterial3D.CULL_DISABLED
+    glazing.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+    for side in [-1.0,1.0]:
+        var pane := MeshInstance3D.new()
+        pane.name = "FullCabSideWindowLeft" if side < 0.0 else "FullCabSideWindowRight"
+        var glass_mesh := PlaneMesh.new()
+        glass_mesh.size = Vector2(1.22,0.95)
+        pane.mesh = glass_mesh
+        pane.material_override = glazing
+        pane.position = Vector3(side*1.285,2.505,-8.59)
+        pane.rotation.y = PI*0.5
+        pane.layers = 3
+        pane.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        lead.add_child(pane)
     # Fill the removed right door with matching blue wall around a broad window.
     # Covers just the former door opening, not the console, phone or exterior.
     if paint == null:
