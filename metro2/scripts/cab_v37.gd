@@ -881,6 +881,12 @@ func _input(event: InputEvent) -> void:
         var camera := game.get("camera") as Camera3D
         var pressing: bool = (event is InputEventScreenTouch and event.pressed) or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
         var captured := _active == "master"
+        # Android can emit a second, emulated mouse stream for the same touch.
+        # Consume it while the real finger owns the lever, rather than letting
+        # the orbit camera rotate or steal the gesture.
+        if captured and _pointer >= 0 and event is InputEventMouse:
+            get_viewport().set_input_as_handled()
+            return
         if captured or (pressing and _master_hit(event.position,camera)):
             if handle_input(event,camera):
                 get_viewport().set_input_as_handled()
