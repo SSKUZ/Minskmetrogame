@@ -1,4 +1,4 @@
-name: Metro2 TZ38 cab window and controls repair Web
+name: Metro2 TZ39 cab window and controls repair Web
 on:
   workflow_dispatch:
   push:
@@ -8,6 +8,7 @@ on:
       - 'metro2/project.godot'
       - 'metro2/scripts/cab_v37.gd'
       - 'metro2/scripts/cab_view_cleanup_v37.gd'
+      - 'metro2/tools/web_publication.py'
       - 'metro2/scripts/train_interior_v36.gd'
       - 'metro2/scripts/v33_door_controller.gd'
       - 'metro2/tools/prepare_cab.py'
@@ -19,7 +20,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: metro2-tz38-web
+  group: metro2-tz39-web
   cancel-in-progress: true
 jobs:
   cab_assets:
@@ -135,7 +136,7 @@ jobs:
           cp stage/build-info.json stage/build/web/
       - uses: actions/upload-artifact@v4
         with:
-          name: tz38-web-build
+          name: tz39-web-build
           path: stage/build/web/
           retention-days: 7
   publish:
@@ -155,36 +156,34 @@ jobs:
           sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v4
         with:
-          name: tz38-web-build
+          name: tz39-web-build
           path: web
       - uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: published-site
           fetch-depth: 1
-      - name: Publish separate TZ38 Web version and await deployment
+      - name: Publish separate TZ39 Web version and await deployment
         run: |
           set -euo pipefail
-          # The shared publisher defaults to V37; isolate this release under V38.
-          sed -i 's@metro2/cab-view-v37/@metro2/cab-fixes-v38/@g' release-tools/metro2/tools/web_publication.py
           python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA"
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- metro2
-          git commit -m "Publish TZ38 cab windows, original mirrors and pinch camera Web $GITHUB_SHA"
+          git commit -m "Publish TZ39 cab windows, original mirrors and pinch camera Web $GITHUB_SHA"
           git pull --rebase origin gh-pages
           git push origin HEAD:gh-pages
           cd ..
           python3 - <<'PYTHON'
           import urllib.request,time,json,os
-          url='https://sskuz.github.io/Minskmetrogame/metro2/cab-fixes-v38/'+os.environ['GITHUB_SHA']+'/'
+          url='https://sskuz.github.io/Minskmetrogame/metro2/cab-fixes-v39/'+os.environ['GITHUB_SHA']+'/'
           for attempt in range(90):
             try:
               with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
                 data=json.load(response)
               if data['source_commit']==os.environ['GITHUB_SHA']:
-                print('TZ38_WEB_PUBLISHED '+url)
+                print('TZ39_WEB_PUBLISHED '+url)
                 break
             except Exception:
               pass
@@ -194,3 +193,4 @@ jobs:
           PYTHON
       - name: Remove replaced publication artifacts
         run: python3 release-tools/metro2/tools/web_publication.py prune-artifacts
+

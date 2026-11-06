@@ -17,6 +17,10 @@ var moving: Dictionary = {}
 var bases: Dictionary = {}
 var switches := {"cabLight":true,"headlights":true,"wiperLeft":false,"wiperRight":false,"ars":false,"doorBlock":false,"mode":false,"reserve":false,"ept":true,"mirrorLeft":true,"mirrorRight":true,"heatLeft":false,"heatRight":false}
 var controller_notch := 0
+var controller_value := 0.0
+var _lever_axis := Vector2.UP
+var _lever_forward_pixels := 100.0
+var _lever_brake_pixels := 65.0
 var brake_demand := 0.0
 var applied_brake := 0.0
 var direction := 1
@@ -84,6 +88,7 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
     var console := model.find_child("CabConsole",true,false) as Node3D
     console.position.z -= 0.22
     model.find_child("CabCCTV",true,false).hide()
+    _relocate_mirror_panel()
     for root in model.get_children():
         if root is Node3D and absf(absf(root.position.x)-1.268) < 0.01:
             root.hide()
@@ -134,9 +139,26 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
                 if material != null and material.emission_enabled and not _lamp_materials.has(material):
                     _lamp_materials.append(material)
     var banner := lead.find_child("goodmix-duo-cab-bulkhead-banner",true,false) as Node3D
-    cleanup_ready = banner != null and banner.is_visible_in_tree() and _mirrors.size() == 2 and not model.find_child("CabCCTV",true,false).is_visible_in_tree()
+    cleanup_ready = banner != null and banner.is_visible_in_tree() and _mirrors.size() == 2 and not model.find_child("LiveRearMonitor",true,false).is_visible_in_tree()
     ready_for_play = controls.size() == CONTROL_IDS.size()
-    print("CAB_V37_READY version=cab-r2.1 controls=",controls.size())
+    print("CAB_V39_READY version=cab-r2.1 controls=",controls.size())
+
+func _relocate_mirror_panel() -> void:
+    var left := model.find_child("Control_mirrorLeft",true,false) as Node3D
+    var block := model.find_child("CabCCTV",true,false) as Node3D
+    if left == null or block == null: return
+    var panel := left.get_parent() as Node3D
+    # Reuse the original right-hand black equipment housing, without its
+    # electronic monitor. Move the entire authored panel; do not clone it.
+    block.show()
+    var casing := true
+    for item in block.get_children():
+        if item is Node3D:
+            (item as Node3D).visible = casing and item is MeshInstance3D
+            casing = false
+    panel.reparent(block,false)
+    panel.transform = Transform3D(Basis.IDENTITY,Vector3(0.0,0.085,0.046))
+    panel.show()
 
 func _fit_cab_to_v106() -> void:
     var shell := model.find_child("CabInteriorShell",true,false) as Node3D
@@ -363,7 +385,21 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         _pointer = pointer
         _drag_origin = point
         _dragged = false
-        _lever_start = (float(controller_notch)/5.0 if controller_notch >= 0 else -brake_demand) if _active == "master" else brake_demand
+        _lever_start = controller_value if _active == "master" else brake_demand
+        if _active == "master":
+            var handle := moving["master"] as Node3D
+            var base: Transform3D = bases["master"]
+            var parent := handle.get_parent() as Node3D
+            var neutral := base.origin
+            neutral.y = -0.079
+            var forward := neutral+Vector3(0,0.249,0)
+            var back := neutral-Vector3(0,0.079,0)
+            var center := camera.unproject_position(parent.to_global(neutral))
+            var front := camera.unproject_position(parent.to_global(forward))
+            var rear := camera.unproject_position(parent.to_global(back))
+            _lever_axis = (front-rear).normalized()
+            _lever_forward_pixels = maxf(25.0,absf((front-center).dot(_lever_axis)))
+            _lever_brake_pixels = maxf(18.0,absf((center-rear).dot(_lever_axis)))
         if _active not in ["master","brake","brake1","brake2"]:
             command(_active)
         return true
@@ -378,13 +414,15 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         _pointer = -2
         return true
     if relative != Vector2.ZERO and _active in ["master","brake","brake1","brake2"]:
-        if point.distance_to(_drag_origin) > 4.0:
+        if _dragged or point.distance_to(_drag_origin) > 8.0:
             _dragged = true
-            var travel := (_drag_origin.y-point.y)*0.008
-            var value := clampf(_lever_start+travel,-1.0,1.0)
             if _active == "master":
-                command("master",value)
+                var origin := _lever_start*(_lever_forward_pixels if _lever_start >= 0.0 else _lever_brake_pixels)
+                var travel := origin+(point-_drag_origin).dot(_lever_axis)
+                var value := travel/(_lever_forward_pixels if travel >= 0.0 else _lever_brake_pixels)
+                command("master",clampf(value,-1.0,1.0))
             else:
+                var travel := (_drag_origin.y-point.y)*0.008
                 command(_active,clampf(_lever_start-travel,0.0,1.0))
     return true
 
@@ -396,9 +434,10 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
     match id:
         "master":
             if not release:
-                controller_notch = clampi(roundi(value*5.0),-5,5)
-                brake_demand = maxf(0.0,-value)
-                if value >= 0.0:
+                controller_value = 0.0 if absf(value) < 0.035 else clampf(value,-1.0,1.0)
+                controller_notch = clampi(roundi(controller_value*5.0),-5,5)
+                brake_demand = maxf(0.0,-controller_value)
+                if controller_value >= 0.0:
                     emergency = false
         "tractionUp":
             controller_notch = mini(5,controller_notch+1)
@@ -509,6 +548,8 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
                 switches[id] = not switches[id]
                 if id == "mode": target_speed = maxf(8.33,float(game.get("speed")))
                 if id == "doorBlock" and switches.doorBlock: doors.call("request_close")
+    if not release and id in ["tractionUp","tractionDown","brake","brake1","brake2","release","service","emergency"]:
+        controller_value = -brake_demand if brake_demand > 0.0 else float(controller_notch)/5.0
     if not release and moving.has(id):
         moving[id].set_meta("pressed_until",clock+0.16)
 
@@ -517,7 +558,7 @@ func physics_inputs(delta: float, speed: float, screen_throttle: bool, screen_br
     if bool(switches.ars) and speed > 16.67:
         desired_brake = maxf(desired_brake,0.65)
         notice = "АРС: ограничение 60 км/ч"
-    var desired_traction := maxf(float(maxi(controller_notch,0))/5.0,1.0 if screen_throttle else 0.0)
+    var desired_traction := maxf(maxf(controller_value,0.0),1.0 if screen_throttle else 0.0)
     if bool(switches.mode) and not screen_throttle and not screen_brake and brake_demand == 0.0 and controller_notch > 0:
         desired_traction = clampf((target_speed-speed)*0.5,0.0,1.0)
         desired_brake = maxf(desired_brake,clampf((speed-target_speed)*0.3,0.0,0.5))
@@ -546,7 +587,7 @@ func _process(delta: float) -> void:
             node.transform = base
             continue
         if id == "master":
-            var lever := -maxf(brake_demand,1.0 if bool(game.get("brake")) else 0.0) if brake_demand > 0.0 or bool(game.get("brake")) else maxf(float(controller_notch)/5.0,1.0 if bool(game.get("throttle")) else 0.0)
+            var lever := -maxf(brake_demand,1.0 if bool(game.get("brake")) else 0.0) if brake_demand > 0.0 or bool(game.get("brake")) else maxf(controller_value,1.0 if bool(game.get("throttle")) else 0.0)
             node.position.y = lerpf(node.position.y,-0.079+lever*(0.249 if lever > 0.0 else 0.079),smooth)
         elif id == "brake":
             node.rotation.y = lerpf(node.rotation.y,-applied_brake*1.6,smooth)
@@ -674,14 +715,14 @@ func _tone(frequency: float, seconds: float, loop: bool) -> AudioStreamWAV:
 
 func _make_video() -> Dictionary:
     var viewport := SubViewport.new()
-    viewport.size = Vector2i(384,512)
+    viewport.size = Vector2i(256,512)
     viewport.world_3d = get_world_3d()
     viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
     viewport.transparent_bg = false
     add_child(viewport)
     var camera := Camera3D.new()
     camera.cull_mask = 1
-    camera.fov = 38.0
+    camera.fov = 48.0
     camera.far = 120.0
     camera.near = 0.08
     viewport.add_child(camera)
@@ -713,13 +754,13 @@ func _install_video(lead: Node3D) -> void:
             part.reparent(pivot,true)
             if bool(part.get_meta("reflection")):
                 part.material_override = video.material
-                part.layers = 2
+                part.layers = 32
                 part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         # Move and enlarge the complete original yellow assembly, including its
         # old bracket and glass. No second mirror or added reflection quad.
-        pivot.position = Vector3(side*1.49,2.70,-8.75)
-        pivot.scale = Vector3.ONE*1.18
-        pivot.rotation.y = -side*deg_to_rad(13.0)
+        pivot.position = Vector3(side*1.53,2.68,-8.70)
+        pivot.scale = Vector3.ONE*1.20
+        pivot.rotation.y = atan2(eye_in_train().x-pivot.position.x,eye_in_train().z-pivot.position.z)
         _mirrors.append(video)
 
 func _update_video() -> void:
@@ -728,14 +769,16 @@ func _update_video() -> void:
     for video in _mirrors:
         var enabled := bool(switches.mirrorLeft if video.side < 0.0 else switches.mirrorRight)
         var pivot := video.pivot as Node3D
-        pivot.rotation.y = -float(video.side)*deg_to_rad(13.0) if enabled else float(video.side)*PI*0.5
+        var eye := eye_in_train()
+        var open_angle := atan2(eye.x-pivot.position.x,eye.z-pivot.position.z)
+        pivot.rotation.y = open_angle if enabled else open_angle+float(video.side)*PI*0.5
         if not enabled: continue
         var viewer := game.get("camera") as Camera3D
         # Do not skip the reflection because the pivot origin is outside the frustum.
         # The large mirror surface can still be visible at the screen edge.
         var camera := video.camera as Camera3D
         camera.global_position = pivot.to_global(Vector3(0,0,0.04))
-        camera.look_at(train.to_global(Vector3(float(video.side)*1.30,2.55,35.0)),Vector3.UP)
+        camera.look_at(train.to_global(Vector3(float(video.side)*1.26,2.35,65.0)),Vector3.UP)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
 func make_screen_controls(ui: CanvasLayer) -> void:
@@ -816,3 +859,4 @@ func _input(event: InputEvent) -> void:
     if event is InputEventKey and not event.pressed and event.physical_keycode == KEY_H:
         horn_active = false
         if _horn != null: _horn.stop()
+
