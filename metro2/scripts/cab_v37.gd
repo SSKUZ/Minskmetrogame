@@ -370,7 +370,9 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
     if _active.is_empty() or pointer != _pointer:
         return false
     if release:
-        # A tap must not unexpectedly increase traction; only dragging moves the handle.
+        # Preserve tap interaction for brake controls; master changes only by dragging.
+        if not _dragged and _active in ["brake","brake1","brake2"]:
+            command(_active,1.0)
         command(_active,0.0,"release")
         _active = ""
         _pointer = -2
@@ -729,7 +731,8 @@ func _update_video() -> void:
         pivot.rotation.y = -float(video.side)*deg_to_rad(13.0) if enabled else float(video.side)*PI*0.5
         if not enabled: continue
         var viewer := game.get("camera") as Camera3D
-        if not viewer.is_position_in_frustum(pivot.global_position): continue
+        # Do not skip the reflection because the pivot origin is outside the frustum.
+        # The large mirror surface can still be visible at the screen edge.
         var camera := video.camera as Camera3D
         camera.global_position = pivot.to_global(Vector3(0,0,0.04))
         camera.look_at(train.to_global(Vector3(float(video.side)*1.30,2.55,35.0)),Vector3.UP)
