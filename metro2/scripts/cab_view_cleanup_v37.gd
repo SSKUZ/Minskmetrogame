@@ -95,7 +95,7 @@ static func apply(lead: Node3D) -> void:
     for side in [-1.0,1.0]:
         var pane := MeshInstance3D.new()
         pane.name = "FullCabSideWindowLeft" if side < 0.0 else "FullCabSideWindowRight"
-        var glass_mesh := PlaneMesh.new()
+        var glass_mesh := QuadMesh.new()
         glass_mesh.size = Vector2(1.22,0.95)
         pane.mesh = glass_mesh
         pane.material_override = glazing
