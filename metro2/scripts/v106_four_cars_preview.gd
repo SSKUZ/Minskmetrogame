@@ -1,5 +1,5 @@
 extends Node3D
-const CAB_RUNTIME = preload("res://scripts/cab_v34.gd")
+const CAB_RUNTIME = preload("res://scripts/cab_v35.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
@@ -452,6 +452,7 @@ func _illuminate_headlamp_lenses(lead: Node3D) -> void:
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
+    camera.fov = 66.0 if mode == "cabin" else 75.0
     if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
     _focused_car = 0
     if not _car_centers.is_empty():
@@ -501,7 +502,7 @@ func diagnostic_state() -> Dictionary:
             cars += 1
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
-        "cab_version":"cab-r2-v34",
+        "cab_version":"cab-r2.1-v35",
         "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
         "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,

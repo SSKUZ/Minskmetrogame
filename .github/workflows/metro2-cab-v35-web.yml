@@ -1,0 +1,247 @@
+name: Metro2 TZ35 confirmed cab-r2.1 integration Web
+on:
+  push:
+    branches: [feature/metro2-cab-r21-integration-v35]
+    paths:
+      - '.github/workflows/metro2-cab-v35-web.yml'
+      - 'metro2/project.godot'
+      - 'metro2/scripts/cab_v35.gd'
+      - 'metro2/scripts/v33_door_controller.gd'
+      - 'metro2/tools/prepare_cab.py'
+      - 'metro2/assets/cab_r21/**'
+      - 'metro2/scripts/cab_r21_material.gdshader'
+      - 'metro2/tools/export_cab_r21.mjs'
+      - 'metro2/scripts/v106_four_cars_preview.gd'
+      - 'metro2/scripts/tunnel_lightweight_straight.gd'
+permissions:
+  contents: read
+concurrency:
+  group: metro2-tz35-web
+  cancel-in-progress: true
+jobs:
+  cab_assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CAB_SOURCE_COMMIT: aef6e01a10c9750582c93697536b3e56a62ac3f2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            metro2/tools/export_cab_r21.mjs
+            metro2/tools/web_publication.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@v4
+        with:
+          ref: aef6e01a10c9750582c93697536b3e56a62ac3f2
+          path: cab-source
+          sparse-checkout: |
+            js/cab
+            audio/malinovka_arrival.mp3
+            audio/malinovka_departure_petrovshchina.mp3
+            package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Export exactly the confirmed source, with full geometry, labels, lighting and material maps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-liberation
+          mkdir export-runtime
+          npm install --prefix export-runtime --no-audit --no-fund three@0.161.0 @napi-rs/canvas@0.1.100
+          CAB_SOURCE_DIR="$PWD/cab-source" CAB_EXPORT_RUNTIME="$PWD/export-runtime" node metro2/tools/export_cab_r21.mjs cab-export
+          python3 - <<'PY'
+          import json,hashlib,pathlib
+          root=pathlib.Path('cab-export');recipe=json.loads((root/'cab_r21.json').read_text())
+          assert recipe['entry_version']=='cab-r2.1' and len(recipe['controls'])==40
+          assert recipe['glb_sha256']==hashlib.sha256((root/'cab_r21.glb').read_bytes()).hexdigest()
+          assert len(recipe['environment_faces'])==6 and len(recipe['lights'])==2
+          PY
+      - name: Preserve original source and complete exported cabin in the permanent build archive
+        run: |
+          python3 - <<'PY'
+          import sys,zipfile,pathlib,os
+          sys.path.insert(0,'metro2/tools')
+          from web_publication import GitHub,Archive
+          target=pathlib.Path('cab-r21-source.zip')
+          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=3) as z:
+            for root,prefix in [(pathlib.Path('cab-export'),'assets/cab_r21'),(pathlib.Path('cab-source/js/cab'),'source/js/cab')]:
+              for p in root.rglob('*'):
+                if p.is_file():z.write(p,prefix+'/'+str(p.relative_to(root)))
+            z.write('metro2/tools/export_cab_r21.mjs','export_cab_r21.mjs')
+          archive=Archive(GitHub(),os.environ['GITHUB_SHA'])
+          archive.upload(target,'cab-r21-source-'+os.environ['GITHUB_SHA']+'-'+os.environ['GITHUB_RUN_ATTEMPT']+'.zip')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cab-r21-original-export
+          path: cab-export/
+          retention-days: 7
+  export:
+    needs: cab_assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: cab-r21-original-export
+          path: cab-export
+      - name: Prepare isolated four-car project from this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 metro2/tools/prepare_first_playable_assets.py
+          mkdir -p stage/scripts stage/scenes stage/tests stage/assets/v106_lod1 stage/build/web
+          cp metro2/project.godot metro2/export_presets.cfg stage/
+          cp metro2/scripts/v106_four_cars_preview.gd metro2/scripts/tunnel_lightweight_straight.gd stage/scripts/
+          cp metro2/scripts/cab_v35.gd metro2/scripts/v33_door_controller.gd stage/scripts/
+          mkdir -p stage/assets/cab_r21
+          cp -a cab-export/. stage/assets/cab_r21/
+          cp metro2/assets/cab_r21/cab_r21.glb.import stage/assets/cab_r21/
+          cp metro2/scripts/cab_r21_material.gdshader stage/scripts/
+          cp metro2/scenes/v106_four_cars_preview.tscn stage/scenes/
+          cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb stage/assets/v106_lod1/
+          cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import stage/assets/v106_lod1/
+          for file in metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_*.png*; do
+            if [ -f "$file" ]; then cp "$file" stage/assets/v106_lod1/; fi
+          done
+          for car in 02 03 04; do
+            mkdir -p "stage/assets/v106_original/car$car"
+            cp "metro2/assets/v106_original/car$car/v106_car_$car.glb" "stage/assets/v106_original/car$car/"
+            cp "metro2/assets/v106_original/car$car/v106_car_$car.glb.import" "stage/assets/v106_original/car$car/"
+            for file in "metro2/assets/v106_original/car$car/"*.png*; do
+              if [ -f "$file" ]; then cp "$file" "stage/assets/v106_original/car$car/"; fi
+            done
+          done
+          python3 - <<'PY'
+          import pathlib,hashlib,json,os
+          root=pathlib.Path('stage')
+          p=root/'project.godot'
+          s=p.read_text().replace('res://scenes/station_v106_first_playable.tscn','res://scenes/v106_four_cars_preview.tscn')
+          s=s.replace('[display]\n','[display]\nwindow/stretch/mode="canvas_items"\nwindow/stretch/aspect="expand"\n')
+          p.write_text(s)
+          p=root/'export_presets.cfg'
+          s=p.read_text().replace('export_filter="scenes"','export_filter="all_resources"')
+          s=s.replace('include_filter=""','include_filter="*.json"')
+          s=s.replace('include_filter="*v106_door_controller.gd"','include_filter="*.json"')
+          s=s.replace('vram_texture_compression/for_mobile=true','vram_texture_compression/for_mobile=false')
+          s=s.replace('org.minskmetro.metro2alpha01','org.minskmetro.metro2tz30')
+          s=s.replace('Minsk Metro 2 First Playable','Minsk Metro 2.0 TZ30')
+          p.write_text(s)
+          files=list(root.rglob('*.glb'))+list(root.rglob('*.glb.import'))+list((root/'scripts').glob('*.gd'))+list((root/'scripts').glob('*.gdshader'))+[root/'assets/cab_r21/cab_r21.json']
+          for meta in root.rglob('*.glb.import'):
+            assert 'meshes/generate_lods=false' in meta.read_text()
+            assert 'meshes/force_disable_compression=true' in meta.read_text()
+          manifest={'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','cab_source':{'branch':'cab-development','commit':'aef6e01a10c9750582c93697536b3e56a62ac3f2','version':'cab-r2.1','sha256':hashlib.sha256((root/'assets/cab_r21/cab_r21.glb').read_bytes()).hexdigest()},'models_and_scripts':{
+            str(f.relative_to(root)):hashlib.sha256(f.read_bytes()).hexdigest() for f in files}}
+          (root/'build-info.json').write_text(json.dumps(manifest,indent=2))
+          PY
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          godot --headless --path stage --editor --import --quit > import.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' import.log; then exit 1; fi
+          godot --headless --path stage --export-release Web build/web/index.html > export.log 2>&1
+          if grep -E 'SCRIPT ERROR|ERROR:' export.log; then exit 1; fi
+          test -s stage/build/web/index.pck
+          cp stage/build-info.json stage/build/web/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tz35-web-build
+          path: stage/build/web/
+          retention-days: 7
+  publish:
+    needs: export
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: release-tools
+          sparse-checkout: metro2/tools/web_publication.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: tz35-web-build
+          path: web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Minimal startup check, no screenshots or performance measurements
+        run: |
+          npm install playwright@1.56.1
+          python3 -m http.server 8000 --directory web > /tmp/metro-web-server.log 2>&1 &
+          cat > startup.cjs <<'JS'
+          const {chromium}=require('playwright');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const b=await chromium.launch({channel:'chrome',args:['--use-angle=swiftshader']});
+            const p=await b.newPage({viewport:{width:1280,height:720}});
+            const errors=[];
+            p.on('pageerror',e=>errors.push(e.message));
+            p.on('console',m=>{if(m.type()==='error'&&!m.text().includes('favicon'))errors.push(m.text());});
+            await p.goto('http://localhost:8000/');
+            await p.waitForFunction(()=>{
+              const s=window.metro2Diagnostics;
+              return s?.cars===4&&s.coverage&&s.tunnel_visible&&s.train_visible&&s.headlights===2&&s.cab_loaded&&s.cab_version==='cab-r2.1-v35'&&s.door_system_ready;
+            },null,{timeout:180000});
+            const gl=await p.evaluate(()=>{
+              const g=document.querySelector('canvas').getContext('webgl2');
+              return {lost:g.isContextLost(),error:g.getError()};
+            });
+            assert.equal(gl.lost,false);assert.equal(gl.error,0);
+            assert.deepEqual(errors,[]);
+            console.log('TZ35_STARTUP_PASS cars=4 original_cab_r21=loaded doors=initialized');
+            await b.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          timeout 6m node startup.cjs
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: published-site
+          fetch-depth: 1
+      - name: Publish separate TZ35 Web version and await deployment
+        run: |
+          set -euo pipefail
+          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA"
+          cd published-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2
+          git commit -m "Publish TZ35 confirmed cab-r2.1 integration Web $GITHUB_SHA"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          cd ..
+          python3 - <<'PYTHON'
+          import urllib.request,time,json,os
+          url='https://sskuz.github.io/Minskmetrogame/metro2/cab-r21-v35/'+os.environ['GITHUB_SHA']+'/'
+          for attempt in range(90):
+            try:
+              with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
+                data=json.load(response)
+              if data['source_commit']==os.environ['GITHUB_SHA']:
+                print('TZ35_WEB_PUBLISHED '+url)
+                break
+            except Exception:
+              pass
+            time.sleep(10)
+          else:
+            raise RuntimeError('Pages deployment timeout')
+          PYTHON
+      - name: Remove replaced publication artifacts
+        run: python3 release-tools/metro2/tools/web_publication.py prune-artifacts

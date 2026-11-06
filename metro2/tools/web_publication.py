@@ -274,7 +274,7 @@ def publish(args):
     manifest=json.loads((root/'metro2/publication.json').read_text())
     if manifest.get('schema')!=1:raise RuntimeError('Run repository maintenance before publishing')
     current=manifest['current']['path']
-    destination='metro2/cab-restoration-v34/'+args.commit
+    destination='metro2/cab-r21-v35/'+args.commit
     folder=root/destination;folder.mkdir(parents=True,exist_ok=True)
     shutil.copytree(args.new_build,folder,dirs_exist_ok=True)
     info=json.loads((folder/'build-info.json').read_text())
