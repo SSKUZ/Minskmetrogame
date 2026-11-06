@@ -80,14 +80,42 @@ static func apply(lead: Node3D) -> void:
             var source_material := instance.get_active_material(surface) as BaseMaterial3D
             var opaque := source_material != null and source_material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED
             var kept := PackedInt32Array()
+            var clipped := SurfaceTool.new()
+            clipped.begin(Mesh.PRIMITIVE_TRIANGLES)
+            var clipped_count := 0
+            var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
             for triangle in range(0,indices.size(),3):
-                var a: Vector3 = transform*vertices[indices[triangle]]
-                var b: Vector3 = transform*vertices[indices[triangle+1]]
-                var c: Vector3 = transform*vertices[indices[triangle+2]]
+                var ia: int = indices[triangle]
+                var ib: int = indices[triangle+1]
+                var ic: int = indices[triangle+2]
+                var a: Vector3 = transform*vertices[ia]
+                var b: Vector3 = transform*vertices[ib]
+                var c: Vector3 = transform*vertices[ic]
                 if _discard(a,b,c,metal,opaque):
                     changed = true
                     continue
-                kept.append(indices[triangle]); kept.append(indices[triangle+1]); kept.append(indices[triangle+2])
+                var side_wall := opaque and absf(a.x) > 1.245 and absf(b.x) > 1.245 and absf(c.x) > 1.245 and signf(a.x) == signf(b.x) and signf(b.x) == signf(c.x) and maxf(absf(a.x-b.x),maxf(absf(a.x-c.x),absf(b.x-c.x))) < 0.08
+                if side_wall:
+                    var remapped: Array = []
+                    for v in [a,b,c]:
+                        var p: Vector3 = v
+                        p.z = _remap(p.z,Z_OLD,Z_NEW)
+                        p.y = _remap(p.y,Y_OLD,Y_NEW)
+                        remapped.append(p)
+                    var pieces := _outside_window(remapped,2.03,2.98,-9.20,-7.98)
+                    var fully_outside := pieces.size() == 1 and (pieces[0] as Array).size() == 3
+                    if not fully_outside:
+                        changed = true
+                        for piece in pieces:
+                            for k in range(1,piece.size()-1):
+                                for p in [piece[0],piece[k],piece[k+1]]:
+                                    var bary := Geometry3D.get_triangle_barycentric_coords(p,remapped[0],remapped[1],remapped[2])
+                                    if uvs.size() == vertices.size():
+                                        clipped.set_uv(uvs[ia]*bary.x+uvs[ib]*bary.y+uvs[ic]*bary.z)
+                                    clipped.add_vertex(inverse*p)
+                                    clipped_count += 1
+                        continue
+                kept.append(ia); kept.append(ib); kept.append(ic)
             for i in range(vertices.size()):
                 var point: Vector3 = transform*vertices[i]
                 if absf(point.x) > 1.24 and point.z >= -9.5031 and point.z <= -6.99 and point.y >= 0.95 and point.y <= 3.25:
@@ -100,6 +128,10 @@ static func apply(lead: Node3D) -> void:
             if kept.is_empty(): continue
             replacement.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
             replacement.surface_set_material(replacement.get_surface_count()-1,instance.get_active_material(surface))
+            if clipped_count > 0:
+                clipped.generate_normals()
+                clipped.set_material(instance.get_active_material(surface))
+                clipped.commit(replacement)
         if changed:
             if replacement.get_surface_count() == 0: instance.hide()
             else:
