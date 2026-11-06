@@ -19,19 +19,40 @@ static func _discard(a: Vector3, b: Vector3, c: Vector3, metal: bool, opaque: bo
     # batch with the passenger saloon. Remove only triangles inside this cab.
     if metal and _inside(a,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)) and _inside(b,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)) and _inside(c,Vector3(-1.32,0.95,-9.60),Vector3(1.32,3.30,-7.60)):
         return true
-    # Open the entire enlarged side-window aperture. The old small window
-    # was only a transparent patch inside an opaque blue door/shell.
-    # Clip triangles inside the new opening before adding full-size glass.
-    var left_window := AABB(Vector3(-1.34,2.035,-9.195),Vector3(0.12,0.94,1.205))
-    var right_window := AABB(Vector3(1.22,2.035,-9.195),Vector3(0.12,0.94,1.205))
-    for window in [left_window,right_window]:
-        if _inside(a,window.position,window.end) and _inside(b,window.position,window.end) and _inside(c,window.position,window.end):
-            return true
+    # Window clipping is handled after vertex remapping, not by deleting
+    # only fully enclosed triangles (which leaves large opaque polygons).
     # Remove the original right-hand door leaf and its outer rubber seal.
     # The smaller window seal remains and follows the enlarged glazing.
     for region in [AABB(Vector3(1.258,0.953,-8.886),Vector3(0.034,1.935,0.732)),AABB(Vector3(1.314,0.934,-8.906),Vector3(0.024,1.972,0.773))]:
         if opaque and _inside(a,region.position,region.end) and _inside(b,region.position,region.end) and _inside(c,region.position,region.end): return true
     return false
+
+static func _clip_halfplane(poly: Array, axis: int, boundary: float, keep_greater: bool) -> Array:
+    var result: Array = []
+    if poly.is_empty(): return result
+    for i in range(poly.size()):
+        var a: Vector3 = poly[i]
+        var b: Vector3 = poly[(i+1)%poly.size()]
+        var av: float = a.y if axis == 1 else a.z
+        var bv: float = b.y if axis == 1 else b.z
+        var ai := av >= boundary if keep_greater else av <= boundary
+        var bi := bv >= boundary if keep_greater else bv <= boundary
+        if ai: result.append(a)
+        if ai != bi:
+            var t := (boundary-av)/(bv-av)
+            result.append(a.lerp(b,t))
+    return result
+
+static func _outside_window(triangle: Array, low_y: float, high_y: float, low_z: float, high_z: float) -> Array:
+    # Partition a side-wall triangle into disjoint pieces outside the opening.
+    var remaining: Array = triangle
+    var pieces: Array = []
+    for rule in [[1,low_y,false],[1,high_y,true],[2,low_z,false],[2,high_z,true]]:
+        var outside := _clip_halfplane(remaining,int(rule[0]),float(rule[1]),bool(rule[2]))
+        if outside.size() >= 3: pieces.append(outside)
+        remaining = _clip_halfplane(remaining,int(rule[0]),float(rule[1]),not bool(rule[2]))
+        if remaining.size() < 3: break
+    return pieces
 
 static func apply(lead: Node3D) -> void:
     var paint: Material
