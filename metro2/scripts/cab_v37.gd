@@ -672,14 +672,14 @@ func _tone(frequency: float, seconds: float, loop: bool) -> AudioStreamWAV:
 
 func _make_video() -> Dictionary:
     var viewport := SubViewport.new()
-    viewport.size = Vector2i(128,256)
+    viewport.size = Vector2i(384,512)
     viewport.world_3d = get_world_3d()
     viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
     viewport.transparent_bg = false
     add_child(viewport)
     var camera := Camera3D.new()
     camera.cull_mask = 1
-    camera.fov = 53.0
+    camera.fov = 38.0
     camera.far = 120.0
     camera.near = 0.08
     viewport.add_child(camera)
@@ -711,12 +711,12 @@ func _install_video(lead: Node3D) -> void:
             part.reparent(pivot,true)
             if bool(part.get_meta("reflection")):
                 part.material_override = video.material
-                part.layers = 32
+                part.layers = 2
                 part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         # Move and enlarge the complete original yellow assembly, including its
         # old bracket and glass. No second mirror or added reflection quad.
-        pivot.position = Vector3(side*1.57,2.70,-8.65)
-        pivot.scale = Vector3.ONE*1.8
+        pivot.position = Vector3(side*1.49,2.70,-8.75)
+        pivot.scale = Vector3.ONE*1.18
         pivot.rotation.y = -side*deg_to_rad(13.0)
         _mirrors.append(video)
 
@@ -732,7 +732,7 @@ func _update_video() -> void:
         if not viewer.is_position_in_frustum(pivot.global_position): continue
         var camera := video.camera as Camera3D
         camera.global_position = pivot.to_global(Vector3(0,0,0.04))
-        camera.look_at(train.to_global(Vector3(float(video.side)*1.65,2.55,45.0)),Vector3.UP)
+        camera.look_at(train.to_global(Vector3(float(video.side)*1.30,2.55,35.0)),Vector3.UP)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
 func make_screen_controls(ui: CanvasLayer) -> void:
