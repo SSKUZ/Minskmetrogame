@@ -57,6 +57,7 @@ jobs:
           import json,hashlib,pathlib
           root=pathlib.Path('cab-export');recipe=json.loads((root/'cab_r21.json').read_text())
           assert recipe['entry_version']=='cab-r2.1' and len(recipe['controls'])==40
+          assert recipe['verified_nonempty_images']>=20
           assert recipe['glb_sha256']==hashlib.sha256((root/'cab_r21.glb').read_bytes()).hexdigest()
           assert len(recipe['environment_faces'])==6 and len(recipe['lights'])==2
           PY
@@ -197,7 +198,7 @@ jobs:
             await p.goto('http://localhost:8000/');
             await p.waitForFunction(()=>{
               const s=window.metro2Diagnostics;
-              return s?.cars===4&&s.coverage&&s.tunnel_visible&&s.train_visible&&s.headlights===2&&s.cab_loaded&&s.cab_version==='cab-r2.1-v35'&&s.door_system_ready;
+              return s?.cars===4&&s.coverage&&s.tunnel_visible&&s.train_visible&&s.headlights===2&&s.cab_loaded&&s.cab_version==='cab-r2.1-v35'&&s.cab_textures_verified>=20&&s.door_system_ready;
             },null,{timeout:180000});
             const gl=await p.evaluate(()=>{
               const g=document.querySelector('canvas').getContext('webgl2');

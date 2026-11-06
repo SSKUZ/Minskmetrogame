@@ -6,10 +6,14 @@ import {pathToFileURL} from 'node:url';
 const source=path.resolve(process.env.CAB_SOURCE_DIR),out=path.resolve(process.argv[2]);
 const require=createRequire(path.resolve(process.env.CAB_EXPORT_RUNTIME,'v35/export-runtime')+'/package.json');
 const THREE=await import(pathToFileURL(require.resolve('three')).href);
-const {GLTFExporter}=await import(pathToFileURL(require.resolve('three/addons/exporters/GLTFExporter.js')).href);
+const exporterPath=require.resolve('three/addons/exporters/GLTFExporter.js');
+const nativeExporter=exporterPath.replace(/\.js$/,'.native.js');
+const exporterCode=fs.readFileSync(exporterPath,'utf8').replace('if ( image.data !== undefined ) {','if ( image.data !== undefined && typeof image.data !== \'function\' ) {');
+fs.writeFileSync(nativeExporter,exporterCode);
+const {GLTFExporter}=await import(pathToFileURL(nativeExporter).href);
 const canvas=require(process.env.CAB_CANVAS_MODULE||'@napi-rs/canvas');
 for(const folder of ['/usr/share/fonts/truetype/liberation2','/usr/share/fonts/truetype/liberation'])for(const file of ['LiberationSans-Regular.ttf','LiberationSans-Bold.ttf']){const font=folder+'/'+file;if(fs.existsSync(font))canvas.GlobalFonts.registerFromPath(font,'Arial');}
-globalThis.document={createElement(type){if(type!=='canvas')throw Error(type);return canvas.createCanvas(1,1);}};
+globalThis.document={createElement(type){if(type!=='canvas')throw Error(type);const c=canvas.createCanvas(1,1);c.toBlob=(callback,mime='image/png')=>callback(new Blob([c.toBuffer(mime)],{type:mime}));return c;}};
 globalThis.ImageData=canvas.ImageData;
 globalThis.FileReader=class{readAsArrayBuffer(b){b.arrayBuffer().then(r=>{this.result=r;this.onloadend?.();});}readAsDataURL(b){b.arrayBuffer().then(r=>{this.result='data:'+b.type+';base64,'+Buffer.from(r).toString('base64');this.onloadend?.();});}};
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -36,6 +40,21 @@ const lights=[];root.traverse(o=>{if(o.isLight){o.name=o.isSpotLight?'OriginalCa
 const instanced=[];root.traverse(o=>{if(o.isInstancedMesh)instanced.push(o);});let instanceCount=0;
 for(const o of instanced){const group=new THREE.Group();group.name=o.name;group.position.copy(o.position);group.quaternion.copy(o.quaternion);group.scale.copy(o.scale);group.userData={...o.userData};for(let i=0;i<o.count;i++){const mesh=new THREE.Mesh(o.geometry,o.material),matrix=new THREE.Matrix4();o.getMatrixAt(i,matrix);matrix.decompose(mesh.position,mesh.quaternion,mesh.scale);group.add(mesh);instanceCount++;}o.parent.add(group);o.removeFromParent();}
 root.updateMatrixWorld(true);const bytes=Buffer.from(await new GLTFExporter().parseAsync(root,{binary:true,onlyVisible:false,trs:true}));
+// Native Canvas exposes data() whereas browsers do not. GLTFExporter treats
+// any .data member as a raw DataTexture, producing zero-filled images unless
+// the export adapter distinguishes that method from an actual pixel buffer.
+const jsonLength=bytes.readUInt32LE(12),gltf=JSON.parse(bytes.subarray(20,20+jsonLength)),binaryOffset=28+jsonLength;
+console.log("GLB_ENCODING_DONE",bytes.length);
+let verifiedImages=0;
+for(const entry of gltf.images){
+ const view=gltf.bufferViews[entry.bufferView],image=await canvas.loadImage(bytes.subarray(binaryOffset+(view.byteOffset||0),binaryOffset+(view.byteOffset||0)+view.byteLength));
+ const probe=canvas.createCanvas(image.width,image.height),ctx=probe.getContext('2d');ctx.drawImage(image,0,0);
+ const pixels=ctx.getImageData(0,0,image.width,image.height).data;
+ let visible=false;for(let i=3;i<pixels.length;i+=4)if(pixels[i]!==0){visible=true;break;}
+ if(!visible)throw Error('Exported texture is completely transparent: '+verifiedImages);
+ verifiedImages++;
+}
+recipe.verified_nonempty_images=verifiedImages;
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/cab_r21.glb',bytes);recipe.glb_sha256=hash(bytes);recipe.instances_preserved=instanceCount;
 recipe.audio={};for(const file of ['malinovka_arrival.mp3','malinovka_departure_petrovshchina.mp3']){const data=fs.readFileSync(source+'/audio/'+file);fs.writeFileSync(out+'/'+file,data);recipe.audio[file]=hash(data);}
 fs.writeFileSync(out+'/cab_r21.json',JSON.stringify(recipe));

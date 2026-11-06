@@ -75,6 +75,7 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
     model = CAB_SCENE.instantiate() as Node3D
     model.name = "OriginalCab81_717_R21"
     add_child(model)
+    _separate_cab_floor()
     _source_recipe = JSON.parse_string(FileAccess.get_file_as_string("res://assets/cab_r21/cab_r21.json"))
     for entry in _source_recipe.controls:
         _source_enabled[entry.id] = entry.enabled
@@ -130,6 +131,17 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
                     _lamp_materials.append(material)
     ready_for_play = controls.size() == CONTROL_IDS.size()
     print("CAB_V35_READY version=cab-r2.1 controls=",controls.size())
+
+func _separate_cab_floor() -> void:
+    var shell := model.find_child("CabInteriorShell",true,false) as Node3D
+    if shell == null: return
+    for child in shell.find_children("*","MeshInstance3D",true,false):
+        var mesh := child as MeshInstance3D
+        var bounds := model.global_transform.affine_inverse()*mesh.global_transform*mesh.get_aabb()
+        # The authored floor top is 0.0525 + POSITION.y = 0.9500 m,
+        # exactly the V106 floor. Separate the lining and its ribs by 8 mm.
+        if bounds.end.y < 0.08 and bounds.size.x > 2.4:
+            mesh.position.y += 0.008
 
 func _decode_image(encoded: String) -> Image:
     var image := Image.new()

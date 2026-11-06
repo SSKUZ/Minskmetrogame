@@ -37,7 +37,10 @@ void fragment(){
         vec3 sx=normalize(dFdx(VERTEX)),sy=normalize(dFdy(VERTEX));
         vec3 r1=cross(sy,NORMAL),r2=cross(NORMAL,sx);
         float det=dot(sx,r1);
-        NORMAL=normalize(abs(det)*NORMAL-sign(det)*(dH.x*r1+dH.y*r2));
+        vec3 perturbed=abs(det)*NORMAL-sign(det)*(dH.x*r1+dH.y*r2);
+        if(abs(det)>0.000001 && dot(perturbed,perturbed)>0.000000000001){
+            NORMAL=normalize(perturbed);
+        }
     }
     vec3 reflection=mat3(INV_VIEW_MATRIX)*reflect(-VIEW,NORMAL);
     vec3 reflected=textureLod(cab_environment,reflection,clamp(ROUGHNESS,0.0,1.0)*7.0).rgb;

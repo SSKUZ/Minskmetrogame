@@ -503,6 +503,7 @@ func diagnostic_state() -> Dictionary:
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
         "cab_version":"cab-r2.1-v35",
+        "cab_textures_verified":int(cab_runtime.get("_source_recipe").get("verified_nonempty_images",0)) if is_instance_valid(cab_runtime) else 0,
         "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
         "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
