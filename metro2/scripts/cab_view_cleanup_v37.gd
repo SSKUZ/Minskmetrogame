@@ -27,6 +27,21 @@ static func _discard(a: Vector3, b: Vector3, c: Vector3, metal: bool, opaque: bo
         if opaque and _inside(a,region.position,region.end) and _inside(b,region.position,region.end) and _inside(c,region.position,region.end): return true
     return false
 
+static func _barycentric(p: Vector3, a: Vector3, b: Vector3, c: Vector3) -> Vector3:
+    var v0 := b-a
+    var v1 := c-a
+    var v2 := p-a
+    var d00 := v0.dot(v0)
+    var d01 := v0.dot(v1)
+    var d11 := v1.dot(v1)
+    var d20 := v2.dot(v0)
+    var d21 := v2.dot(v1)
+    var denom := d00*d11-d01*d01
+    if absf(denom) < 0.00000001: return Vector3(1,0,0)
+    var v := (d11*d20-d01*d21)/denom
+    var w := (d00*d21-d01*d20)/denom
+    return Vector3(1.0-v-w,v,w)
+
 static func _clip_halfplane(poly: Array, axis: int, boundary: float, keep_greater: bool) -> Array:
     var result: Array = []
     if poly.is_empty(): return result
@@ -109,7 +124,7 @@ static func apply(lead: Node3D) -> void:
                         for piece in pieces:
                             for k in range(1,piece.size()-1):
                                 for p in [piece[0],piece[k],piece[k+1]]:
-                                    var bary := Geometry3D.get_triangle_barycentric_coords(p,remapped[0],remapped[1],remapped[2])
+                                    var bary := _barycentric(p,remapped[0],remapped[1],remapped[2])
                                     if uvs.size() == vertices.size():
                                         clipped.set_uv(uvs[ia]*bary.x+uvs[ib]*bary.y+uvs[ic]*bary.z)
                                     clipped.add_vertex(inverse*p)
@@ -125,9 +140,10 @@ static func apply(lead: Node3D) -> void:
                     changed = true
             arrays[Mesh.ARRAY_VERTEX] = vertices
             arrays[Mesh.ARRAY_INDEX] = kept
-            if kept.is_empty(): continue
-            replacement.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-            replacement.surface_set_material(replacement.get_surface_count()-1,instance.get_active_material(surface))
+            if kept.is_empty() and clipped_count == 0: continue
+            if not kept.is_empty():
+                replacement.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+                replacement.surface_set_material(replacement.get_surface_count()-1,instance.get_active_material(surface))
             if clipped_count > 0:
                 clipped.generate_normals()
                 clipped.set_material(instance.get_active_material(surface))
