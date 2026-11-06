@@ -1,5 +1,5 @@
 {
-  "source_commit": "855776c6c81dcbe09b3d075080e8a1aea4a61d90",
+  "source_commit": "eb56eea68f42b046f6aad77fac8bc291253a65da",
   "godot": "4.3",
   "cab_source": {
     "branch": "cab-development",
@@ -19,10 +19,10 @@
     "assets/v106_original/car02/v106_car_02.glb.import": "cd46fe40f17c83889e51410b515a71d175e745c4b9250ac93b50f6d8b625cf46",
     "assets/v106_original/car03/v106_car_03.glb.import": "40ab31d1abea9c7035a27b2b93ccaae823e7a2ccd4f674509a506f5c10f48c4f",
     "scripts/train_interior_v36.gd": "172465c89ef580caec67cb5168c307406dc482ba5695c16d62000295eeb952e3",
-    "scripts/v33_door_controller.gd": "4a27a894838a5d10b92a4878ad2b7455d96bfa28675363635fa6262ac65e85c4",
-    "scripts/v106_four_cars_preview.gd": "e17e384d50cee786178235331ecfb6f8b8dcc5b95059d6fcfe0eb268f99cb7d2",
-    "scripts/cab_view_cleanup_v37.gd": "2697db5ca7fd302a78a2157a9bc6de517243b501d7e809c26ac8d8481632d074",
-    "scripts/cab_v37.gd": "acf3e42626c52c50c7c51524a978690e7e20cfdebc564d55809a2044e4726fd5",
+    "scripts/v33_door_controller.gd": "5a9cac9a28519757a1175b4833cebd24d48cd94ccdee4481c83f3b6358f5cb18",
+    "scripts/v106_four_cars_preview.gd": "ca59950cd848c934f2565029075c574cf7a4907fb014550e617bc6a7b9c02271",
+    "scripts/cab_view_cleanup_v37.gd": "467f7b02d2f90afeb727a19297d208ea94f055adcf1b696a3f1e76bc2f0f83a5",
+    "scripts/cab_v37.gd": "d843948c5a9dc588847518ae40bb954b6dcc3b244cde64b4f5fd54e048167ac1",
     "scripts/tunnel_lightweight_straight.gd": "468f3a90cb4662428eab1f8b80285c389a639f19b875ef6fa6c6b004d286ae60",
     "scripts/cab_r36_material.gdshader": "4fbb1c598fd106360c86836b0a91d5de2562a509e12554d5eac63b04867c62cb",
     "assets/cab_r21/cab_r21.json": "6edf4fea7ad134e1e2e51c1f7dd85d40622d0fec49b56c50b0890201335f4444"
