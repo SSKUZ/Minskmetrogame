@@ -1,5 +1,5 @@
 extends Node3D
-const CAB_RUNTIME = preload("res://scripts/cab_v33.gd")
+const CAB_RUNTIME = preload("res://scripts/cab_v34.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
@@ -339,6 +339,8 @@ func _physics_process(delta: float) -> void:
     if distance <= 12.0 and direction == 1: speed = 0.0
     train.position.z = distance
     var step := CAMERA_MOVE_SPEED * delta
+    if camera_mode == "cabin":
+        orbit_yaw = clampf(orbit_yaw,-PI*0.5,PI*0.5)
     if camera_move.get("forward", false): camera_pan.z -= step
     if camera_move.get("back", false): camera_pan.z += step
     if camera_move.get("left", false): camera_pan.x -= step
@@ -372,9 +374,14 @@ func _update_camera() -> void:
         var local_eye := Vector3(-0.4 if cabin else 0.0,2.35,_train_bounds.position.z+1.35 if cabin else -2.0)
         if cabin and is_instance_valid(cab_runtime):
             local_eye = cab_runtime.call("eye_in_train")
-        var desired := train.to_global(local_eye + camera_pan)
+        if cabin:
+            orbit_yaw = clampf(orbit_yaw,-PI*0.5,PI*0.5)
+        var desired := train.to_global(local_eye if cabin else local_eye + camera_pan)
         camera.global_position = _tunnel.call("constrain_camera",desired) if is_instance_valid(_tunnel) else desired
-        camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
+        if cabin:
+            camera.global_basis = train.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
+        else:
+            camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
 
 func _configure_tunnel() -> void:
     _train_bounds = _get_model_bounds(train)
@@ -494,6 +501,7 @@ func diagnostic_state() -> Dictionary:
             cars += 1
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
+        "cab_version":"cab-r2-v34",
         "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
         "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
