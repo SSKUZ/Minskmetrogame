@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "maintenance_commit": "3e73e25ef95cca3c5bd2588f79b77ea13ded1020",
+  "maintenance_commit": "41d4558952c110fbeac9eb96a41461ef5dc6ca79",
   "current": {
-    "path": "metro2/cab-view-v37/3e73e25ef95cca3c5bd2588f79b77ea13ded1020",
-    "source_commit": "3e73e25ef95cca3c5bd2588f79b77ea13ded1020"
+    "path": "metro2/cab-view-v37/41d4558952c110fbeac9eb96a41461ef5dc6ca79",
+    "source_commit": "41d4558952c110fbeac9eb96a41461ef5dc6ca79"
   },
   "previous": {
-    "path": "metro2/cab-view-v37/5ba8eb1126370ca5c6148dc4108a127df5a7e39d",
-    "source_commit": "5ba8eb1126370ca5c6148dc4108a127df5a7e39d"
+    "path": "metro2/cab-view-v37/3e73e25ef95cca3c5bd2588f79b77ea13ded1020",
+    "source_commit": "3e73e25ef95cca3c5bd2588f79b77ea13ded1020"
   },
   "protected_three_cars": "metro2/v106-three-cars",
   "archive_release": "https://github.com/SSKUZ/Minskmetrogame/releases/tag/metro2-build-archive",
@@ -180,6 +180,13 @@
       "zip_sha256": "d035c7f05aea0a3eea06ff04dcf12c352fee4f8094457c953c1f5cfc6ad880ae",
       "pack_sha256": "4f7c558816c6ff934efd49a81ff32fdb1b8fe3f42126be60364e5a52d64f8e63",
       "bytes": 40826457
+    },
+    "metro2/cab-view-v37/41d4558952c110fbeac9eb96a41461ef5dc6ca79": {
+      "asset": "web-cab-view-v37-41d4558952c110fbeac9eb96a41461ef5dc6ca79-92fad81e4d83.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-cab-view-v37-41d4558952c110fbeac9eb96a41461ef5dc6ca79-92fad81e4d83.zip",
+      "zip_sha256": "affa9983f60104f64a9e717e57d95a6df9fae2c78c1da207b53fb0e6fbe029e7",
+      "pack_sha256": "92fad81e4d83a7aed78dc0a7b75e7b1eca2429917a4848621bd3404deb336621",
+      "bytes": 40826441
     }
   },
   "apk": {
@@ -192,5 +199,5 @@
   "runtime_paths": [
     "metro2/runtime/godot-4.3-ea719c20bf372d61"
   ],
-  "site_bytes": 228112321
+  "site_bytes": 228114734
 }
