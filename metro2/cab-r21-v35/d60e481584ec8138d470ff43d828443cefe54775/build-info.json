@@ -1,14 +1,14 @@
 {
-  "source_commit": "4b12a6b7f290379bfd0408fc4efbf9cc97cce8db",
+  "source_commit": "d60e481584ec8138d470ff43d828443cefe54775",
   "godot": "4.3",
   "cab_source": {
     "branch": "cab-development",
     "commit": "aef6e01a10c9750582c93697536b3e56a62ac3f2",
     "version": "cab-r2.1",
-    "sha256": "b290a13ce20274df3f34d619de5f602bceae6a2fd5b9e8ccd9e17098beadd0b9"
+    "sha256": "82e80eeaa58eb32e8ab0ea525570b6124688f899dbb554f6d05d561e5144c16e"
   },
   "models_and_scripts": {
-    "assets/cab_r21/cab_r21.glb": "b290a13ce20274df3f34d619de5f602bceae6a2fd5b9e8ccd9e17098beadd0b9",
+    "assets/cab_r21/cab_r21.glb": "82e80eeaa58eb32e8ab0ea525570b6124688f899dbb554f6d05d561e5144c16e",
     "assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb": "4d7db8f979e6688f34ac670f63476166a8129da9e455bed1eef6b9ff1f853d2c",
     "assets/v106_original/car04/v106_car_04.glb": "d97a03970091b06a8e95fb1bc7a9b67d6aa63939e84d3b82f494614c4307b3a0",
     "assets/v106_original/car02/v106_car_02.glb": "e9ace724b2d98ac81f831cad399498a0f75c540e06146ecd3657a754598348c5",
@@ -19,10 +19,10 @@
     "assets/v106_original/car02/v106_car_02.glb.import": "cd46fe40f17c83889e51410b515a71d175e745c4b9250ac93b50f6d8b625cf46",
     "assets/v106_original/car03/v106_car_03.glb.import": "40ab31d1abea9c7035a27b2b93ccaae823e7a2ccd4f674509a506f5c10f48c4f",
     "scripts/v33_door_controller.gd": "4a27a894838a5d10b92a4878ad2b7455d96bfa28675363635fa6262ac65e85c4",
-    "scripts/v106_four_cars_preview.gd": "9fb3d4862659d13aa93cd89874f86fddcdc443969131ee1e6ae38d409fbeb050",
-    "scripts/cab_v35.gd": "5263327718174d5775bb0a11e439b683ba346f0c2d13c8e3854a02289dbbfd29",
+    "scripts/v106_four_cars_preview.gd": "327b065087ca58a0f184148dfe0674095cf42fd7653cd6158b9b1f5d3c6bdd30",
+    "scripts/cab_v35.gd": "511f16cb79129456e46d3c7407572bd4e4acb54efd167b746e105581507a0096",
     "scripts/tunnel_lightweight_straight.gd": "468f3a90cb4662428eab1f8b80285c389a639f19b875ef6fa6c6b004d286ae60",
-    "scripts/cab_r21_material.gdshader": "9dde13e18f92c0a41f020246707fdc5e68dea9703ca3ecd454e4bdbf5654e8d2",
-    "assets/cab_r21/cab_r21.json": "1d93773f8b404a0efa1daece05c60d86f039cf36e97b25ae6a3dcbd2a38aa90b"
+    "scripts/cab_r21_material.gdshader": "0603c44166d3a14375586bf5d1c4e3f3be8516451126c7d0624cab870a1e0ef9",
+    "assets/cab_r21/cab_r21.json": "6edf4fea7ad134e1e2e51c1f7dd85d40622d0fec49b56c50b0890201335f4444"
   }
 }
