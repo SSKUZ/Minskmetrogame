@@ -165,6 +165,8 @@ jobs:
       - name: Publish separate TZ38 Web version and await deployment
         run: |
           set -euo pipefail
+          # The shared publisher defaults to V37; isolate this release under V38.
+          sed -i 's@metro2/cab-view-v37/@metro2/cab-fixes-v38/@g' release-tools/metro2/tools/web_publication.py
           python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA"
           cd published-site
           git config user.name "github-actions[bot]"
