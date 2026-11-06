@@ -1,5 +1,5 @@
 extends Node3D
-const CAB_RUNTIME = preload("res://scripts/cab_v35.gd")
+const CAB_RUNTIME = preload("res://scripts/cab_v36.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
@@ -167,6 +167,10 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     lead.add_child(cab_runtime)
     cab_runtime.call("initialize",self,lead,door_system)
     cab_runtime.call("make_screen_controls",_ui_layer)
+    var lighting := preload("res://scripts/train_interior_v36.gd").new()
+    lighting.name = "TrainInteriorLighting"
+    add_child(lighting)
+    lighting.initialize(self,train,_ui_layer)
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 
@@ -452,7 +456,7 @@ func _illuminate_headlamp_lenses(lead: Node3D) -> void:
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
-    camera.fov = 66.0 if mode == "cabin" else 75.0
+    camera.fov = 70.0 if mode == "cabin" else 75.0
     if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
     _focused_car = 0
     if not _car_centers.is_empty():
@@ -502,7 +506,10 @@ func diagnostic_state() -> Dictionary:
             cars += 1
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
-        "cab_version":"cab-r2.1-v35",
+        "cab_version":"cab-r2.1-v36",
+        "cab_cleanup_ready":bool(cab_runtime.get("cleanup_ready")) if is_instance_valid(cab_runtime) else false,
+        "saloon_lights":get_node("TrainInteriorLighting").get("lights").size() if has_node("TrainInteriorLighting") else 0,
+        "saloon_cars":int(get_node("TrainInteriorLighting").get("cars_lit")) if has_node("TrainInteriorLighting") else 0,
         "cab_textures_verified":int(cab_runtime.get("_source_recipe").get("verified_nonempty_images",0)) if is_instance_valid(cab_runtime) else 0,
         "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
         "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
