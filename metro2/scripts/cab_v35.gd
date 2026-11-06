@@ -625,13 +625,14 @@ func _tone(frequency: float, seconds: float, loop: bool) -> AudioStreamWAV:
 
 func _make_video() -> Dictionary:
     var viewport := SubViewport.new()
-    viewport.size = Vector2i(160,128)
+    viewport.size = Vector2i(192,336)
     viewport.world_3d = get_world_3d()
     viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
     viewport.transparent_bg = false
     add_child(viewport)
     var camera := Camera3D.new()
     camera.cull_mask = 1
+    camera.fov = 53.0
     camera.far = 120.0
     camera.near = 0.08
     viewport.add_child(camera)
@@ -656,7 +657,7 @@ func _install_video() -> void:
                         mesh.material_override = video.material
                         video["face"] = mesh
         _mirrors.append(video)
-    _monitor = _make_video()
+    _monitor = _mirrors[1] # The original CCTV uses the right rear-mirror render target.
     var cctv := model.find_child("CabCCTV",true,false) as Node3D
     for child in cctv.find_children("*","MeshInstance3D",true,false):
         var mesh := child as MeshInstance3D
@@ -677,17 +678,6 @@ func _update_video() -> void:
         camera.global_position = train.to_global(Vector3(float(video.side)*1.72,2.5,-9.3))
         camera.look_at(train.to_global(Vector3(float(video.side)*1.72,2.5,60.0)),Vector3.UP)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
-    var camera := _monitor.camera as Camera3D
-    if _monitor_mode == "carriage":
-        camera.global_position = train.to_global(Vector3(0,2.5,-4.5))
-        camera.look_at(train.to_global(Vector3(0,2.4,8.0)),Vector3.UP)
-    elif _monitor_mode == "platform" and is_instance_valid(game.get("_station")):
-        camera.global_position = (game.get("_station") as Node3D).global_position+Vector3(-3,3,0)
-        camera.look_at(train.global_position,Vector3.UP)
-    else:
-        camera.global_position = train.to_global(Vector3(-0.55,2.65,-9.2))
-        camera.global_basis = train.global_basis
-    (_monitor.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
 func make_screen_controls(ui: CanvasLayer) -> void:
     _cab_light_button = Button.new()
