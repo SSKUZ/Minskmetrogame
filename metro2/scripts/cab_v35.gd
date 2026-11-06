@@ -139,9 +139,10 @@ func _separate_cab_floor() -> void:
         var mesh := child as MeshInstance3D
         var bounds := model.global_transform.affine_inverse()*mesh.global_transform*mesh.get_aabb()
         # The authored floor top is 0.0525 + POSITION.y = 0.9500 m,
-        # exactly the V106 floor. Separate the lining and its ribs by 8 mm.
+        # exactly the V106 floor; its second finish reaches 0.9605 m.
+        # A 20 mm offset clears both original surfaces and avoids rib overlap.
         if bounds.end.y < 0.08 and bounds.size.x > 2.4:
-            mesh.position.y += 0.008
+            mesh.position.y += 0.020
 
 func _decode_image(encoded: String) -> Image:
     var image := Image.new()
