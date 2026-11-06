@@ -1,7 +1,7 @@
 name: Metro2 TZ37 cab windows, original mirrors and pinch camera Web
 on:
   push:
-    branches: [feature/metro2-cab-fixes-v38]
+    branches: [feature/metro2-cab-view-v37]
     paths:
       - '.github/workflows/metro2-cab-v37-web.yml'
       - 'metro2/project.godot'
