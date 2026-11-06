@@ -1,5 +1,5 @@
 extends Node3D
-const CAB_RUNTIME = preload("res://scripts/cab_v36.gd")
+const CAB_RUNTIME = preload("res://scripts/cab_v37.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
@@ -15,6 +15,10 @@ var distance := 300.0
 var orbit_yaw := 0.35
 var orbit_pitch := 0.10
 var orbit_radius := 4.6
+var _touch_points: Dictionary = {}
+var _pinching := false
+var _pinch_distance := 0.0
+var _cab_fov := 80.0
 var touch_dragging := false
 var touch_last := Vector2.ZERO
 var wagon_center := Vector3(0, 1.2, 0)
@@ -290,7 +294,42 @@ func _get_model_bounds(root: Node3D) -> AABB:
             pending.append(child)
     return result
 
+func _zoom_view(ratio: float) -> void:
+    if camera_mode == "cabin":
+        _cab_fov = clampf(_cab_fov/ratio,42.0,105.0)
+        camera.fov = _cab_fov
+    else:
+        orbit_radius = clampf(orbit_radius/ratio,0.35,120.0)
+
+func _input(event: InputEvent) -> void:
+    if event is InputEventScreenTouch:
+        if event.pressed: _touch_points[event.index] = event.position
+        else: _touch_points.erase(event.index)
+        if _touch_points.size() >= 2:
+            _pinching = true
+            touch_dragging = false
+            if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
+            var points := _touch_points.values()
+            _pinch_distance = (points[0] as Vector2).distance_to(points[1])
+            get_viewport().set_input_as_handled()
+        elif _pinching:
+            get_viewport().set_input_as_handled()
+            if _touch_points.is_empty():
+                _pinching = false
+                _pinch_distance = 0.0
+        return
+    if event is InputEventScreenDrag:
+        if _touch_points.has(event.index): _touch_points[event.index] = event.position
+        if _pinching:
+            if _touch_points.size() >= 2:
+                var points := _touch_points.values()
+                var span := (points[0] as Vector2).distance_to(points[1])
+                if _pinch_distance > 5.0 and span > 5.0: _zoom_view(span/_pinch_distance)
+                _pinch_distance = span
+            get_viewport().set_input_as_handled()
+
 func _unhandled_input(event: InputEvent) -> void:
+    if _pinching or (event is InputEventMouse and not _touch_points.is_empty()): return
     if is_instance_valid(cab_runtime) and cab_runtime.call("handle_input",event,camera):
         get_viewport().set_input_as_handled()
         return
@@ -305,9 +344,9 @@ func _unhandled_input(event: InputEvent) -> void:
         orbit_pitch = clampf(orbit_pitch + event.relative.y * 0.006, -1.2, 1.2)
     elif event is InputEventMouseButton and event.pressed:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-            orbit_radius = maxf(0.35, orbit_radius * 0.85)
+            _zoom_view(1.15)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-            orbit_radius = minf(120.0, orbit_radius * 1.15)
+            _zoom_view(1.0/1.15)
 
 func _box(parent: Node3D, pos: Vector3, dimensions: Vector3, color: Color) -> void:
     var item := MeshInstance3D.new()
@@ -351,8 +390,8 @@ func _physics_process(delta: float) -> void:
     if camera_move.get("right", false): camera_pan.x += step
     if camera_move.get("up", false): camera_pan.y += step
     if camera_move.get("down", false): camera_pan.y -= step
-    if camera_move.get("near", false): orbit_radius = maxf(0.35, orbit_radius - step)
-    if camera_move.get("far", false): orbit_radius = minf(90.0, orbit_radius + step)
+    if camera_move.get("near", false): _zoom_view(exp(delta))
+    if camera_move.get("far", false): _zoom_view(exp(-delta))
     _update_camera()
     var station_distance := maxf(0.0, distance + _train_bounds.position.z - _station_stop_z)
     var illumination := station_illumination(station_distance)
@@ -456,7 +495,7 @@ func _illuminate_headlamp_lenses(lead: Node3D) -> void:
 
 func _set_camera_mode(mode: String) -> void:
     camera_mode = mode
-    camera.fov = 70.0 if mode == "cabin" else 75.0
+    camera.fov = _cab_fov if mode == "cabin" else 75.0
     if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
     _focused_car = 0
     if not _car_centers.is_empty():
@@ -506,7 +545,7 @@ func diagnostic_state() -> Dictionary:
             cars += 1
     return {
         "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
-        "cab_version":"cab-r2.1-v36",
+        "cab_version":"cab-r2.1-v37",
         "cab_cleanup_ready":bool(cab_runtime.get("cleanup_ready")) if is_instance_valid(cab_runtime) else false,
         "saloon_lights":get_node("TrainInteriorLighting").get("lights").size() if has_node("TrainInteriorLighting") else 0,
         "saloon_cars":int(get_node("TrainInteriorLighting").get("cars_lit")) if has_node("TrainInteriorLighting") else 0,
