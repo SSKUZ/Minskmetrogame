@@ -16,6 +16,11 @@ const TRACK_MIN_Z := -220.0
 const TRACK_MAX_Z := 420.0
 const SLEEPER_PITCH := 0.65
 
+@export var track_min_z := TRACK_MIN_Z
+@export var track_max_z := TRACK_MAX_Z
+@export var rail_center := 0.9
+@export var rail_width := 0.12
+
 func _ready() -> void:
     var platform_center_z := TRAIN_LENGTH / 2.0
     var platform_max_x := PLATFORM_CENTER_X + PLATFORM_WIDTH / 2.0
@@ -26,8 +31,8 @@ func _ready() -> void:
     var sleeper_mat := _material(Color("#54616a"))
     var platform_mat := _material(Color("#9aabb4"))
     var edge_mat := _material(Color("#f3b948"))
-    var track_length := TRACK_MAX_Z - TRACK_MIN_Z
-    var track_center_z := (TRACK_MIN_Z + TRACK_MAX_Z) / 2.0
+    var track_length := track_max_z - track_min_z
+    var track_center_z := (track_min_z + track_max_z) / 2.0
 
     for track_index in range(2):
         var x: float = tracks[track_index]
@@ -39,7 +44,7 @@ func _ready() -> void:
         var segment_length := 1.0 if track_index == 0 else track_length
         var segment_count := int(ceilf(track_length / segment_length))
         var rail_mesh := BoxMesh.new()
-        rail_mesh.size = Vector3(0.12, 0.16, 1.0)
+        rail_mesh.size = Vector3(rail_width, 0.16, 1.0)
         rail_mesh.material = rail_mat
         var bed_mesh := BoxMesh.new()
         bed_mesh.size = Vector3(3.0, 0.12, 1.0)
@@ -53,15 +58,15 @@ func _ready() -> void:
         beds.mesh = bed_mesh
         beds.instance_count = segment_count
         for i in range(segment_count):
-            var za: float = TRACK_MIN_Z + float(i) * segment_length
-            var zb: float = minf(za + segment_length, TRACK_MAX_Z)
+            var za: float = track_min_z + float(i) * segment_length
+            var zb: float = minf(za + segment_length, track_max_z)
             var z: float = (za + zb) * 0.5
             var lateral: float = TRACK_PATH.offset(z) if track_index == 0 else 0.0
             var yaw: float = TRACK_PATH.heading(z) if track_index == 0 else 0.0
             var basis := Basis(Vector3.UP, yaw)
             var length_scale := Basis().scaled(Vector3(1.0, 1.0, zb - za))
             for side in range(2):
-                var rail_x: float = -0.9 if side == 0 else 0.9
+                var rail_x: float = -rail_center if side == 0 else rail_center
                 var rail_position := Vector3(x + lateral, -0.08, z) + basis * Vector3(rail_x, 0.0, 0.0)
                 rails.set_instance_transform(i * 2 + side, Transform3D(basis * length_scale, rail_position))
             beds.set_instance_transform(i, Transform3D(basis * length_scale, Vector3(x + lateral, -0.3, z)))
@@ -84,7 +89,7 @@ func _ready() -> void:
         multi.mesh = sleeper_mesh
         multi.instance_count = sleeper_count
         for i in range(sleeper_count):
-            var z: float = TRACK_MIN_Z + float(i) * SLEEPER_PITCH
+            var z: float = track_min_z + float(i) * SLEEPER_PITCH
             var lateral: float = TRACK_PATH.offset(z) if track_index == 0 else 0.0
             var yaw: float = TRACK_PATH.heading(z) if track_index == 0 else 0.0
             multi.set_instance_transform(i, Transform3D(Basis(Vector3.UP, yaw),

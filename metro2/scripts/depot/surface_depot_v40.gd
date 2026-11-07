@@ -1,15 +1,21 @@
 extends "res://scripts/v106_four_cars_preview.gd"
 const Route = preload("res://scripts/depot/route_profile.gd")
 const TunnelAdapter = preload("res://scripts/depot/depot_tunnel.gd")
+const STATION_Z := -1116.112
+const STATION_ENTRY_Z := -1024.0
+const STATION_EXIT_Z := -1136.0
 var _pose_cache: Dictionary = {}
 var _sun: DirectionalLight3D
 var _sky: ProceduralSkyMaterial
 
 func _ready() -> void:
     distance = Route.START_Z
-    route_end_distance = -1400.0
+    route_end_distance = STATION_Z + 9.603
     tunnel_script = TunnelAdapter
     super._ready()
+    # Use the original Station Base alone: no preview train, camera or environment.
+    attach_station(preload("res://scenes/depot/route_station_v41.tscn"),
+        Transform3D(Basis.IDENTITY,Vector3(0,0,STATION_Z)),route_end_distance)
     _diagnostics_enabled = false
     for node in get_children():
         if node is DirectionalLight3D:
@@ -79,7 +85,7 @@ func _physics_process(delta: float) -> void:
         _update_camera()
     _update_atmosphere()
     if hud != null:
-        var phase := "ЭЛЕКТРОДЕПО" if distance > 300.0 else "ПОДХОД К ПОРТАЛУ" if distance > 96.0 else "ТОННЕЛЬ"
+        var phase := "ЭЛЕКТРОДЕПО" if distance > 300.0 else "ПОДХОД К ПОРТАЛУ" if distance > 96.0 else "МАЛИНОВКА" if distance < STATION_ENTRY_Z + 10.0 else "ТОННЕЛЬ"
         hud.text = "%s | 4 ВАГОНА | %.0f км/ч | %.0f м от депо | %s" % [phase,speed*3.6,Route.START_Z-distance,camera_mode]
 
 func _update_camera() -> void:

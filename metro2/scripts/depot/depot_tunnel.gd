@@ -1,5 +1,7 @@
 extends "res://scripts/tunnel_lightweight_straight.gd"
 const Route = preload("res://scripts/depot/route_profile.gd")
+const STATION_ENTRY_Z := -1024.0
+const STATION_EXIT_Z := -1136.0
 var _entrance_shade: MeshInstance3D
 
 func _ready() -> void:
@@ -35,12 +37,17 @@ func _process(delta: float) -> void:
             forward_z = minf(forward_z,_train.global_position.z+_train_bounds.position.z)
         var far_boundary: float = floor((forward_z-VISIBLE_DISTANCE-GUARD_DISTANCE)/MODULE_LENGTH)*MODULE_LENGTH
         _entrance_shade.position.z = minf(-64.1,far_boundary+0.05)
+        # Keep the darkness cap behind the real station, never across its entrance.
+        if forward_z < STATION_ENTRY_Z + VISIBLE_DISTANCE + GUARD_DISTANCE:
+            _entrance_shade.position.z = minf(_entrance_shade.position.z,STATION_EXIT_Z-0.05)
         _entrance_shade.visible = true
 
 func _include_slots(required: Dictionary,z0: float,z1: float) -> void:
     super._include_slots(required,minf(z0,Route.PORTAL_Z),minf(z1,Route.PORTAL_Z))
     for slot in required.keys():
-        if int(slot)*MODULE_LENGTH >= Route.PORTAL_Z: required.erase(slot)
+        var section_z := float(slot)*MODULE_LENGTH
+        if section_z >= Route.PORTAL_Z or (section_z >= STATION_EXIT_Z and section_z < STATION_ENTRY_Z):
+            required.erase(slot)
     # Keep the existing entrance modules ready while approaching on the surface.
     if is_instance_valid(_train) and _train.global_position.z+_train_bounds.position.z > Route.PORTAL_Z:
         for slot in range(-4,6): required[slot] = true
@@ -53,6 +60,10 @@ func _new_section() -> Node3D:
     return section
 
 func constrain_camera(world_position: Vector3) -> Vector3:
+    if world_position.z >= STATION_EXIT_Z and world_position.z <= STATION_ENTRY_Z:
+        var station_point := world_position
+        station_point.y = clampf(station_point.y,0.35,6.6)
+        return station_point
     if world_position.z > Route.PORTAL_Z:
         var point := world_position
         point.y = maxf(point.y,Route.height(point.z)+0.35)

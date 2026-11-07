@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/metro2-surface-depot-v40-web.yml'
       - 'metro2/scripts/depot/**'
+      - 'metro2/scripts/station_base_static.gd'
+      - 'metro2/scripts/playable_track_path.gd'
+      - 'metro2/scenes/StationBaseStatic.tscn'
       - 'metro2/scenes/depot/**'
       - 'metro2/assets/depot/**'
       - 'metro2/project.godot'
@@ -93,7 +96,9 @@ jobs:
           cp metro2/scenes/v106_four_cars_preview.tscn stage/scenes/
           mkdir -p stage/scripts/depot stage/scenes/depot stage/assets/depot
           cp metro2/scripts/depot/*.gd stage/scripts/depot/
-          cp metro2/scenes/depot/surface_depot_v40.tscn stage/scenes/depot/
+          cp metro2/scenes/depot/*.tscn stage/scenes/depot/
+          cp metro2/scenes/StationBaseStatic.tscn stage/scenes/
+          cp metro2/scripts/station_base_static.gd metro2/scripts/playable_track_path.gd stage/scripts/
           cp metro2/assets/depot/industrial_surface.gdshader stage/assets/depot/
           cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb stage/assets/v106_lod1/
           cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import stage/assets/v106_lod1/
