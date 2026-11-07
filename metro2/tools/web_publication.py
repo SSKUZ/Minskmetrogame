@@ -17,7 +17,7 @@ from pathlib import Path
 REPO=os.environ.get('GITHUB_REPOSITORY','SSKUZ/Minskmetrogame')
 BASE='/Minskmetrogame/'
 ARCHIVE_TAG='metro2-build-archive'
-BUDGET=500_000_000
+BUDGET=550_000_000
 MODEL_SHA='2a3f37650722ba667f61f9cd063d4a3c7795fed37bc85285dd4c01c29b91d1e6'
 INITIAL_CURRENT='metro2/cab-integration-v33/3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed'
 INITIAL_PREVIOUS='metro2/tunnel-lighting-v32/f0dcd42f2b37b502d8db561c1f4724388265e030'
