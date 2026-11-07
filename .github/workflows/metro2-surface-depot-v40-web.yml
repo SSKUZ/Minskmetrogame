@@ -31,6 +31,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   cab_assets:
+    if: ${{ !startsWith(github.event.head_commit.message, 'publish-only:') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -155,6 +156,7 @@ jobs:
           path: stage/build/web/
           retention-days: 7
   publish:
+    if: ${{ always() && (needs.export.result == 'success' || startsWith(github.event.head_commit.message, 'publish-only:')) }}
     needs: export
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -173,6 +175,17 @@ jobs:
         with:
           name: tz40-web-build
           path: web
+          github-token: ${{ github.token }}
+          # Recovery reuses the already successful export, without importing models again.
+          run-id: ${{ startsWith(github.event.head_commit.message, 'publish-only:') && '42388367676' || github.run_id }}
+      - name: Read the actual source commit of the downloaded build
+        run: |
+          python3 - <<'PY'
+          import json,os
+          info=json.load(open('web/build-info.json'))
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+            f.write('WEB_SOURCE_SHA='+info['source_commit']+'\n')
+          PY
       - uses: actions/checkout@v4
         with:
           ref: gh-pages
@@ -181,23 +194,23 @@ jobs:
       - name: Publish Uruchye Web and await deployment
         run: |
           set -euo pipefail
-          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA" --channel uruchye-v42
+          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$WEB_SOURCE_SHA" --channel uruchye-v42
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- metro2
-          git commit -m "Publish Uruchye V42 Web $GITHUB_SHA"
+          git commit -m "Publish Uruchye V42 Web $WEB_SOURCE_SHA"
           git pull --rebase origin gh-pages
           git push origin HEAD:gh-pages
           cd ..
           python3 - <<'PYTHON'
           import urllib.request,time,json,os
-          url='https://sskuz.github.io/Minskmetrogame/metro2/uruchye-v42/'+os.environ['GITHUB_SHA']+'/'
+          url='https://sskuz.github.io/Minskmetrogame/metro2/uruchye-v42/'+os.environ['WEB_SOURCE_SHA']+'/'
           for attempt in range(90):
             try:
               with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
                 data=json.load(response)
-              if data['source_commit']==os.environ['GITHUB_SHA']:
+              if data['source_commit']==os.environ['WEB_SOURCE_SHA']:
                 print('TZ42_WEB_PUBLISHED '+url)
                 break
             except Exception:
