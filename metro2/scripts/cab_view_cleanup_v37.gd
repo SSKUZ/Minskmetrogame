@@ -267,6 +267,13 @@ static func _bar(parent: Node3D,a: Vector3,b: Vector3,radius: float,material: Ma
     node.layers = 3
     parent.add_child(node)
 
+static func _sash(parent: Node3D,side: float,y: float,z0: float,z1: float) -> void:
+    var chrome := StandardMaterial3D.new()
+    chrome.albedo_color = Color(0.60,0.64,0.65)
+    chrome.metallic = 0.75
+    chrome.roughness = 0.35
+    _bar(parent,Vector3(side*1.29,y,z0),Vector3(side*1.29,y,z1),0.014,chrome,"CabWindowSlidingSash")
+
 static func _waist_trim(parent: Node3D,side: float,z0: float,z1: float) -> void:
     var chrome := StandardMaterial3D.new()
     chrome.albedo_color = Color(0.68,0.70,0.68)
