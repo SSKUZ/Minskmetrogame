@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "maintenance_commit": "30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf",
+  "maintenance_commit": "e8ed2a6ea49a568c8e627e523e22a296d953d727",
   "current": {
-    "path": "metro2/surface-depot-v40/30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf",
-    "source_commit": "30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf"
+    "path": "metro2/uruchye-v42/e8ed2a6ea49a568c8e627e523e22a296d953d727",
+    "source_commit": "e8ed2a6ea49a568c8e627e523e22a296d953d727"
   },
   "previous": {
-    "path": "metro2/surface-depot-v40/d764ba37b9c3fa6b7b01e07a1ad70c2e5981b94c",
-    "source_commit": "d764ba37b9c3fa6b7b01e07a1ad70c2e5981b94c"
+    "path": "metro2/surface-depot-v40/30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf",
+    "source_commit": "30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf"
   },
   "protected_three_cars": "metro2/v106-three-cars",
   "archive_release": "https://github.com/SSKUZ/Minskmetrogame/releases/tag/metro2-build-archive",
@@ -257,6 +257,13 @@
       "zip_sha256": "0d728bb7488554fae39eae6d3b5a4007a87047de02f0f585a267a86fa6e250e3",
       "pack_sha256": "af679dd8e3f29bc728630cf7cdd8c06646fe96eddfd068574a454b62de514dec",
       "bytes": 40888923
+    },
+    "metro2/uruchye-v42/e8ed2a6ea49a568c8e627e523e22a296d953d727": {
+      "asset": "web-uruchye-v42-e8ed2a6ea49a568c8e627e523e22a296d953d727-628879a89e22.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-uruchye-v42-e8ed2a6ea49a568c8e627e523e22a296d953d727-628879a89e22.zip",
+      "zip_sha256": "f215578dbb82958ad762ae243a0743e749842a72c46dd80e8f4576a232890720",
+      "pack_sha256": "628879a89e22c5ee5f3b3b346f8a3ef5d623039539ac3aabc3b9481418107428",
+      "bytes": 40900766
     }
   },
   "apk": {
@@ -269,5 +276,5 @@
   "runtime_paths": [
     "metro2/runtime/godot-4.3-ea719c20bf372d61"
   ],
-  "site_bytes": 425471942
+  "site_bytes": 464967829
 }
