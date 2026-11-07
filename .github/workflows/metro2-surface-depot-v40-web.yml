@@ -1,8 +1,8 @@
-name: Metro2 Uruchye V42 Web
+name: Metro2 TZ44 original V106 warning stickers Web
 on:
   workflow_dispatch:
   push:
-    branches: [feature/metro2-surface-depot-v40]
+    branches: [feature/metro2-v106-warning-stickers]
     paths:
       - '.github/workflows/metro2-surface-depot-v40-web.yml'
       - 'metro2/scripts/depot/**'
@@ -23,11 +23,13 @@ on:
       - 'metro2/scripts/cab_r36_material.gdshader'
       - 'metro2/tools/export_cab_r21.mjs'
       - 'metro2/scripts/v106_four_cars_preview.gd'
+      - 'metro2/scripts/v106_warning_stickers.gd'
+      - 'metro2/assets/v106_warning/**'
       - 'metro2/scripts/tunnel_lightweight_straight.gd'
 permissions:
   contents: read
 concurrency:
-  group: metro2-tz40-web
+  group: metro2-v106-warning-stickers
   cancel-in-progress: true
 jobs:
   cab_assets:
@@ -89,7 +91,9 @@ jobs:
           python3 metro2/tools/prepare_first_playable_assets.py
           mkdir -p stage/scripts stage/scenes stage/tests stage/assets/v106_lod1 stage/build/web
           cp metro2/project.godot metro2/export_presets.cfg stage/
-          cp metro2/scripts/v106_four_cars_preview.gd metro2/scripts/tunnel_lightweight_straight.gd stage/scripts/
+          cp metro2/scripts/v106_four_cars_preview.gd metro2/scripts/tunnel_lightweight_straight.gd metro2/scripts/v106_warning_stickers.gd stage/scripts/
+          mkdir -p stage/assets/v106_warning
+          cp metro2/assets/v106_warning/*.png stage/assets/v106_warning/
           cp metro2/scripts/cab_v37.gd metro2/scripts/cab_view_cleanup_v37.gd metro2/scripts/v33_door_controller.gd metro2/scripts/train_interior_v36.gd stage/scripts/
           mkdir -p stage/assets/cab_r21
           cp -a cab-export/. stage/assets/cab_r21/
