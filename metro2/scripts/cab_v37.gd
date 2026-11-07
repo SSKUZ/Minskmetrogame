@@ -85,10 +85,12 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
     _source_recipe = JSON.parse_string(FileAccess.get_file_as_string("res://assets/cab_r21/cab_r21.json"))
     for entry in _source_recipe.controls:
         _source_enabled[entry.id] = entry.enabled
+    # These switches drive the existing per-window temperature and power model.
+    for id in ["heatLeft","heatRight"]: _source_enabled[id] = true
     var console := model.find_child("CabConsole",true,false) as Node3D
     console.position.z -= 0.22
     model.find_child("CabCCTV",true,false).hide()
-    _relocate_mirror_panel()
+    _layout_driver_console()
     for root in model.get_children():
         if root is Node3D and absf(absf(root.position.x)-1.268) < 0.01:
             root.hide()
@@ -143,21 +145,44 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
     ready_for_play = controls.size() == CONTROL_IDS.size()
     print("CAB_V39_R2_READY version=cab-r2.1 controls=",controls.size())
 
-func _relocate_mirror_panel() -> void:
+func _layout_driver_console() -> void:
     var left := model.find_child("Control_mirrorLeft",true,false) as Node3D
     var radio := model.find_child("RadioConsole",true,false) as Node3D
-    if left == null or radio == null: return
-    var panel := left.get_parent() as Node3D
-    var auxiliary := panel.get_parent() as Node3D
-    # Keep the authored thin radio housing. Do not stretch it into a tall
-    # black cabinet in front of the driver's entrance.
-    radio.position = Vector3(-0.91,1.48,0.70)
-    radio.rotation = Vector3(-0.08,0.12,0.0)
-    # The handset, cord, speaker, labels and every radio key move together.
-    # Put the complete mirror/heater plates on the upper left desk lip.
-    auxiliary.reparent(model,false)
-    auxiliary.transform = Transform3D(Basis(Vector3.RIGHT,-1.085),Vector3(-0.91,1.105,0.94))
+    var upper := model.find_child("InstrumentBinnacle",true,false) as Node3D
+    var deck := model.find_child("SlopingControlDeck",true,false) as Node3D
+    if left == null or radio == null or upper == null or deck == null:
+        push_error("Driver console layout attachment missing")
+        return
+    var auxiliary := left.get_parent().get_parent() as Node3D
+    # Both complete plates go into the unused lower area of the white wiper
+    # panel, as marked: mirrors above, heaters below. Labels and picks follow.
+    auxiliary.reparent(deck,false)
+    auxiliary.transform = Transform3D(Basis.from_scale(Vector3.ONE*0.76),Vector3(-0.50,0.040,0.030))
     auxiliary.show()
+    # Continue the white deck's slope towards the windscreen. The lower edge
+    # of the instrument face meets the deck instead of forming an upright wall.
+    upper.position.y = 1.14
+    upper.position.z += 0.04
+    upper.rotation.x = deck.rotation.x
+    # Extend only the original grey housing to form a left telephone bay.
+    # Speed display, gauges and their individual faces retain their dimensions.
+    for child in upper.get_children():
+        if child is MeshInstance3D:
+            var housing := child as MeshInstance3D
+            var bounds := housing.get_aabb()
+            if bounds.size.x > 1.70 and bounds.size.y > 0.37:
+                housing.scale.x *= (bounds.size.x+0.32)/bounds.size.x
+                housing.position.x -= 0.16
+    # The handset, speaker, keys and labels form one flush assembly with the
+    # instrument face; its cable now runs inside the shared housing.
+    radio.reparent(upper,false)
+    radio.position = Vector3(-1.015,0.0,0.020)
+    radio.rotation = Vector3.ZERO
+    radio.scale = Vector3.ONE*0.56
+    for child in radio.get_children():
+        if child is MeshInstance3D:
+            var cable := child as MeshInstance3D
+            if (cable.transform*cable.get_aabb()).position.y < -0.30: cable.hide()
 
 func _fit_cab_to_v106() -> void:
     var shell := model.find_child("CabInteriorShell",true,false) as Node3D
@@ -570,6 +595,8 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
                 switches[id] = not switches[id]
                 if id == "mode": target_speed = maxf(8.33,float(game.get("speed")))
                 if id == "doorBlock" and switches.doorBlock: doors.call("request_close")
+                if id in ["mirrorLeft","mirrorRight","heatLeft","heatRight"]:
+                    notice = CONTROL_TITLES[id]+": "+("ВКЛ." if switches[id] else "ВЫКЛ.")
     if not release and id in ["tractionUp","tractionDown","brake","brake1","brake2","release","service","emergency"]:
         controller_value = -brake_demand if brake_demand > 0.0 else float(controller_notch)/5.0
     if not release and moving.has(id):
@@ -877,6 +904,7 @@ func make_screen_controls(ui: CanvasLayer) -> void:
     panel.add_child(timer)
     timer.timeout.connect(func():
         status.text = "%s · Тяга %d · Тормоз %.0f%%\n%s" % ["ВПЕРЁД" if direction == 1 else "НАЗАД" if direction == -1 else "НЕЙТРАЛЬ",controller_notch,applied_brake*100,notice]
+        status.text += "\nОбогрев: Л %s %.0f°C · П %s %.0f°C" % ["ВКЛ" if switches.heatLeft else "ВЫКЛ",window_temperature.x,"ВКЛ" if switches.heatRight else "ВЫКЛ",window_temperature.y]
     )
 
 func cancel_interaction() -> void:
@@ -922,4 +950,5 @@ func _input(event: InputEvent) -> void:
     if event is InputEventKey and not event.pressed and event.physical_keycode == KEY_H:
         horn_active = false
         if _horn != null: _horn.stop()
+
 
