@@ -47,8 +47,9 @@ func instance(mesh: Mesh,material: Material,pose: Transform3D) -> void:
     if not batches.has(key): batches[key] = {"mesh":mesh,"material":material,"transforms":[]}
     batches[key]["transforms"].append(pose)
 
+## Scale the mesh's LOCAL axes before rotating it into world space.
 func box(material: Material,position: Vector3,size: Vector3,basis: Basis = Basis.IDENTITY) -> void:
-    instance(cube,material,Transform3D(basis.scaled(size),position))
+    instance(cube,material,Transform3D(basis*Basis.from_scale(size),position))
 
 func beam(material: Material,a: Vector3,b: Vector3,width: float = 0.1,depth: float = 0.0) -> void:
     var delta := b-a
@@ -57,7 +58,7 @@ func beam(material: Material,a: Vector3,b: Vector3,width: float = 0.1,depth: flo
     box(material,(a+b)*0.5,Vector3(width,delta.length(),width if depth <= 0.0 else depth),basis)
 
 func cylinder(material: Material,position: Vector3,radius: float,length: float,basis: Basis = Basis.IDENTITY) -> void:
-    instance(cylinder_mesh,material,Transform3D(basis.scaled(Vector3(radius,length,radius)),position))
+    instance(cylinder_mesh,material,Transform3D(basis*Basis.from_scale(Vector3(radius,length,radius)),position))
 
 func cone(material: Material,position: Vector3,radius: float,height: float) -> void:
     instance(cone_mesh,material,Transform3D(Basis.IDENTITY.scaled(Vector3(radius,height,radius)),position))

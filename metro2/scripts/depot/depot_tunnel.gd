@@ -4,17 +4,20 @@ var _entrance_shade: MeshInstance3D
 
 func _ready() -> void:
     super._ready()
-    # A distant, nonphysical darkness backing is visible only from outside.
-    # It retires before the player reaches it, beyond the normal tunnel fog.
+    # Darkness follows the far pooled tunnel boundary, beyond visible fog.
+    # It must never receive the outdoor haze or disappear after entry.
     _entrance_shade = MeshInstance3D.new()
     var shade_mesh := QuadMesh.new()
     shade_mesh.size = Vector2(6.34,7.35)
     _entrance_shade.mesh = shade_mesh
     _entrance_shade.position = Vector3(center_x,3.34,-64.1)
-    var shade_material := StandardMaterial3D.new()
-    shade_material.albedo_color = Color(0.003,0.004,0.005)
-    shade_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    shade_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    var shade_shader := Shader.new()
+    shade_shader.code = """shader_type spatial;
+render_mode unshaded, cull_disabled, fog_disabled;
+void fragment() { ALBEDO = vec3(0.002,0.003,0.004); }
+"""
+    var shade_material := ShaderMaterial.new()
+    shade_material.shader = shade_shader
     _entrance_shade.material_override = shade_material
     _entrance_shade.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(_entrance_shade)
@@ -27,7 +30,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
     super._process(delta)
     if _entrance_shade != null and is_instance_valid(_camera):
-        _entrance_shade.visible = _camera.global_position.z > Route.PORTAL_Z
+        var forward_z: float = minf(Route.PORTAL_Z,_camera.global_position.z)
+        if is_instance_valid(_train):
+            forward_z = minf(forward_z,_train.global_position.z+_train_bounds.position.z)
+        var far_boundary: float = floor((forward_z-VISIBLE_DISTANCE-GUARD_DISTANCE)/MODULE_LENGTH)*MODULE_LENGTH
+        _entrance_shade.position.z = minf(-64.1,far_boundary+0.05)
+        _entrance_shade.visible = true
 
 func _include_slots(required: Dictionary,z0: float,z1: float) -> void:
     super._include_slots(required,minf(z0,Route.PORTAL_Z),minf(z1,Route.PORTAL_Z))

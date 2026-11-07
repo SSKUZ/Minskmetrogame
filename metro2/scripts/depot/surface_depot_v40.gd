@@ -118,6 +118,12 @@ func _update_atmosphere() -> void:
     # Sun is occluded by the shed/retaining walls. The remaining ambient and
     # atmospheric depth fade over the final 24 m in the shaded portal approach.
     var daylight := smoothstep(96.0,120.0,camera.global_position.z)
+    # Daytime sky must not shine through the open end of a pooled tunnel.
+    # Fade it with the existing portal transition; underground, use a dark
+    # background. A future station supplies actual geometry and local lights.
+    _environment.background_energy_multiplier = daylight
+    _environment.background_color = Color(0.002,0.003,0.004)
+    _environment.background_mode = Environment.BG_COLOR if daylight <= 0.0 else Environment.BG_SKY
     _environment.ambient_light_energy = lerpf(0.085,0.46,daylight)
     _environment.ambient_light_color = Color(0.50,0.49,0.46).lerp(Color(0.74,0.79,0.82),daylight)
     _environment.fog_depth_begin = lerpf(60.0,290.0,daylight)
