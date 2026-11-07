@@ -1,5 +1,5 @@
 {
-  "source_commit": "057a6246257fb76d106b18d554eb525ada494552",
+  "source_commit": "6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
@@ -22,8 +22,8 @@
     "assets/v106_original/car03/v106_car_03.glb.import": "40ab31d1abea9c7035a27b2b93ccaae823e7a2ccd4f674509a506f5c10f48c4f",
     "scripts/train_interior_v36.gd": "172465c89ef580caec67cb5168c307406dc482ba5695c16d62000295eeb952e3",
     "scripts/v33_door_controller.gd": "f3a066e3a6566119323f1b3f9bca712ad222ccd155f11c549941fc783f5089a3",
-    "scripts/v106_four_cars_preview.gd": "880bf6875ad80a6d628f467a4d201639bc91abbbe937fb4f18cfbdd44466bbad",
-    "scripts/v106_warning_stickers.gd": "e9bb8c0f2d03e39d8a1217e69ea17d976ae26cca5cadf787b1ec079edebe90cd",
+    "scripts/v106_four_cars_preview.gd": "020c327c1b1477fb347295cda52620b2e519e77e778ab85c183a08cd04930cb3",
+    "scripts/v106_warning_stickers.gd": "34dfa75ad20f6a285bcbe3e740038656f52b44f0eaeaa5877493741603290006",
     "scripts/cab_view_cleanup_v37.gd": "0d3e195ec2067226aec3594cf1098a25b644eb9cd3fa327e6a641f41e392d88c",
     "scripts/station_base_static.gd": "c04b8e80adb39133ff6ededfdf2e9323436cd1d49670c69344c60ae4e6d0dfbd",
     "scripts/cab_v37.gd": "b3588e2dc0927026fa71b08d9438c118e821ed38fbdf5f0b06aedc6921d7c296",

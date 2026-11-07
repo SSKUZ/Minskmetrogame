@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "maintenance_commit": "4b12eb68b07848704b672272d5577df1e3401232",
+  "maintenance_commit": "6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b",
   "current": {
-    "path": "metro2/uruchye-v42/4b12eb68b07848704b672272d5577df1e3401232",
-    "source_commit": "4b12eb68b07848704b672272d5577df1e3401232"
+    "path": "metro2/uruchye-v42/6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b",
+    "source_commit": "6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b"
   },
   "previous": {
-    "path": "metro2/uruchye-v42/057a6246257fb76d106b18d554eb525ada494552",
-    "source_commit": "057a6246257fb76d106b18d554eb525ada494552"
+    "path": "metro2/uruchye-v42/4b12eb68b07848704b672272d5577df1e3401232",
+    "source_commit": "4b12eb68b07848704b672272d5577df1e3401232"
   },
   "archive_release": "https://github.com/SSKUZ/Minskmetrogame/releases/tag/metro2-build-archive",
   "archive_tag": "metro2-build-archive",
@@ -344,6 +344,14 @@
       "pack_sha256": "7aec4b3c3b7de27d2f2fe22847fe0e8ceebeaf892e848987a5489f37ef572baa",
       "bytes": 40924072,
       "source_commit": "4b12eb68b07848704b672272d5577df1e3401232"
+    },
+    "metro2/uruchye-v42/6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b": {
+      "asset": "web-uruchye-v42-6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b-30d84ecca15b.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-uruchye-v42-6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b-30d84ecca15b.zip",
+      "zip_sha256": "230a6e38f3f6479fc412554ef02fb185e8eaad04434e9e60bb8e70676528cdb2",
+      "pack_sha256": "30d84ecca15b3de4ed735f3988f2ecfa9b05d85096fb52b71e14335c4e57591c",
+      "bytes": 40925205,
+      "source_commit": "6c9288a09afbd2bbbccd7b1e24af1f40f0281c0b"
     }
   },
   "apk": {
@@ -356,5 +364,5 @@
   "runtime_paths": [
     "metro2/runtime/godot-4.3-ea719c20bf372d61"
   ],
-  "site_bytes": 139886607
+  "site_bytes": 139890169
 }
