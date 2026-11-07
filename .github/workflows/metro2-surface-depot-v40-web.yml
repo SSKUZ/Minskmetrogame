@@ -164,7 +164,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     permissions:
       contents: write
-      actions: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -179,12 +179,19 @@ jobs:
           # Recovery reuses the already successful export, without importing models again.
           run-id: ${{ startsWith(github.event.head_commit.message, 'publish-only:') && '42388367676' || github.run_id }}
       - name: Read the actual source commit of the downloaded build
+        env:
+          RECOVERY_ONLY: ${{ startsWith(github.event.head_commit.message, 'publish-only:') }}
         run: |
           python3 - <<'PY'
-          import json,os
+          import json,os,hashlib
           info=json.load(open('web/build-info.json'))
+          if os.environ['RECOVERY_ONLY']=='true':
+            assert info['source_commit']=='193a05680a27dee288d727c629a659a1339fe279','Unexpected recovery build'
+          pack_sha=hashlib.sha256(open('web/index.pck','rb').read()).hexdigest()
           with open(os.environ['GITHUB_ENV'],'a') as f:
             f.write('WEB_SOURCE_SHA='+info['source_commit']+'\n')
+            f.write('WEB_PCK_SHA256='+pack_sha+'\n')
+          print('READY_BUILD_VERIFIED',info['source_commit'],pack_sha)
           PY
       - uses: actions/checkout@v4
         with:
@@ -199,27 +206,51 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- metro2
-          git commit -m "Publish Uruchye V42 Web $WEB_SOURCE_SHA"
-          git pull --rebase origin gh-pages
-          git push origin HEAD:gh-pages
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Uruchye V42 Web $WEB_SOURCE_SHA with two retained builds"
+            git pull --rebase origin gh-pages
+            git push origin HEAD:gh-pages
+          fi
+          echo "PAGES_PUBLISH_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           cd ..
+      - name: Verify Pages deployment and published files without running the game
+        run: |
           python3 - <<'PYTHON'
-          import urllib.request,time,json,os
+          import urllib.request,time,json,os,sys,hashlib
+          sys.path.insert(0,'release-tools/metro2/tools')
+          from web_publication import GitHub,REPO
+          api=GitHub();published=os.environ['PAGES_PUBLISH_SHA']
+          for attempt in range(120):
+            runs=api.request(f'/repos/{REPO}/actions/runs?head_sha={published}&per_page=20')['workflow_runs']
+            pages=next((run for run in runs if run['name']=='pages build and deployment'),None)
+            if pages and pages['status']=='completed':
+              if pages['conclusion']!='success':raise RuntimeError('Pages deployment failed: '+pages['html_url'])
+              print('PAGES_DEPLOYMENT_SUCCESS',published,pages['html_url'],flush=True)
+              break
+            if attempt%6==0:print('WAITING_FOR_PAGES',published,pages['status'] if pages else 'queued',flush=True)
+            time.sleep(10)
+          else:raise RuntimeError('Pages deployment timeout')
           url='https://sskuz.github.io/Minskmetrogame/metro2/uruchye-v42/'+os.environ['WEB_SOURCE_SHA']+'/'
-          for attempt in range(90):
+          for attempt in range(18):
             try:
               with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
                 data=json.load(response)
               if data['source_commit']==os.environ['WEB_SOURCE_SHA']:
-                print('TZ42_WEB_PUBLISHED '+url)
                 break
             except Exception:
               pass
             time.sleep(10)
-          else:
-            raise RuntimeError('Pages deployment timeout')
+          else:raise RuntimeError('Published build provenance unavailable')
+          for page in [url+'index.html','https://sskuz.github.io/Minskmetrogame/metro2/uruchye-v42/index.html']:
+            with urllib.request.urlopen(page,timeout=30) as response:
+              assert response.status==200 and response.read(),'Published index.html unavailable'
+          with urllib.request.urlopen(url+'index.pck',timeout=90) as response:
+            assert response.status==200,'Published index.pck unavailable'
+            digest=hashlib.sha256()
+            for chunk in iter(lambda:response.read(1024*1024),b''):digest.update(chunk)
+          assert digest.hexdigest()==os.environ['WEB_PCK_SHA256'],'Published game pack differs from the ready artifact'
+          print('TZ42_WEB_PUBLISHED',url,'source_commit='+data['source_commit'],'pck_sha256='+digest.hexdigest())
           PYTHON
-      - name: Remove replaced publication artifacts
-        run: python3 release-tools/metro2/tools/web_publication.py prune-artifacts
+
 
 

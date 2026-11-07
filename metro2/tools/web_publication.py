@@ -17,7 +17,7 @@ from pathlib import Path
 REPO=os.environ.get('GITHUB_REPOSITORY','SSKUZ/Minskmetrogame')
 BASE='/Minskmetrogame/'
 ARCHIVE_TAG='metro2-build-archive'
-BUDGET=650_000_000
+BUDGET=200_000_000
 MODEL_SHA='2a3f37650722ba667f61f9cd063d4a3c7795fed37bc85285dd4c01c29b91d1e6'
 INITIAL_CURRENT='metro2/cab-integration-v33/3c0c95f34b8dd1620450dc2f5d59259e8f17f2ed'
 INITIAL_PREVIOUS='metro2/tunnel-lighting-v32/f0dcd42f2b37b502d8db561c1f4724388265e030'
@@ -121,12 +121,17 @@ class Archive:
         return asset
     def archive_build(self,root,prefix,catalog):
         folder=root/prefix;pack=folder/'index.pck';pack_sha=sha(pack)
+        info_path=folder/'build-info.json'
+        source_commit=json.loads(info_path.read_text()).get('source_commit') if info_path.is_file() else None
+        if source_commit is None and re.fullmatch(r'[0-9a-f]{40}',prefix.rsplit('/',1)[-1]):source_commit=prefix.rsplit('/',1)[-1]
         key='web-'+prefix.removeprefix('metro2/').replace('/','-')+'-'+pack_sha[:12]+'.zip'
         if prefix=='metro2':key='web-legacy-root-'+pack_sha[:12]+'.zip'
         entry=catalog.get(prefix)
         if entry and entry.get('pack_sha256')==pack_sha and entry.get('asset') in self.assets:
             asset=self.assets[entry['asset']]
-            if asset.get('digest')=='sha256:'+entry['zip_sha256']:return entry
+            if asset.get('digest')=='sha256:'+entry['zip_sha256'] and asset['size']==entry['bytes']:
+                if source_commit:entry['source_commit']=source_commit
+                return entry
         if key in self.assets:
             # Existing immutable archive from an earlier interrupted maintenance run.
             asset=self.assets[key]
@@ -136,6 +141,7 @@ class Archive:
                 with zipfile.ZipFile(zpath) as z:
                     if z.testzip() is not None or hashlib.sha256(z.read('index.pck')).hexdigest()!=pack_sha:raise RuntimeError('Existing archive game pack mismatch')
             entry={'asset':key,'url':asset['browser_download_url'],'zip_sha256':hashlib.sha256(data).hexdigest(),'pack_sha256':pack_sha,'bytes':asset['size']}
+            if source_commit:entry['source_commit']=source_commit
             catalog[prefix]=entry;return entry
         engine=runtime_source(root,prefix)
         html,match,config=read_config(folder/'index.html')
@@ -163,11 +169,12 @@ class Archive:
                 for ext in ['.js','.audio.worklet.js','.worker.js','.side.wasm']:
                     support=Path(str(engine)+ext)
                     if support.exists() and 'index'+ext not in present:z.write(support,'index'+ext)
-                z.writestr('archive-info.json',json.dumps({'original_path':prefix,'pack_sha256':pack_sha,'wasm_sha256':sha(Path(str(engine)+'.wasm')),'original_files_retained':True},indent=2))
+                z.writestr('archive-info.json',json.dumps({'original_path':prefix,'source_commit':source_commit,'pack_sha256':pack_sha,'wasm_sha256':sha(Path(str(engine)+'.wasm')),'original_files_retained':True},indent=2))
             with zipfile.ZipFile(target) as z:
                 if z.testzip() is not None:raise RuntimeError('ZIP CRC failure')
             asset=self.upload(target,key)
             entry={'asset':key,'url':asset['browser_download_url'],'zip_sha256':sha(target),'pack_sha256':pack_sha,'bytes':target.stat().st_size}
+        if source_commit:entry['source_commit']=source_commit
         catalog[prefix]=entry
         return entry
 
@@ -214,10 +221,13 @@ def archive_landing(entry):
 
 def compact(root,archive,current,previous,maintenance_commit,catalog=None):
     catalog=catalog or {}
+    old_manifest=json.loads((root/'metro2/publication.json').read_text())
     packs=sorted(str(p.parent.relative_to(root)) for p in (root/'metro2').rglob('index.pck'))
     for prefix in packs:archive.archive_build(root,prefix,catalog)
-    active={current,previous,THREE_CARS}
-    active.update(packs) # Keep every previously live build online for this new route.
+    for prefix,entry in catalog.items():
+        source=prefix.rsplit('/',1)[-1]
+        if re.fullmatch(r'[0-9a-f]{40}',source):entry.setdefault('source_commit',source)
+    active={current,previous}
     for prefix in active:
         if not (root/prefix/'index.pck').is_file():raise RuntimeError('Protected build missing: '+prefix)
     # Copy canonical runtime before retiring legacy root resources.
@@ -226,7 +236,12 @@ def compact(root,archive,current,previous,maintenance_commit,catalog=None):
     if apk.exists():
         asset=archive.upload(apk)
         apk_info={'url':asset['browser_download_url'],'bytes':apk.stat().st_size,'sha256':sha(apk),'compatibility_path':LEGACY_APK}
-    else:raise RuntimeError('Protected legacy APK missing')
+    else:
+        apk_info=old_manifest['apk']
+        asset=archive.assets.get(Path(LEGACY_APK).name)
+        if not asset or asset.get('digest')!='sha256:'+apk_info['sha256'] or asset['size']!=apk_info['bytes']:
+            raise RuntimeError('Verified legacy APK archive missing')
+    if apk.exists():apk.unlink()
     for prefix in packs:
         if prefix in active:continue
         folder=root/prefix
@@ -234,7 +249,7 @@ def compact(root,archive,current,previous,maintenance_commit,catalog=None):
             for file in list(folder.iterdir()):
                 if file.is_file() and (file.name.startswith('index.') or file.name=='build-info.json'):file.unlink()
             continue
-        preserve={apk.name,'SHA256SUMS.txt','apk-verification.json'} if prefix==str(apk.parent.relative_to(root)) else set()
+        preserve={'SHA256SUMS.txt','apk-verification.json'} if prefix==str(apk.parent.relative_to(root)) else set()
         for child in list(folder.iterdir()):
             if child.name in preserve:continue
             if child.is_dir():shutil.rmtree(child)
@@ -255,7 +270,7 @@ def compact(root,archive,current,previous,maintenance_commit,catalog=None):
     rows=''.join('<li><a href="'+html.escape(e['url'],quote=True)+'">'+html.escape(name)+'</a></li>' for name,e in sorted(catalog.items()))
     (archive_dir/'index.html').write_text('<!doctype html><html lang="ru"><meta charset="utf-8"><title>Архив Минского метро</title><body style="font:17px Arial;max-width:960px;margin:40px auto"><h1>Архив версий</h1><p><a href="'+BASE+'metro2/play/">Текущая игра</a> · <a href="'+BASE+'metro2/previous/">Предыдущая версия</a> · <a href="'+html.escape(apk_info['url'],quote=True)+'">Скачать APK</a></p><p>ZIP содержит самостоятельную Web-сборку. Распакуйте и запускайте через HTTP-сервер.</p><ul>'+rows+'</ul></body></html>')
     (root/'metro2/index.html').write_text('<!doctype html><html lang="ru"><meta charset="utf-8"><title>Минское метро 2.0</title><body style="font:20px Arial;max-width:800px;margin:60px auto"><h1>Минское метро 2.0</h1><p><a href="play/">Играть — текущая версия</a></p><p><a href="previous/">Предыдущая стабильная версия</a></p><p><a href="v106-three-cars/">Сохранённая трёхвагонная версия</a></p><p><a href="archive/">Архив и APK</a></p><p><a href="../index.html">Старая Three.js-игра</a></p></body></html>')
-    manifest={'schema':1,'maintenance_commit':marker,'current':{'path':current,'source_commit':current_info['source_commit']},'previous':{'path':previous,'source_commit':previous_info['source_commit']},'protected_three_cars':THREE_CARS,'archive_release':archive.release['html_url'],'archive_tag':ARCHIVE_TAG,'archives':catalog,'apk':apk_info,'site_budget_bytes':BUDGET,'runtime_paths':sorted(runtimes)}
+    manifest={'schema':1,'maintenance_commit':marker,'current':{'path':current,'source_commit':current_info['source_commit']},'previous':{'path':previous,'source_commit':previous_info['source_commit']},'archive_release':archive.release['html_url'],'archive_tag':ARCHIVE_TAG,'archives':catalog,'apk':apk_info,'site_budget_bytes':BUDGET,'runtime_paths':sorted(runtimes)}
     manifest_path=root/'metro2/publication.json'
     manifest['site_bytes']=0
     manifest_path.write_text(json.dumps(manifest,indent=2,ensure_ascii=False))
@@ -305,5 +320,6 @@ if __name__=='__main__':
     args=parser.parse_args()
     if args.command=='publish':publish(args)
     else:prune_generated_artifacts()
+
 
 
