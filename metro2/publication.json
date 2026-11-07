@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "maintenance_commit": "e8ed2a6ea49a568c8e627e523e22a296d953d727",
+  "maintenance_commit": "6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1",
   "current": {
-    "path": "metro2/uruchye-v42/e8ed2a6ea49a568c8e627e523e22a296d953d727",
-    "source_commit": "e8ed2a6ea49a568c8e627e523e22a296d953d727"
+    "path": "metro2/uruchye-v42/6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1",
+    "source_commit": "6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1"
   },
   "previous": {
-    "path": "metro2/surface-depot-v40/30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf",
-    "source_commit": "30783c8de35f574b9ca6bd8b21e7ab8ef1e44cdf"
+    "path": "metro2/uruchye-v42/e8ed2a6ea49a568c8e627e523e22a296d953d727",
+    "source_commit": "e8ed2a6ea49a568c8e627e523e22a296d953d727"
   },
   "protected_three_cars": "metro2/v106-three-cars",
   "archive_release": "https://github.com/SSKUZ/Minskmetrogame/releases/tag/metro2-build-archive",
@@ -264,6 +264,13 @@
       "zip_sha256": "f215578dbb82958ad762ae243a0743e749842a72c46dd80e8f4576a232890720",
       "pack_sha256": "628879a89e22c5ee5f3b3b346f8a3ef5d623039539ac3aabc3b9481418107428",
       "bytes": 40900766
+    },
+    "metro2/uruchye-v42/6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1": {
+      "asset": "web-uruchye-v42-6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1-d5564b999b70.zip",
+      "url": "https://github.com/SSKUZ/Minskmetrogame/releases/download/metro2-build-archive/web-uruchye-v42-6e7aa3f54c1673b9a7eb00a1288c4993369f0bf1-d5564b999b70.zip",
+      "zip_sha256": "a9434a40cef372aff81e1f79fc8214600f9c7967e16026f244c6da15e232ff19",
+      "pack_sha256": "d5564b999b709328bb9bb83f5c7c10f0192ff580da7bb58df86112a5ef590695",
+      "bytes": 40904900
     }
   },
   "apk": {
@@ -272,9 +279,9 @@
     "sha256": "18e59df2fdca5409e6f88cc9ed1de5042033028b3138eb298331c7917ce1096e",
     "compatibility_path": "metro2/v106-four-cars-tz30/ae13f50e739af627dacb5caeff06312bfc2df54d/MinskMetro2-TZ30-arm64.apk"
   },
-  "site_budget_bytes": 500000000,
+  "site_budget_bytes": 550000000,
   "runtime_paths": [
     "metro2/runtime/godot-4.3-ea719c20bf372d61"
   ],
-  "site_bytes": 464967829
+  "site_bytes": 504467389
 }
