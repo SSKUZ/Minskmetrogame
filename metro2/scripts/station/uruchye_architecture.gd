@@ -123,7 +123,7 @@ func _floor_and_walls() -> void:
         _box(Vector3(3.1,0.008,3.1),Vector3(CX,FLOOR+0.006,z),granite,Basis(Vector3.UP,PI/4.0))
         _triangle(Vector3(CX-1.55,FLOOR+0.012,z),Vector3(CX,FLOOR+0.012,z-1.55),Vector3(CX+1.55,FLOOR+0.012,z),stone)
     for side in [-1.0,1.0]:
-        var wall_x := CX+side*8.85
+        var wall_x: float = CX+side*8.85
         _box(Vector3(0.28,7.6,112),Vector3(wall_x,3.5,36.112),white)
         _box(Vector3(0.03,1.0,112),Vector3(wall_x-side*0.16,0.5,36.112),granite)
         _box(Vector3(0.035,0.30,112),Vector3(wall_x-side*0.18,1.15,36.112),cobalt)
@@ -138,7 +138,7 @@ func _floor_and_walls() -> void:
             title.rotation.y = -side*PI/2.0
             # Blue water motif, based on the wall sign's horizontal wave.
             for j in range(24):
-                var zz := z-3.2+float(j)*0.27
+                var zz: float = z-3.2+float(j)*0.27
                 var yy := 2.45+0.10*sin(float(j)*0.31)
                 _box(Vector3(0.025,0.035,0.28),Vector3(wall_x-side*0.25,yy,zz),cobalt)
 
@@ -186,7 +186,7 @@ func _columns_and_ceiling() -> void:
         for i in range(20):
             _box(Vector3(0.035,0.055,12),Vector3(CX-4.75+float(i)*0.5,7.30,z),color)
     for side in [-1.0,1.0]:
-        var x := CX+side*4.78
+        var x: float = CX+side*4.78
         _box(Vector3(0.24,0.09,105),Vector3(x,5.50,39.612),steel)
         for i in range(53):
             var z := Z0+1.0+float(i)*1.98
@@ -232,7 +232,7 @@ func _stairs(direction: float, start_z: float) -> void:
     glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
     glass.cull_mode=BaseMaterial3D.CULL_DISABLED
     for side in [-1.0,1.0]:
-        var x := CX+side*2.02
+        var x: float = CX+side*2.02
         var mid := Vector3(x,FLOOR+2.15,start_z+direction*3.42)
         _box(Vector3(0.035,0.80,7.56),mid,glass,Basis(Vector3.RIGHT,-direction*atan(rise/run)))
         for i in range(7):
