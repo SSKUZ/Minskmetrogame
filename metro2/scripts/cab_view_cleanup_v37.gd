@@ -1,5 +1,5 @@
 extends RefCounted
-## Modify only the instantiated head car; never rewrite imported GLBs.
+## Photo-based cab sides on instantiated end cars; original GLBs stay intact.
 const WINDOW_LOW_Y := 1.92
 const WINDOW_HIGH_Y := 3.08
 const WINDOW_LOW_Z := -9.32
@@ -40,7 +40,7 @@ static func apply(lead: Node3D) -> void:
     var paint: Material
     # Replace the entire old side-door skin, inside AND outside. This removes
     # all old door seams/handles/small-window frames before making one blue skin.
-    var sides := [AABB(Vector3(-1.40,0.97,-9.505),Vector3(0.22,2.28,1.845)),AABB(Vector3(1.18,0.97,-9.505),Vector3(0.22,2.28,1.845))]
+    var sides := [AABB(Vector3(-1.40,0.34,-9.505),Vector3(0.22,2.91,1.845)),AABB(Vector3(1.18,0.34,-9.505),Vector3(0.22,2.91,1.845))]
     for child in lead.find_children("*","MeshInstance3D",true,false):
         var instance := child as MeshInstance3D
         if not instance.visible: continue
@@ -78,7 +78,7 @@ static func apply(lead: Node3D) -> void:
                 var a: Vector3 = transform*vertices[ids[0]]
                 var b: Vector3 = transform*vertices[ids[1]]
                 var c: Vector3 = transform*vertices[ids[2]]
-                if maxf(a.y,maxf(b.y,c.y)) <= 0.97:
+                if maxf(a.y,maxf(b.y,c.y)) <= 0.34:
                     kept.append_array(PackedInt32Array(ids))
                     continue
                 var tri_box := _triangle_bounds(a,b,c)
@@ -169,23 +169,54 @@ static func _node(lead: Node3D,tool: SurfaceTool,material: Material,label: Strin
     if layers == 4: instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     lead.add_child(instance)
 
+
 static func _make_side(lead: Node3D, side: float, blue: Material,rubber: Material,glass: Material) -> void:
-    var y0 := WINDOW_LOW_Y
-    var y1 := WINDOW_HIGH_Y
-    var z0 := WINDOW_LOW_Z
-    var z1 := WINDOW_HIGH_Z
-    var radius := 0.085
+    # 81-717: a narrow portrait window on the right, a separate cab door on
+    # the left. Both skins have actual openings, not transparent wall overlays.
+    if side > 0.0:
+        _window_panel(lead,side,blue,rubber,glass,0.34,3.25,-9.505,-7.66,
+            1.88,3.02,-9.12,-8.37,0.09,"RightCabWindow")
+        _sash(lead,side,2.57,-9.10,-8.39)
+        _waist_trim(lead,side,-9.505,-7.66)
+    else:
+        _window_panel(lead,side,blue,rubber,null,0.34,3.25,-9.505,-7.66,
+            0.40,3.19,-9.30,-8.22,0.025,"DriverDoorFrame")
+        var door := Node3D.new()
+        door.name = "DriverEntranceDoor"
+        door.set_meta("hinge_axis",Vector3.UP)
+        door.set_meta("open_angle",side*PI*0.5)
+        door.set_meta("exit_in_cab_frame",Vector3(-1.95,0.45,-8.75))
+        lead.add_child(door)
+        _window_panel(door,side,blue,rubber,glass,0.415,3.175,-9.285,-8.235,
+            1.91,3.015,-9.105,-8.455,0.085,"DriverDoorWindow")
+        _waist_trim(door,side,-9.27,-8.25)
+        var chrome := StandardMaterial3D.new()
+        chrome.albedo_color = Color(0.65,0.68,0.70)
+        chrome.metallic = 0.85
+        chrome.roughness = 0.28
+        for x in [side*1.22,side*1.39]:
+            _bar(door,Vector3(x,2.10,-9.18),Vector3(x,2.73,-9.18),0.012,chrome,"DoorGrabHandle")
+            _bar(door,Vector3(x,1.78,-8.43),Vector3(x,1.78,-8.28),0.015,chrome,"DoorLatch")
+        for y in [0.72,2.85]:
+            _bar(door,Vector3(side*1.36,y-0.065,-8.25),Vector3(side*1.36,y+0.065,-8.25),0.019,chrome,"DoorHinge")
+        var hinge := Vector3(side*1.30,0.415,-8.235)
+        for child in door.get_children():
+            if child is Node3D: (child as Node3D).position -= hinge
+        door.position = hinge
+
+static func _window_panel(parent: Node3D,side: float,blue: Material,rubber: Material,glass: Material,
+        bottom: float,top: float,front: float,rear: float,
+        y0: float,y1: float,z0: float,z1: float,radius: float,label: String) -> void:
     var inside := side*1.252
     var outside := side*1.345
     var wall := SurfaceTool.new()
     wall.begin(Mesh.PRIMITIVE_TRIANGLES)
     for face in [inside,outside]:
         var normal := Vector3(-side if face == inside else side,0,0)
-        _rect(wall,face,0.95,y0,-9.505,-7.66,normal)
-        _rect(wall,face,y1,3.25,-9.505,-7.66,normal)
-        _rect(wall,face,y0,y1,-9.505,z0,normal)
-        _rect(wall,face,y0,y1,z1,-7.66,normal)
-        # Fill just the four outer corner wedges; the center stays a real hole.
+        _rect(wall,face,bottom,y0,front,rear,normal)
+        _rect(wall,face,y1,top,front,rear,normal)
+        _rect(wall,face,y0,y1,front,z0,normal)
+        _rect(wall,face,y0,y1,z1,rear,normal)
         var centers := [Vector2(z1-radius,y1-radius),Vector2(z0+radius,y1-radius),Vector2(z0+radius,y0+radius),Vector2(z1-radius,y0+radius)]
         var corners := [Vector2(z1,y1),Vector2(z0,y1),Vector2(z0,y0),Vector2(z1,y0)]
         for corner in range(4):
@@ -201,21 +232,61 @@ static func _make_side(lead: Node3D, side: float, blue: Material,rubber: Materia
         var b := opening[(i+1)%opening.size()]
         var n := Vector3(0,(a.y+b.y)*0.5-(y0+y1)*0.5,(a.x+b.x)*0.5-(z0+z1)*0.5).normalized()
         _quad(wall,Vector3(inside,a.y,a.x),Vector3(outside,a.y,a.x),Vector3(outside,b.y,b.x),Vector3(inside,b.y,b.x),-n)
-    _node(lead,wall,blue,"SeamlessBlueCabSideLeft" if side < 0.0 else "SeamlessBlueCabSideRight",3)
+    _node(parent,wall,blue,label+"Steel",3)
     var seal := SurfaceTool.new()
     seal.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var border := _contour(y0-0.028,y1+0.028,z0-0.028,z1+0.028,radius+0.028)
+    var border := _contour(y0-0.022,y1+0.022,z0-0.022,z1+0.022,radius+0.022)
     for x in [inside-side*0.002,outside+side*0.002]:
         for i in range(opening.size()):
             var j := (i+1)%opening.size()
             _quad(seal,Vector3(x,opening[i].y,opening[i].x),Vector3(x,border[i].y,border[i].x),Vector3(x,border[j].y,border[j].x),Vector3(x,opening[j].y,opening[j].x),Vector3(-side if x*side < 1.3 else side,0,0))
-    _node(lead,seal,rubber,"CabSideWindowRubber",3)
-    var pane := SurfaceTool.new()
-    pane.begin(Mesh.PRIMITIVE_TRIANGLES)
-    for i in range(opening.size()):
-        var j := (i+1)%opening.size()
-        _emit(pane,Vector3(side*1.29,(y0+y1)*0.5,(z0+z1)*0.5),Vector3(side*1.29,opening[i].y,opening[i].x),Vector3(side*1.29,opening[j].y,opening[j].x),Vector3(-side,0,0))
-    _node(lead,pane,glass,"FullCabSideWindow",4)
+    _node(parent,seal,rubber,label+"Rubber",3)
+    if glass != null:
+        var pane := SurfaceTool.new()
+        pane.begin(Mesh.PRIMITIVE_TRIANGLES)
+        for i in range(opening.size()):
+            var j := (i+1)%opening.size()
+            _emit(pane,Vector3(side*1.29,(y0+y1)*0.5,(z0+z1)*0.5),Vector3(side*1.29,opening[i].y,opening[i].x),Vector3(side*1.29,opening[j].y,opening[j].x),Vector3(-side,0,0))
+        _node(parent,pane,glass,label+"Glass",4)
+
+static func _bar(parent: Node3D,a: Vector3,b: Vector3,radius: float,material: Material,label: String) -> void:
+    var node := MeshInstance3D.new()
+    node.name = label
+    var mesh := CylinderMesh.new()
+    mesh.top_radius = radius
+    mesh.bottom_radius = radius
+    mesh.height = a.distance_to(b)
+    mesh.radial_segments = 12
+    mesh.material = material
+    node.mesh = mesh
+    var direction := (b-a).normalized()
+    var axis := Vector3.UP.cross(direction)
+    if axis.length_squared() > 0.00001:
+        node.basis = Basis(axis.normalized(),Vector3.UP.angle_to(direction))
+    node.position = (a+b)*0.5
+    node.layers = 3
+    parent.add_child(node)
+
+static func _waist_trim(parent: Node3D,side: float,z0: float,z1: float) -> void:
+    var chrome := StandardMaterial3D.new()
+    chrome.albedo_color = Color(0.68,0.70,0.68)
+    chrome.metallic = 0.65
+    chrome.roughness = 0.4
+    for y in [1.62,1.69,1.76]:
+        _bar(parent,Vector3(side*1.351,y,z0),Vector3(side*1.351,y,z1),0.021,chrome,"CabWaistMoulding")
+
+static func mirror_mount(parent: Node3D,side: float,material: Material) -> void:
+    # Twin bent yellow arms run from the original side mounting to the
+    # mirror ahead of the windscreen. The arms never cross the cabin interior.
+    for y in [2.40,2.48]:
+        var a := Vector3(side*1.35,y,-9.33)
+        var b := Vector3(side*1.71,y,-9.33)
+        var c := Vector3(side*1.71,y,-10.39)
+        var d := Vector3(side*1.45,y,-10.39)
+        _bar(parent,a,b,0.012,material,"MirrorMountSide")
+        _bar(parent,b,c,0.012,material,"MirrorMountForward")
+        _bar(parent,c,d,0.012,material,"MirrorMountReturn")
+    _bar(parent,Vector3(side*1.45,2.40,-10.39),Vector3(side*1.45,2.68,-10.39),0.012,material,"MirrorMountUpright")
 
 static func mirror_parts(lead: Node3D) -> Dictionary:
     var result := {-1.0:[],1.0:[]}

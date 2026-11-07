@@ -139,7 +139,7 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
                 if material != null and material.emission_enabled and not _lamp_materials.has(material):
                     _lamp_materials.append(material)
     var banner := lead.find_child("goodmix-duo-cab-bulkhead-banner",true,false) as Node3D
-    cleanup_ready = banner != null and banner.is_visible_in_tree() and _mirrors.size() == 2 and not model.find_child("LiveRearMonitor",true,false).is_visible_in_tree()
+    cleanup_ready = banner != null and banner.is_visible_in_tree() and _mirrors.size() == 4 and not model.find_child("LiveRearMonitor",true,false).is_visible_in_tree()
     ready_for_play = controls.size() == CONTROL_IDS.size()
     print("CAB_V39_R2_READY version=cab-r2.1 controls=",controls.size())
 
@@ -760,50 +760,69 @@ func _make_video() -> Dictionary:
     return {"viewport":viewport,"camera":camera,"material":material}
 
 func _install_video(lead: Node3D) -> void:
-    var originals: Dictionary = preload("res://scripts/cab_view_cleanup_v37.gd").mirror_parts(lead)
-    for child in lead.find_children("mirror-*","MeshInstance3D",true,false):
+    _install_car_mirrors(lead,false)
+    # The original fourth GLB has a reversed, translated cab frame. Work in
+    # its authored local coordinates instead of applying head-car coordinates.
+    var rear := (game.get("train") as Node3D).get_node("OriginalV106Car04") as Node3D
+    var housing := rear.find_child("mirror-right",true,false) as MeshInstance3D
+    if housing != null:
+        var rear_frame := housing.get_parent() as Node3D
+        preload("res://scripts/cab_view_cleanup_v37.gd").apply(rear_frame)
+        _install_car_mirrors(rear_frame,true)
+
+func _install_car_mirrors(frame: Node3D,rear: bool) -> void:
+    var cleanup = preload("res://scripts/cab_view_cleanup_v37.gd")
+    var originals: Dictionary = cleanup.mirror_parts(frame)
+    for child in frame.find_children("mirror-*","MeshInstance3D",true,false):
         var housing := child as MeshInstance3D
         if model.is_ancestor_of(housing): continue
-        var center := lead.to_local(housing.to_global(housing.get_aabb().get_center()))
+        var center := frame.to_local(housing.to_global(housing.get_aabb().get_center()))
         var side := signf(center.x)
+        var yellow := housing.get_active_material(0)
         var pivot := Node3D.new()
         pivot.name = "CompleteOriginalMirrorLeft" if side < 0.0 else "CompleteOriginalMirrorRight"
-        lead.add_child(pivot)
+        frame.add_child(pivot)
         pivot.position = center
         housing.reparent(pivot,true)
         var video := _make_video()
         video["side"] = side
         video["pivot"] = pivot
+        video["frame"] = frame
+        video["rear"] = rear
         for part in originals[side]:
-            lead.add_child(part)
+            # Retain the original reflective pane; replace the old straight
+            # support with the photographed forward-facing bent bracket.
+            if not bool(part.get_meta("reflection")):
+                part.free()
+                continue
+            frame.add_child(part)
             part.reparent(pivot,true)
-            if bool(part.get_meta("reflection")):
-                part.material_override = video.material
-                part.layers = 32
-                part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-        # Move and enlarge the complete original yellow assembly, including its
-        # old bracket and glass. No second mirror or added reflection quad.
-        pivot.position = Vector3(side*1.53,2.68,-8.70)
-        pivot.scale = Vector3.ONE*1.20
-        pivot.rotation.y = atan2(eye_in_train().x-pivot.position.x,eye_in_train().z-pivot.position.z)
+            part.material_override = video.material
+            part.layers = 32
+            part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        housing.layers = 1
+        pivot.position = Vector3(side*1.45,2.68,-10.39)
+        pivot.scale = Vector3(1.35,1.45,1.0)
+        cleanup.mirror_mount(frame,side,yellow)
         _mirrors.append(video)
 
 func _update_video() -> void:
-    if str(game.get("camera_mode")) != "cabin": return
-    var train := game.get("train") as Node3D
+    var viewer := game.get("camera") as Camera3D
     for video in _mirrors:
         var enabled := bool(switches.mirrorLeft if video.side < 0.0 else switches.mirrorRight)
         var pivot := video.pivot as Node3D
-        var eye := eye_in_train()
-        var open_angle := atan2(eye.x-pivot.position.x,eye.z-pivot.position.z)
+        var frame := video.frame as Node3D
+        var eye: Vector3 = POSITION+EYE if bool(video.rear) else frame.to_local(to_global(EYE))
+        var toward_eye := (eye-pivot.position).normalized()
+        var behind := Vector3(float(video.side)*1.90,2.40,65.0)
+        var toward_rear := (behind-pivot.position).normalized()
+        var normal := (toward_eye+toward_rear).normalized()
+        var open_angle := atan2(normal.x,normal.z)
         pivot.rotation.y = open_angle if enabled else open_angle+float(video.side)*PI*0.5
-        if not enabled: continue
-        var viewer := game.get("camera") as Camera3D
-        # Do not skip the reflection because the pivot origin is outside the frustum.
-        # The large mirror surface can still be visible at the screen edge.
+        if not enabled or not viewer.is_position_in_frustum(pivot.global_position): continue
         var camera := video.camera as Camera3D
         camera.global_position = pivot.to_global(Vector3(0,0,0.04))
-        camera.look_at(train.to_global(Vector3(float(video.side)*1.26,2.35,65.0)),Vector3.UP)
+        camera.look_at(frame.to_global(behind),frame.global_basis.y)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
 func make_screen_controls(ui: CanvasLayer) -> void:
