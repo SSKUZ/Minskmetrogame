@@ -18,11 +18,11 @@ static func restore(train: Node3D) -> void:
     for car in train.get_children():
         if not car is Node3D or not str(car.name).begins_with("OriginalV106Car"):
             continue
-        var sides := [[], []]
+        var sides: Array = [[], []]
         for node in car.find_children("passenger-door-caution*", "MeshInstance3D", true, false):
             var decal := node as MeshInstance3D
             # Work in the car's local coordinates, not world/train coordinates.
-            var local_pos := car.to_local(decal.global_position)
+            var local_pos: Vector3 = car.to_local(decal.global_position)
             sides[0 if local_pos.x < 0.0 else 1].append(decal)
             decal.hide()
         for side in sides:
