@@ -275,16 +275,16 @@ def publish(args):
     manifest=json.loads((root/'metro2/publication.json').read_text())
     if manifest.get('schema')!=1:raise RuntimeError('Run repository maintenance before publishing')
     current=manifest['current']['path']
-    destination='metro2/surface-depot-v40/'+args.commit
+    destination='metro2/'+args.channel+'/'+args.commit
     folder=root/destination;folder.mkdir(parents=True,exist_ok=True)
     shutil.copytree(args.new_build,folder,dirs_exist_ok=True)
     info=json.loads((folder/'build-info.json').read_text())
     if info['source_commit']!=args.commit:raise RuntimeError('Build provenance mismatch')
     archive=Archive(api,args.commit)
     previous=current if current!=destination else manifest['previous']['path']
-    entry=root/'metro2/surface-depot-v40/index.html'
+    entry=root/('metro2/'+args.channel+'/index.html')
     entry.parent.mkdir(parents=True,exist_ok=True)
-    entry.write_text(redirect_html(BASE+destination+'/index.html','Минское метро 2.0 — наземное электродепо'))
+    entry.write_text(redirect_html(BASE+destination+'/index.html','Минское метро 2.0 — Уручье'))
     compact(root,archive,destination,previous,args.commit,manifest.get('archives',{}))
 
 def prune_generated_artifacts():
@@ -300,7 +300,7 @@ def prune_generated_artifacts():
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest='command',required=True)
-    p=sub.add_parser('publish');p.add_argument('--site',required=True);p.add_argument('--new-build',required=True);p.add_argument('--commit',required=True)
+    p=sub.add_parser('publish');p.add_argument('--site',required=True);p.add_argument('--new-build',required=True);p.add_argument('--commit',required=True);p.add_argument('--channel',default='surface-depot-v40',choices=['surface-depot-v40','uruchye-v42'])
     sub.add_parser('prune-artifacts')
     args=parser.parse_args()
     if args.command=='publish':publish(args)

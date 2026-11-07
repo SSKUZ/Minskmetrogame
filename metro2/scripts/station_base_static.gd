@@ -20,6 +20,7 @@ const SLEEPER_PITCH := 0.65
 @export var track_max_z := TRACK_MAX_Z
 @export var rail_center := 0.9
 @export var rail_width := 0.12
+@export var uruchye_architecture := false
 
 func _ready() -> void:
     var platform_center_z := TRAIN_LENGTH / 2.0
@@ -123,6 +124,11 @@ func _ready() -> void:
         light.omni_range = 13.0
         light.shadow_enabled = false
         add_child(light)
+
+    if uruchye_architecture:
+        var architecture := preload("res://scripts/station/uruchye_architecture.gd").new()
+        architecture.name = "UruchyeArchitecture"
+        add_child(architecture)
 
 func _material(color: Color, metallic: float = 0.0, roughness: float = 1.0) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()

@@ -1,4 +1,4 @@
-name: Metro2 TZ40 surface depot and tunnel connection Web
+name: Metro2 Uruchye V42 Web
 on:
   workflow_dispatch:
   push:
@@ -7,6 +7,7 @@ on:
       - '.github/workflows/metro2-surface-depot-v40-web.yml'
       - 'metro2/scripts/depot/**'
       - 'metro2/scripts/station_base_static.gd'
+      - 'metro2/scripts/station/**'
       - 'metro2/scripts/playable_track_path.gd'
       - 'metro2/scenes/StationBaseStatic.tscn'
       - 'metro2/scenes/depot/**'
@@ -99,6 +100,8 @@ jobs:
           cp metro2/scenes/depot/*.tscn stage/scenes/depot/
           cp metro2/scenes/StationBaseStatic.tscn stage/scenes/
           cp metro2/scripts/station_base_static.gd metro2/scripts/playable_track_path.gd stage/scripts/
+          mkdir -p stage/scripts/station
+          cp metro2/scripts/station/*.gd stage/scripts/station/
           cp metro2/assets/depot/industrial_surface.gdshader stage/assets/depot/
           cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb stage/assets/v106_lod1/
           cp metro2/assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import stage/assets/v106_lod1/
@@ -132,7 +135,7 @@ jobs:
           for meta in root.rglob('*.glb.import'):
             assert 'meshes/generate_lods=false' in meta.read_text()
             assert 'meshes/force_disable_compression=true' in meta.read_text()
-          manifest={'source_commit':os.environ['GITHUB_SHA'],'route':'surface-depot-v40','main_scene':'res://scenes/depot/surface_depot_v40.tscn','godot':'4.3','cab_source':{'branch':'cab-development','commit':'aef6e01a10c9750582c93697536b3e56a62ac3f2','version':'cab-r2.1','sha256':hashlib.sha256((root/'assets/cab_r21/cab_r21.glb').read_bytes()).hexdigest()},'models_and_scripts':{
+          manifest={'source_commit':os.environ['GITHUB_SHA'],'route':'uruchye-v42','main_scene':'res://scenes/depot/surface_depot_v40.tscn','godot':'4.3','cab_source':{'branch':'cab-development','commit':'aef6e01a10c9750582c93697536b3e56a62ac3f2','version':'cab-r2.1','sha256':hashlib.sha256((root/'assets/cab_r21/cab_r21.glb').read_bytes()).hexdigest()},'models_and_scripts':{
             str(f.relative_to(root)):hashlib.sha256(f.read_bytes()).hexdigest() for f in files}}
           (root/'build-info.json').write_text(json.dumps(manifest,indent=2))
           PY
@@ -175,27 +178,27 @@ jobs:
           ref: gh-pages
           path: published-site
           fetch-depth: 1
-      - name: Publish surface depot Web and await deployment
+      - name: Publish Uruchye Web and await deployment
         run: |
           set -euo pipefail
-          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA"
+          python3 release-tools/metro2/tools/web_publication.py publish --site published-site --new-build web --commit "$GITHUB_SHA" --channel uruchye-v42
           cd published-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A -- metro2
-          git commit -m "Publish TZ40 surface depot and connected tunnel Web $GITHUB_SHA"
+          git commit -m "Publish Uruchye V42 Web $GITHUB_SHA"
           git pull --rebase origin gh-pages
           git push origin HEAD:gh-pages
           cd ..
           python3 - <<'PYTHON'
           import urllib.request,time,json,os
-          url='https://sskuz.github.io/Minskmetrogame/metro2/surface-depot-v40/'+os.environ['GITHUB_SHA']+'/'
+          url='https://sskuz.github.io/Minskmetrogame/metro2/uruchye-v42/'+os.environ['GITHUB_SHA']+'/'
           for attempt in range(90):
             try:
               with urllib.request.urlopen(url+'build-info.json?deploy='+str(time.time()),timeout=20) as response:
                 data=json.load(response)
               if data['source_commit']==os.environ['GITHUB_SHA']:
-                print('TZ40_WEB_PUBLISHED '+url)
+                print('TZ42_WEB_PUBLISHED '+url)
                 break
             except Exception:
               pass

@@ -2,8 +2,9 @@
 
 [ext_resource type="PackedScene" path="res://scenes/StationBaseStatic.tscn" id="1"]
 
-[node name="MalinovkaStationBase" instance=ExtResource("1")]
+[node name="UruchyeStation" instance=ExtResource("1")]
 track_min_z = -19.888
 track_max_z = 92.112
 rail_center = 0.8075
 rail_width = 0.095
+uruchye_architecture = true

@@ -100,7 +100,7 @@ func _physics_process(delta: float) -> void:
         _update_camera()
     _update_atmosphere()
     if hud != null:
-        var phase := "ЭЛЕКТРОДЕПО" if distance > 300.0 else "ПОДХОД К ПОРТАЛУ" if distance > 96.0 else "МАЛИНОВКА" if distance < STATION_ENTRY_Z + 10.0 else "ТОННЕЛЬ"
+        var phase := "ЭЛЕКТРОДЕПО" if distance > 300.0 else "ПОДХОД К ПОРТАЛУ" if distance > 96.0 else "УРУЧЬЕ" if distance < STATION_ENTRY_Z + 10.0 else "ТОННЕЛЬ"
         hud.text = "%s | 4 ВАГОНА | %.0f км/ч | %.0f м от депо | %s" % [phase,speed*3.6,Route.START_Z-distance,camera_mode]
 
 func _update_camera() -> void:
@@ -153,3 +153,11 @@ func _update_atmosphere() -> void:
     _environment.fog_light_energy = lerpf(0.025,0.8,daylight)
     if _sun != null: _sun.light_energy = lerpf(0.025,1.05,daylight)
     camera.far = lerpf(120.0,760.0,daylight)
+    # Local station approach lighting, leaving the rest of the tunnel dark.
+    var station_light := (1.0-smoothstep(STATION_ENTRY_Z-8.0,STATION_ENTRY_Z+28.0,camera.global_position.z))*smoothstep(STATION_EXIT_Z-24.0,STATION_EXIT_Z+6.0,camera.global_position.z)
+    if station_light > 0.0:
+        _environment.ambient_light_energy = lerpf(_environment.ambient_light_energy,0.42,station_light)
+        _environment.ambient_light_color = _environment.ambient_light_color.lerp(Color(0.88,0.90,0.92),station_light)
+        _environment.fog_depth_begin = lerpf(_environment.fog_depth_begin,110.0,station_light)
+        _environment.fog_depth_end = lerpf(_environment.fog_depth_end,210.0,station_light)
+        camera.far = lerpf(camera.far,220.0,station_light)
