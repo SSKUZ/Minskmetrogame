@@ -49,6 +49,9 @@ static func apply(lead: Node3D) -> void:
         var box: AABB = transform*instance.get_aabb()
         var metal := box.size.z > 18.0 and absf(box.position.y-0.09) < 0.01 and absf(box.end.y-3.1075) < 0.01
         var volumes: Array = sides.duplicate()
+        # Remove any remaining original solid cabinet in the left doorway.
+        # Floor, side skin, door and rear bulkhead lie outside this volume.
+        volumes.append(AABB(Vector3(-1.245,1.0,-9.25),Vector3(0.58,1.45,1.20)))
         if metal: volumes.append(AABB(Vector3(-1.32,0.95,-9.60),Vector3(2.64,2.35,2.0)))
         var relevant := false
         for volume in volumes:
@@ -302,7 +305,7 @@ static func _waist_trim(parent: Node3D,side: float,z0: float,z1: float) -> void:
         _bar(parent,Vector3(side*1.351,y,z0),Vector3(side*1.351,y,z1),0.021,chrome,"CabWaistMoulding")
 
 static func mirror_position(side: float) -> Vector3:
-    return Vector3(side*1.40,2.68,-10.08)
+    return Vector3(side*1.28,2.68,-10.08)
 
 static func mirror_mount(parent: Node3D,side: float,material: Material) -> void:
     # Short direct supports from the nearest windscreen corner. Nothing starts

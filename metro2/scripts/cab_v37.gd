@@ -145,21 +145,18 @@ func initialize(owner_game: Node3D, lead: Node3D, door_system: Node) -> void:
 
 func _relocate_mirror_panel() -> void:
     var left := model.find_child("Control_mirrorLeft",true,false) as Node3D
-    var block := model.find_child("RadioConsole",true,false) as Node3D
-    if left == null or block == null: return
+    var radio := model.find_child("RadioConsole",true,false) as Node3D
+    if left == null or radio == null: return
     var panel := left.get_parent() as Node3D
     var auxiliary := panel.get_parent() as Node3D
-    # Keep the handset, radio face and all its buttons untouched. Extend only
-    # its existing black backing downwards for the complete auxiliary panel.
-    for child in block.get_children():
-        if child is MeshInstance3D:
-            (child as Node3D).scale.y *= 1.85
-            (child as Node3D).position.y -= 0.24
-            break
-    # Move both authored plates, their labels, screws and controls as one group.
-    # No panel or monitor remains on the right side or on the blue wall.
-    auxiliary.reparent(block,false)
-    auxiliary.transform = Transform3D(Basis.IDENTITY,Vector3(0.0,-0.48,0.065))
+    # Keep the authored thin radio housing. Do not stretch it into a tall
+    # black cabinet in front of the driver's entrance.
+    radio.position = Vector3(-0.91,1.48,0.70)
+    radio.rotation = Vector3(-0.08,0.12,0.0)
+    # The handset, cord, speaker, labels and every radio key move together.
+    # Put the complete mirror/heater plates on the upper left desk lip.
+    auxiliary.reparent(model,false)
+    auxiliary.transform = Transform3D(Basis(Vector3.RIGHT,-1.085),Vector3(-0.91,1.105,0.94))
     auxiliary.show()
 
 func _fit_cab_to_v106() -> void:
@@ -821,7 +818,12 @@ func _update_video() -> void:
         pivot.rotation.y = open_angle if enabled else open_angle+float(video.side)*PI*0.5
         if not enabled or not viewer.is_position_in_frustum(pivot.global_position): continue
         var camera := video.camera as Camera3D
-        camera.global_position = pivot.to_global(Vector3(0,0,0.04))
+        # A small outboard offset keeps the rear-view lens clear of the body
+        # after moving the visible mirror inward into the windscreen opening.
+        var lens := pivot.position
+        lens.x = float(video.side)*maxf(absf(lens.x),1.46)
+        lens.z += 0.04
+        camera.global_position = frame.to_global(lens)
         camera.look_at(frame.to_global(behind),frame.global_basis.y)
         (video.viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
 
