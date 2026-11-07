@@ -75,7 +75,9 @@ func setup(consist: Node3D) -> void:
                 return
             var partner: Vector3 = car_leaves[partners[0]]["center"]
             car_leaves[i]["direction"] = signf(center.z - partner.z)
+            car_leaves[i]["seam"] = (center.z+partner.z)*0.5
         _attach_stationary_leaf_details(car,car_leaves)
+        _restore_door_stripes(car,car_leaves)
         leaves.append_array(car_leaves)
     validated = leaves.size() == 64
     ready_count.emit(leaves.size())
@@ -94,10 +96,77 @@ func _scan(root: Node, car: Node3D, panels: Array[Dictionary], decals: Array[Dic
         elif size.x > 0.67 and size.x < 0.70 and size.y > 2.0 and size.y < 2.1 and size.z > 0.02 and size.z < 0.04 and absf(center.x) > 1.0 and absf(center.x) < 1.4:
             # Move the existing leaf parent, including skin, glass and trim.
             var leaf: Node3D = root.get_parent()
-            panels.append({"node": leaf, "center": center, "origin": leaf.position,
+            panels.append({"node": leaf, "center": center, "bounds":to_car*bounds, "origin": leaf.position,
                 "slide_axis": leaf.get_parent().global_basis.inverse() * car.global_basis.z})
     for child in root.get_children():
         _scan(child, car, panels, decals)
+
+func _restore_door_stripes(car: Node3D, car_leaves: Array[Dictionary]) -> void:
+    # Read the existing waist stripe so the door paint meets its actual height
+    # and colour on both the original and LOD1 cars. No GLB is rewritten.
+    var top := 1.9425
+    var width := 0.105
+    var paint := StandardMaterial3D.new()
+    paint.albedo_color = Color(0.91,0.87,0.75)
+    paint.roughness = 0.55
+    for child in car.find_children("*","MeshInstance3D",true,false):
+        var source := child as MeshInstance3D
+        if source.mesh == null or source.mesh.get_surface_count() == 0: continue
+        var bounds: AABB = car.global_transform.affine_inverse()*source.global_transform*source.get_aabb()
+        if bounds.size.z < 4.0 or bounds.size.x < 2.3 or bounds.size.y < 0.07 or bounds.size.y > 0.15: continue
+        if absf(bounds.get_center().y-1.89) > 0.08: continue
+        var material := source.get_active_material(0) as BaseMaterial3D
+        if material == null or material.albedo_color.r < 0.6 or material.albedo_color.g < 0.6: continue
+        paint.albedo_color = material.albedo_color
+        paint.roughness = material.roughness
+        paint.metallic = material.metallic
+        top = bounds.end.y
+        width = bounds.size.y
+        break
+    paint.resource_name = "MinskDoorStripePaint"
+    paint.cull_mode = BaseMaterial3D.CULL_DISABLED
+    for leaf in car_leaves:
+        var item: Dictionary = leaf["parts"][0]
+        var parent := item["node"] as Node3D
+        if parent.has_node("MinskDoorStripe"): continue
+        var bounds: AABB = item["bounds"]
+        var direction: float = leaf["direction"]
+        var seam: float = leaf["seam"]
+        var side := signf((leaf["center"] as Vector3).x)
+        var outer := absf((bounds.end.z if direction > 0.0 else bounds.position.z)-seam)
+        var inner := maxf(0.008,absf((bounds.position.z if direction > 0.0 else bounds.end.z)-seam))
+        var bottom := bounds.position.y+0.035
+        var knee := bottom+(top-bottom)*0.28
+        # Photo reference: long inward diagonal, low waist, short outward foot.
+        # Each half stays on its own leaf and stops at the black centre seal.
+        var outline := PackedVector2Array([
+            Vector2(outer,top),Vector2(outer-width*1.4,top),
+            Vector2(inner,knee),Vector2(outer-width*2.7,bottom),
+            Vector2(outer,bottom),Vector2(inner+width*1.65,knee),
+            Vector2(outer,top-width)])
+        var indices := Geometry2D.triangulate_polygon(outline)
+        if indices.is_empty():
+            push_error("Door stripe triangulation failed in "+str(car.name))
+            continue
+        var x := (bounds.end.x if side > 0.0 else bounds.position.x)+side*0.003
+        var local := parent.global_transform.affine_inverse()*car.global_transform
+        var normal := (local.basis.inverse().transposed()*Vector3(side,0,0)).normalized()
+        var tool := SurfaceTool.new()
+        tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+        tool.set_material(paint)
+        for index in indices:
+            var point := outline[index]
+            tool.set_normal(normal)
+            tool.add_vertex(local*Vector3(x,point.y,seam+direction*point.x))
+        var stripe := MeshInstance3D.new()
+        stripe.name = "MinskDoorStripe"
+        stripe.mesh = tool.commit()
+        stripe.mesh.resource_name = "MinskDoorChevron"
+        stripe.layers = (parent.get_child(0) as MeshInstance3D).layers
+        stripe.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        stripe.set_meta("reference","Minsk 81-717: waist stripe, low chevron and outward foot")
+        stripe.set_meta("passenger_door_livery",true)
+        parent.add_child(stripe)
 
 func _half(poly: Array, axis: int, edge: float, greater: bool) -> Array:
     var result: Array = []
@@ -302,4 +371,5 @@ func request_close() -> void:
 
 func can_move() -> bool:
     return not target_open and openness <= 0.001 and validated
+
 

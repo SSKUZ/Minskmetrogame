@@ -314,6 +314,7 @@ func _hide_old_interior(lead: Node3D) -> void:
     for child in lead.find_children("*","MeshInstance3D",true,false):
         var mesh := child as MeshInstance3D
         var bounds := lead.global_transform.affine_inverse()*mesh.global_transform*mesh.get_aabb()
+        if mesh.has_meta("passenger_door_livery"): continue
         if str(mesh.name).begins_with("goodmix-duo-"):
             mesh.show()
             continue
@@ -950,5 +951,6 @@ func _input(event: InputEvent) -> void:
     if event is InputEventKey and not event.pressed and event.physical_keycode == KEY_H:
         horn_active = false
         if _horn != null: _horn.stop()
+
 
 
