@@ -801,7 +801,7 @@ func _install_car_mirrors(frame: Node3D,rear: bool) -> void:
             part.layers = 32
             part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         housing.layers = 1
-        pivot.position = Vector3(side*1.45,2.68,-10.39)
+        pivot.position = cleanup.mirror_position(side)
         pivot.scale = Vector3(1.35,1.45,1.0)
         cleanup.mirror_mount(frame,side,yellow)
         _mirrors.append(video)

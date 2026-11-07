@@ -1,9 +1,7 @@
 extends RefCounted
 ## Photo-based cab sides on instantiated end cars; original GLBs stay intact.
-const WINDOW_LOW_Y := 1.92
-const WINDOW_HIGH_Y := 3.08
-const WINDOW_LOW_Z := -9.32
-const WINDOW_HIGH_Z := -7.82
+const BODY_BOTTOM := 0.95
+const BODY_TOP := 3.1075
 
 static func _triangle_bounds(a: Vector3,b: Vector3,c: Vector3) -> AABB:
     var low := a.min(b).min(c)
@@ -37,10 +35,12 @@ static func _subtract(poly: Array, volume: AABB) -> Array:
     return outside
 
 static func apply(lead: Node3D) -> void:
-    var paint: Material
+    var paint: BaseMaterial3D
+    var paint_vertex := Color.WHITE
+    var paint_score := INF
     # Replace the entire old side-door skin, inside AND outside. This removes
     # all old door seams/handles/small-window frames before making one blue skin.
-    var sides := [AABB(Vector3(-1.40,0.34,-9.505),Vector3(0.22,2.91,1.845)),AABB(Vector3(1.18,0.34,-9.505),Vector3(0.22,2.91,1.845))]
+    var sides := [AABB(Vector3(-1.40,BODY_BOTTOM,-9.505),Vector3(0.22,BODY_TOP-BODY_BOTTOM,1.845)),AABB(Vector3(1.18,BODY_BOTTOM,-9.505),Vector3(0.22,BODY_TOP-BODY_BOTTOM,1.845))]
     for child in lead.find_children("*","MeshInstance3D",true,false):
         var instance := child as MeshInstance3D
         if not instance.visible: continue
@@ -48,14 +48,14 @@ static func apply(lead: Node3D) -> void:
         var inverse := transform.affine_inverse()
         var box: AABB = transform*instance.get_aabb()
         var metal := box.size.z > 18.0 and absf(box.position.y-0.09) < 0.01 and absf(box.end.y-3.1075) < 0.01
-        if box.position.x < -1.33 and box.end.x > 1.33 and absf(box.end.z+6.99) < 0.02:
-            paint = instance.get_active_material(0)
         var volumes: Array = sides.duplicate()
         if metal: volumes.append(AABB(Vector3(-1.32,0.95,-9.60),Vector3(2.64,2.35,2.0)))
         var relevant := false
         for volume in volumes:
             if box.intersects(volume): relevant = true
-        if not relevant: continue
+        # Also read the adjacent body paint; it can share a material-batched mesh.
+        var contains_paint_sample := box.position.y <= 1.30 and box.end.y >= 1.30 and box.position.z <= -3.0 and box.end.z >= -3.0
+        if not relevant and not contains_paint_sample: continue
         var replacement := ArrayMesh.new()
         var changed := false
         for surface in range(instance.mesh.get_surface_count()):
@@ -78,7 +78,25 @@ static func apply(lead: Node3D) -> void:
                 var a: Vector3 = transform*vertices[ids[0]]
                 var b: Vector3 = transform*vertices[ids[1]]
                 var c: Vector3 = transform*vertices[ids[2]]
-                if maxf(a.y,maxf(b.y,c.y)) <= 0.34:
+                # Select the actual exterior blue surface near the lower body,
+                # including its vertex colour. Surface 0 of a batch is not
+                # necessarily the body paint (it may be the interior lining).
+                var base := material as BaseMaterial3D
+                if base != null and base.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED and absf((a+b+c).x/3.0) > 1.24:
+                    var vertex_color := Color.WHITE
+                    if base.vertex_color_use_as_albedo and colors.size() == vertices.size():
+                        vertex_color = (colors[ids[0]]+colors[ids[1]]+colors[ids[2]])/3.0
+                    var hue := base.albedo_color*vertex_color
+                    if hue.b > hue.r*1.6 and hue.g > hue.r*1.3 and hue.b > hue.g*1.3:
+                        var triangle_bounds := _triangle_bounds(a,b,c)
+                        var reference := Vector3(signf((a+b+c).x)*1.345,1.30,-3.0)
+                        var nearest := Vector3(clampf(reference.x,triangle_bounds.position.x,triangle_bounds.end.x),clampf(reference.y,triangle_bounds.position.y,triangle_bounds.end.y),clampf(reference.z,triangle_bounds.position.z,triangle_bounds.end.z))
+                        var score := reference.distance_squared_to(nearest)
+                        if score < paint_score:
+                            paint_score = score
+                            paint = base
+                            paint_vertex = vertex_color
+                if not relevant or maxf(a.y,maxf(b.y,c.y)) <= BODY_BOTTOM:
                     kept.append_array(PackedInt32Array(ids))
                     continue
                 var tri_box := _triangle_bounds(a,b,c)
@@ -123,7 +141,7 @@ static func apply(lead: Node3D) -> void:
         paint = fallback
     var blue := paint.duplicate() as StandardMaterial3D
     blue.cull_mode = BaseMaterial3D.CULL_DISABLED
-    blue.roughness = 0.7
+    blue.set_meta("cab_vertex_color",paint_vertex)
     var rubber := StandardMaterial3D.new()
     rubber.albedo_color = Color(0.018,0.022,0.026)
     rubber.roughness = 0.92
@@ -174,20 +192,20 @@ static func _make_side(lead: Node3D, side: float, blue: Material,rubber: Materia
     # 81-717: a narrow portrait window on the right, a separate cab door on
     # the left. Both skins have actual openings, not transparent wall overlays.
     if side > 0.0:
-        _window_panel(lead,side,blue,rubber,glass,0.34,3.25,-9.505,-7.66,
+        _window_panel(lead,side,blue,rubber,glass,BODY_BOTTOM,BODY_TOP,-9.505,-7.66,
             1.88,3.02,-9.12,-8.37,0.09,"RightCabWindow")
         _sash(lead,side,2.57,-9.10,-8.39)
         _waist_trim(lead,side,-9.505,-7.66)
     else:
-        _window_panel(lead,side,blue,rubber,null,0.34,3.25,-9.505,-7.66,
-            0.40,3.19,-9.30,-8.22,0.025,"DriverDoorFrame")
+        _window_panel(lead,side,blue,rubber,null,BODY_BOTTOM,BODY_TOP,-9.505,-7.66,
+            0.975,3.065,-9.30,-8.22,0.025,"DriverDoorFrame")
         var door := Node3D.new()
         door.name = "DriverEntranceDoor"
         door.set_meta("hinge_axis",Vector3.UP)
-        door.set_meta("open_angle",side*PI*0.5)
-        door.set_meta("exit_in_cab_frame",Vector3(-1.95,0.45,-8.75))
+        door.set_meta("open_angle",-side*PI*0.5)
+        door.set_meta("exit_in_cab_frame",Vector3(-1.95,BODY_BOTTOM,-8.75))
         lead.add_child(door)
-        _window_panel(door,side,blue,rubber,glass,0.415,3.175,-9.285,-8.235,
+        _window_panel(door,side,blue,rubber,glass,0.990,3.050,-9.285,-8.235,
             1.91,3.015,-9.105,-8.455,0.085,"DriverDoorWindow")
         _waist_trim(door,side,-9.27,-8.25)
         var chrome := StandardMaterial3D.new()
@@ -197,9 +215,9 @@ static func _make_side(lead: Node3D, side: float, blue: Material,rubber: Materia
         for x in [side*1.22,side*1.39]:
             _bar(door,Vector3(x,2.10,-9.18),Vector3(x,2.73,-9.18),0.012,chrome,"DoorGrabHandle")
             _bar(door,Vector3(x,1.78,-8.43),Vector3(x,1.78,-8.28),0.015,chrome,"DoorLatch")
-        for y in [0.72,2.85]:
+        for y in [1.15,2.85]:
             _bar(door,Vector3(side*1.36,y-0.065,-8.25),Vector3(side*1.36,y+0.065,-8.25),0.019,chrome,"DoorHinge")
-        var hinge := Vector3(side*1.30,0.415,-8.235)
+        var hinge := Vector3(side*1.30,0.990,-8.235)
         for child in door.get_children():
             if child is Node3D: (child as Node3D).position -= hinge
         door.position = hinge
@@ -211,6 +229,7 @@ static func _window_panel(parent: Node3D,side: float,blue: Material,rubber: Mate
     var outside := side*1.345
     var wall := SurfaceTool.new()
     wall.begin(Mesh.PRIMITIVE_TRIANGLES)
+    wall.set_color(blue.get_meta("cab_vertex_color",Color.WHITE))
     for face in [inside,outside]:
         var normal := Vector3(-side if face == inside else side,0,0)
         _rect(wall,face,bottom,y0,front,rear,normal)
@@ -282,18 +301,18 @@ static func _waist_trim(parent: Node3D,side: float,z0: float,z1: float) -> void:
     for y in [1.62,1.69,1.76]:
         _bar(parent,Vector3(side*1.351,y,z0),Vector3(side*1.351,y,z1),0.021,chrome,"CabWaistMoulding")
 
+static func mirror_position(side: float) -> Vector3:
+    return Vector3(side*1.40,2.68,-10.08)
+
 static func mirror_mount(parent: Node3D,side: float,material: Material) -> void:
-    # Twin bent yellow arms run from the original side mounting to the
-    # mirror ahead of the windscreen. The arms never cross the cabin interior.
-    for y in [2.40,2.48]:
-        var a := Vector3(side*1.35,y,-9.33)
-        var b := Vector3(side*1.71,y,-9.33)
-        var c := Vector3(side*1.71,y,-10.39)
-        var d := Vector3(side*1.45,y,-10.39)
-        _bar(parent,a,b,0.012,material,"MirrorMountSide")
-        _bar(parent,b,c,0.012,material,"MirrorMountForward")
-        _bar(parent,c,d,0.012,material,"MirrorMountReturn")
-    _bar(parent,Vector3(side*1.45,2.40,-10.39),Vector3(side*1.45,2.68,-10.39),0.012,material,"MirrorMountUpright")
+    # Short direct supports from the nearest windscreen corner. Nothing starts
+    # at the side window or extends along the side wall.
+    var mount := mirror_position(side)
+    for y in [2.47,2.55]:
+        var anchor := Vector3(side*1.25,y,-9.665)
+        var end := Vector3(mount.x,y,mount.z)
+        _bar(parent,anchor,end,0.012,material,"ShortWindscreenMirrorMount")
+    _bar(parent,Vector3(mount.x,2.47,mount.z),mount,0.012,material,"MirrorMountUpright")
 
 static func mirror_parts(lead: Node3D) -> Dictionary:
     var result := {-1.0:[],1.0:[]}
