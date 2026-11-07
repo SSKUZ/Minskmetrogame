@@ -45,6 +45,21 @@ func _ready() -> void:
     orbit_radius = 42.0
     _update_camera()
     _update_atmosphere()
+    if OS.has_feature("web"):
+        var near_station = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('start') === 'station'",true)
+        if near_station == true:
+            call_deferred("_start_near_station")
+
+func _start_near_station() -> void:
+    # Measure from the original head-car nose to the leading platform edge.
+    var lead := train.get_node("OriginalV106Car01") as Node3D
+    var bounds: AABB = _pose_cache[lead]
+    distance = STATION_ENTRY_Z + 50.0 - bounds.position.z
+    train.position.z = distance
+    speed = 0.0
+    _configure_tunnel()
+    _set_camera_mode("cabin")
+    _update_atmosphere()
 
 func _place_consist() -> void:
     if not is_instance_valid(train): return
