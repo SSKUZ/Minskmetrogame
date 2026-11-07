@@ -1,8 +1,8 @@
-name: Metro2 TZ44 original V106 warning stickers Web
+name: Metro2 TZ44 caution decal dedup Web
 on:
   workflow_dispatch:
   push:
-    branches: [feature/metro2-v106-warning-stickers]
+    branches: [feature/metro2-v106-warning-stickers-dedup]
     paths:
       - '.github/workflows/metro2-surface-depot-v40-web.yml'
       - 'metro2/scripts/depot/**'
@@ -29,7 +29,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: metro2-v106-warning-stickers
+  group: metro2-v106-warning-stickers-dedup
   cancel-in-progress: true
 jobs:
   cab_assets:
