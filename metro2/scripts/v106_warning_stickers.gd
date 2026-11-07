@@ -4,9 +4,9 @@ extends RefCounted
 const WARNING = preload("res://assets/v106_warning/v106_warning_caution.png")
 const SIGN_WIDTH := 0.16
 const SIGN_HEIGHT := 0.115
-const SIGN_Y := 1.34
+const SIGN_Y := 1.28
 const EDGE_MARGIN := 0.10
-const SURFACE_OFFSET := 0.012
+const BODY_SIDE_X := 1.435
 
 static func restore(train: Node3D, door_system: Node) -> void:
     var material := StandardMaterial3D.new()
@@ -58,7 +58,7 @@ static func restore(train: Node3D, door_system: Node) -> void:
                 var b: AABB = second["parts"][0]["bounds"]
                 var side_x: float = (first["center"] as Vector3).x
                 var direction := -1.0 if side_x < 0.0 else 1.0
-                var x := direction * (maxf(maxf(absf(a.position.x), absf(a.end.x)), maxf(absf(b.position.x), absf(b.end.x))) + SURFACE_OFFSET)
+                var x := direction * BODY_SIDE_X
                 var start_z := minf(a.position.z, b.position.z) - EDGE_MARGIN - SIGN_WIDTH * 0.5
                 var end_z := maxf(a.end.z, b.end.z) + EDGE_MARGIN + SIGN_WIDTH * 0.5
                 _make_sign(holder, material, Vector3(x, SIGN_Y, start_z), pair, "A")
