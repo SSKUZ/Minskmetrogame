@@ -6,7 +6,7 @@ const SIGN_WIDTH := 0.16
 const SIGN_HEIGHT := 0.115
 const SIGN_Y := 1.28
 const EDGE_MARGIN := 0.10
-const SURFACE_OFFSET := 0.065
+const SURFACE_OFFSET := 0.008
 
 static func restore(train: Node3D, door_system: Node) -> void:
     var material := StandardMaterial3D.new()
@@ -62,8 +62,8 @@ static func restore(train: Node3D, door_system: Node) -> void:
                 var x := direction * (outer_face_x + SURFACE_OFFSET)
                 var start_z := minf(a.position.z, b.position.z) - EDGE_MARGIN - SIGN_WIDTH * 0.5
                 var end_z := maxf(a.end.z, b.end.z) + EDGE_MARGIN + SIGN_WIDTH * 0.5
-                _make_sign(holder, material, Vector3(x, SIGN_Y, start_z), pair, "A")
-                _make_sign(holder, material, Vector3(x, SIGN_Y, end_z), pair, "B")
+                _make_sign(holder, material, Vector3(_body_surface_x(car, direction, SIGN_Y, start_z, x), SIGN_Y, start_z), pair, "A")
+                _make_sign(holder, material, Vector3(_body_surface_x(car, direction, SIGN_Y, end_z, x), SIGN_Y, end_z), pair, "B")
                 created += 2
         print("V106_WARNING_FIXED ", car.name, " signs=", created)
 
@@ -78,3 +78,43 @@ static func _make_sign(holder: Node3D, material: Material, pos: Vector3, pair: i
     sign.rotation.y = -PI * 0.5 if pos.x < 0.0 else PI * 0.5
     sign.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     holder.add_child(sign)
+
+## Find the ACTUAL body skin at the sign position by ray/triangle intersection.
+## AABB and door-panel centers are not body-surface coordinates.
+static func _body_surface_x(car: Node3D, side: float, y: float, z: float, fallback: float) -> float:
+    var from := Vector3(side * 2.5, y, z)
+    var ray := Vector3(-side, 0.0, 0.0)
+    var nearest := INF
+    var hit_x := fallback
+    for node in car.find_children("*", "MeshInstance3D", true, false):
+        var mesh_node := node as MeshInstance3D
+        if mesh_node.mesh == null or not mesh_node.visible:
+            continue
+        var name_lower := str(mesh_node.name).to_lower()
+        if name_lower.begins_with("passenger-door") or name_lower.begins_with("bodycaution") or name_lower.begins_with("minskdoor"):
+            continue
+        var pose: Transform3D = car.global_transform.affine_inverse() * mesh_node.global_transform
+        var box: AABB = pose * mesh_node.get_aabb()
+        if y < box.position.y or y > box.end.y or z < box.position.z or z > box.end.z:
+            continue
+        for surface in range(mesh_node.mesh.get_surface_count()):
+            if mesh_node.mesh.surface_get_primitive_type(surface) != Mesh.PRIMITIVE_TRIANGLES:
+                continue
+            var arrays := mesh_node.mesh.surface_get_arrays(surface)
+            var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+            var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+            var count := indices.size() if not indices.is_empty() else verts.size()
+            for i in range(0, count - 2, 3):
+                var ia := indices[i] if not indices.is_empty() else i
+                var ib := indices[i + 1] if not indices.is_empty() else i + 1
+                var ic := indices[i + 2] if not indices.is_empty() else i + 2
+                var a: Vector3 = pose * verts[ia]
+                var b: Vector3 = pose * verts[ib]
+                var cc: Vector3 = pose * verts[ic]
+                var hit = Geometry3D.ray_intersects_triangle(from, ray, a, b, cc)
+                if hit is Vector3:
+                    var distance: float = from.distance_to(hit)
+                    if distance < nearest:
+                        nearest = distance
+                        hit_x = hit.x + side * SURFACE_OFFSET
+    return hit_x
