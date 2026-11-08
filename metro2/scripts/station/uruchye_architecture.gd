@@ -20,15 +20,19 @@ func _ready() -> void:
     blue = _mat(Color("#9fc6dd"),0.24,0.48)
     steel = _mat(Color("#b9c1c6"),0.80,0.26)
     dark = _mat(Color("#29333c"),0.15,0.5)
-    stone = _stone(Color("#b5b6ae"),false)
+    stone = _granite(Color.WHITE)
     glow = _mat(Color("#fff5dc"),0.0,0.6,Color(1.0,0.94,0.79))
     wood = _mat(Color("#875532"),0.0,0.45)
     _floor_and_walls()
     _columns_and_ceiling()
-    _stairs(1.0,Z1-18.0)
-    _stairs(-1.0,Z0+18.0)
+    _stairs(1.0,Z1-11.0)
+    _stairs(-1.0,Z0+11.0)
     _navigation()
+    _station_ends()
     _flush()
+    var equipment := preload("res://scripts/station/uruchye_platform_equipment.gd").new()
+    equipment.name="UruchyePlatformEquipment"
+    add_child(equipment)
 
 func _mat(color: Color, metal: float = 0.0, rough: float = 0.7, emission: Color = Color.BLACK) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
@@ -107,15 +111,18 @@ func _flush() -> void:
 
 func _floor_and_walls() -> void:
     var base := get_parent().get_node("IslandPlatform") as MeshInstance3D
-    base.material_override=_stone(Color("#a9aaa4"),false)
+    base.material_override=_granite(Color(0.92,0.93,0.91))
     var burgundy := _mat(Color("#68514b"),0.0,0.45)
-    var granite := _stone(Color("#40464e"),false)
+    var granite := _granite(Color(0.27,0.29,0.31))
     var marble := _stone(Color("#d0d2cc"),true)
     var cobalt := _mat(Color("#244c99"),0.22,0.4)
-    for name in ["SafetyEdgeTrack1","SafetyEdgeTrack2"]:
+    for name in ["SafetyEdgeTrack1","SafetyEdgeTrack2","TrainStopMarker"]:
         (get_parent().get_node(name) as MeshInstance3D).visible=false
     for x in [-0.57,-10.17]:
         _box(Vector3(0.40,0.012,105),Vector3(x,FLOOR+0.006,39.612),stone)
+    var tactile := _tactile_material()
+    for x in [-0.68,-10.06]:
+        _box(Vector3(0.16,0.004,105),Vector3(x,FLOOR+0.016,39.612),tactile)
     for x in [-0.93,-9.81]:
         _box(Vector3(0.11,0.014,105),Vector3(x,FLOOR+0.007,39.612),burgundy)
     for i in range(8):
@@ -273,3 +280,79 @@ func _navigation() -> void:
             sign.rotation.y=PI if face < 0 else 0.0
         for x in [CX-2.4,CX+2.4]:
             _cylinder(0.015,1.0,Vector3(x,5.4,z),steel)
+
+func _granite(tint: Color) -> StandardMaterial3D:
+    var material := StandardMaterial3D.new()
+    material.albedo_texture=preload("res://assets/station/uruchye_granite.png")
+    material.albedo_color=tint
+    material.roughness=0.54
+    material.uv1_triplanar=true
+    material.uv1_world_triplanar=true
+    material.uv1_scale=Vector3.ONE/1.28
+    material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    return material
+
+func _tactile_material() -> ShaderMaterial:
+    var shader := Shader.new()
+    shader.code="""shader_type spatial;
+varying vec2 ground;
+void vertex(){ ground=(MODEL_MATRIX*vec4(VERTEX,1.0)).xz; }
+void fragment(){
+    vec2 cell=fract(ground/0.05)-0.5;
+    float r=length(cell);
+    float bump=1.0-smoothstep(0.14,0.20,r);
+    float rim=smoothstep(0.18,0.21,r)*(1.0-smoothstep(0.21,0.25,r));
+    ALBEDO=vec3(0.86,0.62,0.075)+vec3(bump*0.075)-vec3(rim*0.08);
+    ROUGHNESS=0.78;
+}
+"""
+    var material := ShaderMaterial.new()
+    material.shader=shader
+    return material
+
+func _station_ends() -> void:
+    # Solid end facades mask the round tunnel lining and the space above it.
+    # Keep both train envelopes empty: the arch continues behind a short box throat.
+    var lining := _mat(Color("#7b8080"),0.0,0.88)
+    var facing := _stone(Color("#d0d2cc"),true)
+    var cobalt := _mat(Color("#244c99"),0.22,0.4)
+    var black := _mat(Color("#101519"))
+    var track_centers := PackedFloat32Array([-11.732,0.992])
+    var half_width := 1.675
+    var portal_top := 4.55
+    var left := CX-9.70
+    var right := CX+9.70
+    for direction in [-1.0,1.0]:
+        var end_z: float = -19.888 if direction < 0.0 else Z1
+        var face_z: float = end_z+direction*0.25
+        _box(Vector3(right-left,7.75-portal_top,0.50),Vector3(CX,(7.75+portal_top)*0.5,face_z),white)
+        var segments := [
+            Vector2(left,track_centers[0]-half_width),
+            Vector2(track_centers[0]+half_width,track_centers[1]-half_width),
+            Vector2(track_centers[1]+half_width,right)
+        ]
+        for segment in segments:
+            var a: float = segment.x
+            var b: float = segment.y
+            var x := (a+b)*0.5
+            _box(Vector3(b-a,portal_top+0.40,0.50),Vector3(x,(portal_top-0.40)*0.5,face_z),white)
+            var inside_z: float = end_z-direction*0.012
+            _box(Vector3(b-a,1.0,0.025),Vector3(x,0.5,inside_z),dark)
+            _box(Vector3(b-a,0.30,0.028),Vector3(x,1.15,inside_z),cobalt)
+            _box(Vector3(b-a,0.37,0.030),Vector3(x,1.49,inside_z),blue)
+            _box(Vector3(b-a,2.85,0.032),Vector3(x,3.105,inside_z),facing)
+        for track_x in track_centers:
+            var throat_z: float = end_z+direction*3.20
+            for side in [-1.0,1.0]:
+                var x: float = track_x+side*(half_width+0.09)
+                _box(Vector3(0.18,portal_top+0.30,6.40),Vector3(x,(portal_top-0.30)*0.5,throat_z),lining)
+            _box(Vector3(half_width*2.0+0.36,0.18,6.40),Vector3(track_x,portal_top+0.09,throat_z),lining)
+            # Only the secondary non-playable track needs rails past its Base endpoint.
+            if track_x < -5.0:
+                for rail_side in [-1.0,1.0]:
+                    var rail_x: float = track_x+rail_side*0.8075
+                    _box(Vector3(0.095,0.16,6.40),Vector3(rail_x,-0.08,throat_z),steel)
+                for i in range(11):
+                    var tie_z: float = end_z+direction*(float(i)+0.5)*0.58
+                    _box(Vector3(2.65,0.12,0.24),Vector3(track_x,-0.22,tie_z),dark)
+                _box(Vector3(half_width*2.0,portal_top+0.30,0.12),Vector3(track_x,(portal_top-0.30)*0.5,end_z+direction*6.45),black)
