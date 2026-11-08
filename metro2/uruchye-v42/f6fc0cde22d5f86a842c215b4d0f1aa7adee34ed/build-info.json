@@ -1,5 +1,5 @@
 {
-  "source_commit": "ac1c39d38f3a54e23c7b92e363339a2d787d166b",
+  "source_commit": "f6fc0cde22d5f86a842c215b4d0f1aa7adee34ed",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
@@ -23,7 +23,7 @@
     "scripts/train_interior_v36.gd": "172465c89ef580caec67cb5168c307406dc482ba5695c16d62000295eeb952e3",
     "scripts/v33_door_controller.gd": "f3a066e3a6566119323f1b3f9bca712ad222ccd155f11c549941fc783f5089a3",
     "scripts/v106_four_cars_preview.gd": "020c327c1b1477fb347295cda52620b2e519e77e778ab85c183a08cd04930cb3",
-    "scripts/v106_warning_stickers.gd": "c1b661c9c11ec35f35ebc2a6dc6ac4d364b2563f42f66e505723afc0b638d841",
+    "scripts/v106_warning_stickers.gd": "252165f508c092c5ce2a7ea5ee0e3c8be48f06287a2b77445b8109772c492f0e",
     "scripts/cab_view_cleanup_v37.gd": "0d3e195ec2067226aec3594cf1098a25b644eb9cd3fa327e6a641f41e392d88c",
     "scripts/station_base_static.gd": "c04b8e80adb39133ff6ededfdf2e9323436cd1d49670c69344c60ae4e6d0dfbd",
     "scripts/cab_v37.gd": "b3588e2dc0927026fa71b08d9438c118e821ed38fbdf5f0b06aedc6921d7c296",
@@ -37,7 +37,8 @@
     "scripts/depot/depot_portal.gd": "a5b0ed97923312d4c29a8491c9776ca250de3910f54e6988fcb86fbcd99163ee",
     "scripts/depot/depot_builder.gd": "b596db94753452bd24b61b6d8d05776a179eef0a6ef31c68017a8561ff0c6db8",
     "scripts/depot/route_profile.gd": "0c343a25b072e86f5907a4b6518b9e8fb0caa08b29d5c41cb91ceb9d4211595d",
-    "scripts/station/uruchye_architecture.gd": "0aaffaddc3da60b51f0e6a05466858ebb3ee4d034b3d12b9257984088eda1417",
+    "scripts/station/uruchye_architecture.gd": "f8b32c2e65c5f16d246a5c8339bf7be429e17e534229fbb6f1d3757791984bfe",
+    "scripts/station/uruchye_platform_equipment.gd": "a94176ec8824e7bc42f8065259aa404ab967e9f523f5baecd495abe9fc73fe04",
     "assets/depot/industrial_surface.gdshader": "2d257bf4ff94bd22fd32281550aeeef110f0ac82336ffef1851fa923f536d21b",
     "scripts/cab_r36_material.gdshader": "4fbb1c598fd106360c86836b0a91d5de2562a509e12554d5eac63b04867c62cb",
     "assets/cab_r21/cab_r21.json": "6edf4fea7ad134e1e2e51c1f7dd85d40622d0fec49b56c50b0890201335f4444"
