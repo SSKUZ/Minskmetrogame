@@ -6,7 +6,7 @@ const SIGN_WIDTH := 0.16
 const SIGN_HEIGHT := 0.115
 const SIGN_Y := 1.28
 const EDGE_MARGIN := 0.10
-const BODY_SIDE_X := 1.435
+const SURFACE_OFFSET := 0.004
 
 static func restore(train: Node3D, door_system: Node) -> void:
     var material := StandardMaterial3D.new()
@@ -58,7 +58,7 @@ static func restore(train: Node3D, door_system: Node) -> void:
                 var b: AABB = second["parts"][0]["bounds"]
                 var side_x: float = (first["center"] as Vector3).x
                 var direction := -1.0 if side_x < 0.0 else 1.0
-                var x := direction * BODY_SIDE_X
+                var x := direction * (maxf(absf(a.get_center().x), absf(b.get_center().x)) + SURFACE_OFFSET)
                 var start_z := minf(a.position.z, b.position.z) - EDGE_MARGIN - SIGN_WIDTH * 0.5
                 var end_z := maxf(a.end.z, b.end.z) + EDGE_MARGIN + SIGN_WIDTH * 0.5
                 _make_sign(holder, material, Vector3(x, SIGN_Y, start_z), pair, "A")
@@ -74,6 +74,6 @@ static func _make_sign(holder: Node3D, material: Material, pos: Vector3, pair: i
     sign.mesh = quad
     sign.material_override = material
     sign.position = pos
-    sign.rotation.y = PI * 0.5
+    sign.rotation.y = -PI * 0.5 if pos.x < 0.0 else PI * 0.5
     sign.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     holder.add_child(sign)
