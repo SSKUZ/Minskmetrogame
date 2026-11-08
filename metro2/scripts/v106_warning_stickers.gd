@@ -6,7 +6,7 @@ const SIGN_WIDTH := 0.16
 const SIGN_HEIGHT := 0.115
 const SIGN_Y := 1.28
 const EDGE_MARGIN := 0.10
-const SURFACE_OFFSET := 0.012
+const SURFACE_OFFSET := 0.065
 
 static func restore(train: Node3D, door_system: Node) -> void:
     var material := StandardMaterial3D.new()
