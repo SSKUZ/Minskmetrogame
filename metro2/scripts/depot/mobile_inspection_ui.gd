@@ -1,362 +1,365 @@
 extends Control
-# Mobile inspection controls. Flight stays inside the station/tunnel envelope.
+## Three.js masterUnit / masterHandle / infoSpeaker translated into native vector UI.
+## The cab owns the master value. This overlay writes only during a user drag.
 var game: Node3D
 var lever := 0.0
 var stick := Vector2.ZERO
 var flight := false
-var door_open := false
-var _lever_touch := -1
-var _stick_touch := -1
-var _lever_area: Control
-var _stick_area: Control
-var _door_button: Button
-var _info: Label
-var _info_panel: PanelContainer
-var _lever_handle: Label
-var _stick_handle: Label
-var _door_icon: Label
-var _door_progress := 0.0
-var _flight_button: Button
-var _platform_button: Button
-var _master_value: Label
-var _view_button: Button
-var _master_title: Label
-var _master_track: Control
-var _lever_dragging := false
-var _cab_touch_active := false
-var _last_cab_touch := 0
-var _door_left: Panel
-var _door_right: Panel
-var _door_caption: Label
+var _deck: Control
+var _master: MasterConsole
+var _joystick: FlightStick
+var _doors: DeckButton
+var _speaker: DeckButton
+var _view: DeckButton
+var _platform: DeckButton
+var _flight: DeckButton
+var _cab: Node3D
+var _touch := -2
+var _drag_kind := ""
+var _drag_start := Vector2.ZERO
+var _drag_value := 0.0
+var _drag_moved := false
+var _physical_held := false
+
+class Artwork extends Control:
+    var fonts: Font = ThemeDB.fallback_font
+    static func gradient(colors: Array[Color]) -> GradientTexture2D:
+        var ramp := Gradient.new()
+        var offsets := PackedFloat32Array()
+        for i in range(colors.size()): offsets.append(float(i)/float(colors.size()-1))
+        ramp.offsets=offsets
+        ramp.colors=PackedColorArray(colors)
+        var texture := GradientTexture2D.new()
+        texture.gradient=ramp
+        texture.width=8; texture.height=128
+        texture.fill_from=Vector2(0,0); texture.fill_to=Vector2(0,1)
+        return texture
+    static func panel(canvas: CanvasItem,rect: Rect2,fill: Color,border: Color,radius: int = 12,shadow: int = 0) -> void:
+        var style := StyleBoxFlat.new()
+        style.bg_color=fill
+        style.border_color=border
+        style.set_border_width_all(1)
+        style.set_corner_radius_all(radius)
+        style.shadow_color=Color(0,0,0,0.5)
+        style.shadow_size=shadow
+        style.shadow_offset=Vector2(0,3)
+        canvas.draw_style_box(style,rect)
+    func caption(text: String,rect: Rect2,font_size: int,color: Color) -> void:
+        draw_string(fonts,Vector2(rect.position.x,rect.position.y+fonts.get_ascent(font_size)),text,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x,font_size,color)
+
+class MasterConsole extends Artwork:
+    var value := 0.0
+    var chrome: GradientTexture2D
+    var shell: GradientTexture2D
+    func _init() -> void:
+        mouse_filter=Control.MOUSE_FILTER_STOP
+        chrome=gradient([Color("#e0e8e9"),Color("#a4b0b2"),Color("#4e5b61"),Color("#1a2329"),Color("#444f55")])
+        shell=gradient([Color("#484b4d"),Color("#181f25"),Color("#2e353a"),Color("#0b1117")])
+    func _draw() -> void:
+        panel(self,Rect2(Vector2.ZERO,size),Color("#20282e"),Color("#8d8275"),16,5)
+        draw_texture_rect(shell,Rect2(5,18,size.x-10,size.y-36),false)
+        draw_line(Vector2(13,5),Vector2(size.x-13,5),Color("#c3c8c5"),1,true)
+        caption("КОНТРОЛЛЕР",Rect2(5,12,size.x-10,14),11,Color("#d8e6e8"))
+        caption("МАШИНИСТА",Rect2(5,27,size.x-10,12),9,Color("#98a6ae"))
+        panel(self,Rect2(35,54,20,174),Color("#080b0e"),Color("#6e7578"),9)
+        draw_line(Vector2(42,59),Vector2(42,223),Color("#30383b"),3,true)
+        for i in range(11):
+            var y := 64.0+float(i)*15.4
+            draw_line(Vector2(20,y),Vector2(28 if i != 5 else 31,y),Color("#839399"),1,true)
+        draw_line(Vector2(13,141),Vector2(74,141),Color("#e0c37e"),2,true)
+        caption("ТЯГА",Rect2(77,59,48,14),10,Color("#62e2a5"))
+        caption("0",Rect2(77,134,48,16),12,Color("#e0c37e"))
+        caption("ТОРМОЗ",Rect2(74,211,55,14),9,Color("#ff857b"))
+        var y := 141.0-value*77.0
+        panel(self,Rect2(16,y-10,59,31),Color("#11181d"),Color("#11181d"),10,5)
+        panel(self,Rect2(40,y+13,10,18),Color("#879397"),Color("#a6b0b3"),3)
+        panel(self,Rect2(14,y-14,62,29),Color("#4e5b61"),Color("#b5c2c4"),10,3)
+        draw_texture_rect(chrome,Rect2(19,y-10,52,20),false)
+        draw_line(Vector2(23,y-9),Vector2(67,y-9),Color("#f0f6f5"),1,true)
+        for x in [30.0,36.0,42.0,48.0,54.0,60.0]:
+            draw_line(Vector2(x,y+2),Vector2(x,y+7),Color(0.02,0.04,0.05,0.60),1,true)
+        panel(self,Rect2(9,241,size.x-18,31),Color("#0a171c"),Color("#41575b"),7)
+        var tone := Color("#62e2a5") if value > 0.0 else Color("#ff857b") if value < 0.0 else Color("#e0c37e")
+        var text := "ТЯГА %d%%" % roundi(value*100) if value > 0.0 else "ТОРМОЗ %d%%" % roundi(-value*100) if value < 0.0 else "НЕЙТРАЛЬ"
+        caption(text,Rect2(11,249,size.x-22,15),11,tone)
+        draw_circle(Vector2(16,47),2.0,Color("#94a3a7"))
+        draw_circle(Vector2(size.x-16,47),2.0,Color("#94a3a7"))
+
+class DeckButton extends Button:
+    var kind := ""
+    var label := ""
+    var amount := 0.0
+    var selected := false
+    var shade: GradientTexture2D
+    var metal: GradientTexture2D
+    func _init() -> void:
+        focus_mode=Control.FOCUS_NONE
+        mouse_filter=Control.MOUSE_FILTER_STOP
+        mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+        for state in ["normal","hover","pressed","disabled","focus"]:
+            add_theme_stylebox_override(state,StyleBoxEmpty.new())
+        shade=Artwork.gradient([Color("#344c5d"),Color("#1b3040"),Color("#101e2b")])
+        metal=Artwork.gradient([Color("#d2dbdd"),Color("#7e939c"),Color("#465e69")])
+        button_down.connect(queue_redraw)
+        button_up.connect(queue_redraw)
+        mouse_entered.connect(queue_redraw)
+        mouse_exited.connect(queue_redraw)
+    func _draw() -> void:
+        var held := is_pressed()
+        var tint := Color("#a6c4d5") if not selected else Color("#69d9bc")
+        if disabled: tint=Color("#66747b")
+        Artwork.panel(self,Rect2(Vector2(0,2 if held else 0),size-Vector2(0,2)),Color("#102431"),tint,12,2 if held else 4)
+        draw_texture_rect(shade,Rect2(6,10,size.x-12,size.y-20),false,Color(0.68,1.0,1.0) if held or selected else Color.WHITE)
+        draw_line(Vector2(13,5),Vector2(size.x-13,5),Color(0.8,0.93,1,0.35),1,true)
+        var ink := Color("#d8f5ff") if not disabled else Color("#7c898e")
+        var center := Vector2(size.x*0.5,27 if size.y > 65 else 16)
+        if kind == "doors": _draw_doors(center)
+        elif kind == "speaker":
+            var c := center+Vector2(-8,0)
+            draw_colored_polygon(PackedVector2Array([c+Vector2(-9,-6),c+Vector2(-2,-6),c+Vector2(9,-15),c+Vector2(9,15),c+Vector2(-2,6),c+Vector2(-9,6)]),ink)
+            draw_arc(c+Vector2(9,0),13,-0.8,0.8,16,ink,2,true)
+            draw_arc(c+Vector2(9,0),20,-0.8,0.8,18,ink,2,true)
+        elif kind == "flight":
+            var c := center
+            draw_colored_polygon(PackedVector2Array([c+Vector2(0,-11),c+Vector2(18,7),c+Vector2(3,3),c+Vector2(0,12),c+Vector2(-3,3),c+Vector2(-18,7)]),ink)
+        elif kind == "platform":
+            draw_rect(Rect2(center+Vector2(-19,-8),Vector2(38,5)),ink)
+            for x in [-13.0,13.0]: draw_line(center+Vector2(x,-2),center+Vector2(x,10),ink,2,true)
+            draw_line(center+Vector2(-22,11),center+Vector2(22,11),ink,2,true)
+        else:
+            Artwork.panel(self,Rect2(center+Vector2(-15,-11),Vector2(30,21)),Color("#102431"),ink,4)
+            draw_line(center+Vector2(0,-9),center+Vector2(0,6),ink,1,true)
+            draw_line(center+Vector2(-12,3),center+Vector2(12,3),ink,1,true)
+        var font := ThemeDB.fallback_font
+        var text_y := size.y-12.0
+        draw_string(font,Vector2(2,text_y),label,HORIZONTAL_ALIGNMENT_CENTER,size.x-4,11,ink)
+        if kind == "doors" or selected:
+            draw_line(Vector2(15,size.y-5),Vector2(size.x-15,size.y-5),Color("#62e2a5") if selected or amount > 0.01 else Color("#e0c37e"),2,true)
+    func _draw_doors(center: Vector2) -> void:
+        var frame := Rect2(center+Vector2(-25,-20),Vector2(50,42))
+        Artwork.panel(self,frame,Color("#080f14"),Color("#a6b7be"),5)
+        # Actual train animation fraction, not a speculative button tween.
+        var offset := amount*17.0
+        for side in [-1.0,1.0]:
+            var x: float=center.x+side*(10.5+offset)-9.5
+            var r := Rect2(x,center.y-17,19,36)
+            Artwork.panel(self,r,Color("#708792"),Color("#c7d4d8"),3)
+            draw_texture_rect(metal,r.grow(-2),false)
+            Artwork.panel(self,Rect2(x+4,center.y-12,11,16),Color("#102f40"),Color("#a0b7c0"),2)
+            draw_line(Vector2(x+4,center.y+10),Vector2(x+15,center.y+10),Color("#d3dcd9"),2,true)
+
+class FlightStick extends Artwork:
+    var axis := Vector2.ZERO
+    func _init() -> void: mouse_filter=Control.MOUSE_FILTER_STOP
+    func _draw() -> void:
+        var center := size*0.5
+        draw_circle(center,61,Color(0.03,0.06,0.08,0.65))
+        draw_arc(center,58,0,TAU,64,Color(0.65,0.76,0.80,0.7),2,true)
+        draw_circle(center,44,Color(0.15,0.22,0.27,0.6))
+        draw_arc(center,38,0,TAU,48,Color(0.50,0.65,0.70,0.35),1,true)
+        var knob := center+axis*37
+        draw_circle(knob+Vector2(0,4),23,Color(0,0,0,0.55))
+        draw_circle(knob,23,Color("#8ca8b5"))
+        draw_circle(knob+Vector2(0,-2),20,Color("#405e70"))
+        draw_arc(knob+Vector2(0,-2),18,PI,TAU,24,Color("#c1d4dc"),2,true)
 
 func initialize(owner: Node3D) -> void:
-    game = owner
+    game=owner
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    mouse_filter = Control.MOUSE_FILTER_IGNORE
-    # Compact original-style view buttons. One button alternates CABIN / SALON.
-    var bar := HBoxContainer.new()
-    bar.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    bar.anchor_left = 1.0
-    bar.anchor_right = 1.0
-    bar.offset_left = -560
-    bar.offset_right = -8
-    bar.offset_top = 80
-    bar.offset_bottom = 150
-    bar.add_theme_constant_override("separation",6)
-    bar.mouse_filter = Control.MOUSE_FILTER_PASS
-    add_child(bar)
-    _view_button = Button.new()
-    _view_button.text = "🚇 ВИД В САЛОНЕ"
-    _style_button(_view_button,Color(0.12,0.22,0.28,0.93))
-    _view_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    bar.add_child(_view_button)
-    _view_button.pressed.connect(_toggle_cabin_salon)
-    _platform_button = Button.new()
-    _platform_button.text = "ПЛАТФОРМА"
-    _style_button(_platform_button,Color(0.18,0.27,0.26,0.95))
-    _platform_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    _platform_button.visible = false
-    bar.add_child(_platform_button)
-    _platform_button.pressed.connect(func(): _select_mode("platform"))
-    _flight_button = Button.new()
-    _flight_button.text = "ПОЛЁТ"
-    _style_button(_flight_button,Color(0.12,0.22,0.28,0.93))
-    _flight_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    bar.add_child(_flight_button)
-    _flight_button.pressed.connect(func(): _select_mode("flight"))
-    # Door icon and INFO are independent bottom-right controls.
-    _door_button = Button.new()
-    _door_button.text = "ДВЕРИ"
-    _style_button(_door_button,Color(0.13,0.31,0.23,0.94))
-    _door_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    _door_button.offset_left = -244
-    _door_button.offset_right = -102
-    _door_button.offset_top = -104
-    _door_button.offset_bottom = -16
-    add_child(_door_button)
-    _door_button.pressed.connect(_toggle_doors)
-    _make_door_visual()
-    var info_button := Button.new()
-    info_button.text = "◖)))\nINFO"
-    _style_button(info_button,Color(0.14,0.28,0.37,0.95))
-    info_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    info_button.offset_left = -116
-    info_button.offset_right = -12
-    info_button.offset_top = -104
-    info_button.offset_bottom = -16
-    add_child(info_button)
-    info_button.pressed.connect(func(): _info_panel.visible = not _info_panel.visible)
-    _info_panel = PanelContainer.new()
-    _info_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    _info_panel.offset_left = -290
-    _info_panel.offset_right = -8
-    _info_panel.offset_top = 205
-    _info_panel.offset_bottom = 290
-    _info_panel.visible = false
-    add_child(_info_panel)
-    _info = Label.new()
-    _info_panel.add_child(_info)
-    # Original web master-controller layout: tall dark console, central
-    # vertical slot and metallic horizontal sliding handle.
-    _lever_area = _touch_zone(Vector2(18,-398),Vector2(238,370),"",false)
-    var master_style := StyleBoxFlat.new()
-    master_style.bg_color = Color(0.10,0.14,0.17,0.96)
-    master_style.border_color = Color(0.77,0.69,0.58)
-    master_style.set_border_width_all(3)
-    master_style.set_corner_radius_all(24)
-    master_style.shadow_color = Color(0,0,0,0.65)
-    master_style.shadow_size = 7
-    (_lever_area as PanelContainer).add_theme_stylebox_override("panel",master_style)
-    _master_title = Label.new()
-    _master_title.text = "КОНТРОЛЛЕР\nМАШИНИСТА"
-    _master_title.position = Vector2(36,19)
-    _master_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _master_title.add_theme_font_size_override("font_size",16)
-    _master_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _lever_area.add_child(_master_title)
-    _master_track = Panel.new()
-    _master_track.position = Vector2(107,95)
-    _master_track.size = Vector2(27,202)
-    _master_track.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var track_style := StyleBoxFlat.new()
-    track_style.bg_color = Color(0.02,0.04,0.05)
-    track_style.border_color = Color(0.59,0.67,0.70)
-    track_style.set_border_width_all(3)
-    track_style.set_corner_radius_all(13)
-    _master_track.add_theme_stylebox_override("panel",track_style)
-    _lever_area.add_child(_master_track)
-    for item in [["▲ ТЯГА",Vector2(148,123),Color(0.39,0.90,0.67)],["▼ ТОРМОЗ",Vector2(144,265),Color(1.0,0.54,0.53)]]:
-        var caption := Label.new()
-        caption.text = item[0]
-        caption.position = item[1]
-        caption.add_theme_color_override("font_color",item[2])
-        caption.add_theme_font_size_override("font_size",16)
-        caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        _lever_area.add_child(caption)
-    _lever_handle = Label.new()
-    _lever_handle.text = "━━━━━━━━"
-    _lever_handle.add_theme_font_size_override("font_size",32)
-    _lever_handle.add_theme_color_override("font_color",Color(0.78,0.88,0.92))
-    _lever_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _lever_area.add_child(_lever_handle)
-    var grip := Panel.new()
-    grip.name = "ChromeGrip"
-    grip.position = Vector2(-17,9)
-    grip.size = Vector2(190,23)
-    grip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var metal := StyleBoxFlat.new()
-    metal.bg_color = Color(0.72,0.80,0.84)
-    metal.border_color = Color(0.94,0.97,0.99)
-    metal.set_border_width_all(3)
-    metal.set_corner_radius_all(10)
-    metal.shadow_color = Color(0,0,0,0.8)
-    metal.shadow_size = 6
-    grip.add_theme_stylebox_override("panel",metal)
-    _lever_handle.add_child(grip)
-    _master_value = Label.new()
-    _master_value.text = "НЕЙТРАЛЬ · 0%"
-    _master_value.position = Vector2(22,330)
-    _master_value.size = Vector2(194,32)
-    _master_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _master_value.add_theme_font_size_override("font_size",13)
-    _master_value.add_theme_color_override("font_color",Color(0.67,0.98,0.89))
-    _master_value.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _lever_area.add_child(_master_value)
-    _stick_area = _touch_zone(Vector2(26,-195),Vector2(155,155),"",true)
-    _stick_handle = Label.new()
-    _stick_handle.text = "●"
-    _stick_handle.add_theme_font_size_override("font_size",38)
-    _stick_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _stick_area.add_child(_stick_handle)
-    _stick_area.visible = false
+    mouse_filter=Control.MOUSE_FILTER_IGNORE
+    _deck=Control.new()
+    _deck.mouse_filter=Control.MOUSE_FILTER_IGNORE
+    add_child(_deck)
+    _master=MasterConsole.new()
+    _master.name="MasterUnit"
+    _master.size=Vector2(132,284)
+    _deck.add_child(_master)
+    _view=_button("view","САЛОН",Vector2(100,54),func(): _toggle_cabin_salon())
+    _platform=_button("platform","ПЛАТФОРМА",Vector2(100,54),func(): _select_mode("platform"))
+    _flight=_button("flight","ПОЛЁТ",Vector2(100,54),func(): _select_mode("flight"))
+    _doors=_button("doors","ДВЕРИ",Vector2(82,86),_toggle_doors)
+    _speaker=_button("speaker","INFO",Vector2(72,78),func():
+        var cab := _get_cab()
+        if cab != null: cab.call("command","info"))
+    _joystick=FlightStick.new()
+    _joystick.size=Vector2(128,128)
+    _deck.add_child(_joystick)
+    resized.connect(_layout)
+    _layout()
+    _bind_cab()
 
-func _style_button(button: Button, color: Color) -> void:
-    var style := StyleBoxFlat.new()
-    style.bg_color = color
-    style.border_color = Color(0.57,0.73,0.78,0.92)
-    style.set_border_width_all(2)
-    style.set_corner_radius_all(9)
-    style.shadow_color = Color(0.0,0.0,0.0,0.5)
-    style.shadow_size = 3
-    button.add_theme_stylebox_override("normal",style)
-    var pressed := style.duplicate() as StyleBoxFlat
-    pressed.bg_color = Color(0.24,0.53,0.57,0.98)
-    button.add_theme_stylebox_override("pressed",pressed)
-    button.add_theme_stylebox_override("hover",pressed)
-    var focus := style.duplicate() as StyleBoxFlat
-    focus.border_color = Color(0.91,0.96,0.98)
-    focus.set_border_width_all(3)
-    button.add_theme_stylebox_override("focus",focus)
-    button.add_theme_color_override("font_color",Color(0.92,0.98,1.0))
-    button.add_theme_font_size_override("font_size",21)
-    button.add_theme_color_override("font_pressed_color",Color.WHITE)
-    button.add_theme_color_override("font_hover_color",Color.WHITE)
+func _button(kind: String,label: String,dimensions: Vector2,action: Callable) -> DeckButton:
+    var button := DeckButton.new()
+    button.kind=kind; button.label=label
+    button.size=dimensions
+    button.tooltip_text=label
+    button.pressed.connect(action)
+    _deck.add_child(button)
+    return button
 
-func _touch_zone(pos: Vector2, dimensions: Vector2, label: String, is_stick: bool) -> Control:
-    var zone := PanelContainer.new()
-    zone.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-    zone.position = pos
-    zone.offset_left = pos.x
-    zone.offset_top = pos.y
-    zone.offset_right = pos.x + dimensions.x
-    zone.offset_bottom = pos.y + dimensions.y
-    zone.mouse_filter = Control.MOUSE_FILTER_STOP
-    var frame := StyleBoxFlat.new()
-    frame.bg_color = Color(0.07,0.12,0.17,0.91)
-    frame.border_color = Color(0.56,0.65,0.67)
-    frame.set_border_width_all(2)
-    frame.set_corner_radius_all(16 if is_stick else 9)
-    zone.add_theme_stylebox_override("panel",frame)
-    add_child(zone)
-    var text_label := Label.new()
-    text_label.text = label
-    text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    zone.add_child(text_label)
-    zone.gui_input.connect(func(event: InputEvent): _zone_input(event,zone,is_stick))
-    return zone
+func _layout() -> void:
+    if not is_instance_valid(_deck): return
+    var factor := minf(size.x/390.0,size.y/550.0)
+    factor=maxf(0.1,factor)
+    _deck.scale=Vector2.ONE*factor
+    _deck.size=size/factor
+    var bounds := _deck.size
+    _master.position=Vector2(10,bounds.y-296)
+    _view.position=Vector2(bounds.x-110,80)
+    _platform.position=Vector2(bounds.x-110,138)
+    _flight.position=Vector2(bounds.x-110,196 if _platform.visible else 138)
+    _doors.position=Vector2(bounds.x-174,bounds.y-98)
+    _speaker.position=Vector2(bounds.x-82,bounds.y-90)
+    _joystick.position=Vector2(bounds.x-138,bounds.y-246)
 
-func _zone_input(event: InputEvent, zone: Control, is_stick: bool) -> void:
+func _get_cab() -> Node3D:
+    if not is_instance_valid(game): return null
+    return game.get("cab_runtime") as Node3D
+
+func _bind_cab() -> void:
+    var cab := _get_cab()
+    if cab == _cab: return
+    _cab=cab
+    if is_instance_valid(_cab):
+        _cab.connect("master_interaction_changed",_physical_controller_changed)
+        _physical_controller_changed(bool(_cab.call("master_is_held")))
+
+func _physical_controller_changed(held: bool) -> void:
+    _physical_held=held
+    if held and _drag_kind == "master": _release_pointer()
+    _master.visible=not held
+
+func physical_controller_touched() -> void: _physical_controller_changed(true)
+func physical_controller_released() -> void: _physical_controller_changed(false)
+
+func blocks_cab_pointer(point: Vector2) -> bool:
+    # Physical picking runs before GUI; reserve only actual screen control bounds.
+    for control in [_master,_joystick,_view,_platform,_flight,_doors,_speaker]:
+        if is_instance_valid(control) and control.is_visible_in_tree():
+            if control.get_global_rect().has_point(point): return true
+    return false
+
+func _local_point(point: Vector2,control: Control) -> Vector2:
+    return control.get_global_transform_with_canvas().affine_inverse()*point
+
+func _input(event: InputEvent) -> void:
+    if not is_instance_valid(_master): return
+    var pointer := -2
+    var point := Vector2.ZERO
+    var press := false
+    var release := false
+    var moving := false
     if event is InputEventScreenTouch:
-        if event.pressed:
-            if is_stick: _stick_touch = event.index
-            else:
-                _lever_touch = event.index
-                _lever_dragging = true
-                _cab_touch_active = false
-            _update_zone(event.position,zone,is_stick)
-        elif (is_stick and event.index == _stick_touch) or (not is_stick and event.index == _lever_touch):
-            if is_stick:
-                stick = Vector2.ZERO
-                _stick_touch = -1
-            else:
-                _lever_touch = -1
-                _lever_dragging = false
-        accept_event()
+        pointer=event.index; point=event.position
+        press=event.pressed; release=not event.pressed or event.canceled
     elif event is InputEventScreenDrag:
-        if (is_stick and event.index == _stick_touch) or (not is_stick and event.index == _lever_touch):
-            _update_zone(event.position,zone,is_stick)
-            accept_event()
+        pointer=event.index; point=event.position; moving=true
     elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-        if event.pressed:
-            if not is_stick: _lever_dragging = true
-            _update_zone(event.position,zone,is_stick)
-        else:
-            if is_stick: stick = Vector2.ZERO
-            else: _lever_dragging = false # Master controller stays at the selected notch.
-        accept_event()
-    elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-        _update_zone(event.position,zone,is_stick)
-        accept_event()
+        if event.device == -1: return # Touch already owns its real finger stream.
+        pointer=-1; point=event.position; press=event.pressed; release=not event.pressed
+    elif event is InputEventMouseMotion:
+        if event.device == -1: return
+        pointer=-1; point=event.position; moving=true
+    else: return
+    if press and _touch == -2:
+        if _master.visible and _master.get_global_rect().has_point(point) and not _physical_held:
+            _drag_kind="master"
+            _drag_start=_local_point(point,_master)
+            _drag_value=float(_cab.call("get_master_value")) if is_instance_valid(_cab) else 0.0
+            _drag_moved=false
+        elif _joystick.visible and _joystick.get_global_rect().has_point(point):
+            _drag_kind="stick"
+        else: return
+        _touch=pointer
+        if _drag_kind == "stick": _move_stick(point)
+        get_viewport().set_input_as_handled()
+        return
+    if pointer != _touch or _drag_kind.is_empty(): return
+    if release:
+        _release_pointer()
+    elif moving:
+        if _drag_kind == "master":
+            var delta := _local_point(point,_master)-_drag_start
+            if _drag_moved or absf(delta.y) >= 5.0:
+                _drag_moved=true
+                var value := clampf(_drag_value-delta.y/77.0,-1.0,1.0)
+                if is_instance_valid(_cab): _cab.call("command","master",value)
+        else: _move_stick(point)
+    get_viewport().set_input_as_handled()
 
-func _update_zone(point: Vector2, zone: Control, is_stick: bool) -> void:
-    # Control.gui_input supplies local coordinates, not global coordinates.
-    var local := point
-    var half := zone.size * 0.5
-    if is_stick:
-        stick = Vector2(clampf((local.x-half.x)/maxf(half.x,1.0),-1.0,1.0),clampf((local.y-half.y)/maxf(half.y,1.0),-1.0,1.0))
-        if stick.length() > 1.0: stick = stick.normalized()
-    else:
-        lever = clampf((175.0-local.y)/93.0,-1.0,1.0)
-        var cab: Node3D = game.get("cab_runtime") if is_instance_valid(game) else null
-        if is_instance_valid(cab): cab.call("command","master",lever)
+func _move_stick(point: Vector2) -> void:
+    stick=(_local_point(point,_joystick)-_joystick.size*0.5)/45.0
+    if stick.length() > 1.0: stick=stick.normalized()
+    _joystick.axis=stick
+    _joystick.queue_redraw()
+
+func _release_pointer() -> void:
+    # Release ownership only. The cab retains the commanded master setting.
+    _touch=-2
+    _drag_kind=""
+    stick=Vector2.ZERO
+    if is_instance_valid(_joystick):
+        _joystick.axis=stick
+        _joystick.queue_redraw()
 
 func _toggle_cabin_salon() -> void:
-    var current := str(game.get("camera_mode"))
-    _select_mode("salon" if current == "cabin" else "cabin")
+    _select_mode("salon" if str(game.get("camera_mode")) == "cabin" else "cabin")
 
 func _select_mode(mode: String) -> void:
     if mode == "platform" and not bool(game.call("platform_camera_available")): return
-    flight = mode == "flight"
-    _stick_area.visible = flight
-    _lever_area.visible = not flight
-    stick = Vector2.ZERO
-    _cab_touch_active = false
+    _release_pointer()
     game.call("_set_camera_mode",mode)
-    if is_instance_valid(_flight_button): _flight_button.text = "✓ ПОЛЁТ" if flight else "ПОЛЁТ"
-    if is_instance_valid(_view_button): _view_button.text = "🚇 ВИД В КАБИНЕ" if mode == "salon" else "🚇 ВИД В САЛОНЕ"
-    if flight:
-        game.set("flight_position",game.get("camera").global_position)
 
 func _toggle_doors() -> void:
-    var doors: Node = game.get("door_system")
-    if not is_instance_valid(doors) or not bool(doors.get("validated")):
-        _door_button.text = "ДВЕРИ НЕ ГОТОВЫ"
-        return
-    if door_open:
-        doors.call("request_close")
-    else:
-        doors.call("request_open",float(game.get("speed")))
-    door_open = not door_open
-    _door_button.text = "ДВЕРИ"
+    var doors := game.get("door_system") as Node
+    if not is_instance_valid(doors) or not bool(doors.get("validated")): return
+    var cab := _get_cab()
+    if cab == null: return
+    var targets: Dictionary=doors.get("side_targets")
+    # Route uses the left platform side. Never invoke request_open (both sides).
+    cab.call("command","close" if bool(targets.get(-1,false)) else "openLeft")
 
 func _process(_delta: float) -> void:
-    if is_instance_valid(_platform_button) and is_instance_valid(game):
-        var available: bool = bool(game.call("platform_camera_available"))
-        _platform_button.visible = available
-        _platform_button.modulate = Color(1.0,0.94,0.45) if available else Color.WHITE
-    if is_instance_valid(_master_value):
-        _master_value.text = "ТЯГА · %d%%" % roundi(lever*100.0) if lever > 0.08 else "ТОРМОЗ · %d%%" % roundi(-lever*100.0) if lever < -0.08 else "НЕЙТРАЛЬ · 0%"
-    if is_instance_valid(_lever_handle):
-        _lever_handle.position = Vector2(56,clampf(175.0-lever*93.0,82.0,268.0))
-    if is_instance_valid(_stick_handle):
-        _stick_handle.position = (_stick_area.size-Vector2(38,48))*0.5+stick*(_stick_area.size.x*0.32)
-    var doors: Node = game.get("door_system") if is_instance_valid(game) else null
+    if not is_instance_valid(game) or not is_instance_valid(_master): return
+    _bind_cab()
+    if is_instance_valid(_cab):
+        var current := float(_cab.call("get_master_value"))
+        lever=current
+        if not is_equal_approx(_master.value,current):
+            _master.value=current
+            _master.queue_redraw()
+    var mode := str(game.get("camera_mode"))
+    var was_flight := flight
+    flight=mode == "flight"
+    _joystick.visible=flight
+    if not flight and was_flight: _release_pointer()
+    var available := bool(game.call("platform_camera_available"))
+    if _platform.visible != available:
+        _platform.visible=available
+        _layout()
+    var view_label := "КАБИНА" if mode == "salon" else "САЛОН"
+    if _view.label != view_label:
+        _view.label=view_label
+        _view.queue_redraw()
+    for button in [_view,_platform,_flight]:
+        var active: bool=(button == _view and mode in ["cabin","salon"]) or (button == _platform and mode == "platform") or (button == _flight and flight)
+        if button.selected != active:
+            button.selected=active
+            button.queue_redraw()
+    var doors := game.get("door_system") as Node
     if is_instance_valid(doors):
-        var open_fraction: float = float(doors.get("openness"))
-        _door_progress = move_toward(_door_progress,open_fraction,_delta*3.0)
-        _door_button.text = "ДВЕРИ"
-        _update_door_visual(_door_progress)
-    if not is_instance_valid(game): return
-    var cab: Node3D = game.get("cab_runtime")
-    if is_instance_valid(cab):
-        var physical_value := -float(cab.get("brake_demand")) if float(cab.get("brake_demand")) > 0.01 else float(cab.get("controller_notch")) / 5.0
-        # Cab and overlay are views of ONE controller. Never overwrite the cab every frame.
-        lever = physical_value
-        if _lever_touch == -1 and not _lever_dragging:
-            _lever_area.visible = not flight and not _cab_touch_active
-    game.set("throttle",false)
-    game.set("brake",false)
-    if _info_panel.visible:
-        _info.text = "Скорость: %.0f км/ч\nОт депо: %.0f м\nРежим: %s" % [float(game.get("speed"))*3.6,430.0-float(game.get("distance")),str(game.get("camera_mode"))]
+        var fractions: Dictionary=doors.get("side_open")
+        var amount := float(fractions.get(-1,0.0))
+        if not is_equal_approx(_doors.amount,amount):
+            _doors.amount=amount
+            _doors.queue_redraw()
+        _doors.disabled=not bool(doors.get("validated"))
+    if is_instance_valid(_cab):
+        var radio := _cab.get("_radio") as AudioStreamPlayer
+        var playing := is_instance_valid(radio) and radio.playing
+        if playing != _speaker.selected:
+            _speaker.selected=playing
+            _speaker.queue_redraw()
 
-func physical_controller_touched() -> void:
-    _cab_touch_active = true
-    _lever_area.visible = false
-
-func physical_controller_released() -> void:
-    _cab_touch_active = false
-    _lever_area.visible = not flight
-
-func _make_door_visual() -> void:
-    var frame := Panel.new()
-    frame.position = Vector2(36,10)
-    frame.size = Vector2(70,40)
-    frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var frame_style := StyleBoxFlat.new()
-    frame_style.bg_color = Color(0.02,0.10,0.14)
-    frame_style.border_color = Color(0.63,0.86,0.92)
-    frame_style.set_border_width_all(2)
-    frame_style.set_corner_radius_all(4)
-    frame.add_theme_stylebox_override("panel",frame_style)
-    _door_button.add_child(frame)
-    _door_left = Panel.new()
-    _door_right = Panel.new()
-    for pane in [_door_left,_door_right]:
-        pane.size = Vector2(30,32)
-        pane.position.y = 4
-        pane.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        var glass := StyleBoxFlat.new()
-        glass.bg_color = Color(0.29,0.69,0.78)
-        glass.border_color = Color(0.87,0.95,0.96)
-        glass.set_border_width_all(2)
-        pane.add_theme_stylebox_override("panel",glass)
-        frame.add_child(pane)
-    _door_left.position.x = 4
-    _door_right.position.x = 36
-
-func _update_door_visual(amount: float) -> void:
-    if is_instance_valid(_door_left): _door_left.position.x = 4.0-12.0*amount
-    if is_instance_valid(_door_right): _door_right.position.x = 36.0+12.0*amount
+func _notification(what: int) -> void:
+    if what == NOTIFICATION_APPLICATION_FOCUS_OUT: _release_pointer()

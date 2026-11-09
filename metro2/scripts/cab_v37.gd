@@ -1,4 +1,5 @@
 extends Node3D
+signal master_interaction_changed(held: bool)
 ## Runtime bindings for the confirmed cab-r2.1 source entry; complete fresh Three.js export.
 ## Control IDs, positions and handle animation follow js/cab/CabControls.js.
 const CAB_SCENE = preload("res://assets/cab_r21/cab_r21.glb")
@@ -421,6 +422,7 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         return false
     if press:
         if not _active.is_empty(): return true
+        if _screen_pointer_reserved(point): return false
         if _master_hit(point,camera):
             _active = "master"
         else:
@@ -435,6 +437,7 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         _dragged = false
         _lever_start = controller_value if _active == "master" else brake_demand
         if _active == "master":
+            master_interaction_changed.emit(true)
             var handle := moving["master"] as Node3D
             var base: Transform3D = bases["master"]
             var parent := handle.get_parent() as Node3D
@@ -457,9 +460,11 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
         # Preserve tap interaction for brake controls; master changes only by dragging.
         if not _dragged and _active in ["brake","brake1","brake2"]:
             command(_active,1.0)
+        var was_master := _active == "master"
         command(_active,0.0,"release")
         _active = ""
         _pointer = -2
+        if was_master: master_interaction_changed.emit(false)
         return true
     if relative != Vector2.ZERO and _active in ["master","brake","brake1","brake2"]:
         if _dragged or point.distance_to(_drag_origin) > 8.0:
@@ -909,8 +914,10 @@ func make_screen_controls(ui: CanvasLayer) -> void:
     )
 
 func cancel_interaction() -> void:
+    var was_master := _active == "master"
     _active = ""
     _pointer = -2
+    if was_master: master_interaction_changed.emit(false)
     horn_active = false
     radio_tx = false
     sand_left = false
@@ -937,7 +944,7 @@ func _input(event: InputEvent) -> void:
         if captured and _pointer >= 0 and event is InputEventMouse:
             get_viewport().set_input_as_handled()
             return
-        if captured or (pressing and _master_hit(event.position,camera)):
+        if captured or (pressing and not _screen_pointer_reserved(event.position) and _master_hit(event.position,camera)):
             if handle_input(event,camera):
                 get_viewport().set_input_as_handled()
                 return
@@ -954,3 +961,15 @@ func _input(event: InputEvent) -> void:
 
 
 
+
+func get_master_value() -> float:
+    # Shared commanded setting; readers never reconstruct it from rounded notches.
+    return controller_value
+
+func master_is_held() -> bool:
+    return _active == "master"
+
+func _screen_pointer_reserved(point: Vector2) -> bool:
+    if not is_instance_valid(game): return false
+    var overlay := game.get("_flight_ui") as Control
+    return is_instance_valid(overlay) and overlay.has_method("blocks_cab_pointer") and bool(overlay.call("blocks_cab_pointer",point))
