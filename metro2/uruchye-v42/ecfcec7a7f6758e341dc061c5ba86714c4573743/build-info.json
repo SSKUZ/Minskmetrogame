@@ -1,5 +1,5 @@
 {
-  "source_commit": "dfc8c697dd55315becfd09f1cc3fb2229c5fb5e5",
+  "source_commit": "ecfcec7a7f6758e341dc061c5ba86714c4573743",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
