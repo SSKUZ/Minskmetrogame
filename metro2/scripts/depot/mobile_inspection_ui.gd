@@ -33,10 +33,10 @@ func initialize(owner: Node3D) -> void:
     bar.set_anchors_preset(Control.PRESET_TOP_RIGHT)
     bar.anchor_left = 1.0
     bar.anchor_right = 1.0
-    bar.offset_left = -410
+    bar.offset_left = -560
     bar.offset_right = -8
-    bar.offset_top = 106
-    bar.offset_bottom = 152
+    bar.offset_top = 80
+    bar.offset_bottom = 150
     bar.add_theme_constant_override("separation",6)
     bar.mouse_filter = Control.MOUSE_FILTER_PASS
     add_child(bar)
@@ -61,23 +61,23 @@ func initialize(owner: Node3D) -> void:
     _flight_button.pressed.connect(func(): _select_mode("flight"))
     # Door icon and INFO are independent bottom-right controls.
     _door_button = Button.new()
-    _door_button.text = "▶│◀"
+    _door_button.text = "🚪 ЛЕВЫЕ\nДВЕРИ"
     _style_button(_door_button,Color(0.13,0.31,0.23,0.94))
     _door_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    _door_button.offset_left = -176
+    _door_button.offset_left = -244
     _door_button.offset_right = -102
-    _door_button.offset_top = -80
-    _door_button.offset_bottom = -20
+    _door_button.offset_top = -104
+    _door_button.offset_bottom = -16
     add_child(_door_button)
     _door_button.pressed.connect(_toggle_doors)
     var info_button := Button.new()
     info_button.text = "◀))\nINFO"
     _style_button(info_button,Color(0.14,0.28,0.37,0.95))
     info_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-    info_button.offset_left = -96
+    info_button.offset_left = -116
     info_button.offset_right = -12
-    info_button.offset_top = -90
-    info_button.offset_bottom = -12
+    info_button.offset_top = -104
+    info_button.offset_bottom = -16
     add_child(info_button)
     info_button.pressed.connect(func(): _info_panel.visible = not _info_panel.visible)
     _info_panel = PanelContainer.new()
@@ -92,7 +92,7 @@ func initialize(owner: Node3D) -> void:
     _info_panel.add_child(_info)
     # Original web master-controller layout: tall dark console, central
     # vertical slot and metallic horizontal sliding handle.
-    _lever_area = _touch_zone(Vector2(20,-325),Vector2(205,295),"",false)
+    _lever_area = _touch_zone(Vector2(18,-398),Vector2(238,370),"",false)
     var master_style := StyleBoxFlat.new()
     master_style.bg_color = Color(0.10,0.14,0.17,0.96)
     master_style.border_color = Color(0.77,0.69,0.58)
@@ -103,14 +103,14 @@ func initialize(owner: Node3D) -> void:
     (_lever_area as PanelContainer).add_theme_stylebox_override("panel",master_style)
     _master_title = Label.new()
     _master_title.text = "КОНТРОЛЛЕР\nМАШИНИСТА"
-    _master_title.position = Vector2(30,13)
+    _master_title.position = Vector2(36,19)
     _master_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _master_title.add_theme_font_size_override("font_size",13)
+    _master_title.add_theme_font_size_override("font_size",16)
     _master_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _lever_area.add_child(_master_title)
     _master_track = Panel.new()
-    _master_track.position = Vector2(92,76)
-    _master_track.size = Vector2(25,151)
+    _master_track.position = Vector2(107,95)
+    _master_track.size = Vector2(27,202)
     _master_track.mouse_filter = Control.MOUSE_FILTER_IGNORE
     var track_style := StyleBoxFlat.new()
     track_style.bg_color = Color(0.02,0.04,0.05)
@@ -119,24 +119,24 @@ func initialize(owner: Node3D) -> void:
     track_style.set_corner_radius_all(13)
     _master_track.add_theme_stylebox_override("panel",track_style)
     _lever_area.add_child(_master_track)
-    for item in [["▲ ТЯГА",Vector2(132,98),Color(0.39,0.90,0.67)],["▼ ТОРМОЗ",Vector2(126,210),Color(1.0,0.54,0.53)]]:
+    for item in [["▲ ТЯГА",Vector2(148,123),Color(0.39,0.90,0.67)],["▼ ТОРМОЗ",Vector2(144,265),Color(1.0,0.54,0.53)]]:
         var caption := Label.new()
         caption.text = item[0]
         caption.position = item[1]
         caption.add_theme_color_override("font_color",item[2])
-        caption.add_theme_font_size_override("font_size",12)
+        caption.add_theme_font_size_override("font_size",16)
         caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
         _lever_area.add_child(caption)
     _lever_handle = Label.new()
-    _lever_handle.text = "━━━━"
-    _lever_handle.add_theme_font_size_override("font_size",28)
+    _lever_handle.text = "━━━━━━━━"
+    _lever_handle.add_theme_font_size_override("font_size",32)
     _lever_handle.add_theme_color_override("font_color",Color(0.78,0.88,0.92))
     _lever_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _lever_area.add_child(_lever_handle)
     _master_value = Label.new()
     _master_value.text = "НЕЙТРАЛЬ · 0%"
-    _master_value.position = Vector2(20,260)
-    _master_value.size = Vector2(165,26)
+    _master_value.position = Vector2(22,330)
+    _master_value.size = Vector2(194,32)
     _master_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _master_value.add_theme_font_size_override("font_size",13)
     _master_value.add_theme_color_override("font_color",Color(0.67,0.98,0.89))
@@ -164,7 +164,9 @@ func _style_button(button: Button, color: Color) -> void:
     button.add_theme_stylebox_override("pressed",pressed)
     button.add_theme_stylebox_override("hover",pressed)
     button.add_theme_color_override("font_color",Color(0.92,0.98,1.0))
-    button.add_theme_font_size_override("font_size",15)
+    button.add_theme_font_size_override("font_size",21)
+    button.add_theme_color_override("font_pressed_color",Color.WHITE)
+    button.add_theme_color_override("font_hover_color",Color.WHITE)
 
 func _touch_zone(pos: Vector2, dimensions: Vector2, label: String, is_stick: bool) -> Control:
     var zone := PanelContainer.new()
@@ -227,7 +229,7 @@ func _update_zone(point: Vector2, zone: Control, is_stick: bool) -> void:
         stick = Vector2(clampf((local.x-half.x)/maxf(half.x,1.0),-1.0,1.0),clampf((local.y-half.y)/maxf(half.y,1.0),-1.0,1.0))
         if stick.length() > 1.0: stick = stick.normalized()
     else:
-        lever = clampf((151.0-local.y)/75.0,-1.0,1.0)
+        lever = clampf((175.0-local.y)/93.0,-1.0,1.0)
 
 func _toggle_cabin_salon() -> void:
     var current := str(game.get("camera_mode"))
@@ -256,7 +258,7 @@ func _toggle_doors() -> void:
     else:
         doors.call("request_open",float(game.get("speed")))
     door_open = not door_open
-    _door_button.text = "◀   ▶" if door_open else "▶│◀"
+    _door_button.text = "🚪 ЗАКРЫТЬ\nЛЕВЫЕ" if door_open else "🚪 ОТКРЫТЬ\nЛЕВЫЕ"
 
 func _process(_delta: float) -> void:
     if is_instance_valid(_platform_button) and is_instance_valid(game):
@@ -266,14 +268,14 @@ func _process(_delta: float) -> void:
     if is_instance_valid(_master_value):
         _master_value.text = "ТЯГА · %d%%" % roundi(lever*100.0) if lever > 0.08 else "ТОРМОЗ · %d%%" % roundi(-lever*100.0) if lever < -0.08 else "НЕЙТРАЛЬ · 0%"
     if is_instance_valid(_lever_handle):
-        _lever_handle.position = Vector2(57,clampf(135.0-lever*69.0,66.0,204.0))
+        _lever_handle.position = Vector2(56,clampf(175.0-lever*93.0,82.0,268.0))
     if is_instance_valid(_stick_handle):
         _stick_handle.position = (_stick_area.size-Vector2(38,48))*0.5+stick*(_stick_area.size.x*0.32)
     var doors: Node = game.get("door_system") if is_instance_valid(game) else null
     if is_instance_valid(doors):
         var open_fraction: float = float(doors.get("openness"))
         _door_progress = move_toward(_door_progress,open_fraction,_delta*3.0)
-        _door_button.text = "◀   ▶" if _door_progress > 0.65 else "◀ │ ▶" if _door_progress > 0.15 else "▶│◀"
+        _door_button.text = "🚪 ЗАКРЫТЬ\nЛЕВЫЕ" if _door_progress > 0.15 else "🚪 ОТКРЫТЬ\nЛЕВЫЕ"
     if not is_instance_valid(game): return
     if not flight:
         game.set("throttle",false)
