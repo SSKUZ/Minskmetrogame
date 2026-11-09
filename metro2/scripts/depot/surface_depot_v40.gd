@@ -10,6 +10,7 @@ var _sky: ProceduralSkyMaterial
 var flight_position := Vector3.ZERO
 var _flight_ui: Control
 var _flight_height := 0.0
+const PLATFORM_CAMERA_RANGE := 100.0
 
 func _ready() -> void:
     distance = Route.START_Z
@@ -21,6 +22,7 @@ func _ready() -> void:
         Transform3D(Basis.IDENTITY,Vector3(0,0,STATION_Z)),route_end_distance)
     _diagnostics_enabled = false
     _install_inspection_ui()
+    _ensure_station_camera_anchor(_station)
     for node in get_children():
         if node is DirectionalLight3D:
             _sun = node as DirectionalLight3D
@@ -65,6 +67,20 @@ func _install_inspection_ui() -> void:
     _ui_layer.add_child(_flight_ui)
     _flight_ui.call("initialize",self)
 
+func _ensure_station_camera_anchor(station: Node3D) -> void:
+    if not is_instance_valid(station) or station.has_node("PlatformCameraAnchor"): return
+    # Station-local placement on the island platform, not in the wall.
+    var anchor := Node3D.new()
+    anchor.name = "PlatformCameraAnchor"
+    station.add_child(anchor)
+    anchor.position = Vector3(-1.65,2.65,25.0)
+    anchor.look_at(station.to_global(Vector3(Route.CENTER_X,1.7,99.0)),Vector3.UP)
+
+func platform_camera_available() -> bool:
+    if not is_instance_valid(_station) or not is_instance_valid(train): return false
+    var head_z := train.global_position.z + _train_bounds.position.z
+    return head_z <= STATION_ENTRY_Z + PLATFORM_CAMERA_RANGE and head_z >= STATION_EXIT_Z - 30.0
+
 func _start_near_station() -> void:
     # Measure from the original head-car nose to the leading platform edge.
     var lead := train.get_node("OriginalV106Car01") as Node3D
@@ -108,6 +124,8 @@ func _configure_tunnel() -> void:
 
 func _physics_process(delta: float) -> void:
     super._physics_process(delta)
+    if camera_mode == "platform" and not platform_camera_available():
+        _set_camera_mode("cabin")
     if camera_mode == "flight" and is_instance_valid(_flight_ui):
         var axis: Vector2 = _flight_ui.get("stick")
         var forward := Vector3(-sin(orbit_yaw),0.0,-cos(orbit_yaw))
@@ -139,10 +157,11 @@ func _update_camera() -> void:
         camera.global_basis = Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
         return
     if camera_mode == "platform":
-        var platform_eye := Vector3(Route.CENTER_X+4.2,2.9,STATION_ENTRY_Z-17.0)
-        var target := Vector3(Route.CENTER_X,1.6,STATION_EXIT_Z+25.0)
-        camera.global_position = platform_eye
-        camera.look_at(target,Vector3.UP)
+        if is_instance_valid(_station):
+            var anchor := _station.get_node_or_null("PlatformCameraAnchor") as Node3D
+            if is_instance_valid(anchor):
+                camera.global_transform = anchor.global_transform
+                return
         return
     _place_consist()
     var cars: Array[Node3D] = []
@@ -166,6 +185,7 @@ func _update_camera() -> void:
         camera.global_basis = cars[0].global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
 
 func _set_camera_mode(mode: String) -> void:
+    if mode == "platform" and not platform_camera_available(): return
     if mode == "flight":
         flight_position = camera.global_position
     super._set_camera_mode(mode)
