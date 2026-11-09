@@ -72,7 +72,7 @@ func _panel(parent: Node3D,pos: Vector3,side: int,width: float,height: float,col
     anchor.add_child(back)
     return anchor
 
-func _text(anchor: Node3D,value: String,y: float,fontsize: int,color: Color,width: float = 0.72) -> void:
+func _text(anchor: Node3D,value: String,y: float,fontsize: int,color: Color,width: float = 0.72,x: float = 0.0) -> void:
     var label := Label3D.new()
     label.text = value
     label.font_size = fontsize
@@ -82,7 +82,7 @@ func _text(anchor: Node3D,value: String,y: float,fontsize: int,color: Color,widt
     label.outline_modulate = Color(0,0,0,0.14)
     label.outline_size = 1
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    label.position = Vector3(0,y,0.016)
+    label.position = Vector3(x,y,0.016)
     label.double_sided = true
     anchor.add_child(label)
 
@@ -110,25 +110,23 @@ func _advert(car: Node3D,pos: Vector3,side: int,ad: Array,index: int) -> void:
     _text(anchor,ad[2],-0.073,19,Color.WHITE)
     _text(anchor,ad[3],-0.206,16,Color("#d8e9ee"))
 
-# Two physically separate, readable maps per wagon. Each is a tall line-by-line
-# station directory, not a single illegibly long sentence across the poster.
+# Three columns avoid long, unreadable horizontal strings of station names.
 func _map(car: Node3D,pos: Vector3,side: int) -> void:
-    var anchor := _panel(car,pos,side,1.25,1.65,Color("#f4f7fa"))
-    _accent(anchor,Vector3(0,0.775,0.009),Vector2(1.25,0.09),Color("#17334c"))
-    _text(anchor,"МИНСКИЙ МЕТРОПОЛИТЕН",0.68,27,Color("#17334c"))
+    var anchor := _panel(car,pos,side,2.05,1.45,Color("#f4f7fa"))
+    _accent(anchor,Vector3(0,0.675,0.009),Vector2(2.05,0.09),Color("#17334c"))
+    _text(anchor,"МИНСКИЙ МЕТРОПОЛИТЕН",0.575,27,Color("#17334c"))
     var lines := [
         ["МОСКОВСКАЯ",RED,Color("#c92d38")],
         ["АВТОЗАВОДСКАЯ",BLUE,Color("#2359a2")],
         ["ЗЕЛЕНОЛУЖСКАЯ",GREEN,Color("#168354")]
     ]
-    var y := 0.555
-    for line in lines:
+    for column in range(3):
+        var line: Array = lines[column]
         var names: Array = line[1]
         var hue: Color = line[2]
-        _accent(anchor,Vector3(-0.51,y,0.010),Vector2(0.045,0.070),hue)
-        _text(anchor,str(line[0]),y,20,hue)
-        y -= 0.075
-        for station in names:
-            _text(anchor,str(station),y,15,Color("#203244"))
-            y -= 0.041
-        y -= 0.025
+        var x := -0.67+float(column)*0.67
+        _accent(anchor,Vector3(x-0.30,0.47,0.010),Vector2(0.025,0.065),hue)
+        _text(anchor,str(line[0]),0.47,16,hue,0.72,x)
+        for row in range(names.size()):
+            var y := 0.375-float(row)*0.067
+            _text(anchor,str(names[row]),y,13,Color("#203244"),0.72,x)
