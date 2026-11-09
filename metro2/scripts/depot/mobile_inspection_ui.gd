@@ -17,6 +17,7 @@ var _stick_handle: Label
 var _door_icon: Label
 var _door_progress := 0.0
 var _flight_button: Button
+var _platform_button: Button
 
 func initialize(owner: Node3D) -> void:
     game = owner
@@ -28,13 +29,16 @@ func initialize(owner: Node3D) -> void:
     bar.offset_bottom = 150
     bar.mouse_filter = Control.MOUSE_FILTER_PASS
     add_child(bar)
-    for entry in [["ПЛАТФОРМА","platform"],["КАБИНА","cabin"],["САЛОН","salon"],["СНАРУЖИ","external"],["ПОЛЁТ","flight"]]:
+    for entry in [["ПЛАТФОРМА","platform"],["САЛОН","salon"],["КАБИНА","cabin"],["ПОЛЁТ","flight"]]:
         var button := Button.new()
         button.text = entry[0]
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         bar.add_child(button)
         var mode: String = entry[1]
         if mode == "flight": _flight_button = button
+        if mode == "platform":
+            _platform_button = button
+            button.visible = false
         button.pressed.connect(func(): _select_mode(mode))
     var actions := HBoxContainer.new()
     actions.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -134,6 +138,7 @@ func _update_zone(point: Vector2, zone: Control, is_stick: bool) -> void:
         lever = clampf((half.y-local.y)/maxf(half.y,1.0),-1.0,1.0)
 
 func _select_mode(mode: String) -> void:
+    if mode == "platform" and not bool(game.call("platform_camera_available")): return
     flight = mode == "flight"
     _stick_area.visible = flight
     _lever_area.visible = not flight
@@ -157,6 +162,10 @@ func _toggle_doors() -> void:
     _door_button.text = "◀   ▶" if door_open else "▶ │ ◀"
 
 func _process(_delta: float) -> void:
+    if is_instance_valid(_platform_button) and is_instance_valid(game):
+        var available: bool = bool(game.call("platform_camera_available"))
+        _platform_button.visible = available
+        _platform_button.modulate = Color(1.0,0.94,0.45) if available else Color.WHITE
     if is_instance_valid(_lever_handle):
         _lever_handle.position = Vector2(25,clampf((_lever_area.size.y-40.0)*0.5-lever*(_lever_area.size.y-48.0)*0.5,4.0,_lever_area.size.y-40.0))
     if is_instance_valid(_stick_handle):
