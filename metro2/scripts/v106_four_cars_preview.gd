@@ -365,22 +365,32 @@ func _box(parent: Node3D, pos: Vector3, dimensions: Vector3, color: Color) -> vo
 
 func _physics_process(delta: float) -> void:
     var dt := minf(delta,0.1)
+    # Four-car train: acceleration and braking are bounded by mass/inertia.
+    # All rates are m/s²; neither releasing traction nor applying the service
+    # brake may instantly cancel momentum.
+    const MAX_TRACTION_ACCEL := 0.95
+    const SERVICE_BRAKE_DECEL := 1.05
+    const COAST_DECEL := 0.035
+    const MAX_SPEED := 22.0
     var direction := 1
+    var traction_request := 1.0 if throttle else 0.0
+    var brake_request := 1.0 if brake else 0.0
+    var adhesion := 1.0
     if is_instance_valid(cab_runtime):
         var input: Dictionary = cab_runtime.call("physics_inputs",dt,speed,throttle,brake)
         direction = int(input.direction)
-        if float(input.brake) > 0.001:
-            speed = maxf(speed-dt*3.0*float(input.brake)*float(input.adhesion),0.0)
-        elif float(input.traction) > 0.0:
-            speed = minf(speed+dt*1.4*float(input.traction)*float(input.adhesion),22.0)
-        else:
-            speed = maxf(speed-dt*0.12,0.0)
-    elif brake:
-        speed = maxf(speed-dt*3.0,0.0)
-    elif throttle:
-        speed = minf(speed+dt*1.4,22.0)
+        traction_request = clampf(float(input.traction),0.0,1.0)
+        brake_request = clampf(float(input.brake),0.0,1.0)
+        adhesion = clampf(float(input.adhesion),0.75,1.15)
+    if brake_request > 0.001:
+        # Service brake ramps in through cab_runtime; speed integrates smoothly.
+        speed = maxf(speed-dt*SERVICE_BRAKE_DECEL*brake_request*adhesion,0.0)
+    elif traction_request > 0.001:
+        # Tractive effort weakens toward line speed.
+        var speed_factor := clampf(1.0-speed/MAX_SPEED*0.45,0.45,1.0)
+        speed = minf(speed+dt*MAX_TRACTION_ACCEL*traction_request*speed_factor*adhesion,MAX_SPEED)
     else:
-        speed = maxf(speed-dt*0.12,0.0)
+        speed = maxf(speed-dt*COAST_DECEL,0.0)
     distance = maxf(route_end_distance,distance-float(direction)*speed*dt)
     if distance <= route_end_distance and direction == 1: speed = 0.0
     train.position.z = distance
