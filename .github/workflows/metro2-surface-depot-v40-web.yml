@@ -10,6 +10,7 @@ on:
       - 'metro2/scripts/station_base_static.gd'
       - 'metro2/scripts/station/**'
       - 'metro2/assets/station/**'
+      - 'metro2/assets/saloon_v46/**'
       - 'metro2/scripts/playable_track_path.gd'
       - 'metro2/scenes/StationBaseStatic.tscn'
       - 'metro2/scenes/depot/**'
@@ -104,6 +105,8 @@ jobs:
           cp metro2/scenes/v106_four_cars_preview.tscn stage/scenes/
           mkdir -p stage/scripts/depot stage/scenes/depot stage/assets/depot
           cp metro2/scripts/depot/*.gd stage/scripts/depot/
+          mkdir -p stage/assets/saloon_v46
+          cp metro2/assets/saloon_v46/*.svg metro2/assets/saloon_v46/*.json stage/assets/saloon_v46/
           cp metro2/scenes/depot/*.tscn stage/scenes/depot/
           cp metro2/scenes/StationBaseStatic.tscn stage/scenes/
           cp metro2/scripts/station_base_static.gd metro2/scripts/playable_track_path.gd stage/scripts/

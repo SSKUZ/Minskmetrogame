@@ -193,6 +193,7 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     add_child(lighting)
     lighting.initialize(self,train,_ui_layer)
     preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
+    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 

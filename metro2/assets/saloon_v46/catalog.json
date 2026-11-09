@@ -1,0 +1,162 @@
+[
+  {
+    "id": 0,
+    "file": "ad_01.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "ЕВРООПТ",
+    "orientation": "portrait"
+  },
+  {
+    "id": 1,
+    "file": "ad_02.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "КОРОНА",
+    "orientation": "banner"
+  },
+  {
+    "id": 2,
+    "file": "ad_03.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "GREEN",
+    "orientation": "portrait"
+  },
+  {
+    "id": 3,
+    "file": "ad_04.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "БЕЛАРУСБАНК",
+    "orientation": "banner"
+  },
+  {
+    "id": 4,
+    "file": "ad_05.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "БЕЛАГРОПРОМБАНК",
+    "orientation": "portrait"
+  },
+  {
+    "id": 5,
+    "file": "ad_06.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "МТБАНК",
+    "orientation": "banner"
+  },
+  {
+    "id": 6,
+    "file": "ad_07.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "АЛЬФА-БАНК",
+    "orientation": "portrait"
+  },
+  {
+    "id": 7,
+    "file": "ad_08.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "ПРИОРБАНК",
+    "orientation": "banner"
+  },
+  {
+    "id": 8,
+    "file": "ad_09.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "А1",
+    "orientation": "portrait"
+  },
+  {
+    "id": 9,
+    "file": "ad_10.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "МТС",
+    "orientation": "banner"
+  },
+  {
+    "id": 10,
+    "file": "ad_11.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "life:)",
+    "orientation": "portrait"
+  },
+  {
+    "id": 11,
+    "file": "ad_12.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "21vek.by",
+    "orientation": "banner"
+  },
+  {
+    "id": 12,
+    "file": "ad_13.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "БЕЛПОЧТА",
+    "orientation": "portrait"
+  },
+  {
+    "id": 13,
+    "file": "ad_14.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "РАБОТА В ЕВРООПТ",
+    "orientation": "banner"
+  },
+  {
+    "id": 14,
+    "file": "ad_15.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "РАБОТА В КОРОНА",
+    "orientation": "portrait"
+  },
+  {
+    "id": 15,
+    "file": "ad_16.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "ПРОФЕССИЯ: ВОДИТЕЛЬ",
+    "orientation": "banner"
+  },
+  {
+    "id": 16,
+    "file": "ad_17.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "ПРОДАВЦЫ И КАССИРЫ",
+    "orientation": "portrait"
+  },
+  {
+    "id": 17,
+    "file": "ad_18.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "ПУТЕШЕСТВУЙТЕ ПО БЕЛАРУСИ",
+    "orientation": "banner"
+  },
+  {
+    "id": 18,
+    "file": "ad_19.svg",
+    "width": 768,
+    "height": 1152,
+    "brand": "КИНО В МИНСКЕ",
+    "orientation": "portrait"
+  },
+  {
+    "id": 19,
+    "file": "ad_20.svg",
+    "width": 1536,
+    "height": 512,
+    "brand": "ЗАБОТА НАЧИНАЕТСЯ С НАС",
+    "orientation": "banner"
+  }
+]
