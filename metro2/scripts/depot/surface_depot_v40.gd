@@ -5,6 +5,9 @@ const STATION_Z := -220.112
 const STATION_ENTRY_Z := -128.0
 const STATION_EXIT_Z := -240.0
 var _pose_cache: Dictionary = {}
+var _rest_poses: Dictionary = {}
+var _saloon_equipment: Node3D
+var _saloon_fov := 80.0
 var _sun: DirectionalLight3D
 var _sky: ProceduralSkyMaterial
 var flight_position := Vector3.ZERO
@@ -22,6 +25,10 @@ func _ready() -> void:
         Transform3D(Basis.IDENTITY,Vector3(0,0,STATION_Z)),route_end_distance)
     _diagnostics_enabled = false
     _install_inspection_ui()
+    _saloon_equipment = preload("res://scripts/depot/saloon_equipment.gd").new()
+    _saloon_equipment.name = "PassengerSaloonEquipment"
+    add_child(_saloon_equipment)
+    _saloon_equipment.call("initialize",self,train)
     _ensure_station_camera_anchor(_station)
     for node in get_children():
         if node is DirectionalLight3D:
@@ -99,15 +106,21 @@ func _place_consist() -> void:
         var car := node as Node3D
         if str(car.name).begins_with("OriginalV106Car"):
             if not _pose_cache.has(car): _pose_cache[car] = _get_model_bounds(car)
+            if not _rest_poses.has(car): _rest_poses[car] = car.transform
             var bounds: AABB = _pose_cache[car]
-            var center_z := train.global_position.z+car.position.z+bounds.get_center().z
-            var wheelbase := bounds.size.z*0.33
-            var front_y := Route.height(center_z-wheelbase)
-            var back_y := Route.height(center_z+wheelbase)
-            car.position.y = (front_y+back_y)*0.5
-            car.rotation.x = -atan2(back_y-front_y,wheelbase*2.0)
+            var rest: Transform3D = _rest_poses[car]
+            var center := rest*bounds.get_center()
+            var center_z := train.global_position.z+center.z
+            var half_bogie_spacing := bounds.size.z*0.33
+            var front_y := Route.height(center_z-half_bogie_spacing)
+            var rear_y := Route.height(center_z+half_bogie_spacing)
+            var pitch := -atan2(rear_y-front_y,half_bogie_spacing*2.0)
+            var basis := Basis(Vector3.RIGHT,pitch)*rest.basis
+            # Exported cars have different model origins. Rotate about each
+            # carriage centre, never its possibly distant GLB origin.
+            var target := center+Vector3(0,(front_y+rear_y)*0.5,0)
+            car.transform = Transform3D(basis,target-basis*bounds.get_center())
         elif car.get_child_count() > 0 and car.get_child(0) is MeshInstance3D:
-            # Existing visual couplers follow the same grade; their meshes stay intact.
             if not car.has_meta("route_coupler_z"):
                 var z := (car.get_child(0) as Node3D).position.z
                 car.set_meta("route_coupler_z",z)
@@ -155,6 +168,8 @@ func _physics_process(delta: float) -> void:
 
 func _update_camera() -> void:
     if not is_instance_valid(camera) or not is_instance_valid(train): return
+    # Placement must advance even when flight/platform cameras return early.
+    _place_consist()
     if camera_mode == "flight":
         camera.global_position = flight_position
         camera.global_basis = Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
@@ -166,7 +181,6 @@ func _update_camera() -> void:
                 camera.global_transform = anchor.global_transform
                 return
         return
-    _place_consist()
     var cars: Array[Node3D] = []
     for node in train.get_children():
         if node is Node3D and str(node.name).begins_with("OriginalV106Car"): cars.append(node as Node3D)
@@ -181,8 +195,11 @@ func _update_camera() -> void:
         camera.global_position = desired
         if desired.distance_squared_to(focus) > 0.001: camera.look_at(focus,Vector3.UP)
     elif camera_mode == "salon":
-        camera.global_position = selected.to_global(Vector3(0,2.35,-2)+camera_pan)
-        camera.global_basis = selected.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
+        if is_instance_valid(_saloon_equipment):
+            var mount := _saloon_equipment.call("camera_mount",selected) as Node3D
+            camera.global_position = mount.global_position
+            camera.global_basis = mount.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
+            camera.fov = _saloon_fov
     else:
         super._update_camera()
         camera.global_basis = cars[0].global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
@@ -225,3 +242,24 @@ func _update_atmosphere() -> void:
         _environment.fog_depth_begin = lerpf(_environment.fog_depth_begin,110.0,station_light)
         _environment.fog_depth_end = lerpf(_environment.fog_depth_end,210.0,station_light)
         camera.far = lerpf(camera.far,220.0,station_light)
+
+func _zoom_view(ratio: float) -> void:
+    if camera_mode == "salon":
+        # CCTV stays in its ceiling corner; a pinch changes optics, not location.
+        _saloon_fov = clampf(_saloon_fov/maxf(ratio,0.01),35.0,100.0)
+        if is_instance_valid(camera): camera.fov = _saloon_fov
+    else:
+        super._zoom_view(ratio)
+
+func passenger_information() -> Dictionary:
+    var station_name := "УРУЧЧА"
+    if is_instance_valid(_station):
+        station_name = str(_station.get_meta("passenger_name",station_name))
+    var nose_z := distance-9.65
+    if is_instance_valid(train) and train.has_node("OriginalV106Car01"):
+        var lead := train.get_node("OriginalV106Car01") as Node3D
+        if _pose_cache.has(lead):
+            var bounds: AABB = _pose_cache[lead]
+            nose_z = lead.to_global(Vector3(bounds.get_center().x,bounds.get_center().y,bounds.position.z)).z
+    var at_platform := nose_z <= STATION_ENTRY_Z and nose_z >= STATION_EXIT_Z
+    return {"current_station":station_name,"next_station":station_name,"at_station":at_platform and absf(speed) <= 0.05}
