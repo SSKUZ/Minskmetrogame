@@ -1,7 +1,7 @@
 extends "res://scripts/tunnel_lightweight_straight.gd"
 const Route = preload("res://scripts/depot/route_profile.gd")
-const STATION_ENTRY_Z := -404.0
-const STATION_EXIT_Z := -516.0
+const STATION_ENTRY_Z := -128.0
+const STATION_EXIT_Z := -240.0
 var _entrance_shade: MeshInstance3D
 
 func _ready() -> void:
