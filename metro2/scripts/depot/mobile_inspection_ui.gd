@@ -31,10 +31,10 @@ func initialize(owner: Node3D) -> void:
     for entry in [["ПЛАТФОРМА","platform"],["КАБИНА","cabin"],["САЛОН","salon"],["СНАРУЖИ","external"],["ПОЛЁТ","flight"]]:
         var button := Button.new()
         button.text = entry[0]
-        if mode == "flight": _flight_button = button
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         bar.add_child(button)
         var mode: String = entry[1]
+        if mode == "flight": _flight_button = button
         button.pressed.connect(func(): _select_mode(mode))
     var actions := HBoxContainer.new()
     actions.set_anchors_preset(Control.PRESET_TOP_WIDE)
