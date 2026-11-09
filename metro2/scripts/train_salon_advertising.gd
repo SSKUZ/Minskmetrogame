@@ -48,9 +48,9 @@ func install(game: Node3D, train: Node3D) -> void:
                 var z := lerpf(begin,end,fraction)
                 var ad_index := (car_index*5+slot+(0 if side == -1 else 10))%ADS.size()
                 _advert(car,Vector3(center.x+side*wall_x,interior_y,z),side,ADS[ad_index],ad_index)
-            # Two large maps per wagon, on opposite sidewalls.
+            # Each side gets one route map; maps are raised above ad level.
             var map_z := lerpf(begin,end,0.29 if side == -1 else 0.71)
-            _map(car,Vector3(center.x+side*wall_x,interior_y+0.42,map_z),side)
+            _map(car,Vector3(center.x+side*wall_x,interior_y+0.35,map_z),side)
         car_index += 1
     print("METRO_SALOON_ADS_READY cars=",car_index," designs=",ADS.size()," maps=",car_index*2)
 
@@ -76,33 +76,59 @@ func _text(anchor: Node3D,value: String,y: float,fontsize: int,color: Color,widt
     var label := Label3D.new()
     label.text = value
     label.font_size = fontsize
-    label.pixel_size = 0.0014
+    # Text is real-world sized; smaller labels must remain readable at arm's length.
+    label.pixel_size = 0.00125
     label.modulate = color
-    label.outline_modulate = Color(0,0,0,0.16)
-    label.outline_size = 2
-    label.width = 750
+    label.outline_modulate = Color(0,0,0,0.14)
+    label.outline_size = 1
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    label.position = Vector3(0,y,0.012)
-    label.no_depth_test = false
+    label.position = Vector3(0,y,0.016)
     label.double_sided = true
     anchor.add_child(label)
 
-func _advert(car: Node3D,pos: Vector3,side: int,ad: Array,index: int) -> void:
-    var colors := [Color("#123a64"),Color("#146356"),Color("#812b38"),Color("#5b3680"),Color("#854a20")]
-    var anchor := _panel(car,pos,side,0.82,0.62,colors[index%colors.size()])
-    _text(anchor,ad[0],0.19,36,Color.WHITE)
-    _text(anchor,ad[1],0.065,27,Color("#fff1a3"))
-    _text(anchor,ad[2],-0.065,22,Color.WHITE)
-    _text(anchor,ad[3],-0.19,18,Color("#d8e9ee"))
+func _accent(parent: Node3D,position: Vector3,size: Vector2,color: Color) -> void:
+    var bar := MeshInstance3D.new()
+    var quad := QuadMesh.new()
+    quad.size = size
+    bar.mesh = quad
+    bar.position = position
+    var material := StandardMaterial3D.new()
+    material.albedo_color = color
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    bar.material_override = material
+    parent.add_child(bar)
 
+func _advert(car: Node3D,pos: Vector3,side: int,ad: Array,index: int) -> void:
+    var colors := [Color("#123a64"),Color("#146356"),Color("#812b38"),Color("#5b3680"),Color("#854a20"),Color("#135575"),Color("#683a52")]
+    var color: Color = colors[index%colors.size()]
+    var anchor := _panel(car,pos,side,0.82,0.62,color)
+    _accent(anchor,Vector3(0,0.285,0.008),Vector2(0.82,0.035),Color("#eacb79"))
+    _accent(anchor,Vector3(-0.28,0.045,0.009),Vector2(0.075,0.27),Color("#eacb79"))
+    _text(anchor,ad[0],0.205,30,Color.WHITE)
+    _text(anchor,ad[1],0.080,22,Color("#fff1a3"))
+    _text(anchor,ad[2],-0.073,19,Color.WHITE)
+    _text(anchor,ad[3],-0.206,16,Color("#d8e9ee"))
+
+# Two physically separate, readable maps per wagon. Each is a tall line-by-line
+# station directory, not a single illegibly long sentence across the poster.
 func _map(car: Node3D,pos: Vector3,side: int) -> void:
-    var anchor := _panel(car,pos,side,1.35,0.96,Color("#f4f7fa"))
-    _text(anchor,"СХЕМА МИНСКОГО МЕТРО",0.41,30,Color("#17334c"))
-    _text(anchor,"1  МОСКОВСКАЯ ЛИНИЯ",0.32,21,Color("#c92d38"))
-    _text(anchor," • ".join(PackedStringArray(RED.slice(0,8))),0.23,13,Color("#263949"))
-    _text(anchor," • ".join(PackedStringArray(RED.slice(8))),0.13,13,Color("#263949"))
-    _text(anchor,"2  АВТОЗАВОДСКАЯ ЛИНИЯ",0.02,21,Color("#2359a2"))
-    _text(anchor," • ".join(PackedStringArray(BLUE.slice(0,7))),-0.07,13,Color("#263949"))
-    _text(anchor," • ".join(PackedStringArray(BLUE.slice(7))),-0.16,13,Color("#263949"))
-    _text(anchor,"3  ЗЕЛЕНОЛУЖСКАЯ ЛИНИЯ",-0.27,21,Color("#168354"))
-    _text(anchor," • ".join(PackedStringArray(GREEN)),-0.36,13,Color("#263949"))
+    var anchor := _panel(car,pos,side,1.25,1.65,Color("#f4f7fa"))
+    _accent(anchor,Vector3(0,0.775,0.009),Vector2(1.25,0.09),Color("#17334c"))
+    _text(anchor,"МИНСКИЙ МЕТРОПОЛИТЕН",0.68,27,Color("#17334c"))
+    var lines := [
+        ["МОСКОВСКАЯ",RED,Color("#c92d38")],
+        ["АВТОЗАВОДСКАЯ",BLUE,Color("#2359a2")],
+        ["ЗЕЛЕНОЛУЖСКАЯ",GREEN,Color("#168354")]
+    ]
+    var y := 0.555
+    for line in lines:
+        var names: Array = line[1]
+        var hue: Color = line[2]
+        _accent(anchor,Vector3(-0.51,y,0.010),Vector2(0.045,0.070),hue)
+        _text(anchor,str(line[0]),y,20,hue)
+        y -= 0.075
+        for station in names:
+            _text(anchor,str(station),y,15,Color("#203244"))
+            y -= 0.041
+        y -= 0.025
