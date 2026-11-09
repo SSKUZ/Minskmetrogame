@@ -37,6 +37,7 @@ func _ready() -> void:
     _rng.seed=71771443
     _make_resources()
     _housing()
+    _distant_skyline()
     _woodland()
     _yard_planting()
     _portal_landscape()
@@ -158,12 +159,12 @@ func _woodland() -> void:
             var x: float=Route.CENTER_X+grove.x+cos(angle)*reach*43.0
             var z: float=grove.z+sin(angle)*reach*65.0
             _tree(x,z,_rng.randi_range(0,3),_rng.randf_range(7.0,14.0))
-    for i in range(220):
+    for i in range(300):
         var side := -1.0 if i%2 == 0 else 1.0
         var x: float=Route.CENTER_X+side*_rng.randf_range(310,570)
         var z := _rng.randf_range(-370,690)
         _tree(x,z,_rng.randi_range(0,3),_rng.randf_range(10,17),true)
-    for i in range(90):
+    for i in range(130):
         var side := -1.0 if i%2 == 0 else 1.0
         _shrub(Route.CENTER_X+side*_rng.randf_range(16,75),_rng.randf_range(105,288),_rng.randf_range(0.6,1.5))
     for i in range(75):
@@ -202,6 +203,25 @@ func _housing() -> void:
         var z := block.y
         _homes.append(Rect2(Vector2(x-block.w*0.5,z-depth*0.5),Vector2(block.w,depth)))
         _residential(Vector3(x,Route.ground(x,z)-0.5,z),Vector2(block.w,depth),floors,index)
+
+# Additional residential skyline beyond the tunnel portal. Keep a clear view
+# down the track; distant buildings use the existing shared mobile batches.
+func _distant_skyline() -> void:
+    var towers := [
+        Vector4(-115,-460,12,40),Vector4(-185,-515,16,46),
+        Vector4(-275,-485,19,31),Vector4(-345,-570,12,52),
+        Vector4(125,-475,16,42),Vector4(200,-540,19,34),
+        Vector4(285,-485,12,52),Vector4(360,-575,16,44),
+        Vector4(-90,-625,9,56),Vector4(105,-650,12,52),
+        Vector4(-220,-710,19,32),Vector4(240,-725,16,36),
+        Vector4(-405,-650,9,58),Vector4(415,-665,12,46)]
+    for i in range(towers.size()):
+        var item: Vector4 = towers[i]
+        var x := Route.CENTER_X + item.x
+        var z := item.y
+        var depth := 18.0 if item.z < 16.0 else 23.0
+        _homes.append(Rect2(Vector2(x-item.w*0.5,z-depth*0.5),Vector2(item.w,depth)))
+        _residential(Vector3(x,Route.ground(x,z)-0.5,z),Vector2(item.w,depth),int(item.z),i+30)
 
 func _residential(base: Vector3,footprint: Vector2,floors: int,index: int) -> void:
     var height := float(floors)*2.95+0.65
