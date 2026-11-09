@@ -1,9 +1,9 @@
 extends "res://scripts/v106_four_cars_preview.gd"
 const Route = preload("res://scripts/depot/route_profile.gd")
 const TunnelAdapter = preload("res://scripts/depot/depot_tunnel.gd")
-const STATION_Z := -496.112
-const STATION_ENTRY_Z := -404.0
-const STATION_EXIT_Z := -516.0
+const STATION_Z := -220.112
+const STATION_ENTRY_Z := -128.0
+const STATION_EXIT_Z := -240.0
 var _pose_cache: Dictionary = {}
 var _sun: DirectionalLight3D
 var _sky: ProceduralSkyMaterial
