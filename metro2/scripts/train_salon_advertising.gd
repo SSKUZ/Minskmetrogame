@@ -48,8 +48,8 @@ func install(game: Node3D, train: Node3D) -> void:
                 var z := lerpf(begin,end,fraction)
                 var ad_index := (car_index*5+slot+(0 if side == -1 else 10))%ADS.size()
                 _advert(car,Vector3(center.x+side*wall_x,interior_y,z),side,ADS[ad_index],ad_index)
-            # Each side gets one route map; maps are raised above ad level.
-            var map_z := lerpf(begin,end,0.29 if side == -1 else 0.71)
+            # Route directories are placed in separate end bays, not on top of ads.
+            var map_z := begin+0.55 if side == -1 else end-0.55
             _map(car,Vector3(center.x+side*wall_x,interior_y+0.35,map_z),side)
         car_index += 1
     print("METRO_SALOON_ADS_READY cars=",car_index," designs=",ADS.size()," maps=",car_index*2)
@@ -103,12 +103,27 @@ func _advert(car: Node3D,pos: Vector3,side: int,ad: Array,index: int) -> void:
     var colors := [Color("#123a64"),Color("#146356"),Color("#812b38"),Color("#5b3680"),Color("#854a20"),Color("#135575"),Color("#683a52")]
     var color: Color = colors[index%colors.size()]
     var anchor := _panel(car,pos,side,0.82,0.62,color)
+    # Distinct poster composition: bold header, geometric brand motif and footer.
     _accent(anchor,Vector3(0,0.285,0.008),Vector2(0.82,0.035),Color("#eacb79"))
-    _accent(anchor,Vector3(-0.28,0.045,0.009),Vector2(0.075,0.27),Color("#eacb79"))
-    _text(anchor,ad[0],0.205,30,Color.WHITE)
-    _text(anchor,ad[1],0.080,22,Color("#fff1a3"))
-    _text(anchor,ad[2],-0.073,19,Color.WHITE)
-    _text(anchor,ad[3],-0.206,16,Color("#d8e9ee"))
+    var motif_color := Color("#f7db83") if index % 2 == 0 else Color("#9de3e7")
+    var motif := MeshInstance3D.new()
+    var circle := SphereMesh.new()
+    circle.radius = 0.095
+    circle.height = 0.012
+    circle.radial_segments = 20
+    circle.rings = 2
+    motif.mesh = circle
+    motif.position = Vector3(-0.27,0.045,0.020)
+    var motif_material := StandardMaterial3D.new()
+    motif_material.albedo_color = motif_color
+    motif_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    motif.material_override = motif_material
+    anchor.add_child(motif)
+    _accent(anchor,Vector3(0.0,-0.27,0.009),Vector2(0.76,0.012),motif_color)
+    _text(anchor,ad[0],0.205,27,Color.WHITE)
+    _text(anchor,ad[1],0.080,20,Color("#fff1a3"))
+    _text(anchor,ad[2],-0.073,18,Color.WHITE)
+    _text(anchor,ad[3],-0.206,15,Color("#d8e9ee"))
 
 # Three columns avoid long, unreadable horizontal strings of station names.
 func _map(car: Node3D,pos: Vector3,side: int) -> void:
@@ -126,7 +141,20 @@ func _map(car: Node3D,pos: Vector3,side: int) -> void:
         var hue: Color = line[2]
         var x := -0.67+float(column)*0.67
         _accent(anchor,Vector3(x-0.30,0.47,0.010),Vector2(0.025,0.065),hue)
+        _accent(anchor,Vector3(x-0.28,-0.10,0.009),Vector2(0.008,1.01),hue)
         _text(anchor,str(line[0]),0.47,16,hue,0.72,x)
         for row in range(names.size()):
             var y := 0.375-float(row)*0.067
-            _text(anchor,str(names[row]),y,13,Color("#203244"),0.72,x)
+            _text(anchor,str(names[row]),y,13,Color("#203244"),0.72,x+0.04)
+            var stop := MeshInstance3D.new()
+            var disk := SphereMesh.new()
+            disk.radius = 0.012
+            disk.height = 0.005
+            disk.radial_segments = 12
+            stop.mesh = disk
+            stop.position = Vector3(x-0.28,y,0.015)
+            var dot_material := StandardMaterial3D.new()
+            dot_material.albedo_color = hue
+            dot_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+            stop.material_override = dot_material
+            anchor.add_child(stop)
