@@ -18,6 +18,7 @@ var _door_icon: Label
 var _door_progress := 0.0
 var _flight_button: Button
 var _platform_button: Button
+var _master_value: Label
 
 func initialize(owner: Node3D) -> void:
     game = owner
@@ -32,6 +33,7 @@ func initialize(owner: Node3D) -> void:
     for entry in [["ПЛАТФОРМА","platform"],["САЛОН","salon"],["КАБИНА","cabin"],["ПОЛЁТ","flight"]]:
         var button := Button.new()
         button.text = entry[0]
+        _style_button(button,Color(0.12,0.22,0.28,0.93))
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         bar.add_child(button)
         var mode: String = entry[1]
@@ -48,11 +50,13 @@ func initialize(owner: Node3D) -> void:
     add_child(actions)
     _door_button = Button.new()
     _door_button.text = "◀ │ │ ▶"
+    _style_button(_door_button,Color(0.13,0.31,0.23,0.94))
     _door_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     actions.add_child(_door_button)
     _door_button.pressed.connect(_toggle_doors)
     var info_button := Button.new()
-    info_button.text = "🔊"
+    info_button.text = "🔊  INFO"
+    _style_button(info_button,Color(0.14,0.28,0.37,0.95))
     info_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     actions.add_child(info_button)
     info_button.pressed.connect(func(): _info_panel.visible = not _info_panel.visible)
@@ -72,6 +76,12 @@ func initialize(owner: Node3D) -> void:
     _lever_handle.add_theme_font_size_override("font_size",32)
     _lever_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _lever_area.add_child(_lever_handle)
+    _master_value = Label.new()
+    _master_value.text = "НЕЙТРАЛЬ"
+    _master_value.position = Vector2(0,-28)
+    _master_value.add_theme_font_size_override("font_size",13)
+    _master_value.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _lever_area.add_child(_master_value)
     _stick_area = _touch_zone(Vector2(145,-215),Vector2(150,150),"◯",true)
     _stick_handle = Label.new()
     _stick_handle.text = "●"
@@ -79,6 +89,22 @@ func initialize(owner: Node3D) -> void:
     _stick_handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _stick_area.add_child(_stick_handle)
     _stick_area.visible = false
+
+func _style_button(button: Button, color: Color) -> void:
+    var style := StyleBoxFlat.new()
+    style.bg_color = color
+    style.border_color = Color(0.57,0.73,0.78,0.92)
+    style.set_border_width_all(2)
+    style.set_corner_radius_all(9)
+    style.shadow_color = Color(0.0,0.0,0.0,0.5)
+    style.shadow_size = 3
+    button.add_theme_stylebox_override("normal",style)
+    var pressed := style.duplicate() as StyleBoxFlat
+    pressed.bg_color = Color(0.24,0.53,0.57,0.98)
+    button.add_theme_stylebox_override("pressed",pressed)
+    button.add_theme_stylebox_override("hover",pressed)
+    button.add_theme_color_override("font_color",Color(0.92,0.98,1.0))
+    button.add_theme_font_size_override("font_size",15)
 
 func _touch_zone(pos: Vector2, dimensions: Vector2, label: String, is_stick: bool) -> Control:
     var zone := PanelContainer.new()
@@ -89,6 +115,12 @@ func _touch_zone(pos: Vector2, dimensions: Vector2, label: String, is_stick: boo
     zone.offset_right = pos.x + dimensions.x
     zone.offset_bottom = pos.y + dimensions.y
     zone.mouse_filter = Control.MOUSE_FILTER_STOP
+    var frame := StyleBoxFlat.new()
+    frame.bg_color = Color(0.07,0.12,0.17,0.91)
+    frame.border_color = Color(0.56,0.65,0.67)
+    frame.set_border_width_all(2)
+    frame.set_corner_radius_all(16 if is_stick else 9)
+    zone.add_theme_stylebox_override("panel",frame)
     add_child(zone)
     var text_label := Label.new()
     text_label.text = label
@@ -166,6 +198,8 @@ func _process(_delta: float) -> void:
         var available: bool = bool(game.call("platform_camera_available"))
         _platform_button.visible = available
         _platform_button.modulate = Color(1.0,0.94,0.45) if available else Color.WHITE
+    if is_instance_valid(_master_value):
+        _master_value.text = "ТЯГА %d%%" % roundi(lever*100.0) if lever > 0.08 else "ТОРМОЗ %d%%" % roundi(-lever*100.0) if lever < -0.08 else "НЕЙТРАЛЬ"
     if is_instance_valid(_lever_handle):
         _lever_handle.position = Vector2(25,clampf((_lever_area.size.y-40.0)*0.5-lever*(_lever_area.size.y-48.0)*0.5,4.0,_lever_area.size.y-40.0))
     if is_instance_valid(_stick_handle):
@@ -177,8 +211,15 @@ func _process(_delta: float) -> void:
         _door_button.text = "◀   ▶" if _door_progress > 0.65 else "◀ │ ▶" if _door_progress > 0.15 else "▶│◀"
     if not is_instance_valid(game): return
     if not flight:
-        game.set("throttle",lever > 0.12)
-        game.set("brake",lever < -0.12)
+        game.set("throttle",false)
+        game.set("brake",false)
+        var cab: Node3D = game.get("cab_runtime")
+        if is_instance_valid(cab):
+            cab.set("controller_value",maxf(lever,0.0))
+            cab.set("brake_demand",maxf(-lever,0.0))
+        else:
+            game.set("throttle",lever > 0.12)
+            game.set("brake",lever < -0.12)
     else:
         game.set("throttle",false)
         game.set("brake",false)
