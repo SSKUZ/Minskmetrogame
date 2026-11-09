@@ -5,6 +5,9 @@ signal ready_count(count: int)
 var leaves: Array[Dictionary] = []
 var openness: float = 0.0
 var target_open: bool = false
+# The depot-to-Uruchye platform is on the train's left side.
+# Only this side is enabled for passenger service.
+const PLATFORM_SIDE := -1.0
 var validated: bool = false
 const SLIDE_METERS := 0.56
 const ANIMATION_SECONDS := 1.3
@@ -101,12 +104,13 @@ func _process(delta: float) -> void:
     openness = move_toward(openness, goal, delta / ANIMATION_SECONDS)
     for leaf in leaves:
         var direction: float = leaf["direction"]
+        var side_open := openness if float(leaf["center"].x) * PLATFORM_SIDE > 0.0 else 0.0
         for item in leaf["parts"]:
             var node: Node3D = item["node"]
-            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * openness
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * side_open
         for item in leaf["decals"]:
             var node: Node3D = item["node"]
-            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * openness
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * side_open
 
 func request_open(speed_mps: float) -> void:
     if speed_mps > 0.05 or not validated:
