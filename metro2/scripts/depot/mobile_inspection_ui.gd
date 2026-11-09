@@ -316,7 +316,7 @@ func _process(_delta: float) -> void:
         # Cab and overlay are views of ONE controller. Never overwrite the cab every frame.
         lever = physical_value
         if _lever_touch == -1 and not _lever_dragging:
-            _lever_area.visible = not _cab_touch_active
+            _lever_area.visible = not flight and not _cab_touch_active
     game.set("throttle",false)
     game.set("brake",false)
     if _info_panel.visible:
