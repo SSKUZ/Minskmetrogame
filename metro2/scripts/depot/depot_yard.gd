@@ -1,6 +1,7 @@
 extends Node3D
 const Builder = preload("res://scripts/depot/depot_builder.gd")
 const Route = preload("res://scripts/depot/route_profile.gd")
+const EnvironmentUpgrade = preload("res://scripts/depot/depot_environment_v43.gd")
 var b: Builder
 var grass: Material
 var asphalt: Material
@@ -15,7 +16,7 @@ var red: Material
 
 func _ready() -> void:
     b = Builder.new(self)
-    grass = b.mat("DryNorthernGrass",Color("#697358"),0.98,0.0,3.0)
+    grass = EnvironmentUpgrade.ground_material()
     asphalt = b.mat("WornAsphalt",Color("#505451"),0.97,0.0,3.0)
     concrete = b.mat("YardConcrete",Color("#96978b"),0.96,0.0,4.0)
     brick = b.mat("BelarusIndustrialBrick",Color("#a49b83"),0.95,0.0,1.0)
@@ -162,38 +163,6 @@ func _light_poles() -> void:
         b.box(fixture,Vector3(Route.CENTER_X+8.3,y+7.1,z),Vector3(1.1,0.1,0.34))
 
 func _landscape() -> void:
-    var bark := b.mat("Bark",Color("#6c6250"),0.98,0.0,3.0)
-    var greens: Array[Material] = [b.mat("FoliageA",Color("#4e614b"),0.98,0.0,3.0),b.mat("FoliageB",Color("#637356"),0.98,0.0,3.0),b.mat("FoliageC",Color("#3f5848"),0.98,0.0,3.0)]
-    var rng := RandomNumberGenerator.new()
-    rng.seed = 71771440
-    for i in range(190):
-        var side := -1.0 if i % 2 == 0 else 1.0
-        var x := Route.CENTER_X+side*rng.randf_range(112,330)
-        var z := rng.randf_range(40,700)
-        var y := Route.ground(x,z)
-        var h := rng.randf_range(5.5,10.0)
-        b.cylinder(bark,Vector3(x,y+h*0.35,z),0.14,h*0.7)
-        if i % 3 == 0:
-            for j in range(3): b.cone(greens[i%3],Vector3(x,y+h*0.52+float(j)*h*0.15,z),2.1-float(j)*0.36,h*0.55)
-        else:
-            b.crown(greens[i%3],Vector3(x,y+h*0.72,z),Vector3(h*0.28,h*0.31,h*0.26))
-    for i in range(65):
-        var x := Route.CENTER_X+(-1.0 if i % 2 == 0 else 1.0)*rng.randf_range(8.5,22.0)
-        var z := rng.randf_range(108,286)
-        b.crown(greens[i%3],Vector3(x,Route.ground(x,z)+0.55,z),Vector3(0.9,0.65,0.8))
-    for x in [-89.0,89.0]:
-        for z in range(342,584,24):
-            b.cylinder(bark,Vector3(Route.CENTER_X+x,7.5,z),0.12,3.8)
-            b.crown(greens[posmod(z,3)],Vector3(Route.CENTER_X+x,10.0,z),Vector3(2.0,2.2,1.8))
-    # Low-cost Minsk-like city skyline beyond the working yard.
-    var panel := b.mat("DistantPanelBlocks",Color("#a0a59c"),0.95,0.0,4.0)
-    for i in range(13):
-        var x := Route.CENTER_X+(-1.0 if i % 2 == 0 else 1.0)*(185.0+float(i%4)*38.0)
-        var z := 90.0+float(i)*38.0
-        var y := Route.ground(x,z)
-        var h := 20.0+float(i%4)*7.0
-        b.box(panel,Vector3(x,y+h*0.5,z),Vector3(24.0,h,14.0))
-        b.box(roof,Vector3(x,y+h+0.12,z),Vector3(24.6,0.3,14.6))
-        for level in range(int(h/3.0)):
-            for col in range(7):
-                for side in [-1.0,1.0]: b.box(window,Vector3(x-10+float(col)*3.2,y+2+float(level)*3.0,z+side*7.04),Vector3(1.15,1.35,0.06))
+    var environment := EnvironmentUpgrade.new()
+    environment.name = "DepotEnvironmentV43"
+    add_child(environment)
