@@ -7,6 +7,9 @@ const STATION_EXIT_Z := -240.0
 var _pose_cache: Dictionary = {}
 var _sun: DirectionalLight3D
 var _sky: ProceduralSkyMaterial
+var flight_position := Vector3.ZERO
+var _flight_ui: Control
+var _flight_height := 0.0
 
 func _ready() -> void:
     distance = Route.START_Z
@@ -17,6 +20,7 @@ func _ready() -> void:
     attach_station(preload("res://scenes/depot/route_station_v41.tscn"),
         Transform3D(Basis.IDENTITY,Vector3(0,0,STATION_Z)),route_end_distance)
     _diagnostics_enabled = false
+    _install_inspection_ui()
     for node in get_children():
         if node is DirectionalLight3D:
             _sun = node as DirectionalLight3D
@@ -49,6 +53,17 @@ func _ready() -> void:
         var near_station = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('start') === 'station'",true)
         if near_station == true:
             call_deferred("_start_near_station")
+
+func _install_inspection_ui() -> void:
+    for child in _ui_layer.get_children():
+        if child is HBoxContainer and (child.name == "ViewModes" or child.name != ""):
+            if child.name == "ViewModes" or child.get_child_count() == 2:
+                child.hide()
+        if child is VBoxContainer and child.name == "CameraMovement":
+            child.hide()
+    _flight_ui = preload("res://scripts/depot/mobile_inspection_ui.gd").new()
+    _ui_layer.add_child(_flight_ui)
+    _flight_ui.call("initialize",self)
 
 func _start_near_station() -> void:
     # Measure from the original head-car nose to the leading platform edge.
@@ -93,6 +108,20 @@ func _configure_tunnel() -> void:
 
 func _physics_process(delta: float) -> void:
     super._physics_process(delta)
+    if camera_mode == "flight" and is_instance_valid(_flight_ui):
+        var axis: Vector2 = _flight_ui.get("stick")
+        var forward := Vector3(-sin(orbit_yaw),0.0,-cos(orbit_yaw))
+        var right := Vector3(cos(orbit_yaw),0.0,-sin(orbit_yaw))
+        var movement := (right*axis.x-forward*axis.y)*CAMERA_MOVE_SPEED*delta
+        var proposed := flight_position+movement
+        if proposed.z <= Route.PORTAL_Z:
+            # Station and tunnel have a restricted walkable inspection corridor.
+            proposed.x = clampf(proposed.x,Route.CENTER_X-3.1,Route.CENTER_X+3.1)
+            proposed.y = clampf(proposed.y,1.0,5.4)
+            proposed.z = maxf(proposed.z,STATION_EXIT_Z+3.0)
+        else:
+            proposed.y = clampf(proposed.y,1.0,35.0)
+        flight_position = proposed
     if distance > 442.0:
         distance = 442.0
         speed = 0.0
@@ -105,6 +134,16 @@ func _physics_process(delta: float) -> void:
 
 func _update_camera() -> void:
     if not is_instance_valid(camera) or not is_instance_valid(train): return
+    if camera_mode == "flight":
+        camera.global_position = flight_position
+        camera.global_basis = Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
+        return
+    if camera_mode == "platform":
+        var platform_eye := Vector3(Route.CENTER_X+4.2,2.9,STATION_ENTRY_Z-17.0)
+        var target := Vector3(Route.CENTER_X,1.6,STATION_EXIT_Z+25.0)
+        camera.global_position = platform_eye
+        camera.look_at(target,Vector3.UP)
+        return
     _place_consist()
     var cars: Array[Node3D] = []
     for node in train.get_children():
@@ -127,6 +166,8 @@ func _update_camera() -> void:
         camera.global_basis = cars[0].global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
 
 func _set_camera_mode(mode: String) -> void:
+    if mode == "flight":
+        flight_position = camera.global_position
     super._set_camera_mode(mode)
     if mode == "external" and distance > Route.PORTAL_Z:
         orbit_yaw = PI-0.05
