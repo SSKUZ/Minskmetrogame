@@ -211,19 +211,16 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
     if _active.is_empty() or pointer != _pointer:
         return false
     if release:
-        if _active in ["master","brake","brake1","brake2"] and not _dragged:
-            if _active == "master":
-                command("tractionUp")
-            else:
-                command("brake",fmod(brake_demand+0.25,1.25))
+        # Releasing a physical lever never changes its selected notch.
+        # In particular, do not apply an extra traction step on a tap.
         command(_active,0.0,"release")
         _active = ""
         _pointer = -2
         return true
     if relative != Vector2.ZERO and _active in ["master","brake","brake1","brake2"]:
-        if point.distance_to(_drag_origin) > 4.0:
+        if point.distance_to(_drag_origin) > 6.0 or _dragged:
             _dragged = true
-            var value := _lever_start+(_drag_origin.y-point.y)*0.008
+            var value := _lever_start+(_drag_origin.y-point.y)*0.0045
             command(_active,clampf(value,-1.0,1.0) if _active == "master" else clampf(-value+2.0*_lever_start,0.0,1.0))
     return true
 
@@ -612,9 +609,9 @@ func _notification(what: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
-    # Release a captured 3D control even if the pointer ends over screen UI.
-    var released: bool = (event is InputEventScreenTouch and not event.pressed) or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed)
-    if released and not _active.is_empty() and is_instance_valid(game):
+    # Keep captured 3D lever drag/release even when the finger crosses a UI Control.
+    # The main scene routes only initial presses through _unhandled_input.
+    if not _active.is_empty() and is_instance_valid(game) and (event is InputEventScreenDrag or event is InputEventScreenTouch or event is InputEventMouseMotion or event is InputEventMouseButton):
         if handle_input(event,game.get("camera") as Camera3D):
             get_viewport().set_input_as_handled()
     if event is InputEventKey and not event.pressed and event.physical_keycode == KEY_H:
