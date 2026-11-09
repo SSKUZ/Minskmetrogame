@@ -128,8 +128,10 @@ func _physics_process(delta: float) -> void:
         _set_camera_mode("cabin")
     if camera_mode == "flight" and is_instance_valid(_flight_ui):
         var axis: Vector2 = _flight_ui.get("stick")
-        var forward := Vector3(-sin(orbit_yaw),0.0,-cos(orbit_yaw))
-        var right := Vector3(cos(orbit_yaw),0.0,-sin(orbit_yaw))
+        # Fly relative to the actual camera view, including vertical pitch.
+        var view_basis := Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0.0))
+        var forward := -view_basis.z
+        var right := view_basis.x
         var movement := (right*axis.x-forward*axis.y)*CAMERA_MOVE_SPEED*delta
         var proposed := flight_position+movement
         if proposed.z <= Route.PORTAL_Z:
@@ -140,6 +142,7 @@ func _physics_process(delta: float) -> void:
         else:
             proposed.y = clampf(proposed.y,1.0,35.0)
         flight_position = proposed
+        _update_camera()
     if distance > 442.0:
         distance = 442.0
         speed = 0.0
