@@ -1,5 +1,5 @@
 {
-  "source_commit": "8f5f157e89e6cc153548f9367bc77df3b43e9a21",
+  "source_commit": "4baf284b0e084ad4b4c7e8da145416e2b5c216db",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
@@ -34,9 +34,9 @@
     "scripts/depot/surface_depot_v40.gd": "43735175f5d6f783b45f4b8127f8d4ff6db39639386d2670061404c7dfd08424",
     "scripts/depot/depot_tunnel.gd": "c26898882a5cf2571334763ccc2bc0860a4114fc6629f993cec7a7d253dcb8b2",
     "scripts/depot/depot_track.gd": "a089af5190e1b4e372ded891c033352293559c2e48be50467529edb932832c8e",
-    "scripts/depot/depot_environment_v43.gd": "04f00d2bb4b500a85994e57b03e8711d878f89e1b69f6d75565ea9787f02d3e2",
+    "scripts/depot/depot_environment_v43.gd": "21ba870c5cde8cf590977de7d460d709b517d346cfa4559420bec1c10f0c8b80",
     "scripts/depot/depot_portal.gd": "a5b0ed97923312d4c29a8491c9776ca250de3910f54e6988fcb86fbcd99163ee",
-    "scripts/depot/mobile_inspection_ui.gd": "c092fb8fbe1b355b32d1b9c870c603e07a197c17e6eaeb4492a01c498897622b",
+    "scripts/depot/mobile_inspection_ui.gd": "83fba4a786cac8c35998f6c93a3a7d244dec497b66e783e54b1c5f891c884e05",
     "scripts/depot/depot_builder.gd": "b596db94753452bd24b61b6d8d05776a179eef0a6ef31c68017a8561ff0c6db8",
     "scripts/depot/route_profile.gd": "0c343a25b072e86f5907a4b6518b9e8fb0caa08b29d5c41cb91ceb9d4211595d",
     "scripts/station/uruchye_architecture.gd": "f8b32c2e65c5f16d246a5c8339bf7be429e17e534229fbb6f1d3757791984bfe",
