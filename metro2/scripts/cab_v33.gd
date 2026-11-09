@@ -201,6 +201,10 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
             return false
         var body := hit["collider"] as Node
         _active = str(body.get_meta("cab_control",""))
+        if _active.is_empty(): return false
+        if _active == "master":
+            var ui := game.get("_flight_ui") as Node
+            if is_instance_valid(ui) and ui.has_method("physical_controller_touched"): ui.call("physical_controller_touched")
         _pointer = pointer
         _drag_origin = point
         _dragged = false
@@ -211,6 +215,9 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
     if _active.is_empty() or pointer != _pointer:
         return false
     if release:
+        if _active == "master":
+            var ui := game.get("_flight_ui") as Node
+            if is_instance_valid(ui) and ui.has_method("physical_controller_released"): ui.call("physical_controller_released")
         # Releasing a physical lever never changes its selected notch.
         # In particular, do not apply an extra traction step on a tap.
         command(_active,0.0,"release")
