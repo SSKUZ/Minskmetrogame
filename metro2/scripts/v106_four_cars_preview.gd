@@ -1,6 +1,7 @@
 extends Node3D
 const CAB_RUNTIME = preload("res://scripts/cab_v37.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
+const BOGIE_VISUALS = preload("res://scripts/depot/v106_bogies.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
 const V106_SCENE = preload("res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb")
@@ -41,6 +42,7 @@ var _car_centers: Array[Vector3] = []
 var cab_runtime: Node3D
 var door_system: Node
 var _ui_layer: CanvasLayer
+var _bogie_visuals = BOGIE_VISUALS.new()
 
 func _ready() -> void:
     print("TZ30_BOOT ready")
@@ -88,18 +90,26 @@ func _ready() -> void:
     var second_bounds := _get_model_bounds(second_car)
     if bounds.size.z > 1.0 and second_bounds.size.z > 1.0:
         # Align bounding-box ends, irrespective of each GLB origin.
-        var gap := 0.25
-        second_car.position.z = bounds.position.z + bounds.size.z + gap - second_bounds.position.z
+        var first_body: AABB = _bogie_visuals.body_bounds(original_car,bounds)
+        var second_body: AABB = _bogie_visuals.body_bounds(second_car,second_bounds)
+        var gap: float = _bogie_visuals.half_body_gap(original_car,bounds,second_car,second_bounds)
+        second_car.position.z = first_body.end.z + gap - second_body.position.z
+        _bogie_visuals.shorten_original_coupler(original_car,false)
+        _bogie_visuals.shorten_original_coupler(second_car,true)
         print("CAR02 aligned to CAR01: offset=", second_car.position.z, " gap=", gap)
-        _add_visible_coupler(bounds, second_bounds, second_car.position.z, gap)
+        _add_visible_coupler(first_body, second_body, second_car.position.z, gap)
     var third_car := CAR03_SCENE.instantiate()
     third_car.name = "OriginalV106Car03"
     train.add_child(third_car)
     var third_bounds := _get_model_bounds(third_car)
     if second_bounds.size.z > 1.0 and third_bounds.size.z > 1.0:
-        var third_gap := 0.25
-        third_car.position.z = second_car.position.z + second_bounds.position.z + second_bounds.size.z + third_gap - third_bounds.position.z
-        _add_visible_coupler_between(second_car, second_bounds, third_car, third_bounds, third_gap)
+        var second_body: AABB = _bogie_visuals.body_bounds(second_car,second_bounds)
+        var third_body: AABB = _bogie_visuals.body_bounds(third_car,third_bounds)
+        var third_gap: float = _bogie_visuals.half_body_gap(second_car,second_bounds,third_car,third_bounds)
+        third_car.position.z = second_car.position.z + second_body.end.z + third_gap - third_body.position.z
+        _bogie_visuals.shorten_original_coupler(second_car,false)
+        _bogie_visuals.shorten_original_coupler(third_car,true)
+        _add_visible_coupler_between(second_car, second_body, third_car, third_body, third_gap)
     # Car04 is loaded after the first frame; avoid blocking initial scene setup.
     call_deferred("_attach_fourth_car", third_car, third_bounds)
     # Lightweight straight route, independent from legacy tunnel_v2.gd.
@@ -158,8 +168,13 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     train.add_child(fourth_car)
     var fourth_bounds := _get_model_bounds(fourth_car)
     if third_bounds.size.z > 1.0 and fourth_bounds.size.z > 1.0:
-        var gap04 := 0.25
-        fourth_car.position.z = third_car.position.z + third_bounds.position.z + third_bounds.size.z + gap04 - fourth_bounds.position.z
+        var third_body: AABB = _bogie_visuals.body_bounds(third_car,third_bounds)
+        var fourth_body: AABB = _bogie_visuals.body_bounds(fourth_car,fourth_bounds)
+        var gap04: float = _bogie_visuals.half_body_gap(third_car,third_bounds,fourth_car,fourth_bounds)
+        fourth_car.position.z = third_car.position.z + third_body.end.z + gap04 - fourth_body.position.z
+        _bogie_visuals.shorten_original_coupler(third_car,false)
+        _bogie_visuals.shorten_original_coupler(fourth_car,true)
+        _add_visible_coupler_between(third_car, third_body, fourth_car, fourth_body, gap04)
     print("CAR04 attached; bounds=", fourth_bounds, " offset=", fourth_car.position.z)
     _configure_tunnel()
     _add_headlight()
