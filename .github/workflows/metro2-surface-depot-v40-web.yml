@@ -1,3 +1,4 @@
+# TZ45: one-time Web build and Pages publication for premium controls (source 900a860f).
 name: Metro2 TZ44 caution decal dedup Web
 on:
   workflow_dispatch:
