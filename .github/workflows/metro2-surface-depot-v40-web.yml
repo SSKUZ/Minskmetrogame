@@ -19,6 +19,7 @@ on:
       - 'metro2/scripts/cab_view_cleanup_v37.gd'
       - 'metro2/tools/web_publication.py'
       - 'metro2/scripts/train_interior_v36.gd'
+      - 'metro2/scripts/train_salon_advertising.gd'
       - 'metro2/scripts/v33_door_controller.gd'
       - 'metro2/tools/prepare_cab.py'
       - 'metro2/assets/cab_r21/**'
@@ -97,6 +98,7 @@ jobs:
           mkdir -p stage/assets/v106_warning
           cp metro2/assets/v106_warning/*.png stage/assets/v106_warning/
           cp metro2/scripts/cab_v37.gd metro2/scripts/cab_view_cleanup_v37.gd metro2/scripts/v33_door_controller.gd metro2/scripts/train_interior_v36.gd stage/scripts/
+          cp metro2/scripts/train_salon_advertising.gd stage/scripts/
           mkdir -p stage/assets/cab_r21
           cp -a cab-export/. stage/assets/cab_r21/
           cp metro2/assets/cab_r21/cab_r21.glb.import stage/assets/cab_r21/
