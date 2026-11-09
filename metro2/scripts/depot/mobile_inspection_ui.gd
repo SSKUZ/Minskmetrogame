@@ -220,7 +220,8 @@ func _zone_input(event: InputEvent, zone: Control, is_stick: bool) -> void:
         accept_event()
 
 func _update_zone(point: Vector2, zone: Control, is_stick: bool) -> void:
-    # Control.gui_input supplies local coordinates, not global coordinates.\n    var local := point
+    # Control.gui_input supplies local coordinates, not global coordinates.
+    var local := point
     var half := zone.size * 0.5
     if is_stick:
         stick = Vector2(clampf((local.x-half.x)/maxf(half.x,1.0),-1.0,1.0),clampf((local.y-half.y)/maxf(half.y,1.0),-1.0,1.0))
