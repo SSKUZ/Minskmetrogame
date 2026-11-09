@@ -1,5 +1,5 @@
 {
-  "source_commit": "f6fc0cde22d5f86a842c215b4d0f1aa7adee34ed",
+  "source_commit": "66e5abf14623f8ecda7380a8cc868844535fe103",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
@@ -31,8 +31,8 @@
     "scripts/playable_track_path.gd": "1fc8b27990870dbe2f690c8c0e2c3b9eaeae47de3f82b01c750287d0734f8bc6",
     "scripts/depot/depot_hall.gd": "544b8e4ef0b1a0b955645c5f922b776247c1be487cb3c0f080ac810ad5c05b84",
     "scripts/depot/depot_yard.gd": "a20cba5ffb6ea2f2d73a55c5a9d499dfbac2326af20fb3eb4a62683ec6b822cf",
-    "scripts/depot/surface_depot_v40.gd": "92f60841481138e5ef186f4122e1c62d83357fb30ca34a4aa834dddb9a9eb623",
-    "scripts/depot/depot_tunnel.gd": "580c755b359bef24d6086e6e04047b05a07a5b52cdb63d66fffd27df9ceb723f",
+    "scripts/depot/surface_depot_v40.gd": "d2f0e7b70ceb9a265dd2c931529a36965287c1ad5b1a432c223ab6369401bde7",
+    "scripts/depot/depot_tunnel.gd": "c26898882a5cf2571334763ccc2bc0860a4114fc6629f993cec7a7d253dcb8b2",
     "scripts/depot/depot_track.gd": "a089af5190e1b4e372ded891c033352293559c2e48be50467529edb932832c8e",
     "scripts/depot/depot_portal.gd": "a5b0ed97923312d4c29a8491c9776ca250de3910f54e6988fcb86fbcd99163ee",
     "scripts/depot/depot_builder.gd": "b596db94753452bd24b61b6d8d05776a179eef0a6ef31c68017a8561ff0c6db8",
