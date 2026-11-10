@@ -194,8 +194,30 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     lighting.initialize(self,train,_ui_layer)
     preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
     preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
+    _report_saloon_artwork_v46()
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
+
+func _report_saloon_artwork_v46() -> void:
+    # Temporary visual diagnostic: distinguish missing artwork from hidden geometry.
+    var summary := "TZ46 "
+    for car in train.get_children():
+        if not (car is Node3D) or not str(car.name).begins_with("OriginalV106Car"):
+            continue
+        var holder := (car as Node3D).get_node_or_null("SaloonArtworkV46")
+        var number := str(car.name).trim_prefix("OriginalV106Car")
+        if holder == null:
+            summary += number + ":MISSING "
+            continue
+        summary += "%s:A%d/M%d/L%d " % [number, int(holder.get_meta("advertisements",0)), int(holder.get_meta("network_maps",0)), int(holder.get_meta("line_diagrams",0))]
+    print("TZ46_VISIBLE_DIAGNOSTIC ", summary)
+    var label := Label.new()
+    label.name = "TZ46PlacementDiagnostic"
+    label.text = summary + "\\nA=ads M=maps L=lines"
+    label.position = Vector2(14, 52)
+    label.add_theme_font_size_override("font_size", 16)
+    label.add_theme_color_override("font_color", Color.YELLOW)
+    _ui_layer.add_child(label)
 
 func _add_visible_coupler_between(first: Node3D, first_bounds: AABB, second: Node3D, second_bounds: AABB, gap: float) -> void:
     var end_z := first.position.z + first_bounds.position.z + first_bounds.size.z
