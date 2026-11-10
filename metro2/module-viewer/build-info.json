@@ -1,0 +1,10 @@
+{
+  "source_commit": "ed0cc5d1bf2fcd076c88b2ff454e9398c6728829",
+  "godot": "4.3",
+  "entry": "res://viewers/module_viewer.tscn",
+  "advertising": "ENABLED — V49 FIXED MOUNTS",
+  "published": true,
+  "publication_path": "metro2/module-viewer/",
+  "pack_sha256": "535ec01922cffb896ba02adc83bdc38c8dce2d9b671d7878e8afbfa5ec4a8f8b",
+  "cache_policy": "PCK request nonce and no-store"
+}
