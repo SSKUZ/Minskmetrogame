@@ -14,7 +14,11 @@ var _single_car := false
 var _status: Label
 var _diagnostics: Label
 var _menu: PanelContainer
-var _train_tools: HBoxContainer
+var _train_tools: HFlowContainer
+var _toolbar: HFlowContainer
+var _movement: HFlowContainer
+var _hint: Label
+var _menu_scroll: ScrollContainer
 var _free_button: Button
 var _pan_button: Button
 var _environment: Environment
@@ -30,6 +34,8 @@ func _ready() -> void:
     rig.name = "ViewerCameraRig"
     add_child(rig)
     _build_ui()
+    get_viewport().size_changed.connect(_layout_ui)
+    _layout_ui()
     _set_status("Выберите модуль для осмотра")
     _publish_state()
 
@@ -51,7 +57,7 @@ func _create_world() -> void:
 func _button(parent: Node, text: String, action: Callable) -> Button:
     var button := Button.new()
     button.text = text
-    button.custom_minimum_size = Vector2(90,48)
+    button.custom_minimum_size = Vector2(70,56)
     button.focus_mode = Control.FOCUS_NONE
     button.pressed.connect(action)
     parent.add_child(button)
@@ -61,7 +67,8 @@ func _build_ui() -> void:
     var ui := CanvasLayer.new()
     ui.name = "ViewerInterface"
     add_child(ui)
-    var toolbar := HBoxContainer.new()
+    var toolbar := HFlowContainer.new()
+    _toolbar = toolbar
     toolbar.position = Vector2(10,8)
     ui.add_child(toolbar)
     _button(toolbar,"Модули",func(): _menu.visible = not _menu.visible)
@@ -81,11 +88,16 @@ func _build_ui() -> void:
     _diagnostics.modulate = Color(1.0,0.83,0.35)
     ui.add_child(_diagnostics)
     _menu = PanelContainer.new()
+    _menu.z_index = 10
     _menu.position = Vector2(10,145)
     _menu.custom_minimum_size = Vector2(270,0)
     ui.add_child(_menu)
     var list := VBoxContainer.new()
-    _menu.add_child(list)
+    _menu_scroll = ScrollContainer.new()
+    _menu_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    _menu.add_child(_menu_scroll)
+    list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _menu_scroll.add_child(list)
     for group in [
         ["ПОЕЗДА",[["Состав V106 · 4 вагона","v106"],["Вагон №1","car1"],["Вагон №2","car2"],["Вагон №3","car3"],["Вагон №4","car4"]]],
         ["СТАНЦИИ",[["Уручье","uruchye"]]],
@@ -97,8 +109,8 @@ func _build_ui() -> void:
         for entry in group[1]:
             var key: String = entry[1]
             var button := _button(list,entry[0],func(): open_module(key))
-            button.custom_minimum_size.y = 40
-    _train_tools = HBoxContainer.new()
+            button.custom_minimum_size.y = 52
+    _train_tools = HFlowContainer.new()
     _train_tools.position = Vector2(310,145)
     _train_tools.hide()
     ui.add_child(_train_tools)
@@ -109,8 +121,8 @@ func _build_ui() -> void:
     _button(_train_tools,"Снаружи",func(): focus_car(selected_car))
     _button(_train_tools,"Салон",func(): inspect_interior("salon"))
     _button(_train_tools,"Кабина №1",func(): inspect_interior("cab"))
-    var bottom := HBoxContainer.new()
-    bottom.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+    var bottom := HFlowContainer.new()
+    _movement = bottom
     bottom.position = Vector2(10,-65)
     ui.add_child(bottom)
     for entry in [["←",Vector3.LEFT],["→",Vector3.RIGHT],["Вперёд",Vector3.FORWARD],["Назад",Vector3.BACK],["Выше",Vector3.UP],["Ниже",Vector3.DOWN]]:
@@ -119,7 +131,7 @@ func _build_ui() -> void:
         button.button_down.connect(func(): rig.hold_motion(axis,true))
         button.button_up.connect(func(): rig.hold_motion(axis,false))
     var hint := Label.new()
-    hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+    _hint = hint
     hint.position = Vector2(-520,-35)
     hint.text = "1 палец: вращение · 2: зум · WASD / Q,E: обзор"
     hint.add_theme_font_size_override("font_size",14)
@@ -165,6 +177,7 @@ func open_module(key: String) -> void:
     else:
         _diagnostics.text = "Оригинальный модуль · без загрузки поезда"
     _train_tools.visible = train_selection
+    call_deferred("_layout_ui")
     _menu.hide()
     _configure_light(key)
     _rebuild_collision()
@@ -303,3 +316,33 @@ func diagnostic_state() -> Dictionary:
 func _publish_state() -> void:
     if OS.has_feature("web"):
         JavaScriptBridge.eval("window.metro2ViewerDiagnostics = "+JSON.stringify(diagnostic_state())+"; null",true)
+
+func _layout_ui() -> void:
+    if not is_instance_valid(_toolbar): return
+    var viewport_size := get_viewport().get_visible_rect().size
+    var width := viewport_size.x
+    var height := viewport_size.y
+    var portrait := height > width
+    var top := 90.0
+    _toolbar.position = Vector2(12,top)
+    _toolbar.size.x = width-24.0
+    _toolbar.size.y = 0.0
+    _status.position = Vector2(12,top+68)
+    _status.size = Vector2(width-24,48)
+    _status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _diagnostics.position = Vector2(12,top+118)
+    _diagnostics.size = Vector2(width-24,76)
+    _diagnostics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _train_tools.position = Vector2(12,top+205)
+    _train_tools.size = Vector2(width-24,0)
+    _movement.position = Vector2(12,height-92 if portrait else height-82)
+    _movement.size = Vector2(width-24,0)
+    _hint.position = Vector2(12,height-30)
+    _hint.size.x = width-24
+    _hint.text = "1 палец — вращение · 2 — зум" if portrait else "1 палец: вращение · 2: зум · WASD / Q,E: обзор"
+    var menu_top := top+205
+    _menu.position = Vector2(12,menu_top)
+    _menu.custom_minimum_size = Vector2(minf(340,width-24),0)
+    _menu_scroll.custom_minimum_size = Vector2(0,maxf(80,height-menu_top-110))
+    _menu.size = Vector2(minf(340,width-24),maxf(80,height-menu_top-110))
+    _menu_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL

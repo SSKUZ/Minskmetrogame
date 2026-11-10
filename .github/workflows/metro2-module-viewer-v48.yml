@@ -1,23 +1,25 @@
 name: Metro2 V48 standalone module viewer artifact
 on:
   push:
-    branches: [feature/metro2-universal-viewer-v48]
+    branches: [feature/metro2-viewer-portrait]
     paths:
       - '.github/workflows/metro2-module-viewer-v48.yml'
       - 'metro2/viewers/*.gd'
       - 'metro2/viewers/*.tscn'
       - 'metro2/tools/prepare_module_viewer.py'
+      - 'metro2/tools/finalize_viewer_web.py'
+      - 'metro2/tools/prepare_portrait_publication.py'
       - 'metro2/tests/module_viewer_v48_smoke.gd'
       - 'metro2/scripts/v106_four_cars_preview.gd'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: metro2-viewer-v48-artifact
   cancel-in-progress: false
 jobs:
   viewer:
-    if: github.ref == 'refs/heads/feature/metro2-universal-viewer-v48'
+    if: github.ref == 'refs/heads/feature/metro2-viewer-portrait'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -60,6 +62,9 @@ jobs:
           godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/module_viewer_v48_smoke.gd > viewer-v48-logs/smoke.log 2>&1
           if grep -E 'SCRIPT ERROR|V48_CHECK_FAILED' viewer-v48-logs/smoke.log; then exit 1; fi
           grep 'V48_RESULT PASS' viewer-v48-logs/smoke.log
+          godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/viewer_portrait_layout.gd > viewer-v48-logs/portrait.log 2>&1
+          if grep -E 'SCRIPT ERROR|LAYOUT_FAIL' viewer-v48-logs/portrait.log; then exit 1; fi
+          grep 'PORTRAIT_LAYOUT_PASS' viewer-v48-logs/portrait.log
       - name: Export standalone Web viewer once
         shell: bash
         run: |
@@ -72,6 +77,7 @@ jobs:
             cat viewer-v48-logs/export.log
             exit 1
           fi
+          python3 metro2/tools/finalize_viewer_web.py viewer-v48-web/index.html
           test -s viewer-v48-web/index.html
           test -s viewer-v48-web/index.pck
           test -s viewer-v48-web/index.wasm
@@ -92,4 +98,12 @@ jobs:
         with:
           name: metro2-viewer-v48-validation-${{ github.sha }}
           path: viewer-v48-logs/
+          retention-days: 30
+
+      - name: Prepare isolated viewer update without moving gh-pages
+        run: python3 metro2/tools/prepare_portrait_publication.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: viewer-portrait-publication-proof
+          path: viewer-portrait-publication.json
           retention-days: 30

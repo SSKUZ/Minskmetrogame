@@ -6,7 +6,7 @@ Menu: full V106, cars 1–4, Uruchye, one current 16 m tunnel section, depot. No
 
 ## Controls
 
-- Android: one finger rotates 360 degrees; two fingers pinch to zoom. **Перемещать** changes one-finger dragging to pan. Bottom buttons move in all six directions. Use landscape orientation for the 1280×720 interface.
+- Android: one finger rotates 360 degrees; two fingers pinch to zoom. **Перемещать** changes one-finger dragging to pan. Bottom buttons move in all six directions. Portrait and landscape orientations are supported; the interface reflows when the viewport changes.
 - Computer: left/right drag rotates, middle drag pans, wheel zooms; WASD/arrows move, Q/E move down/up, Shift speeds movement.
 - Train: arrows focus the next/previous wagon; **Снаружи**, **Салон**, **Кабина №1** choose viewpoints. Train movement and its original interactive input are disabled for inspection; no replacement train physics is implemented.
 - **FREE: OFF** protects normal camera movement with a swept sphere against temporary conservative collision bounds. Visual meshes/materials are untouched. Bounds can stop the camera early at curved/complex surfaces. **FREE: ON** deliberately allows passing through geometry for diagnostics. Saloon/cab presets explicitly enter FREE mode. Reset returns to protected external/platform/portal inspection.
@@ -39,3 +39,7 @@ Smoke check: `godot --headless --path STAGED_PROJECT --script res://tests/module
 It covers empty-menu startup, all module types, four-car state, wagon focus, saloon/cab entry, mouse-independent camera methods, touch orbit/pinch, normal/free collision behavior, old subtree release and release of the train resource cache when leaving the train.
 
 No TZ49 work is included.
+
+## Portrait and fullscreen update
+
+The staged viewer uses a 480-unit minimum viewport axis with expanding canvas scaling, so the 3D canvas fills portrait and landscape screens without forced landscape letterboxing. Wrapping toolbars, a scrollable module drawer and bottom movement controls adapt on resize, including fullscreen transitions. The native HTML **На весь экран** button requests fullscreen directly from the click gesture and offers an exit button. Browser refusal/unsupported fullscreen is reported in the page; the viewer remains usable inline. Orientation is not locked. Original models, camera gestures and the live game's project settings are unchanged.

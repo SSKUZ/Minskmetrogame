@@ -18,7 +18,7 @@ def stage(destination: Path) -> None:
     if destination.exists() and any(destination.iterdir()):
         raise SystemExit('Staging directory must be empty')
     destination.mkdir(parents=True, exist_ok=True)
-    queue = ['project.godot', 'tests/module_viewer_v48_smoke.gd']
+    queue = ['project.godot', 'tests/module_viewer_v48_smoke.gd', 'tests/viewer_portrait_layout.gd']
     for folder in ['modules', 'viewers', 'assets/saloon_v46']:
         queue += [str(p.relative_to(ROOT)) for p in (ROOT / folder).rglob('*') if p.is_file() and p.suffix != '.uid']
     seen = set()
@@ -50,8 +50,9 @@ def stage(destination: Path) -> None:
     project = (ROOT / 'project.godot').read_text()
     project = re.sub(r'run/main_scene="[^"]+"', 'run/main_scene="res://viewers/module_viewer.tscn"', project)
     project = project.replace('config/name="Minsk Metro 2.0 - Station V106 Integration"', 'config/name="Minsk Metro 2.0 - Module Viewer V48"')
-    # Keep the logical 1280x720 inspection controls usable in landscape mobile Web.
-    project = project.replace('window/size/viewport_height=720', 'window/size/viewport_height=720\nwindow/stretch/mode="canvas_items"\nwindow/stretch/aspect="keep"')
+    # Use an expanding minimum axis so portrait and landscape both fill the viewport.
+    project = project.replace('window/size/viewport_width=1280','window/size/viewport_width=480')
+    project = project.replace('window/size/viewport_height=720', 'window/size/viewport_height=480\nwindow/stretch/mode="canvas_items"\nwindow/stretch/aspect="expand"')
     (destination / 'project.godot').write_text(project)
     (destination / 'export_presets.cfg').write_text('''[preset.0]
 name="Web Viewer"
