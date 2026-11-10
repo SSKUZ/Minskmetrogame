@@ -1,5 +1,5 @@
 {
-  "source_commit": "ecfcec7a7f6758e341dc061c5ba86714c4573743",
+  "source_commit": "eab47a7bf65b3fe2ad7b6f8a8204b951a75e210e",
   "route": "uruchye-v42",
   "main_scene": "res://scenes/depot/surface_depot_v40.tscn",
   "godot": "4.3",
@@ -22,7 +22,7 @@
     "assets/v106_original/car03/v106_car_03.glb.import": "40ab31d1abea9c7035a27b2b93ccaae823e7a2ccd4f674509a506f5c10f48c4f",
     "scripts/train_interior_v36.gd": "172465c89ef580caec67cb5168c307406dc482ba5695c16d62000295eeb952e3",
     "scripts/v33_door_controller.gd": "f3a066e3a6566119323f1b3f9bca712ad222ccd155f11c549941fc783f5089a3",
-    "scripts/v106_four_cars_preview.gd": "8e67a57239c02226c6cb42e31556d21dd9231fd6a13314b5f49e0c45ed746e36",
+    "scripts/v106_four_cars_preview.gd": "c1ba38ba32e56c0a572aa0921a4c6b4062a72e16989708d4e49a73da817df202",
     "scripts/v106_warning_stickers.gd": "252165f508c092c5ce2a7ea5ee0e3c8be48f06287a2b77445b8109772c492f0e",
     "scripts/cab_view_cleanup_v37.gd": "0d3e195ec2067226aec3594cf1098a25b644eb9cd3fa327e6a641f41e392d88c",
     "scripts/station_base_static.gd": "c04b8e80adb39133ff6ededfdf2e9323436cd1d49670c69344c60ae4e6d0dfbd",
@@ -34,6 +34,7 @@
     "scripts/depot/saloon_equipment.gd": "523dc4bd0ffead89e4dfc2e230ab5718719cc87d56d82db4905cfe89c2a6da59",
     "scripts/depot/v106_bogies.gd": "86c5da1026cf72366330d85c2e009274c06ad1a4ad1e45d992fbe657d85b96ca",
     "scripts/depot/surface_depot_v40.gd": "26e664bb8daa7e50c888db8c53a651b8f58bdf2f635cb132a6db1a5dba7e6e88",
+    "scripts/depot/saloon_advertising_v46.gd": "e751af436a00d9519ceb44c21e0d2c75988fd84b5ed6563f5bf860c58e283632",
     "scripts/depot/depot_tunnel.gd": "c26898882a5cf2571334763ccc2bc0860a4114fc6629f993cec7a7d253dcb8b2",
     "scripts/depot/depot_track.gd": "a089af5190e1b4e372ded891c033352293559c2e48be50467529edb932832c8e",
     "scripts/depot/depot_environment_v43.gd": "21ba870c5cde8cf590977de7d460d709b517d346cfa4559420bec1c10f0c8b80",
