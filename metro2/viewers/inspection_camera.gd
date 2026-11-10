@@ -24,6 +24,8 @@ func _ready() -> void:
     camera.far = 1800.0
     add_child(camera)
     _sphere.radius = 0.18
+    get_window().focus_exited.connect(clear_gestures)
+    get_viewport().size_changed.connect(clear_gestures)
 
 func frame_point(point: Vector3, radius: float) -> void:
     clear_gestures()
@@ -34,6 +36,7 @@ func frame_point(point: Vector3, radius: float) -> void:
     free_mode = false
     enabled = true
     _apply(false)
+    free_mode = true
 
 func enter_interior(pose: Transform3D) -> void:
     clear_gestures()
@@ -65,6 +68,7 @@ func orbit(delta: Vector2) -> void:
 func zoom(ratio: float) -> void:
     if ratio <= 0.0: return
     if free_mode:
+        distance = clampf(distance/ratio,0.7,1800.0)
         camera.global_position -= camera.global_basis.z*log(ratio)*move_speed
     else:
         distance = clampf(distance/ratio,0.7,1800.0)
@@ -118,7 +122,7 @@ func _process(delta: float) -> void:
     if Input.is_physical_key_pressed(KEY_E): axis.y += 1.0
     if axis.length_squared() > 0.0:
         var rate := move_speed*(3.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 1.0)
-        translate_view(camera.global_basis*axis.normalized()*rate*minf(delta,0.05))
+        translate_view(camera.global_basis*axis.limit_length(1.0)*rate*minf(delta,0.05))
 
 func _input(event: InputEvent) -> void:
     # Releases may end over a GUI button and never reach unhandled input.
@@ -128,10 +132,14 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if not enabled: return
+    if event is InputEventMouse and event.device == -1: return
     if event is InputEventScreenTouch:
         if event.pressed: _touches[event.index] = event.position
         else: _touches.erase(event.index)
         _pinch_span = 0.0
+        if _touches.size() >= 2:
+            var points := _touches.values()
+            _pinch_span = (points[0] as Vector2).distance_to(points[1])
     elif event is InputEventScreenDrag and _touches.has(event.index):
         _touches[event.index] = event.position
         if _touches.size() >= 2:
@@ -139,12 +147,10 @@ func _unhandled_input(event: InputEvent) -> void:
             var span := (points[0] as Vector2).distance_to(points[1])
             if _pinch_span > 5.0 and span > 5.0: zoom(span/_pinch_span)
             _pinch_span = span
-        elif pan_mode:
-            pan(event.relative)
         else:
             orbit(event.relative)
     elif event is InputEventMouseMotion and _touches.is_empty():
-        if Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE) or (pan_mode and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)):
+        if Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE) :
             pan(event.relative)
         elif Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
             orbit(event.relative)

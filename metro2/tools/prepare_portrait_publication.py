@@ -8,12 +8,12 @@ from web_publication import GitHub, REPO
 
 PREFIX = 'metro2/module-viewer-v48/'
 OLD = {
-'SHA256SUMS':'4d6b38fd8409dd8b25a854bde8c1019d92dd5a3c',
-'build-info.json':'8ebce1c23664e1c36f8ec3adf0e325cf062f7285',
+'SHA256SUMS':'8c435b2701dbfed4f0c6589a96d1c14b3a685f7c',
+'build-info.json':'fa8adf84d87030f7581adae375f375fbae1119a5',
 'index.audio.worklet.js':'3b94cab85cb937fa27056d17648cdbb73e44bdbd',
-'index.html':'14f4d733ca228c3d02291efbd2b2d4aa9751b3db',
+'index.html':'b7b80fafda0cf5b6cda7f058fdb8c2eb73711aad',
 'index.js':'322c2d1ebb65ff6a0ca2dc8834227d647fea10d4',
-'index.pck':'99fe6feb2552123fd570207531b0af942f2b9e54',
+'index.pck':'9039d61257a1a83af192b6a8c3126d247ea5d29d',
 'index.png':'766b0b66efb1ac8cb53d9cd6b7fa2ef70c6ec559',
 'index.wasm':'f663665cd96bed994e6498ee9defb1e7ec76c8bb'}
 
@@ -47,7 +47,7 @@ assert not after.get('truncated')
 new = {e['path']:(e['mode'],e['type'],e['sha']) for e in after['tree'] if e['type'] != 'tree'}
 assert all(new.get(p)==v for p,v in leaves.items() if not p.startswith(PREFIX))
 assert set(new)==set(leaves)
-commit = api.request(f'/repos/{REPO}/git/commits',method='POST',data={'tree':tree['sha'],'parents':[head],'message':'Update only module viewer: portrait layout and native fullscreen button'})
+commit = api.request(f'/repos/{REPO}/git/commits',method='POST',data={'tree':tree['sha'],'parents':[head],'message':'Update only module viewer: analog joystick and direct free-flight navigation'})
 proof = {'base':head,'commit':commit['sha'],'tree':tree['sha'],'preserved_files':len(leaves)-len(OLD),'sha256':checksums,'ref_updated':False}
 Path('viewer-portrait-publication.json').write_text(json.dumps(proof,indent=2))
 print('PORTRAIT_PUBLICATION_CANDIDATE',json.dumps(proof),flush=True)

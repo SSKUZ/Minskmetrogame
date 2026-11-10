@@ -18,7 +18,7 @@ def stage(destination: Path) -> None:
     if destination.exists() and any(destination.iterdir()):
         raise SystemExit('Staging directory must be empty')
     destination.mkdir(parents=True, exist_ok=True)
-    queue = ['project.godot', 'tests/module_viewer_v48_smoke.gd', 'tests/viewer_portrait_layout.gd']
+    queue = ['project.godot', 'tests/module_viewer_v48_smoke.gd', 'tests/viewer_portrait_layout.gd', 'tests/viewer_joystick_input.gd']
     for folder in ['modules', 'viewers', 'assets/saloon_v46']:
         queue += [str(p.relative_to(ROOT)) for p in (ROOT / folder).rglob('*') if p.is_file() and p.suffix != '.uid']
     seen = set()

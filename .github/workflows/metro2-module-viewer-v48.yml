@@ -1,7 +1,7 @@
 name: Metro2 V48 standalone module viewer artifact
 on:
   push:
-    branches: [feature/metro2-viewer-portrait]
+    branches: [feature/metro2-viewer-joystick]
     paths:
       - '.github/workflows/metro2-module-viewer-v48.yml'
       - 'metro2/viewers/*.gd'
@@ -10,6 +10,7 @@ on:
       - 'metro2/tools/finalize_viewer_web.py'
       - 'metro2/tools/prepare_portrait_publication.py'
       - 'metro2/tests/module_viewer_v48_smoke.gd'
+      - 'metro2/tests/viewer_joystick_input.gd'
       - 'metro2/scripts/v106_four_cars_preview.gd'
   workflow_dispatch:
 permissions:
@@ -19,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   viewer:
-    if: github.ref == 'refs/heads/feature/metro2-viewer-portrait'
+    if: github.ref == 'refs/heads/feature/metro2-viewer-joystick'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -65,6 +66,9 @@ jobs:
           godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/viewer_portrait_layout.gd > viewer-v48-logs/portrait.log 2>&1
           if grep -E 'SCRIPT ERROR|LAYOUT_FAIL' viewer-v48-logs/portrait.log; then exit 1; fi
           grep 'PORTRAIT_LAYOUT_PASS' viewer-v48-logs/portrait.log
+          godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/viewer_joystick_input.gd > viewer-v48-logs/joystick.log 2>&1
+          if grep -E 'SCRIPT ERROR|JOYSTICK_FAIL' viewer-v48-logs/joystick.log; then exit 1; fi
+          grep 'JOYSTICK_PASS' viewer-v48-logs/joystick.log
       - name: Export standalone Web viewer once
         shell: bash
         run: |

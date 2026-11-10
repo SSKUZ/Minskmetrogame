@@ -38,7 +38,8 @@ func _run() -> void:
     viewer.reset_view()
     var before: Vector3 = viewer.rig.camera.global_position
     viewer.rig.orbit(Vector2(1500,20))
-    check(not viewer.rig.camera.global_position.is_equal_approx(before),"orbit changes camera")
+    check(viewer.rig.camera.global_position.is_equal_approx(before),"finger look rotates in place")
+    check(viewer.rig.free_mode,"free flight is always active")
     var distance_before: float = viewer.rig.distance
     viewer.rig.zoom(1.2)
     check(viewer.rig.distance < distance_before,"zoom changes distance")
@@ -73,26 +74,9 @@ func _run() -> void:
     check(previous.get_ref() == null,"train subtree freed before tunnel")
     check(viewer.active_module.has_node("Section16m/ConcreteArch"),"one tunnel section opens")
     check(not ResourceLoader.has_cached("res://assets/v106_original/car04/v106_car_04.glb"),"train resources released after switch")
-    # Dedicated obstacle exercises the normal-mode camera sweep deterministically.
-    var body := StaticBody3D.new()
-    body.collision_layer = 1 << 19
-    var shape := CollisionShape3D.new()
-    var box := BoxShape3D.new(); box.size = Vector3(1,4,4)
-    shape.shape = box
-    body.add_child(shape)
-    body.position = Vector3(500,10,0)
-    viewer.add_child(body)
-    await physics_frame
-    await physics_frame
-    var stopped: Vector3 = viewer.rig.safe_position(Vector3(497,10,0),Vector3(503,10,0))
-    check(stopped.x < 499.6,"normal camera cannot cross obstacle")
-    viewer.rig.set_free(true)
-    var passed: Vector3 = viewer.rig.safe_position(Vector3(497,10,0),Vector3(503,10,0))
-    check(is_equal_approx(passed.x,503.0),"diagnostic camera bypasses obstacle")
-    body.queue_free()
     await viewer.open_module("depot")
     check(viewer.active_module.has_node("FiveBayMaintenanceHall"),"depot opens")
-    check(viewer.diagnostic_state().collision_proxies > 0,"depot camera protection exists")
+    check(viewer.diagnostic_state().collision_proxies == 0,"free-flight viewer creates no camera barriers")
     print("V48_DEPOT_PASS ",JSON.stringify(viewer.diagnostic_state()))
     await viewer.unload_module()
     check(viewer.active_module == null,"return to empty module state")

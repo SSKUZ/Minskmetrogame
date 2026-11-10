@@ -1,7 +1,7 @@
 extends Node3D
 const Catalog = preload("res://modules/core/module_catalog.gd")
 const CameraRig = preload("res://viewers/inspection_camera.gd")
-const Collision = preload("res://viewers/inspection_collision.gd")
+const Joystick = preload("res://viewers/flight_joystick.gd")
 const INSPECTION_TRAIN := "res://viewers/v106_inspection.tscn"
 const AD_STATUS := "ADVERTISING: DISABLED — EXISTING RUNTIME ERROR"
 var active_module: Node3D
@@ -16,11 +16,9 @@ var _diagnostics: Label
 var _menu: PanelContainer
 var _train_tools: HFlowContainer
 var _toolbar: HFlowContainer
-var _movement: HFlowContainer
+var _joystick: Control
 var _hint: Label
 var _menu_scroll: ScrollContainer
-var _free_button: Button
-var _pan_button: Button
 var _environment: Environment
 var _sun: DirectionalLight3D
 var _car_label: Label
@@ -71,12 +69,10 @@ func _build_ui() -> void:
     _toolbar = toolbar
     toolbar.position = Vector2(10,8)
     ui.add_child(toolbar)
-    _button(toolbar,"Модули",func(): _menu.visible = not _menu.visible)
-    _pan_button = _button(toolbar,"Перемещать",func():
-        rig.pan_mode = not rig.pan_mode
-        _pan_button.text = "Перемещать: ДА" if rig.pan_mode else "Перемещать"
+    _button(toolbar,"Модули",func():
+        _menu.visible = not _menu.visible
+        _joystick.visible = not _menu.visible and is_instance_valid(active_module)
         rig.clear_gestures())
-    _free_button = _button(toolbar,"FREE: OFF",_toggle_free)
     _button(toolbar,"Сброс",reset_view)
     _status = Label.new()
     _status.position = Vector2(12,62)
@@ -121,15 +117,12 @@ func _build_ui() -> void:
     _button(_train_tools,"Снаружи",func(): focus_car(selected_car))
     _button(_train_tools,"Салон",func(): inspect_interior("salon"))
     _button(_train_tools,"Кабина №1",func(): inspect_interior("cab"))
-    var bottom := HFlowContainer.new()
-    _movement = bottom
-    bottom.position = Vector2(10,-65)
-    ui.add_child(bottom)
-    for entry in [["←",Vector3.LEFT],["→",Vector3.RIGHT],["Вперёд",Vector3.FORWARD],["Назад",Vector3.BACK],["Выше",Vector3.UP],["Ниже",Vector3.DOWN]]:
-        var axis: Vector3 = entry[1]
-        var button := _button(bottom,entry[0],func(): pass)
-        button.button_down.connect(func(): rig.hold_motion(axis,true))
-        button.button_up.connect(func(): rig.hold_motion(axis,false))
+    _joystick = Joystick.new()
+    _joystick.name = "FlightJoystick"
+    _joystick.size = Vector2(160,160)
+    ui.add_child(_joystick)
+    _joystick.axis_changed.connect(func(axis: Vector2): rig.move_axis = Vector3(axis.x,0,axis.y))
+    _joystick.hide()
     var hint := Label.new()
     _hint = hint
     hint.position = Vector2(-520,-35)
@@ -176,11 +169,11 @@ func open_module(key: String) -> void:
         if _single_car: _diagnostics.text += "\nSINGLE CAR: FULL CONSIST LOADED (V47 DEPENDENCY)"
     else:
         _diagnostics.text = "Оригинальный модуль · без загрузки поезда"
+    _joystick.show()
     _train_tools.visible = train_selection
     call_deferred("_layout_ui")
     _menu.hide()
     _configure_light(key)
-    _rebuild_collision()
     rig.camera.make_current()
     busy = false
     if train_selection:
@@ -202,12 +195,14 @@ func open_module(key: String) -> void:
                 _home_radius = 160.0
         rig.move_speed = 28.0 if key == "depot" else 7.0
         reset_view()
-    _set_status("Открыт: " + key + " · Осмотр")
+    _set_status("Открыт: " + key + " · Свободный полёт")
     _publish_state()
 
 func unload_module() -> void:
     rig.enabled = false
     rig.clear_gestures()
+    _joystick.reset()
+    _joystick.hide()
     if is_instance_valid(collision):
         collision.collision_layer = 0
         collision.queue_free()
@@ -224,12 +219,6 @@ func _configure_light(key: String) -> void:
     _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key == "uruchye" else 1.05
     _environment.background_color = Color(0.006,0.008,0.012) if key == "tunnel_16m" else Color(0.08,0.10,0.13)
 
-func _rebuild_collision() -> void:
-    if is_instance_valid(collision):
-        collision.collision_layer = 0
-        collision.queue_free()
-    collision = Collision.build(active_module,self)
-
 func _set_car_visibility() -> void:
     var consist := active_module.get("train") as Node3D
     for node in consist.get_children():
@@ -242,7 +231,6 @@ func focus_car(index: int) -> void:
     selected_car = clampi(index,1,4)
     if _single_car:
         _set_car_visibility()
-        _rebuild_collision()
     var car := (active_module.get("train") as Node3D).get_node("OriginalV106Car%02d" % selected_car) as Node3D
     var bounds := _bounds(car)
     _home_point = bounds.get_center()
@@ -269,31 +257,20 @@ func inspect_interior(kind: String) -> void:
         pose = mount.global_transform
     _view_kind = kind
     rig.enter_interior(pose)
-    _sync_modes()
-    _set_status("Кабина №1 · FREE: ON" if kind == "cab" else "Салон вагона %d · FREE: ON" % selected_car)
+    _set_status("Кабина №1" if kind == "cab" else "Салон вагона %d" % selected_car)
     _publish_state()
 
 func reset_view() -> void:
     if not is_instance_valid(active_module) or busy: return
     _view_kind = "external"
-    _set_status("Осмотр · защита камеры включена")
+    _set_status("Свободный полёт · джойстик и жесты")
+    _joystick.reset()
     rig.frame_point(_home_point,_home_radius)
     if active_key in ["uruchye","tunnel_16m"]:
         rig.yaw = 0.0
         rig.pitch = 0.03
         rig._apply(false)
-    _sync_modes()
     _publish_state()
-
-func _toggle_free() -> void:
-    if not rig.enabled: return
-    rig.set_free(not rig.free_mode)
-    _sync_modes()
-    _set_status("FREE: ON · проход сквозь геометрию разрешён" if rig.free_mode else "Осмотр · защита камеры включена")
-    _publish_state()
-
-func _sync_modes() -> void:
-    _free_button.text = "FREE: ON" if rig.free_mode else "FREE: OFF"
 
 func _bounds(module: Node3D) -> AABB:
     var result := AABB()
@@ -333,16 +310,15 @@ func _layout_ui() -> void:
     _diagnostics.position = Vector2(12,top+118)
     _diagnostics.size = Vector2(width-24,76)
     _diagnostics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    _train_tools.position = Vector2(12,top+205)
-    _train_tools.size = Vector2(width-24,0)
-    _movement.position = Vector2(12,height-92 if portrait else height-82)
-    _movement.size = Vector2(width-24,0)
+    _train_tools.position = Vector2(12 if portrait else 200,top+205)
+    _train_tools.size = Vector2(width-24 if portrait else width-212,0)
+    _joystick.position = Vector2(20,height-190)
     _hint.position = Vector2(12,height-30)
     _hint.size.x = width-24
-    _hint.text = "1 палец — вращение · 2 — зум" if portrait else "1 палец: вращение · 2: зум · WASD / Q,E: обзор"
+    _hint.text = "Джойстик — полёт · палец — взгляд · 2 — зум" if portrait else "Джойстик / WASD — полёт · палец / мышь — взгляд · 2 пальца / колесо — зум"
     var menu_top := top+205
     _menu.position = Vector2(12,menu_top)
     _menu.custom_minimum_size = Vector2(minf(340,width-24),0)
-    _menu_scroll.custom_minimum_size = Vector2(0,maxf(80,height-menu_top-110))
-    _menu.size = Vector2(minf(340,width-24),maxf(80,height-menu_top-110))
+    _menu_scroll.custom_minimum_size = Vector2(0,maxf(80,height-menu_top-215))
+    _menu.size = Vector2(minf(340,width-24),maxf(80,height-menu_top-215))
     _menu_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
