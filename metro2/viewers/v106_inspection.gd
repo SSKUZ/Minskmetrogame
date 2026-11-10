@@ -1,10 +1,11 @@
 extends "res://modules/trains/v106/v106_train.gd"
-## The exact V47 train, with only the known failing decorators isolated.
-const ADVERTISING_STATUS := "ADVERTISING: DISABLED — EXISTING RUNTIME ERROR"
+## The original V47 train; V49 visual artwork/materials only.
+const ADVERTISING_STATUS := "ADVERTISING: ENABLED — V49 FIXED MOUNTS"
 
 func _decorate_consist() -> void:
-    # Keep both scripts/assets and gameplay behavior unchanged. No coordinate fixes.
-    pass
+    # Keep the legacy body-sticker restoration isolated; no mechanical changes.
+    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
+    preload("res://scripts/depot/saloon_realism_v49.gd").apply(train,door_system)
 
 func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     super._attach_fourth_car(third_car,third_bounds)

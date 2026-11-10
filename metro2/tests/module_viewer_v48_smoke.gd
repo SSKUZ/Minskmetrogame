@@ -25,8 +25,8 @@ func _run() -> void:
     check(state.cars == 4 and state.cab_loaded and state.door_system_ready,"four cars cab and shared doors initialized")
     check(viewer.active_module.get("_station") == null and viewer.active_module.get("_tunnel") == null,"train has no route modules")
     check(not viewer.active_module.is_physics_processing(),"inspection never drives train")
-    check(viewer.diagnostic_state().advertising == "ADVERTISING: DISABLED — EXISTING RUNTIME ERROR","explicit advertising diagnosis")
-    check(viewer.active_module.get("train").find_children("SaloonArtworkV46","Node3D",true,false).is_empty(),"failing decorator isolated")
+    check(viewer.diagnostic_state().advertising == "ADVERTISING: ENABLED — V49 FIXED MOUNTS","enabled advertising diagnosis")
+    check(viewer.active_module.get("train").find_children("SaloonArtworkV46","Node3D",true,false).size() == 4,"artwork attached to all four cars")
     for i in range(1,5):
         viewer.focus_car(i)
         check(viewer.selected_car == i,"focus car %d" % i)

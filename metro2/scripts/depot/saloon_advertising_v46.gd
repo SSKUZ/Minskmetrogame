@@ -1,6 +1,6 @@
 extends RefCounted
 ## TZ46: new surface-mounted saloon artwork. No legacy advertising module.
-## Coordinates come from inward-facing opaque triangles of the imported model.
+## V49 uses fixed mounts on the original opaque interior; legacy helpers retained.
 const PRINT_LAYERS := 1 | (1 << 4) # Camera layer 1 + existing saloon light layer 5.
 const MOUNT_OFFSET := 0.008
 const DIR := "res://assets/saloon_v46/"
@@ -40,64 +40,28 @@ func _material(texture: Texture2D) -> StandardMaterial3D:
     _materials[texture]=material
     return material
 
-func _decorate_car(game: Node3D,car: Node3D,index: int) -> void:
+func _decorate_car(_game: Node3D,car: Node3D,_index: int) -> void:
     if car.has_node("SaloonArtworkV46"): return
-    var geometry := _surfaces(car)
-    var patches: Array=geometry.patches
-    var obstacles: Array=geometry.obstacles
-    var used: Array[Dictionary] = []
+    # V49: fixed original-model mounts, including the sloped upper side panels.
+    # No runtime triangle probing / CylinderMesh access is needed for these cars.
+    var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/saloon_v49/mounts.json"))
+    if not manifest.has(str(car.name)):
+        push_error("V49: no artwork mounts for " + str(car.name))
+        return
     _tools.clear()
-    var maps := 0
-    for end in [-1.0,1.0]:
-        var slot := _slot(patches,obstacles,used,Vector2(0.39,0.52),"map",end)
-        if slot.is_empty():
-            slot=_slot(patches,obstacles,used,Vector2(0.33,0.44),"map",end)
-        if slot.is_empty():
-            slot=_slot(patches,obstacles,used,Vector2(0.27,0.36),"map",end)
-        if slot.is_empty():
-            slot=_anchor_slot(patches,obstacles,used,Vector2(0.27,0.36),"map",end)
-        if not slot.is_empty():
-            _attach(slot,MAP,used)
-            maps+=1
-    # Two selected door headers per car, not every passenger doorway.
-    var routes := 0
-    for header in geometry.headers:
-        if routes >= 2: break
-        var slot := _header_slot(patches,obstacles,used,header,Vector2(1.22,1.22/6.0))
-        if slot.is_empty():
-            slot=_header_slot(patches,obstacles,used,header,Vector2(1.02,0.17))
-        if not slot.is_empty():
-            _attach(slot,LINE,used)
-            routes+=1
-    var ads := 0
-    var portraits := 3 if index%2 == 0 else 2
-    for i in range(5):
-        var vertical := i < portraits
-        var asset_id := _portrait*2+1 if vertical else _banner*2+2
-        if vertical: _portrait+=1
-        else: _banner+=1
-        var texture := load(DIR+"ad_%02d.svg" % asset_id) as Texture2D
-        var dimensions := Vector2(0.27,0.405) if vertical else Vector2(0.81,0.27)
-        var slot := _slot(patches,obstacles,used,dimensions,"poster" if vertical else "banner",-1.0 if (i+index)%2 == 0 else 1.0)
-        if slot.is_empty() and vertical:
-            slot=_slot(patches,obstacles,used,Vector2(0.23,0.345),"poster",1.0)
-        if slot.is_empty() and not vertical:
-            slot=_slot(patches,obstacles,used,Vector2(0.66,0.22),"banner",1.0)
-        if slot.is_empty():
-            var smaller := Vector2(0.23,0.345) if vertical else Vector2(0.66,0.22)
-            for side in [-1.0,1.0]:
-                slot=_anchor_slot(patches,obstacles,used,smaller,"poster",side)
-                if not slot.is_empty(): break
-        if not slot.is_empty():
-            _attach(slot,texture,used)
-            ads+=1
-    var notices := 0
-    for header in geometry.headers:
-        if notices >= 2: break
-        var slot := _header_slot(patches,obstacles,used,header,Vector2(0.49,0.49*320.0/1024.0))
-        if not slot.is_empty():
-            _attach(slot,NOTICE,used)
-            notices+=1
+    var counts := {"advertisement":0,"network_map":0,"line_diagram":0,"notice":0,"emergency_exit":0}
+    for mount in manifest[str(car.name)].mounts:
+        var texture := load(str(mount.asset)) as Texture2D
+        if texture == null:
+            push_error("V49: missing artwork " + str(mount.asset))
+            continue
+        if mount.has("center"):
+            _fixed_print(mount,texture)
+        else:
+            var rect: Array = mount.rect
+            var used: Array[Dictionary] = []
+            _attach({"patch":{"axis":int(mount.axis),"plane":float(mount.plane),"normal":_vector(mount.normal)},"rect":Rect2(rect[0],rect[1],rect[2],rect[3])},texture,used)
+        counts[mount.kind] += 1
     var holder := Node3D.new()
     holder.name="SaloonArtworkV46"
     car.add_child(holder)
@@ -109,18 +73,37 @@ func _decorate_car(game: Node3D,car: Node3D,index: int) -> void:
         mesh.layers=PRINT_LAYERS
         mesh.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         holder.add_child(mesh)
-    var complete := ads == 5 and maps == 2 and routes == 2
-    holder.set_meta("placement_complete",complete)
-    print("TZ46_PLACED car=%s ads=%d maps=%d lines=%d notices=%d" % [car.name,ads,maps,routes,notices])
-    if not complete:
-        push_error("TZ46 incomplete interior placement in %s: ads %d/5, maps %d/2, lines %d/2. No unsupported or exterior mounting is accepted." % [car.name,ads,maps,routes])
-    # Placement metadata records actual attached counts, never assumed ones.
-    holder.set_meta("advertisements",ads)
-    holder.set_meta("network_maps",maps)
-    holder.set_meta("line_diagrams",routes)
-    holder.set_meta("notices",notices)
-    holder.set_meta("surface_source","original inward-facing opaque mesh triangles")
+    holder.set_meta("advertisements",counts.advertisement)
+    holder.set_meta("network_maps",counts.network_map)
+    holder.set_meta("line_diagrams",counts.line_diagram)
+    holder.set_meta("notices",counts.notice)
+    holder.set_meta("emergency_exits",counts.emergency_exit)
+    holder.set_meta("placement_complete",counts.advertisement == 5 and counts.network_map == 2 and counts.line_diagram == 2)
+    holder.set_meta("surface_source","V49 fixed original opaque interior mounts")
+    print("V49_ART car=%s counts=%s" % [car.name,counts])
     _tools.clear()
+
+func _vector(values: Array) -> Vector3:
+    return Vector3(values[0],values[1],values[2])
+
+func _fixed_print(mount: Dictionary,texture: Texture2D) -> void:
+    var center := _vector(mount.center)
+    var right := _vector(mount.right)*float(mount.size[0])*0.5
+    var up := _vector(mount.up)*float(mount.size[1])*0.5
+    var normal := _vector(mount.normal)
+    var points := [center-right-up,center+right-up,center+right+up,center-right+up]
+    var uvs := [Vector2(0,1),Vector2(1,1),Vector2(1,0),Vector2(0,0)]
+    var material := _material(texture)
+    if not _tools.has(material):
+        var surface := SurfaceTool.new()
+        surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+        surface.set_material(material)
+        _tools[material]=surface
+    var surface := _tools[material] as SurfaceTool
+    for i in [0,2,1,0,3,2]:
+        surface.set_normal(normal)
+        surface.set_uv(uvs[i])
+        surface.add_vertex(points[i])
 
 func _surfaces(car: Node3D) -> Dictionary:
     var patches: Dictionary = {}
@@ -168,6 +151,7 @@ func _surfaces(car: Node3D) -> Dictionary:
         var bounds: AABB=pose*mesh.get_aabb()
         if bounds.end.y < 1.55 or bounds.position.y > 3.25: continue
         for surface in range(mesh.mesh.get_surface_count()):
+            if not mesh.mesh is ArrayMesh: continue
             if mesh.mesh.surface_get_primitive_type(surface) != Mesh.PRIMITIVE_TRIANGLES: continue
             var material := mesh.get_active_material(surface) as BaseMaterial3D
             if material == null: continue
@@ -254,13 +238,13 @@ func _slot(patches: Array,obstacles: Array,used: Array[Dictionary],dimensions: V
         var bounds: Rect2=patch.bounds
         if bounds.size.x < dimensions.x+0.015 or bounds.size.y < dimensions.y+0.015: continue
         if kind == "banner" and int(patch.axis) != 0: continue
-        var ys: Array[float]=[2.15,2.38,1.92,2.60] if kind != "banner" else [2.98,3.04,2.88]
+        var ys: Array=[2.15,2.38,1.92,2.60] if kind != "banner" else [2.98,3.04,2.88]
         ys.append(bounds.end.y-dimensions.y*0.5-0.008)
         ys.append(bounds.position.y+dimensions.y*0.5+0.008)
         ys.append(bounds.get_center().y)
         var u0 := bounds.position.x+dimensions.x*0.5+0.008
         var u1 := bounds.end.x-dimensions.x*0.5-0.008
-        var us: Array[float]=[(u0+u1)*0.5,u0,u1]
+        var us: Array=[(u0+u1)*0.5,u0,u1]
         var axis: int=patch.axis
         var projected_axis := 2 if axis == 0 else 0
         for box in patch.get("blockers",obstacles):
@@ -340,10 +324,10 @@ func _anchor_slot(patches: Array,obstacles: Array,used: Array[Dictionary],dimens
         if signf(float(patch.plane)) != preference: continue
         for header in patch.headers:
             if float(header.side) != preference: continue
-            var us: Array[float]=[float(header.z)]
+            var us: Array=[float(header.z)]
             if kind != "line":
                 us=[float(header.start)-dimensions.x*0.5-0.025,float(header.end)+dimensions.x*0.5+0.025]
-            var ys: Array[float]=[float(header.top)+dimensions.y*0.5+0.025] if kind == "line" else [2.30,2.08,2.53]
+            var ys: Array=[float(header.top)+dimensions.y*0.5+0.025] if kind == "line" else [2.30,2.08,2.53]
             for u in us:
                 for y in ys:
                     var rect := Rect2(Vector2(u,y)-dimensions*0.5,dimensions)

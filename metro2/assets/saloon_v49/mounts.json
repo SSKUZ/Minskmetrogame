@@ -1,0 +1,1250 @@
+{
+  "OriginalV106Car01": {
+    "door_z": [
+      -6.3,
+      -1.85,
+      2.55,
+      7.0
+    ],
+    "passenger_z": [
+      -7.6,
+      8.3
+    ],
+    "mounts": [
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_02.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          -4.075
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_04.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          0.35
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_06.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          4.775
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          -4.075
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          4.775
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_01.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          0.35
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_03.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          -3.125
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          -2.36,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          2.04,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          2.31,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          -2.09,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": -1.268,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          -4.195,
+          2.596,
+          0.24,
+          0.048
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": 1.268,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          4.655,
+          2.596,
+          0.24,
+          0.048
+        ]
+      }
+    ]
+  },
+  "OriginalV106Car02": {
+    "door_z": [
+      13.361,
+      17.791,
+      22.221,
+      26.651
+    ],
+    "passenger_z": [
+      12.061,
+      27.951
+    ],
+    "mounts": [
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_08.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          15.576
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_10.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          20.006
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_12.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          24.436
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          15.576
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          24.436
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_05.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          20.006
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_07.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          16.526
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          17.281,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          21.711,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          21.981,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          17.551,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": -1.268,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          15.456,
+          2.596,
+          0.24,
+          0.048
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": 1.268,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          24.316,
+          2.596,
+          0.24,
+          0.048
+        ]
+      }
+    ]
+  },
+  "OriginalV106Car03": {
+    "door_z": [
+      33.367,
+      37.797,
+      42.227,
+      46.657
+    ],
+    "passenger_z": [
+      32.067,
+      47.956999999999994
+    ],
+    "mounts": [
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_14.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          35.582
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_16.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          40.012
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_18.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          44.442
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          35.582
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          44.442
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_09.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          40.012
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_11.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          36.532
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          37.287,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          41.717,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          41.987,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          37.557,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": -1.268,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          35.462,
+          2.596,
+          0.24,
+          0.048
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": 1.268,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          44.322,
+          2.596,
+          0.24,
+          0.048
+        ]
+      }
+    ]
+  },
+  "OriginalV106Car04": {
+    "door_z": [
+      53.018,
+      57.468,
+      61.868,
+      66.318
+    ],
+    "passenger_z": [
+      51.718,
+      67.618
+    ],
+    "mounts": [
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_20.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          55.243
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_02.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          59.668
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_04.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          64.093
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.2
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          55.243
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "network_map",
+        "asset": "res://assets/saloon_v46/minsk_network.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          64.093
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.27,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_13.svg",
+        "center": [
+          -1.140291,
+          3.139617,
+          59.668
+        ],
+        "normal": [
+          0.31245,
+          -0.949934,
+          0.0
+        ],
+        "right": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "advertisement",
+        "asset": "res://assets/saloon_v46/ad_15.svg",
+        "center": [
+          1.140291,
+          3.139617,
+          56.193
+        ],
+        "normal": [
+          -0.31245,
+          -0.949934,
+          -0.0
+        ],
+        "right": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          -0.949934,
+          0.31245,
+          0.0
+        ],
+        "size": [
+          0.24,
+          0.36
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          56.958,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "line_diagram",
+        "asset": "res://assets/saloon_v46/moscow_line.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          61.358,
+          3.048,
+          1.02,
+          0.17
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": -1.085,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          61.628,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "notice",
+        "asset": "res://assets/saloon_v46/passenger_notice.svg",
+        "axis": 0,
+        "plane": 1.085,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          57.228,
+          3.058,
+          0.48,
+          0.15
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": -1.268,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "rect": [
+          55.123,
+          2.596,
+          0.24,
+          0.048
+        ]
+      },
+      {
+        "kind": "emergency_exit",
+        "asset": "res://assets/saloon_v49/emergency_exit.svg",
+        "axis": 0,
+        "plane": 1.268,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "rect": [
+          63.973,
+          2.596,
+          0.24,
+          0.048
+        ]
+      }
+    ]
+  }
+}

@@ -3,7 +3,7 @@ const Catalog = preload("res://modules/core/module_catalog.gd")
 const CameraRig = preload("res://viewers/inspection_camera.gd")
 const Joystick = preload("res://viewers/flight_joystick.gd")
 const INSPECTION_TRAIN := "res://viewers/v106_inspection.tscn"
-const AD_STATUS := "ADVERTISING: DISABLED — EXISTING RUNTIME ERROR"
+const AD_STATUS := "ADVERTISING: ENABLED — V49 FIXED MOUNTS"
 var active_module: Node3D
 var active_key := ""
 var selected_car := 1
