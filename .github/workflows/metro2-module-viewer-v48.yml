@@ -52,40 +52,44 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p viewer-v48-logs
           python3 metro2/tools/prepare_module_viewer.py --output "$RUNNER_TEMP/viewer-project"
-          godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > "$RUNNER_TEMP/viewer-import.log" 2>&1
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/viewer-import.log"; then exit 1; fi
-          godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/module_viewer_v48_smoke.gd > "$RUNNER_TEMP/viewer-smoke.log" 2>&1
-          if grep -E 'SCRIPT ERROR|V48_CHECK_FAILED' "$RUNNER_TEMP/viewer-smoke.log"; then exit 1; fi
-          grep 'V48_RESULT PASS' "$RUNNER_TEMP/viewer-smoke.log"
+          cp "$RUNNER_TEMP/viewer-project/viewer-dependencies.json" viewer-v48-logs/
+          godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v48-logs/import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' viewer-v48-logs/import.log; then exit 1; fi
+          godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/module_viewer_v48_smoke.gd > viewer-v48-logs/smoke.log 2>&1
+          if grep -E 'SCRIPT ERROR|V48_CHECK_FAILED' viewer-v48-logs/smoke.log; then exit 1; fi
+          grep 'V48_RESULT PASS' viewer-v48-logs/smoke.log
       - name: Export standalone Web viewer once
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/viewer-web"
-          godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$RUNNER_TEMP/viewer-web/index.html" > "$RUNNER_TEMP/viewer-export.log" 2>&1
-          test -s "$RUNNER_TEMP/viewer-web/index.html"
-          test -s "$RUNNER_TEMP/viewer-web/index.pck"
-          test -s "$RUNNER_TEMP/viewer-web/index.wasm"
+          mkdir -p viewer-v48-web "$HOME/.local/share/godot/export_templates"
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          if ! godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$PWD/viewer-v48-web/index.html" > viewer-v48-logs/export.log 2>&1; then
+            cat viewer-v48-logs/export.log
+            exit 1
+          fi
+          test -s viewer-v48-web/index.html
+          test -s viewer-v48-web/index.pck
+          test -s viewer-v48-web/index.wasm
           python3 - <<'PY'
           import json,os,pathlib
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'viewer-web'
+          out=pathlib.Path('viewer-v48-web')
           (out/'build-info.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','entry':'res://viewers/module_viewer.tscn','advertising':'DISABLED — EXISTING RUNTIME ERROR','published':False},ensure_ascii=False,indent=2))
           PY
-          cd "$RUNNER_TEMP/viewer-web"
+          cd viewer-v48-web
           sha256sum index.* build-info.json > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: metro2-module-viewer-v48-${{ github.sha }}
-          path: ${{ runner.temp }}/viewer-web/
+          path: viewer-v48-web/
           retention-days: 30
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: metro2-viewer-v48-validation-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/viewer-import.log
-            ${{ runner.temp }}/viewer-smoke.log
-            ${{ runner.temp }}/viewer-export.log
-            ${{ runner.temp }}/viewer-project/viewer-dependencies.json
+          path: viewer-v48-logs/
           retention-days: 30
