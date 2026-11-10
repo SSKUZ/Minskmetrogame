@@ -165,9 +165,7 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     lighting.name = "TrainInteriorLighting"
     add_child(lighting)
     lighting.initialize(self,train,_ui_layer)
-    preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
-    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
-    _report_saloon_artwork_v46()
+    _decorate_consist()
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 
@@ -633,3 +631,9 @@ func _create_route_tunnel() -> void:
     tunnel.name = "LightweightStraightTunnel"
     tunnel.set_script(tunnel_script if tunnel_script != null else load("res://scripts/tunnel_lightweight_straight.gd"))
     add_child(tunnel)
+
+# Viewer-only subclasses can isolate failing decorators without changing gameplay.
+func _decorate_consist() -> void:
+    preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
+    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
+    _report_saloon_artwork_v46()

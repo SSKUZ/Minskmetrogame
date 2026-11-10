@@ -1,0 +1,91 @@
+name: Metro2 V48 standalone module viewer artifact
+on:
+  push:
+    branches: [feature/metro2-universal-viewer-v48]
+    paths:
+      - '.github/workflows/metro2-module-viewer-v48.yml'
+      - 'metro2/viewers/*.gd'
+      - 'metro2/viewers/*.tscn'
+      - 'metro2/tools/prepare_module_viewer.py'
+      - 'metro2/tests/module_viewer_v48_smoke.gd'
+      - 'metro2/scripts/v106_four_cars_preview.gd'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: metro2-viewer-v48-artifact
+  cancel-in-progress: false
+jobs:
+  viewer:
+    if: github.ref == 'refs/heads/feature/metro2-universal-viewer-v48'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore existing verified assets; no model export
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 metro2/tools/prepare_first_playable_assets.py
+          python3 - <<'PY'
+          import hashlib,io,pathlib,sys,zipfile
+          sys.path.insert(0,'metro2/tools')
+          from web_publication import GitHub,Archive,REPO
+          api=GitHub()
+          archive=Archive(api,'7a1ddfc6b07408340eab560904c11de42463b79f')
+          asset=archive.assets['cab-r21-source-7a1ddfc6b07408340eab560904c11de42463b79f-1.zip']
+          data=api.request(f'/repos/{REPO}/releases/assets/{asset["id"]}',raw=True,headers={'Accept':'application/octet-stream'})
+          assert hashlib.sha256(data).hexdigest()=='5cafe0c435faf9a1ad78e69732797225bdc6465853cf7df6f41dd2cc31eab4ae'
+          out=pathlib.Path('metro2/assets/cab_r21')
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None
+              for name in ['cab_r21.glb','cab_r21.json','malinovka_arrival.mp3','malinovka_departure_petrovshchina.mp3']:
+                  (out/name).write_bytes(z.read('assets/cab_r21/'+name))
+          PY
+      - name: Stage only viewer dependencies and check modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/prepare_module_viewer.py --output "$RUNNER_TEMP/viewer-project"
+          godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > "$RUNNER_TEMP/viewer-import.log" 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/viewer-import.log"; then exit 1; fi
+          godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tests/module_viewer_v48_smoke.gd > "$RUNNER_TEMP/viewer-smoke.log" 2>&1
+          if grep -E 'SCRIPT ERROR|V48_CHECK_FAILED' "$RUNNER_TEMP/viewer-smoke.log"; then exit 1; fi
+          grep 'V48_RESULT PASS' "$RUNNER_TEMP/viewer-smoke.log"
+      - name: Export standalone Web viewer once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/viewer-web"
+          godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$RUNNER_TEMP/viewer-web/index.html" > "$RUNNER_TEMP/viewer-export.log" 2>&1
+          test -s "$RUNNER_TEMP/viewer-web/index.html"
+          test -s "$RUNNER_TEMP/viewer-web/index.pck"
+          test -s "$RUNNER_TEMP/viewer-web/index.wasm"
+          python3 - <<'PY'
+          import json,os,pathlib
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'viewer-web'
+          (out/'build-info.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','entry':'res://viewers/module_viewer.tscn','advertising':'DISABLED — EXISTING RUNTIME ERROR','published':False},ensure_ascii=False,indent=2))
+          PY
+          cd "$RUNNER_TEMP/viewer-web"
+          sha256sum index.* build-info.json > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-module-viewer-v48-${{ github.sha }}
+          path: ${{ runner.temp }}/viewer-web/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metro2-viewer-v48-validation-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/viewer-import.log
+            ${{ runner.temp }}/viewer-smoke.log
+            ${{ runner.temp }}/viewer-export.log
+            ${{ runner.temp }}/viewer-project/viewer-dependencies.json
+          retention-days: 30

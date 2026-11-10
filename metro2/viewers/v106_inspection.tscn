@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://modules/trains/v106/v106_train.tscn" id="1"]
+[ext_resource type="Script" path="res://viewers/v106_inspection.gd" id="2"]
+
+[node name="V106Inspection" instance=ExtResource("1")]
+script = ExtResource("2")
+spawn_z = 0.0
