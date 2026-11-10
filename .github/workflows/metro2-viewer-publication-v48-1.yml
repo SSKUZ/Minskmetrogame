@@ -1,0 +1,31 @@
+name: Metro2 V48.1 prepare existing viewer publication
+on:
+  push:
+    branches: [feature/metro2-viewer-publication-v48-1]
+    paths:
+      - '.github/workflows/metro2-viewer-publication-v48-1.yml'
+      - 'metro2/tools/prepare_viewer_publication.py'
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: metro2-viewer-publication-v48-1
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/feature/metro2-viewer-publication-v48-1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify existing ZIP and prepare strictly additive commit without updating gh-pages
+        run: python3 metro2/tools/prepare_viewer_publication.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: viewer-v48-1-publication-proof
+          path: viewer-publication-result.json
+          retention-days: 30
