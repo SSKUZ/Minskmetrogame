@@ -48,29 +48,7 @@ func _ready() -> void:
     print("TZ30_BOOT ready")
     _diagnostics_enabled = OS.has_feature("web")
     print("TZ30_BOOT diagnostics configured")
-    var world := WorldEnvironment.new()
-    var env := Environment.new()
-    env.background_mode = Environment.BG_COLOR
-    env.background_color = Color(0.006, 0.008, 0.012)
-    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    env.ambient_light_color = Color(0.50, 0.49, 0.46)
-    env.ambient_light_energy = 0.085
-    _environment = env
-    env.fog_enabled = true
-    env.fog_mode = Environment.FOG_MODE_DEPTH
-    env.fog_depth_begin = 60.0
-    env.fog_depth_end = 120.0
-    env.fog_depth_curve = 1.2
-    env.fog_density = 1.0
-    env.fog_light_color = Color(0.006,0.008,0.012)
-    env.fog_light_energy = 0.025
-    env.fog_sun_scatter = 0.0
-    world.environment = env
-    add_child(world)
-    var light := DirectionalLight3D.new()
-    light.rotation_degrees = Vector3(-40, -25, 0)
-    light.light_energy = 0.025
-    add_child(light)
+    _create_world_environment()
     train = Node3D.new()
     train.name = "PlayerTrainPlacement"
     add_child(train)
@@ -112,12 +90,7 @@ func _ready() -> void:
         _add_visible_coupler_between(second_car, second_body, third_car, third_body, third_gap)
     # Car04 is loaded after the first frame; avoid blocking initial scene setup.
     call_deferred("_attach_fourth_car", third_car, third_bounds)
-    # Lightweight straight route, independent from legacy tunnel_v2.gd.
-    var tunnel := Node3D.new()
-    _tunnel = tunnel
-    tunnel.name = "LightweightStraightTunnel"
-    tunnel.set_script(tunnel_script if tunnel_script != null else load("res://scripts/tunnel_lightweight_straight.gd"))
-    add_child(tunnel)
+    _create_route_tunnel()
     camera = Camera3D.new()
     camera.current = true
     camera.far = 120
@@ -602,12 +575,12 @@ func diagnostic_state() -> Dictionary:
         "saloon_cars":int(get_node("TrainInteriorLighting").get("cars_lit")) if has_node("TrainInteriorLighting") else 0,
         "cab_textures_verified":int(cab_runtime.get("_source_recipe").get("verified_nonempty_images",0)) if is_instance_valid(cab_runtime) else 0,
         "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
-        "tunnel_visible":_tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
+        "tunnel_visible":is_instance_valid(_tunnel) and _tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
         "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
         "length":_train_bounds.size.z,
-        "modules":_tunnel.call("active_module_count"),
-        "recycles":_tunnel.get("recycle_count"),
-        "coverage":_tunnel.call("coverage_is_valid"),
+        "modules":_tunnel.call("active_module_count") if is_instance_valid(_tunnel) else 0,
+        "recycles":_tunnel.get("recycle_count") if is_instance_valid(_tunnel) else 0,
+        "coverage":_tunnel.call("coverage_is_valid") if is_instance_valid(_tunnel) else false,
         "headlights":train.get_node("OriginalV106Car01").find_children("TrainHeadlight*","SpotLight3D",true,false).size()
     }
 
@@ -626,3 +599,37 @@ func _cycle_car_focus(direction: int) -> void:
     _publish_diagnostics()
 
 
+
+# Composition hooks: legacy defaults are preserved; modules may supply a route/world.
+func _create_world_environment() -> void:
+    var world := WorldEnvironment.new()
+    var env := Environment.new()
+    env.background_mode = Environment.BG_COLOR
+    env.background_color = Color(0.006, 0.008, 0.012)
+    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+    env.ambient_light_color = Color(0.50, 0.49, 0.46)
+    env.ambient_light_energy = 0.085
+    _environment = env
+    env.fog_enabled = true
+    env.fog_mode = Environment.FOG_MODE_DEPTH
+    env.fog_depth_begin = 60.0
+    env.fog_depth_end = 120.0
+    env.fog_depth_curve = 1.2
+    env.fog_density = 1.0
+    env.fog_light_color = Color(0.006,0.008,0.012)
+    env.fog_light_energy = 0.025
+    env.fog_sun_scatter = 0.0
+    world.environment = env
+    add_child(world)
+    var light := DirectionalLight3D.new()
+    light.rotation_degrees = Vector3(-40, -25, 0)
+    light.light_energy = 0.025
+    add_child(light)
+
+func _create_route_tunnel() -> void:
+    # Lightweight straight route, independent from legacy tunnel_v2.gd.
+    var tunnel := Node3D.new()
+    _tunnel = tunnel
+    tunnel.name = "LightweightStraightTunnel"
+    tunnel.set_script(tunnel_script if tunnel_script != null else load("res://scripts/tunnel_lightweight_straight.gd"))
+    add_child(tunnel)

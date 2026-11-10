@@ -100,38 +100,7 @@ func _start_near_station() -> void:
     _update_atmosphere()
 
 func _place_consist() -> void:
-    if not is_instance_valid(train): return
-    for node in train.get_children():
-        if not node is Node3D: continue
-        var car := node as Node3D
-        if str(car.name).begins_with("OriginalV106Car"):
-            if not _pose_cache.has(car): _pose_cache[car] = _get_model_bounds(car)
-            if not _rest_poses.has(car): _rest_poses[car] = car.transform
-            var bounds: AABB = _pose_cache[car]
-            var rest: Transform3D = _rest_poses[car]
-            var center := rest*bounds.get_center()
-            var supports: PackedFloat32Array = _bogie_visuals.setup_car(car,bounds,rest)
-            var front_y := Route.height(train.global_position.z+supports[0])
-            var rear_y := Route.height(train.global_position.z+supports[1])
-            var support_span := maxf(0.1,supports[1]-supports[0])
-            var pitch := -atan2(rear_y-front_y,support_span)
-            var basis := Basis(Vector3.RIGHT,pitch)*rest.basis
-            # Exported cars have different model origins. Rotate about each
-            # carriage centre, never its possibly distant GLB origin.
-            var balance := (center.z-supports[0])/support_span
-            var target := center+Vector3(0,lerpf(front_y,rear_y,balance),0)
-            car.transform = Transform3D(basis,target-basis*bounds.get_center())
-            _bogie_visuals.update_car(car,train,distance)
-        elif car.get_child_count() > 0 and car.get_child(0) is MeshInstance3D:
-            if not car.has_meta("route_coupler_z"):
-                var z := (car.get_child(0) as Node3D).position.z
-                car.set_meta("route_coupler_z",z)
-                car.position.z = z
-                for child in car.get_children():
-                    if child is Node3D: (child as Node3D).position.z -= z
-            var z := float(car.get_meta("route_coupler_z"))
-            car.position.y = Route.height(train.global_position.z+z)
-            car.rotation.x = -atan(Route.grade(train.global_position.z+z))
+    preload("res://scripts/depot/v106_route_placement.gd").place(self,_pose_cache,_rest_poses)
 
 func _configure_tunnel() -> void:
     _place_consist()

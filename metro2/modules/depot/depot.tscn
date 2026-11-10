@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/depot/depot_yard.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/depot/depot_hall.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/depot/depot_track.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/depot/depot_portal.gd" id="5"]
+
+[node name="DepotModule" type="Node3D"]
+
+[node name="DepotTerritoryAndSurroundings" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="FiveBayMaintenanceHall" type="Node3D" parent="."]
+script = ExtResource("3")
+
+[node name="ContinuousSurfaceTracks" type="Node3D" parent="."]
+script = ExtResource("4")
+
+[node name="RetainedCuttingAndTunnelPortal" type="Node3D" parent="."]
+script = ExtResource("5")
+
+[node name="Connections" type="Node3D" parent="."]
+
+[node name="TunnelExit" type="Marker3D" parent="Connections"]
+position = Vector3(0.992, 0, 96)
+
+[node name="TrainSpawn" type="Marker3D" parent="Connections"]
+position = Vector3(0.992, 6, 430)
