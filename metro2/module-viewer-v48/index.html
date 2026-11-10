@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover">
 		<title>Minsk Metro 2.0 - Module Viewer V48</title>
 		<style>
 html, body, #canvas {
@@ -95,7 +95,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":40374192,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":40376064,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -192,6 +192,33 @@ const engine = new Engine(GODOT_CONFIG);
 	}
 }());
 		</script>
-	</body>
+	
+<style>
+html,body {width:100%;height:100%;height:100dvh;overscroll-behavior:none;}
+#viewer-fullscreen {position:fixed;z-index:10000;right:max(10px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));min-height:40px;padding:8px 16px;border:1px solid #687688;border-radius:12px;background:#172131e8;color:white;font:600 14px system-ui;touch-action:manipulation;}
+#viewer-fullscreen-note {position:fixed;z-index:10001;right:10px;top:56px;max-width:85vw;color:white;background:#172131;padding:6px 10px;font:13px system-ui;display:none;}
+</style>
+<button id="viewer-fullscreen" type="button">На весь экран</button>
+<div id="viewer-fullscreen-note" role="status"></div>
+<script>
+(() => {
+ const button=document.getElementById('viewer-fullscreen');
+ const note=document.getElementById('viewer-fullscreen-note');
+ button.addEventListener('click',async () => {
+  try {
+   if(document.fullscreenElement) await document.exitFullscreen();
+   else if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({navigationUI:'hide'});
+   else throw new Error('unsupported');
+   note.style.display='none';
+  } catch(error) {note.textContent='Полноэкранный режим недоступен в этом браузере';note.style.display='block';}
+ });
+ document.addEventListener('fullscreenchange',() => {
+  button.textContent=document.fullscreenElement?'Выйти из полного экрана':'На весь экран';
+  window.dispatchEvent(new Event('resize'));
+ });
+})();
+</script>
+
+</body>
 </html>
 
