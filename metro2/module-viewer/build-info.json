@@ -124,8 +124,8 @@
   },
   "entry": "res://viewers/module_viewer.tscn",
   "uruchye_photo_rebuild": {
-    "source_commit": "08cd1b979ede0cb98a56528c8573baac49cc62e3",
+    "source_commit": "a03a336b3793a9a08e8c9f76b672e933ad083b16",
     "reference": "owner photographs 6695–6709",
-    "pack": "uruchye-9d3266033f7802f7bc5c.pck"
+    "pack": "uruchye-782349f747301f21c18c.pck"
   }
 }
