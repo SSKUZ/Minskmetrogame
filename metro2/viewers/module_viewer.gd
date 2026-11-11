@@ -153,8 +153,30 @@ func open_module(key: String) -> void:
     await get_tree().process_frame
     var train_selection := key == "v106" or key.begins_with("car")
     if train_selection:
-        var scene := load(INSPECTION_TRAIN) as PackedScene
-        if scene != null: active_module = scene.instantiate() as Node3D
+        # Keep the viewer responsive while Godot loads the heavy V106 scene.
+        var request_error := ResourceLoader.load_threaded_request(INSPECTION_TRAIN)
+        if request_error != OK:
+            _set_status("Ошибка запуска загрузки V106: " + str(request_error))
+            busy = false
+            _menu.show()
+            return
+        var progress := []
+        var state := ResourceLoader.THREAD_LOAD_IN_PROGRESS
+        while state == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+            await get_tree().process_frame
+            state = ResourceLoader.load_threaded_get_status(INSPECTION_TRAIN, progress)
+            if progress.size() > 0:
+                _set_status("Подготовка V106: %d%%" % int(float(progress[0]) * 100.0))
+        if state != ResourceLoader.THREAD_LOAD_LOADED:
+            _set_status("Ошибка загрузки сцены V106: " + str(state))
+            busy = false
+            _menu.show()
+            return
+        var scene := ResourceLoader.load_threaded_get(INSPECTION_TRAIN) as PackedScene
+        if scene != null:
+            _set_status("Создание состава V106…")
+            await get_tree().process_frame
+            active_module = scene.instantiate() as Node3D
     else:
         active_module = Catalog.create_module(key)
     if active_module == null:
