@@ -4,6 +4,7 @@ on:
     branches: [feature/metro2-viewer-fast-loading-v48-2]
     paths:
       - '.github/workflows/metro2-viewer-fast-loading.yml'
+      - 'metro2/viewers/module_viewer.gd'
   workflow_dispatch:
 permissions:
   contents: write
