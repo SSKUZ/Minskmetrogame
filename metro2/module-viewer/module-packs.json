@@ -44,10 +44,17 @@
       "warmup": []
     },
     "uruchye": {
-      "bytes": 169408,
-      "file": "uruchye-19f7e956ccd625d77d72.pck",
-      "sha256": "19f7e956ccd625d77d7222f3537f40dc43e58d8149acb53087589625d7564b14",
+      "bytes": 427520,
+      "file": "uruchye-ef305b522976ade64212.pck",
+      "sha256": "ef305b522976ade64212b105a4c0ffabaf85bbbf8aab46eb01f736881e005a34",
       "warmup": [
+        "res://assets/station/photo_reference/ad_city.png",
+        "res://assets/station/photo_reference/ad_theatre.png",
+        "res://assets/station/photo_reference/ad_travel.png",
+        "res://assets/station/photo_reference/exit_a.png",
+        "res://assets/station/photo_reference/exit_b.png",
+        "res://assets/station/photo_reference/no_boarding.png",
+        "res://assets/station/photo_reference/route.png",
         "res://assets/station/uruchye_granite.png"
       ]
     },
@@ -134,5 +141,6 @@
       ]
     }
   },
-  "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813"
+  "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813",
+  "uruchye_source_commit": "534bf16b41b93717f8e9a02c0935de6905cd65d4"
 }
