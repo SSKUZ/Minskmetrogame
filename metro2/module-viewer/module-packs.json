@@ -45,16 +45,16 @@
     },
     "uruchye": {
       "bytes": 169408,
-      "file": "uruchye-93316f33c36ac4c60382.pck",
-      "sha256": "93316f33c36ac4c60382ec5ba27e498891d781088295e49efa543ac2badec11e",
+      "file": "uruchye-19f7e956ccd625d77d72.pck",
+      "sha256": "19f7e956ccd625d77d7222f3537f40dc43e58d8149acb53087589625d7564b14",
       "warmup": [
         "res://assets/station/uruchye_granite.png"
       ]
     },
     "v106": {
       "bytes": 47046240,
-      "file": "v106-c6399f846459d4b46cdb.pck",
-      "sha256": "c6399f846459d4b46cdb2ca9e6b39cc92c636c8b3d9cc81ffe4bbbc60d7bfd18",
+      "file": "v106-448939aef3bf0f157cb5.pck",
+      "sha256": "448939aef3bf0f157cb55835ad672ebdf68c62307fb7b918fa2578592e5e9c72",
       "warmup": [
         "res://assets/cab_r21/cab_r21_0.png",
         "res://assets/cab_r21/cab_r21_1.png",
@@ -134,5 +134,5 @@
       ]
     }
   },
-  "source_commit": "23755aa7ef23e346cbfa79454c9d9601b38bb318"
+  "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813"
 }
