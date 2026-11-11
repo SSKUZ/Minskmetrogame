@@ -44,9 +44,9 @@
       "warmup": []
     },
     "uruchye": {
-      "bytes": 427520,
-      "file": "uruchye-ef305b522976ade64212.pck",
-      "sha256": "ef305b522976ade64212b105a4c0ffabaf85bbbf8aab46eb01f736881e005a34",
+      "bytes": 427552,
+      "file": "uruchye-9d3266033f7802f7bc5c.pck",
+      "sha256": "9d3266033f7802f7bc5c8073dd477277ee4cac0143220810ebc31e5cf5ad5c04",
       "warmup": [
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
@@ -142,5 +142,5 @@
     }
   },
   "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813",
-  "uruchye_source_commit": "534bf16b41b93717f8e9a02c0935de6905cd65d4"
+  "uruchye_source_commit": "08cd1b979ede0cb98a56528c8573baac49cc62e3"
 }
