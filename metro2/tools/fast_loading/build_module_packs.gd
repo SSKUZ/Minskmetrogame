@@ -68,6 +68,10 @@ func _build() -> void:
         manifest.modules[id] = requirements
     _write(output.path_join("module-packs.json"), JSON.stringify(manifest,"  "))
     _write(output.path_join("pack-resources.json"), JSON.stringify(report,"  "))
+    for group in report.resources:
+        for path in report.resources[group]:
+            if str(path).contains("v106_car_03_1"):
+                print("PACK_IMPORT_MAPPING ", group, " ", path)
     print("MODULE_PACKS_READY ", JSON.stringify(manifest))
     quit(0)
 
@@ -89,6 +93,7 @@ func _expand(source: String, files: Dictionary) -> bool:
         var local := "user://pack-remap-" + source.sha256_text() + ".remap"
         _write(local, remap)
         files[source + ".remap"] = local
+        files[source + ".import"] = source + ".import"
         if not _add_imported(target,files): return false
         if source.ends_with(".glb"):
             # GLTF imports can embed Texture2D subresources referencing generated
@@ -110,6 +115,16 @@ func _add_imported(path: String, files: Dictionary) -> bool:
     if files.has(path): return true
     if not FileAccess.file_exists(path): return _fail("Missing imported resource " + path)
     files[path] = path
+    # Embedded GLTF subresources can retain the canonical .ctex path while
+    # the texture importer emits a feature-specific .s3tc.ctex file.
+    # A tiny redirect preserves that path without copying the texture bytes.
+    for variant in [".s3tc.ctex", ".bptc.ctex", ".etc2.ctex", ".astc.ctex"]:
+        if path.ends_with(variant):
+            var canonical := path.trim_suffix(variant) + ".ctex"
+            if not FileAccess.file_exists(canonical):
+                var alias := "user://pack-alias-" + canonical.sha256_text() + ".remap"
+                _write(alias, "[remap]\n\npath=\"" + path + "\"\n")
+                files[canonical + ".remap"] = alias
     for dependency in ResourceLoader.get_dependencies(path):
         # 4.3 dependencies may contain uid::type::fallback-path.
         var target: String = str(dependency).split("::")[-1]

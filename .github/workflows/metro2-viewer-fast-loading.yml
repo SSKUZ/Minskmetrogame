@@ -65,6 +65,7 @@ jobs:
           mkdir -p viewer-v49-web
           docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tools/fast_loading/build_module_packs.gd > viewer-v49-logs/packs.log 2>&1
           if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/packs.log; then exit 1; fi
+          cp viewer-v49-web/pack-resources.json viewer-v49-logs/
       - name: Verify isolated resource-pack loading and finalize export
         shell: bash
         run: |
@@ -77,6 +78,7 @@ jobs:
           cd viewer-v49-web
           sha256sum *.pck *.wasm *.js index.html module-packs.json build-info.json > SHA256SUMS
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: metro2-fast-viewer-${{ github.sha }}
           path: viewer-v49-web/

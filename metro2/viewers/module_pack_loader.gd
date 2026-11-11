@@ -55,6 +55,7 @@ func _download_pack(id: String, title: String) -> bool:
     request.timeout = 180.0
     request.download_file = target
     add_child(request)
+    var phase := "общих ресурсов" if id == "shared" else "модуля " + title
     var completed: Array = []
     request.request_completed.connect(func(result: int, code: int, headers: PackedStringArray, body: PackedByteArray): completed.append([result, code, headers, body]))
     var started := request.request(_base_url + str(info.file))
@@ -65,9 +66,9 @@ func _download_pack(id: String, title: String) -> bool:
         var received := request.get_downloaded_bytes()
         var total := int(info.bytes)
         if received > 0 and total > 0:
-            progress.emit("Загрузка модуля %s — %d%%" % [title, mini(100, int(received * 100 / total))])
+            progress.emit("Загрузка %s — %d%%" % [phase, mini(100, int(received * 100 / total))])
         else:
-            progress.emit("Загрузка модуля %s…" % title)
+            progress.emit("Загрузка %s…" % phase)
         await get_tree().process_frame
     request.queue_free()
     var response: Array = completed[0]
