@@ -237,7 +237,7 @@ func _columns_and_ceiling() -> void:
             _rib(side,z)
             _box(Vector3(2.25,0.09,0.15),Vector3(CX+side*3.60,5.47,z),steel)
             _box(Vector3(2.08,0.026,0.10),Vector3(CX+side*3.60,5.412,z),glow)
-            var x := CX+side*5.55
+            var x: float = CX+side*5.55
             _batch("sphere",glow,Transform3D(Basis.from_scale(Vector3.ONE*0.28),Vector3(x,5.53,z)))
             _cylinder(0.075,0.08,Vector3(x,5.36,z),steel)
     for z in [-7.0,86.0]:

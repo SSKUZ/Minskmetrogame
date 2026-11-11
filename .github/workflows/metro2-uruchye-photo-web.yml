@@ -32,7 +32,9 @@ jobs:
         env:
           FAST_VIEWER_OUTPUT: /tmp/uruchye-pack
         run: |
-          godot --headless --editor --path /tmp/uruchye-web --import
+          godot --headless --editor --path /tmp/uruchye-web --import > /tmp/uruchye-import.log 2>&1
+          cat /tmp/uruchye-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load" /tmp/uruchye-import.log; then exit 1; fi
           godot --headless --path /tmp/uruchye-web --script res://tools/fast_loading/build_module_packs.gd
       - name: Publish station update to permanent viewer
         run: python3 metro2/tools/uruchye_web_update.py publish /tmp/uruchye-pack
