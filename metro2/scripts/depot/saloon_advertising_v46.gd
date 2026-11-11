@@ -78,7 +78,7 @@ func _decorate_car(_game: Node3D,car: Node3D,_index: int) -> void:
     holder.set_meta("line_diagrams",counts.line_diagram)
     holder.set_meta("notices",counts.notice)
     holder.set_meta("emergency_exits",counts.emergency_exit)
-    holder.set_meta("placement_complete",counts.advertisement == 5 and counts.network_map == 2 and counts.line_diagram == 2)
+    holder.set_meta("placement_complete",counts.advertisement > 0 and counts.network_map == 2 and counts.line_diagram == 4)
     holder.set_meta("surface_source","V49 fixed original opaque interior mounts")
     print("V49_ART car=%s counts=%s" % [car.name,counts])
     _tools.clear()

@@ -1,4 +1,4 @@
-name: Metro2 Goodmix restored permanent viewer
+name: Metro2 V50 photo saloon permanent viewer
 on:
   push:
     branches: [feature/metro2-goodmix-restore]
@@ -65,7 +65,7 @@ jobs:
           python3 - <<'PY'
           import json,os,pathlib
           out=pathlib.Path('viewer-v49-web')
-          (out/'build-info.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','entry':'res://viewers/module_viewer.tscn','advertising':'ENABLED — V49 FIXED MOUNTS','published':False},ensure_ascii=False,indent=2))
+          (out/'build-info.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','entry':'res://viewers/module_viewer.tscn','advertising':'V50 PHOTO ADVERTISING AND SIGNAGE','published':False},ensure_ascii=False,indent=2))
           PY
           cd viewer-v49-web
           sha256sum index.* build-info.json > SHA256SUMS
@@ -97,5 +97,5 @@ jobs:
             echo "Permanent viewer already current"
             exit 0
           fi
-          git commit -m "Restore original Goodmix Zakhar posters in permanent V106 viewer"
+          git commit -m "Publish V50 photo advertising and signage in permanent viewer"
           git push origin HEAD:gh-pages

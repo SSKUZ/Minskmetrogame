@@ -84,10 +84,10 @@ func _glass_label(car: Node3D,root: Node3D) -> bool:
         var center := box.get_center()
         center.x=box.position.x if normal.x < 0.0 else box.end.x
         center+=normal*0.003
-        center.y=box.position.y+minf(0.17,box.size.y*0.25)
+        center.y=box.position.y+box.size.y*0.52
         var right := Vector3.BACK if normal.x < 0.0 else Vector3.FORWARD
-        var width := minf(0.36,box.size.z*0.88)
-        var up := Vector3.UP*width*160.0/1024.0*0.5
+        var width := minf(0.44,box.size.z*0.88)
+        var up := Vector3.UP*width*240.0/1024.0*0.5
         right*=width*0.5
         var transform := root.global_transform.affine_inverse()*car.global_transform
         var points := [center-right-up,center+right-up,center+right+up,center-right+up]
