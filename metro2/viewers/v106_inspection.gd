@@ -6,6 +6,7 @@ func _decorate_consist() -> void:
     # Keep the legacy body-sticker restoration isolated; no mechanical changes.
     preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
     preload("res://scripts/depot/saloon_realism_v49.gd").apply(train,door_system)
+    preload("res://scripts/depot/goodmix_restore.gd").apply(train)
 
 func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     super._attach_fourth_car(third_car,third_bounds)
