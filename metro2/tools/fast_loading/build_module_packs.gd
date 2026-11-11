@@ -1,6 +1,5 @@
 extends SceneTree
 ## Run with Godot 4.3 after its editor import. Never instantiate a game scene.
-var _generated: Dictionary = {}
 
 func _initialize() -> void:
     call_deferred("_build")
@@ -74,6 +73,7 @@ func _build() -> void:
 
 func _expand(source: String, files: Dictionary) -> bool:
     if source.ends_with(".import") or source.ends_with(".remap"): return true
+    if files.has(source) or files.has(source + ".remap"): return true
     var importer := ConfigFile.new()
     if FileAccess.file_exists(source + ".import"):
         if importer.load(source + ".import") != OK:
@@ -89,7 +89,19 @@ func _expand(source: String, files: Dictionary) -> bool:
         var local := "user://pack-remap-" + source.sha256_text() + ".remap"
         _write(local, remap)
         files[source + ".remap"] = local
-        return _add_imported(target,files)
+        if not _add_imported(target,files): return false
+        if source.ends_with(".glb"):
+            # GLTF imports can embed Texture2D subresources referencing generated
+            # .ctex files that get_dependencies() does not enumerate as externals.
+            # Include this GLB's emitted image imports and runtime texture artifacts.
+            var stem := source.get_file().get_basename()
+            for image in DirAccess.get_files_at(source.get_base_dir()):
+                if str(image).begins_with(stem + "_") and str(image).get_extension() in ["png","jpg","jpeg","webp"]:
+                    if not _expand(source.get_base_dir().path_join(image),files): return false
+            for artifact in DirAccess.get_files_at("res://.godot/imported"):
+                if str(artifact).begins_with(stem + "_") and str(artifact).ends_with(".ctex"):
+                    if not _add_imported("res://.godot/imported/" + str(artifact),files): return false
+        return true
     if not FileAccess.file_exists(source): return _fail("Missing resource " + source)
     files[source] = source
     return true

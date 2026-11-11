@@ -49,13 +49,6 @@ jobs:
           cp "$RUNNER_TEMP/viewer-project/viewer-dependencies.json" viewer-v49-logs/
           docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -w "$RUNNER_TEMP/viewer-project" barichello/godot-ci:4.3 godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v49-logs/import.log 2>&1
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' viewer-v49-logs/import.log; then exit 1; fi
-      - name: Package optional imported resources with native PCKPacker
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p viewer-v49-web
-          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tools/fast_loading/build_module_packs.gd > viewer-v49-logs/packs.log 2>&1
-          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/packs.log; then exit 1; fi
       - name: Export standalone Web viewer once
         shell: bash
         run: |
@@ -65,6 +58,17 @@ jobs:
             cat viewer-v49-logs/export.log
             exit 1
           fi
+      - name: Package optional imported resources with native PCKPacker
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-web
+          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tools/fast_loading/build_module_packs.gd > viewer-v49-logs/packs.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/packs.log; then exit 1; fi
+      - name: Verify isolated resource-pack loading and finalize export
+        shell: bash
+        run: |
+          set -euo pipefail
           mkdir -p "$RUNNER_TEMP/isolated-pack-check"
           docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/isolated-pack-check" --main-pack "$PWD/viewer-v49-web/index.pck" --script res://tools/fast_loading/verify_module_packs.gd > viewer-v49-logs/pack-loading.log 2>&1
           if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/pack-loading.log; then exit 1; fi
