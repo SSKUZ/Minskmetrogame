@@ -137,6 +137,8 @@ func _build_ui() -> void:
 
 func _set_status(message: String) -> void:
     _status.text = message
+    if OS.has_feature("web"):
+        JavaScriptBridge.eval("window.metro2ViewerLoadStatus = "+JSON.stringify(message)+"; null",true)
 
 func open_module(key: String) -> void:
     if busy: return
@@ -153,26 +155,10 @@ func open_module(key: String) -> void:
     await get_tree().process_frame
     var train_selection := key == "v106" or key.begins_with("car")
     if train_selection:
-        # Keep the viewer responsive while Godot loads the heavy V106 scene.
-        var request_error := ResourceLoader.load_threaded_request(INSPECTION_TRAIN)
-        if request_error != OK:
-            _set_status("Ошибка запуска загрузки V106: " + str(request_error))
-            busy = false
-            _menu.show()
-            return
-        var progress := []
-        var state := ResourceLoader.THREAD_LOAD_IN_PROGRESS
-        while state == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-            await get_tree().process_frame
-            state = ResourceLoader.load_threaded_get_status(INSPECTION_TRAIN, progress)
-            if progress.size() > 0:
-                _set_status("Подготовка V106: %d%%" % int(float(progress[0]) * 100.0))
-        if state != ResourceLoader.THREAD_LOAD_LOADED:
-            _set_status("Ошибка загрузки сцены V106: " + str(state))
-            busy = false
-            _menu.show()
-            return
-        var scene := ResourceLoader.load_threaded_get(INSPECTION_TRAIN) as PackedScene
+        # Single-thread Web builds must not wait on a background dependency graph.
+        # Resolve each heavy imported model on the main thread, yielding between
+        # resources; the final scene then reuses those cached resources.
+        var scene: PackedScene = await _pack_loader.prepare_train_scene(INSPECTION_TRAIN)
         if scene != null:
             _set_status("Создание состава V106…")
             await get_tree().process_frame
@@ -180,7 +166,8 @@ func open_module(key: String) -> void:
     else:
         active_module = Catalog.create_module(key)
     if active_module == null:
-        _set_status("Ошибка загрузки модуля: " + key)
+        _menu.show()
+        _set_status("Ошибка загрузки модуля: " + key + ". Можно повторить выбор.")
         busy = false
         return
     active_key = key
@@ -189,7 +176,9 @@ func open_module(key: String) -> void:
     selected_car = int(key.substr(3)) if _single_car else 1
     if train_selection:
         # V47 defers the fourth car. Yield through its initialization once.
-        for i in range(4): await get_tree().process_frame
+        var ready_started := Time.get_ticks_msec()
+        while (not is_instance_valid(active_module.get("door_system")) or not is_instance_valid(active_module.get("cab_runtime"))) and Time.get_ticks_msec()-ready_started < 15000:
+            await get_tree().process_frame
         if not is_instance_valid(active_module.get("door_system")) or not is_instance_valid(active_module.get("cab_runtime")):
             _set_status("Состав не готов; можно выбрать другой модуль")
             busy = false

@@ -1,0 +1,47 @@
+name: V106 viewer loading fix — Web only
+on:
+  push:
+    branches: [fix/v106-viewer-loading]
+    paths:
+      - 'metro2/viewers/module_viewer.gd'
+      - 'metro2/viewers/module_pack_loader.gd'
+      - 'metro2/tools/update_viewer_loading.py'
+      - 'metro2/tools/fast_loading/refresh_boot_pack.gd'
+      - '.github/workflows/metro2-v106-loader-fix.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro2-fast-viewer-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: barichello/godot-ci:4.3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reuse the live Web export and prepare train download chunks
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 metro2/tools/update_viewer_loading.py stage /tmp/viewer-loading-fix
+      - name: Compile changed loader scripts with Godot 4.3
+        run: |
+          godot --headless --editor --path /tmp/viewer-loading-fix/compile-project --import > /tmp/loader-import.log 2>&1
+          cat /tmp/loader-import.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' /tmp/loader-import.log; then exit 1; fi
+      - name: Build updated boot package using the existing export
+        env:
+          FAST_VIEWER_OUTPUT: /tmp/viewer-loading-fix
+          FAST_VIEWER_SOURCE: ${{ github.workspace }}/metro2
+        run: |
+          mkdir -p /tmp/boot-work
+          godot --headless --path /tmp/boot-work --main-pack /tmp/viewer-loading-fix/original-boot.pck --script "$GITHUB_WORKSPACE/metro2/tools/fast_loading/refresh_boot_pack.gd" > /tmp/boot-build.log 2>&1
+          cat /tmp/boot-build.log
+          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/boot-build.log; then exit 1; fi
+      - name: Publish loader and download chunks; keep live station and visual packs
+        run: python3 metro2/tools/update_viewer_loading.py publish /tmp/viewer-loading-fix

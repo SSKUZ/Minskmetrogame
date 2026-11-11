@@ -1,30 +1,31 @@
 extends SceneTree
-## Refresh two loader/check scripts in an existing export with native PCKPacker.
-## Engine binaries and all visual resources are reused byte-for-byte.
+## Replace the two viewer loader scripts in the existing Godot 4.3 Web boot pack.
 func _initialize() -> void:
     var out := OS.get_environment("FAST_VIEWER_OUTPUT")
     var source := OS.get_environment("FAST_VIEWER_SOURCE")
+    var replacements: Array[String] = ["viewers/module_viewer", "viewers/module_pack_loader"]
     var files: Array[String] = []
     _walk("res://",files)
-    var temporary := out.path_join("refreshed-boot.pck")
     var pack := PCKPacker.new()
-    if pack.pck_start(temporary) != OK:
+    if pack.pck_start(out.path_join("refreshed-boot.pck")) != OK:
         quit(1)
         return
     for path in files:
-        if path in ["res://viewers/module_pack_loader.gd","res://tools/fast_loading/verify_module_packs.gd","res://viewers/module_pack_loader.gdc","res://viewers/module_pack_loader.gd.remap","res://tools/fast_loading/verify_module_packs.gdc","res://tools/fast_loading/verify_module_packs.gd.remap"]:
-            continue
+        var replace := false
+        for name in replacements:
+            if path in ["res://"+name+".gd", "res://"+name+".gdc", "res://"+name+".gd.remap"]: replace=true
+        if replace: continue
         if pack.add_file(path,path) != OK:
             quit(1)
             return
-    for name in ["viewers/module_pack_loader.gd","tools/fast_loading/verify_module_packs.gd"]:
-        if pack.add_file("res://"+name,source.path_join(name)) != OK:
+    for name in replacements:
+        if pack.add_file("res://"+name+".gd",source.path_join(name+".gd")) != OK:
             quit(1)
             return
     if pack.flush() != OK:
         quit(1)
         return
-    print("BOOT_SCRIPTS_REFRESHED; engine and module packs unchanged")
+    print("BOOT_LOADERS_UPDATED")
     quit(0)
 
 func _walk(path: String,files: Array[String]) -> void:
