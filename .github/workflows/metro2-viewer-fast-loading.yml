@@ -1,0 +1,109 @@
+name: Metro2 fast loading permanent viewer
+on:
+  push:
+    branches: [feature/metro2-viewer-fast-loading-v48-2]
+    paths:
+      - '.github/workflows/metro2-viewer-fast-loading.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro2-fast-viewer-publish
+  cancel-in-progress: false
+jobs:
+  viewer:
+    if: github.ref == 'refs/heads/feature/metro2-viewer-fast-loading-v48-2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore existing verified assets; no model export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 metro2/tools/prepare_first_playable_assets.py
+          python3 - <<'PY'
+          import hashlib,io,pathlib,sys,zipfile
+          sys.path.insert(0,'metro2/tools')
+          from web_publication import GitHub,Archive,REPO
+          api=GitHub()
+          archive=Archive(api,'7a1ddfc6b07408340eab560904c11de42463b79f')
+          asset=archive.assets['cab-r21-source-7a1ddfc6b07408340eab560904c11de42463b79f-1.zip']
+          data=api.request(f'/repos/{REPO}/releases/assets/{asset["id"]}',raw=True,headers={'Accept':'application/octet-stream'})
+          assert hashlib.sha256(data).hexdigest()=='5cafe0c435faf9a1ad78e69732797225bdc6465853cf7df6f41dd2cc31eab4ae'
+          out=pathlib.Path('metro2/assets/cab_r21')
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None
+              for name in ['cab_r21.glb','cab_r21.json','malinovka_arrival.mp3','malinovka_departure_petrovshchina.mp3']:
+                  (out/name).write_bytes(z.read('assets/cab_r21/'+name))
+          PY
+      - name: Stage viewer dependencies and import resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-logs
+          python3 metro2/tools/prepare_fast_viewer.py --output "$RUNNER_TEMP/viewer-project"
+          cp "$RUNNER_TEMP/viewer-project/viewer-dependencies.json" viewer-v49-logs/
+          docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -w "$RUNNER_TEMP/viewer-project" barichello/godot-ci:4.3 godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v49-logs/import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' viewer-v49-logs/import.log; then exit 1; fi
+      - name: Package optional imported resources with native PCKPacker
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-web
+          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --script res://tools/fast_loading/build_module_packs.gd > viewer-v49-logs/packs.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/packs.log; then exit 1; fi
+      - name: Export standalone Web viewer once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-web
+          if ! docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$PWD/viewer-v49-web/index.html" > viewer-v49-logs/export.log 2>&1; then
+            cat viewer-v49-logs/export.log
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/isolated-pack-check"
+          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/isolated-pack-check" --main-pack "$PWD/viewer-v49-web/index.pck" --script res://tools/fast_loading/verify_module_packs.gd > viewer-v49-logs/pack-loading.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/pack-loading.log; then exit 1; fi
+          grep -q 'PACK_LOADING_OK' viewer-v49-logs/pack-loading.log
+          python3 metro2/tools/finalize_fast_viewer.py viewer-v49-web
+          cd viewer-v49-web
+          sha256sum *.pck *.wasm *.js index.html module-packs.json build-info.json > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-fast-viewer-${{ github.sha }}
+          path: viewer-v49-web/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metro2-fast-loading-technical-${{ github.sha }}
+          path: viewer-v49-logs/
+          retention-days: 30
+
+      - name: Publish only the permanent viewer directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          advertising_head=$(git ls-remote origin refs/heads/feature/metro2-goodmix-restore | cut -f1)
+          if [ "$advertising_head" != a92adccabf913074cfbd89e91b8273b34062083f ]; then
+            echo "Advertising changed since integration base; refusing to overwrite it"
+            exit 1
+          fi
+          git fetch origin gh-pages
+          git worktree add "$RUNNER_TEMP/pages" origin/gh-pages
+          mkdir -p "$RUNNER_TEMP/pages/metro2/module-viewer"
+          cp -a viewer-v49-web/. "$RUNNER_TEMP/pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/pages"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2/module-viewer
+          if git diff --cached --quiet; then
+            echo "Permanent viewer already current"
+            exit 0
+          fi
+          git commit -m "Publish fast module loading with unchanged V50 advertising"
+          git push origin HEAD:gh-pages

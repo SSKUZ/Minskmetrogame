@@ -2,6 +2,8 @@ extends Node3D
 const Catalog = preload("res://modules/core/module_catalog.gd")
 const CameraRig = preload("res://viewers/inspection_camera.gd")
 const Joystick = preload("res://viewers/flight_joystick.gd")
+const PackLoader = preload("res://viewers/module_pack_loader.gd")
+var _pack_loader: Node
 const INSPECTION_TRAIN := "res://viewers/v106_inspection.tscn"
 const AD_STATUS := "ADVERTISING: ENABLED — V49 FIXED MOUNTS"
 var active_module: Node3D
@@ -32,6 +34,9 @@ func _ready() -> void:
     rig.name = "ViewerCameraRig"
     add_child(rig)
     _build_ui()
+    _pack_loader = PackLoader.new()
+    add_child(_pack_loader)
+    _pack_loader.progress.connect(_set_status)
     get_viewport().size_changed.connect(_layout_ui)
     _layout_ui()
     _set_status("Выберите модуль для осмотра")
@@ -140,6 +145,10 @@ func open_module(key: String) -> void:
         return
     busy = true
     _set_status("Загрузка: " + key)
+    if not await _pack_loader.ensure_module(key):
+        busy = false
+        _menu.show()
+        return
     await unload_module()
     await get_tree().process_frame
     var train_selection := key == "v106" or key.begins_with("car")
