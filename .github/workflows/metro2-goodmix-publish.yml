@@ -15,8 +15,6 @@ jobs:
     if: github.ref == 'refs/heads/feature/metro2-goodmix-restore'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    container:
-      image: barichello/godot-ci:4.3
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -25,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          command -v python3
+          python3 --version
           python3 metro2/tools/prepare_first_playable_assets.py
           python3 - <<'PY'
           import hashlib,io,pathlib,sys,zipfile
@@ -49,17 +47,14 @@ jobs:
           mkdir -p viewer-v49-logs
           python3 metro2/tools/prepare_module_viewer.py --output "$RUNNER_TEMP/viewer-project"
           cp "$RUNNER_TEMP/viewer-project/viewer-dependencies.json" viewer-v49-logs/
-          godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v49-logs/import.log 2>&1
+          docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -w "$RUNNER_TEMP/viewer-project" barichello/godot-ci:4.3 godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v49-logs/import.log 2>&1
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' viewer-v49-logs/import.log; then exit 1; fi
       - name: Export standalone Web viewer once
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p viewer-v49-web "$HOME/.local/share/godot/export_templates"
-          if [ "$HOME" != /root ]; then
-            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
-          fi
-          if ! godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$PWD/viewer-v49-web/index.html" > viewer-v49-logs/export.log 2>&1; then
+          mkdir -p viewer-v49-web
+          if ! docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$PWD/viewer-v49-web/index.html" > viewer-v49-logs/export.log 2>&1; then
             cat viewer-v49-logs/export.log
             exit 1
           fi
