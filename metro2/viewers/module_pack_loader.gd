@@ -16,6 +16,8 @@ func ensure_module(key: String) -> bool:
     if _manifest.is_empty():
         progress.emit("Получение списка модулей…")
         var request := HTTPRequest.new()
+        # Web Fetch already decodes Content-Encoding; do not decompress twice.
+        request.accept_gzip = false
         request.timeout = 30.0
         add_child(request)
         var started := request.request(_base_url + "module-packs.json", PackedStringArray(["Cache-Control: no-cache"]))
@@ -25,7 +27,7 @@ func ensure_module(key: String) -> bool:
         var response: Array = await request.request_completed
         request.queue_free()
         if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
-            return _fail("Не удалось получить список модулей")
+            return _fail("Не удалось получить список модулей (HTTP %d, код %d)" % [int(response[1]), int(response[0])])
         var parsed = JSON.parse_string((response[3] as PackedByteArray).get_string_from_utf8())
         if not parsed is Dictionary or not parsed.has("modules") or not parsed.has("packs"):
             return _fail("Некорректный список модулей")
@@ -61,6 +63,8 @@ func _download_pack(id: String, title: String) -> bool:
             return true
         DirAccess.remove_absolute(target)
     var request := HTTPRequest.new()
+    # Browser responses arrive decoded, including when downloading to a file.
+    request.accept_gzip = false
     request.timeout = 180.0
     request.download_file = target
     add_child(request)
@@ -83,7 +87,7 @@ func _download_pack(id: String, title: String) -> bool:
     var response: Array = completed[0]
     if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
         DirAccess.remove_absolute(target)
-        return _fail("Ошибка сети при загрузке «%s»" % title)
+        return _fail("Ошибка сети при загрузке «%s» (HTTP %d, код %d)" % [title, int(response[1]), int(response[0])])
     if FileAccess.get_sha256(target) != str(info.sha256):
         DirAccess.remove_absolute(target)
         return _fail("Пакет «%s» загружен не полностью" % title)

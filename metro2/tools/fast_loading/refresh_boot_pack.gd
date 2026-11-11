@@ -12,7 +12,7 @@ func _initialize() -> void:
         quit(1)
         return
     for path in files:
-        if path in ["res://viewers/module_pack_loader.gdc","res://viewers/module_pack_loader.gd.remap","res://tools/fast_loading/verify_module_packs.gdc","res://tools/fast_loading/verify_module_packs.gd.remap"]:
+        if path in ["res://viewers/module_pack_loader.gd","res://tools/fast_loading/verify_module_packs.gd","res://viewers/module_pack_loader.gdc","res://viewers/module_pack_loader.gd.remap","res://tools/fast_loading/verify_module_packs.gdc","res://tools/fast_loading/verify_module_packs.gd.remap"]:
             continue
         if pack.add_file(path,path) != OK:
             quit(1)
