@@ -1,0 +1,107 @@
+name: Metro2 Goodmix restored permanent viewer
+on:
+  push:
+    branches: [feature/metro2-goodmix-restore]
+    paths:
+      - '.github/workflows/metro2-goodmix-publish.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro2-goodmix-permanent-publish
+  cancel-in-progress: false
+jobs:
+  viewer:
+    if: github.ref == 'refs/heads/feature/metro2-goodmix-restore'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore existing verified assets; no model export
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 metro2/tools/prepare_first_playable_assets.py
+          python3 - <<'PY'
+          import hashlib,io,pathlib,sys,zipfile
+          sys.path.insert(0,'metro2/tools')
+          from web_publication import GitHub,Archive,REPO
+          api=GitHub()
+          archive=Archive(api,'7a1ddfc6b07408340eab560904c11de42463b79f')
+          asset=archive.assets['cab-r21-source-7a1ddfc6b07408340eab560904c11de42463b79f-1.zip']
+          data=api.request(f'/repos/{REPO}/releases/assets/{asset["id"]}',raw=True,headers={'Accept':'application/octet-stream'})
+          assert hashlib.sha256(data).hexdigest()=='5cafe0c435faf9a1ad78e69732797225bdc6465853cf7df6f41dd2cc31eab4ae'
+          out=pathlib.Path('metro2/assets/cab_r21')
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None
+              for name in ['cab_r21.glb','cab_r21.json','malinovka_arrival.mp3','malinovka_departure_petrovshchina.mp3']:
+                  (out/name).write_bytes(z.read('assets/cab_r21/'+name))
+          PY
+      - name: Stage viewer dependencies and import resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-logs
+          python3 metro2/tools/prepare_module_viewer.py --output "$RUNNER_TEMP/viewer-project"
+          cp "$RUNNER_TEMP/viewer-project/viewer-dependencies.json" viewer-v49-logs/
+          godot --headless --editor --path "$RUNNER_TEMP/viewer-project" --import > viewer-v49-logs/import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' viewer-v49-logs/import.log; then exit 1; fi
+      - name: Export standalone Web viewer once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-web "$HOME/.local/share/godot/export_templates"
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          fi
+          if ! godot --headless --path "$RUNNER_TEMP/viewer-project" --export-release 'Web Viewer' "$PWD/viewer-v49-web/index.html" > viewer-v49-logs/export.log 2>&1; then
+            cat viewer-v49-logs/export.log
+            exit 1
+          fi
+          python3 metro2/tools/finalize_viewer_web.py viewer-v49-web/index.html
+          test -s viewer-v49-web/index.html
+          test -s viewer-v49-web/index.pck
+          test -s viewer-v49-web/index.wasm
+          python3 - <<'PY'
+          import json,os,pathlib
+          out=pathlib.Path('viewer-v49-web')
+          (out/'build-info.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'godot':'4.3','entry':'res://viewers/module_viewer.tscn','advertising':'ENABLED — V49 FIXED MOUNTS','published':False},ensure_ascii=False,indent=2))
+          PY
+          cd viewer-v49-web
+          sha256sum index.* build-info.json > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-goodmix-viewer-${{ github.sha }}
+          path: viewer-v49-web/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metro2-goodmix-validation-${{ github.sha }}
+          path: viewer-v49-logs/
+          retention-days: 30
+
+      - name: Publish only the permanent viewer directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages
+          git worktree add "$RUNNER_TEMP/pages" origin/gh-pages
+          mkdir -p "$RUNNER_TEMP/pages/metro2/module-viewer"
+          cp -a viewer-v49-web/. "$RUNNER_TEMP/pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/pages"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2/module-viewer
+          if git diff --cached --quiet; then
+            echo "Permanent viewer already current"
+            exit 0
+          fi
+          git commit -m "Restore original Goodmix Zakhar posters in permanent V106 viewer"
+          git push origin HEAD:gh-pages
