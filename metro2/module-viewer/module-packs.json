@@ -138,6 +138,48 @@
         "res://assets/v106_original/car04/v106_car_04_3.png",
         "res://assets/v106_original/car04/v106_car_04_4.png",
         "res://assets/v106_warning/v106_warning_caution.png"
+      ],
+      "chunks": [
+        {
+          "file": "v106-part-471e566e77d0786f1914.bin",
+          "bytes": 6291456,
+          "sha256": "471e566e77d0786f1914c95d0b4b09b20ee5e795d2e1090b46d3a28807f6f725"
+        },
+        {
+          "file": "v106-part-40a31927524e5c62d9bb.bin",
+          "bytes": 6291456,
+          "sha256": "40a31927524e5c62d9bb812cb2dca6e51f4cc83fe3918ff908147370da626b61"
+        },
+        {
+          "file": "v106-part-760cf63e5b7c5df50c35.bin",
+          "bytes": 6291456,
+          "sha256": "760cf63e5b7c5df50c354814d460fd99df0c1bfbf07cc111ead467f84a42e7f3"
+        },
+        {
+          "file": "v106-part-d62d9afdcc38c85bd740.bin",
+          "bytes": 6291456,
+          "sha256": "d62d9afdcc38c85bd740b966cbed670a1f98c7efe0a65e27ed9169da33400fdd"
+        },
+        {
+          "file": "v106-part-5dcbb0d77ee52bbe88ca.bin",
+          "bytes": 6291456,
+          "sha256": "5dcbb0d77ee52bbe88ca028629131bd929727c5909f23ef7980c016a04a06774"
+        },
+        {
+          "file": "v106-part-c2a5348a7d9085bf1dc1.bin",
+          "bytes": 6291456,
+          "sha256": "c2a5348a7d9085bf1dc10af2893080e787def7df4fa7b21b9e1a0163b68b173a"
+        },
+        {
+          "file": "v106-part-7bbc6938991e97bb28a8.bin",
+          "bytes": 6291456,
+          "sha256": "7bbc6938991e97bb28a895344641da7978881d05af613c4f5777cf159f2e1887"
+        },
+        {
+          "file": "v106-part-51aae174cabb80de7bd2.bin",
+          "bytes": 3006048,
+          "sha256": "51aae174cabb80de7bd2d46fc88f292f2865182ec19067634534a61a92c7c45a"
+        }
       ]
     }
   },

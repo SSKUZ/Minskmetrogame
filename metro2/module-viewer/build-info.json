@@ -4,13 +4,13 @@
   "godot": "4.3",
   "initial_files": {
     "index.html": 6425,
-    "boot-cdca21fc3b9a61c4e5ba.pck": 36096,
     "engine-fe5cebc590758c10bc44.wasm": 35376909,
     "engine-fe5cebc590758c10bc44.js": 331495,
     "engine-fe5cebc590758c10bc44.audio.worklet.js": 7298,
-    "index.png": 21443
+    "index.png": 21443,
+    "boot-f26bc914c86f22bc585b.pck": 43712
   },
-  "initial_bytes": 35779666,
+  "initial_bytes": 35787282,
   "before_initial_bytes": 83793524,
   "module_packs": {
     "depot": {
@@ -127,5 +127,11 @@
     "source_commit": "a03a336b3793a9a08e8c9f76b672e933ad083b16",
     "reference": "owner photographs 6695–6709",
     "pack": "uruchye-782349f747301f21c18c.pck"
+  },
+  "viewer_loading_fix": {
+    "source_commit": "5ff8387ced4f51d8c07d74dfab9627fdc9a2dfe1",
+    "web_resource_loading": "sequential cached models",
+    "download_chunk_bytes": 6291456,
+    "stall_retry_seconds": 20
   }
 }
