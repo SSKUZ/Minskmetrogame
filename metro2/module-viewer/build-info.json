@@ -1,16 +1,16 @@
 {
-  "source_commit": "23755aa7ef23e346cbfa79454c9d9601b38bb318",
+  "source_commit": "bb9c3be068371d94bcd86c9e8eb077e2fac13fa4",
   "advertising_base": "a92adccabf913074cfbd89e91b8273b34062083f",
   "godot": "4.3",
   "initial_files": {
     "index.html": 6425,
-    "boot-9c1c755b57466efda774.pck": 37184,
     "engine-fe5cebc590758c10bc44.wasm": 35376909,
     "engine-fe5cebc590758c10bc44.js": 331495,
     "engine-fe5cebc590758c10bc44.audio.worklet.js": 7298,
-    "index.png": 21443
+    "index.png": 21443,
+    "boot-1ddc7de05610a1fa44e3.pck": 37536
   },
-  "initial_bytes": 35780754,
+  "initial_bytes": 35781106,
   "before_initial_bytes": 83793524,
   "module_packs": {
     "depot": {
@@ -122,5 +122,6 @@
       ]
     }
   },
-  "entry": "res://viewers/module_viewer.tscn"
+  "entry": "res://viewers/module_viewer.tscn",
+  "network_fix": "Browser decodes HTTP content; HTTPRequest.accept_gzip=false prevents duplicate decompression"
 }
