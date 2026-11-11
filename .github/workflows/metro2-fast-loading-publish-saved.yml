@@ -1,0 +1,74 @@
+name: Publish saved fast viewer export without rebuilding Web engine
+on:
+  push:
+    branches: [feature/metro2-viewer-fast-loading-v48-2]
+    paths: ['.github/workflows/metro2-fast-loading-publish-saved.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: metro2-fast-viewer-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/feature/metro2-viewer-fast-loading-v48-2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reuse the saved Godot 4.3 export and unchanged module packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 43058474012 --repo SSKUZ/Minskmetrogame --name metro2-fast-viewer-8cfda8b92572c60c65dd491198f3e7a34fd52b67 --dir viewer-v49-web
+          python3 metro2/tools/refresh_fast_manifest.py viewer-v49-web
+      - name: Refresh the boot loader using native PCKPacker; no Web export
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p viewer-v49-logs "$RUNNER_TEMP/isolated-pack-check"
+          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -e FAST_VIEWER_SOURCE="$PWD/metro2" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/isolated-pack-check" --main-pack "$PWD/viewer-v49-web/index.pck" --script "$PWD/metro2/tools/fast_loading/refresh_boot_pack.gd" > viewer-v49-logs/boot-refresh.log 2>&1
+          mv viewer-v49-web/refreshed-boot.pck viewer-v49-web/index.pck
+      - name: Confirm isolated package loading without instantiating scenes
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/isolated-pack-check" --main-pack "$PWD/viewer-v49-web/index.pck" --script res://tools/fast_loading/verify_module_packs.gd > viewer-v49-logs/pack-loading.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/pack-loading.log; then exit 1; fi
+          grep -q 'PACK_LOADING_OK' viewer-v49-logs/pack-loading.log
+          python3 metro2/tools/finalize_fast_viewer.py viewer-v49-web
+          cd viewer-v49-web
+          sha256sum *.pck *.wasm *.js index.html module-packs.json build-info.json > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-fast-viewer-final-${{ github.sha }}
+          path: viewer-v49-web/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metro2-fast-viewer-resource-check-${{ github.sha }}
+          path: viewer-v49-logs/
+          retention-days: 30
+      - name: Publish only the permanent viewer; retain other pages and backups
+        shell: bash
+        run: |
+          set -euo pipefail
+          advertising_head=$(git ls-remote origin refs/heads/feature/metro2-goodmix-restore | cut -f1)
+          if [ "$advertising_head" != a92adccabf913074cfbd89e91b8273b34062083f ]; then
+            echo "Advertising changed since integration base; refusing to overwrite it"
+            exit 1
+          fi
+          git fetch origin gh-pages
+          git worktree add "$RUNNER_TEMP/pages" origin/gh-pages
+          mkdir -p "$RUNNER_TEMP/pages/metro2/module-viewer"
+          cp -a viewer-v49-web/. "$RUNNER_TEMP/pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/pages"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- metro2/module-viewer
+          git commit -m "Publish on-demand module packs with unchanged V50 visuals"
+          git push origin HEAD:gh-pages

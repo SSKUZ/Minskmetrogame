@@ -3,6 +3,7 @@ extends Node
 signal progress(message: String)
 var _manifest: Dictionary = {}
 var _mounted: Dictionary = {}
+var _textures: Dictionary = {}
 var _base_url := ""
 var error_message := ""
 
@@ -33,10 +34,18 @@ func ensure_module(key: String) -> bool:
     if not _manifest.modules.has(id):
         return _fail("Модуль отсутствует в списке: " + id)
     for pack_id in _manifest.modules[id]:
-        if _mounted.has(pack_id):
-            continue
-        if not await _download_pack(str(pack_id), str(_manifest.names[id])):
-            return false
+        if not _mounted.has(pack_id):
+            if not await _download_pack(str(pack_id), str(_manifest.names[id])):
+                return false
+        # Godot 4.3 imported GLTF scenes can use a generic Texture2D hint for
+        # compressed image dependencies. Resolve their real texture type first.
+        for path in _manifest.packs[pack_id].get("warmup", []):
+            if _textures.has(path): continue
+            progress.emit("Подготовка текстур модуля «%s»…" % str(_manifest.names[id]))
+            var texture := load(str(path)) as Texture2D
+            if texture == null: return _fail("Не удалось прочитать текстуру выбранного модуля")
+            _textures[path] = texture
+            await get_tree().process_frame
     progress.emit("Подготовка модуля «%s»…" % str(_manifest.names[id]))
     await get_tree().process_frame
     return true

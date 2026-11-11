@@ -59,7 +59,11 @@ func _build() -> void:
             _fail("Cannot name pack " + final)
             return
         var file := FileAccess.open(final, FileAccess.READ)
-        manifest.packs[group] = {"file":filename,"sha256":hash,"bytes":file.get_length()}
+        var warmup: Array = []
+        for path in ordered:
+            if str(path).get_basename().get_extension() in ["png","jpg","jpeg","webp","svg"] and str(path).ends_with(".remap"):
+                warmup.append(str(path).trim_suffix(".remap"))
+        manifest.packs[group] = {"file":filename,"sha256":hash,"bytes":file.get_length(),"warmup":warmup}
         report.resources[group] = ordered
     for id in plan.entries:
         var requirements: Array = []
