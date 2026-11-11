@@ -75,6 +75,8 @@ jobs:
           docker run --rm -e FAST_VIEWER_OUTPUT="$PWD/viewer-v49-web" -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/isolated-pack-check" --main-pack "$PWD/viewer-v49-web/index.pck" --script res://tools/fast_loading/verify_module_packs.gd > viewer-v49-logs/pack-loading.log 2>&1
           if grep -E 'SCRIPT ERROR|Parse Error|ERROR:' viewer-v49-logs/pack-loading.log; then exit 1; fi
           grep -q 'PACK_LOADING_OK' viewer-v49-logs/pack-loading.log
+          # Docker-created files are root-owned; allow the host runner to finalize them.
+          sudo chown -R "$(id -u):$(id -g)" viewer-v49-web
           python3 metro2/tools/finalize_fast_viewer.py viewer-v49-web
           cd viewer-v49-web
           sha256sum *.pck *.wasm *.js index.html module-packs.json build-info.json > SHA256SUMS
