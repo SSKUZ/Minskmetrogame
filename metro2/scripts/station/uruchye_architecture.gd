@@ -217,7 +217,7 @@ func _columns_and_ceiling() -> void:
     for i in range(19):
         var z := -1.0+float(i)*4.5
         if absf(z-17.0)<3.0 or absf(z-39.5)<3.0 or absf(z-62.0)<3.0 or z>74.0: continue
-        _cylinder(0.43,3.43,Vector3(CX,FLOOR+1.82,z),blue)
+        _cylinder(0.43,3.64,Vector3(CX,FLOOR+1.99,z),blue)
         _cylinder(0.43,0.17,Vector3(CX,FLOOR+0.085,z),steel)
         _cylinder(0.44,0.48,Vector3(CX,5.22,z),steel)
         _cylinder(0.53,0.055,Vector3(CX,5.49,z),dark)
