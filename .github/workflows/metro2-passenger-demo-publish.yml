@@ -1,4 +1,5 @@
 name: Publish saved Uruchye passenger Web export
+run-name: Fix stalled passenger demo transfers — saved export only
 on:
   push:
     branches: [feature/metro2-passengers-godot-v50]
@@ -32,7 +33,7 @@ jobs:
           git fetch --depth=1 origin gh-pages
           git worktree add "$RUNNER_TEMP/passenger-pages" origin/gh-pages
           mkdir -p "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo"
-          cp -a passenger-web/. "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
+          rsync -a --delete passenger-web/ "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
           cd "$RUNNER_TEMP/passenger-pages"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
