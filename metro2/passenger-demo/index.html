@@ -93,37 +93,100 @@ body {
 			<div id="status-notice"></div>
 		</div>
 
-		<script src="index.js"></script>
+		<script src="index.js?loader=2"></script>
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":109895472,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
-// Transfer the unchanged export in bounded files, then pass its original bytes
-// to Godot's normal preloadFile API. No scene or model changes.
-const passengerPackParts = ["passengers-000.pck.gz.part", "passengers-001.pck.gz.part", "passengers-002.pck.gz.part", "passengers-003.pck.gz.part", "passengers-004.pck.gz.part"];
+const passengerFiles = {"pack":[{"file":"pack-85d23aa8d05660ca-000.bin","size":2097152,"sha256":"b582acc4c632f9df8f236e773aeceeac9815521da559c1e901e213e55c9a375a"},{"file":"pack-85d23aa8d05660ca-001.bin","size":2097152,"sha256":"a9f2348e73d6c5bc759f5e52b857be8ee3bf3a6d58f3c647ad26d761e99f238c"},{"file":"pack-85d23aa8d05660ca-002.bin","size":2097152,"sha256":"eb604ee547655acdbcce832ecefadd6644fdb04c9fb6dea612a144a51c3b904e"},{"file":"pack-85d23aa8d05660ca-003.bin","size":2097152,"sha256":"ae1b68821b4a43ec1f0a9555cefe85b956e37f58d8868461a897bce07641d9a4"},{"file":"pack-85d23aa8d05660ca-004.bin","size":2097152,"sha256":"2483a4b961753734eea99b071b5552e47b09025e212395c728f28b43bd36a75e"},{"file":"pack-85d23aa8d05660ca-005.bin","size":2097152,"sha256":"6aca5911f245b4f354d3cc5f6334923376e222ee4c3628ad44d0d1f3661a2214"},{"file":"pack-85d23aa8d05660ca-006.bin","size":2097152,"sha256":"7760343e9cdacdab5abc4e31ee5a41b3a72e5055308e18192cdd76201a439495"},{"file":"pack-85d23aa8d05660ca-007.bin","size":2097152,"sha256":"eff19bd9425e0c0187e4e80cd5b5a49b7a31a90539dc6060b52db2a3fae61fb1"},{"file":"pack-85d23aa8d05660ca-008.bin","size":2097152,"sha256":"803a693265c9436add15736559f32cb604e0ae553a02b7c7ed99a5c12a3bbf9a"},{"file":"pack-85d23aa8d05660ca-009.bin","size":2097152,"sha256":"5c2ad6f6ff6e29308bea63afca5ea58328ebec0e6af400a27c1ec585e4377e9c"},{"file":"pack-85d23aa8d05660ca-010.bin","size":2097152,"sha256":"6812b0328d01cd8cdb5ba768c3166b96ae6d262dd55c01882b2214619edf4de8"},{"file":"pack-85d23aa8d05660ca-011.bin","size":2097152,"sha256":"c6165c6e5469fd69011f523fffa20e2f5c3c5aec475370b0cdb6ca202008fe8c"},{"file":"pack-85d23aa8d05660ca-012.bin","size":2097152,"sha256":"e4e43c0598b0c070b458d70991497d54831eea8575638fddebc710259a73ed62"},{"file":"pack-85d23aa8d05660ca-013.bin","size":2097152,"sha256":"4654cdefc4b58f97c978c8da48a6d23ba076a824f3c350c563870d044f91f4d3"},{"file":"pack-85d23aa8d05660ca-014.bin","size":2097152,"sha256":"ae0451b0bd7dc6f5de0ce27bd8d9edfec2d89e4362335ea2c23e3fd7ba161dc6"},{"file":"pack-85d23aa8d05660ca-015.bin","size":2097152,"sha256":"c44ce40a7e5a446a02cd67473b6a8b5b3e74f3a64a43510b3905f8f7c5db9ae6"},{"file":"pack-85d23aa8d05660ca-016.bin","size":2097152,"sha256":"08af3c3f6b70484164240ef8fe6244b8fb0737fc389cecb0ed213c02ad2a5d59"},{"file":"pack-85d23aa8d05660ca-017.bin","size":2097152,"sha256":"9c6c6320fef3df3ec54059a22c48bafc02f59f1c4df1cf21099f2fbbce4ee02c"},{"file":"pack-85d23aa8d05660ca-018.bin","size":2097152,"sha256":"742c67b2f27c26036183eee60f4c869346a354114d677dcdf00a6c493a13e31a"},{"file":"pack-85d23aa8d05660ca-019.bin","size":2097152,"sha256":"be6b0825d5257c4efd3adba4cf9c71108d1cf57c31a7cdef49772af979b34387"},{"file":"pack-85d23aa8d05660ca-020.bin","size":2097152,"sha256":"ca977aae21e3230527b4bbb308561b9a4480df6e02e7b215b0a1893a58420121"},{"file":"pack-85d23aa8d05660ca-021.bin","size":2097152,"sha256":"8b778a77cd4559c6310a509247f9e13273c0e355a2a75a68734164fbcb734186"},{"file":"pack-85d23aa8d05660ca-022.bin","size":2097152,"sha256":"d335e40f777a6baa7b14cfbf1baad965b2769543b49886c3584711cca758c9d6"},{"file":"pack-85d23aa8d05660ca-023.bin","size":2097152,"sha256":"39f6537d86dedf9d580e83e0a15703cf83047f964170265553cc749cc3e7507e"},{"file":"pack-85d23aa8d05660ca-024.bin","size":2097152,"sha256":"6157df1f96c76dea1fa76c4b27feae78fff91cc72503f9fd5162ea04166974b5"},{"file":"pack-85d23aa8d05660ca-025.bin","size":2097152,"sha256":"4c1899af463857fcba5148fb4f1c15fec44d6d30ccdcb75d96a428d442657ab6"},{"file":"pack-85d23aa8d05660ca-026.bin","size":2097152,"sha256":"1adec2f25967621284eeb08f1cd91e7d262c65db5a456bdde39c3c1958319663"},{"file":"pack-85d23aa8d05660ca-027.bin","size":2097152,"sha256":"83b405294b70eda663a2e37dc589129d465c855bc94361f75311c2c5fb343c74"},{"file":"pack-85d23aa8d05660ca-028.bin","size":2097152,"sha256":"a55e163d933cbbcbdb526b2ca2a3a71296be1cac7863d18bef9109ccbf37d70a"},{"file":"pack-85d23aa8d05660ca-029.bin","size":2097152,"sha256":"e701922f2a3a3a29d59342879ff43aaefd66cf8ea98024993b6e6668d481722e"},{"file":"pack-85d23aa8d05660ca-030.bin","size":2097152,"sha256":"c853e01de6eaae68a812b446f251cc4f9fb0bdde572e0234e7708953ddc3bc23"},{"file":"pack-85d23aa8d05660ca-031.bin","size":2097152,"sha256":"fd82514519c3d7697cf3b45afdb08146f1dc9452bcac05fb8dd715bc1cd213f2"},{"file":"pack-85d23aa8d05660ca-032.bin","size":2097152,"sha256":"588c3d169580806b878b58d3cdaa6b3bb87a9ee01a5071732b22a4ea2cb3238d"},{"file":"pack-85d23aa8d05660ca-033.bin","size":2097152,"sha256":"b93ef9b27b2de9109f4b6f9f448d6067c04e2d34eb984a55ef5f1db5f4f79506"},{"file":"pack-85d23aa8d05660ca-034.bin","size":2097152,"sha256":"78a5f136fcf7f0f66effad11073032679e92c6e87fce5661d09e62e3ec3a5493"},{"file":"pack-85d23aa8d05660ca-035.bin","size":2097152,"sha256":"95751595c0a86b173966b3bd7584a19c5ced7ce1b281ebb83e48fc26dca20ff1"},{"file":"pack-85d23aa8d05660ca-036.bin","size":2097152,"sha256":"8409c57c129c8b807540e125ccf0921d148add5ff7fcf4f62771fe340f2235e7"},{"file":"pack-85d23aa8d05660ca-037.bin","size":2097152,"sha256":"5dc75f03ef7bf8d5fbccebda1e0a44e7d506ebf3a066358ea0494f7a163df631"},{"file":"pack-85d23aa8d05660ca-038.bin","size":2097152,"sha256":"6d5dd585c54ddb44a62bc1edc7eb32c0262dcca00322458924be24c90e0b0682"},{"file":"pack-85d23aa8d05660ca-039.bin","size":2097152,"sha256":"797f02cc6bf74c01c720c388bc8269a5c11e8b37ac78e034b2490ae4c098bb44"},{"file":"pack-85d23aa8d05660ca-040.bin","size":2097152,"sha256":"de074d908268bc24e865fe899508d4b3555c6480cb3d9cf5c7e61bdb4877f14a"},{"file":"pack-85d23aa8d05660ca-041.bin","size":2097152,"sha256":"6b854ecd075cdec8058803b6d5660f32eed5cb4659ae0fc52223002a1a8e8c79"},{"file":"pack-85d23aa8d05660ca-042.bin","size":2097152,"sha256":"1a19b92bc99422d65fc5417a97d71133cba36e39e4d400fe53421d8ec7ceb1d6"},{"file":"pack-85d23aa8d05660ca-043.bin","size":2097152,"sha256":"72fa772343320582543bbecc3babca1748e1d4bdf5b5ea331898ee9cf0d4010f"},{"file":"pack-85d23aa8d05660ca-044.bin","size":2097152,"sha256":"26e34f6659f3ec578ea1341d99e97d677c6e0263f02bd38fa5a95decd5359bed"},{"file":"pack-85d23aa8d05660ca-045.bin","size":2097152,"sha256":"e51cf6d8320e83f10cffd2fdb2151a754555bc91e14caba43678c7c13f92bf4d"},{"file":"pack-85d23aa8d05660ca-046.bin","size":2097152,"sha256":"4025809783439ae5bf95d83648b6ea14119d076e7d6d667fe5003595c49ac626"},{"file":"pack-85d23aa8d05660ca-047.bin","size":2097152,"sha256":"142c2bcb5a45969a45507eeb72f0fd810573f63590f276593c10145a0624dab8"},{"file":"pack-85d23aa8d05660ca-048.bin","size":1293079,"sha256":"4a3eebab725c881b81f290be52535a7f4876c184f12dd0d519c0d162d77e3e48"}],"wasm":[{"file":"engine-fe5cebc590758c10-000.bin","size":2097152,"sha256":"6cd6dfccc5c337d2e200fc76198d4bac1dd6608b7e9c7e7a5862ceacf9e2f358"},{"file":"engine-fe5cebc590758c10-001.bin","size":2097152,"sha256":"ce48dc3ad192a53269feee1240920f0bfbf773e0eac590a385a3b40060bf79b6"},{"file":"engine-fe5cebc590758c10-002.bin","size":2097152,"sha256":"e55bc0fa3be04b238b3ac2788d799e499510c5db8311716d72522680b1a997af"},{"file":"engine-fe5cebc590758c10-003.bin","size":2097152,"sha256":"6fe314e0a550fdfb2147849d6632c6ea572ba69f928f7fbf5ddf7ed95526cd88"},{"file":"engine-fe5cebc590758c10-004.bin","size":2097152,"sha256":"1e4bda8bcecad8841dd242c3524ba11180bc3695076bc45595b8f2d04fbc8abb"},{"file":"engine-fe5cebc590758c10-005.bin","size":2097152,"sha256":"35024e4cfb8308f627cb83fadb94212bb0d8b63925ed998bfa8cb34ecb1c7542"},{"file":"engine-fe5cebc590758c10-006.bin","size":2097152,"sha256":"65313b52e5e7f44404cac520a4ca17e24dd16f45f7f0e70cae62a5e252354d13"},{"file":"engine-fe5cebc590758c10-007.bin","size":2097152,"sha256":"8224c7e69f384dbefde83dbef20cd6f98e78e32704dd1d9cbb34dc3fabcd91e3"},{"file":"engine-fe5cebc590758c10-008.bin","size":2097152,"sha256":"30058a2c091d53a5b123a93d1f69700b61c18a4de1711555ff21997cd96b8ca7"},{"file":"engine-fe5cebc590758c10-009.bin","size":2097152,"sha256":"622dfe3cc42c97c3e7d6f4b0ac215dbbc2a33f147bd631fce32cfe5ed25c703d"},{"file":"engine-fe5cebc590758c10-010.bin","size":2097152,"sha256":"21ec4d97b1fdf17cf0c56738adf8a94e7bee4fb05d1b98ecb17ca44943802bb6"},{"file":"engine-fe5cebc590758c10-011.bin","size":2097152,"sha256":"c6cc07f67ad4b0049529e09aeddc39b651749780b58ca1863dbd1ba0035052a3"},{"file":"engine-fe5cebc590758c10-012.bin","size":2097152,"sha256":"aae9adaa063cc34063bc3c3d5bac3b376baf01cd57122fd3cd48de70bf37dd85"},{"file":"engine-fe5cebc590758c10-013.bin","size":2097152,"sha256":"9ebb0b4ba9c312265375a39ff898626b8c7a5e0a74e265a5fc74d6c175aaedf3"},{"file":"engine-fe5cebc590758c10-014.bin","size":2097152,"sha256":"429a83eb86a0cd4b4b203fc3d9b1e45a939c836eec938e5195a09bf69f30e80d"},{"file":"engine-fe5cebc590758c10-015.bin","size":2097152,"sha256":"9a2af81be11e90271459cb1f0463a9255180f72a363b567df3cfc3d5eefc9153"},{"file":"engine-fe5cebc590758c10-016.bin","size":1822477,"sha256":"07c76a91f0e1bd8b86363c1c68403d23bafdf70acb4d18e70ce9941b422063d9"}],"packBytes":109895472,"wasmBytes":35376909};
+const passengerNativeFetch = window.fetch.bind(window);
 const passengerPreload = engine.preloadFile.bind(engine);
-engine.preloadFile = async function(file, path) {
-    if (file !== 'index.pck') return passengerPreload(file, path);
-    const chunks = [];
-    let loaded = 0;
-    for (const url of passengerPackParts) {
-        let response;
-        for (let attempt = 0; attempt < 3; attempt++) {
-            try {
-                response = await fetch(url);
-                if (!response.ok) throw new Error('Pack transfer: '+response.status);
-                const bytes = await response.arrayBuffer();
-                chunks.push(bytes); loaded += bytes.byteLength;
-                break;
-            } catch (error) { if (attempt === 2) throw error; }
-        }
-        if (engine.config.onProgress) engine.config.onProgress(loaded, 101956375);
+const passengerProgress = {pack:0,wasm:0};
+const passengerTotal = [...passengerFiles.pack,...passengerFiles.wasm].reduce((n,p)=>n+p.size,0);
+const passengerStatus = document.createElement('div');
+passengerStatus.style.cssText='position:absolute;bottom:16%;left:5%;right:5%;text-align:center;font:16px sans-serif;color:white;z-index:2';
+document.getElementById('status').appendChild(passengerStatus);
+let passengerStage = 'Загрузка файлов';
+function passengerRender() {
+    const loaded = passengerProgress.pack+passengerProgress.wasm;
+    const progress = document.getElementById('status-progress');
+    progress.max=passengerTotal;progress.value=loaded;
+    passengerStatus.textContent=passengerStage+' · '+(loaded/1048576).toFixed(1)+' / '+(passengerTotal/1048576).toFixed(1)+' МБ';
+}
+async function passengerDownload(part,kind,committed) {
+    let lastError;
+    for (let attempt=0;attempt<3;attempt++) {
+        const controller=new AbortController();
+        let timer;
+        const watch=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),25000);};
+        try {
+            watch();
+            const response=await passengerNativeFetch(part.file,{signal:controller.signal,cache:attempt?'reload':'default'});
+            if (!response.ok) throw new Error('HTTP '+response.status);
+            const reader=response.body.getReader();
+            const buffer=new Uint8Array(part.size);
+            let offset=0;
+            while (true) {
+                const {done,value}=await reader.read();
+                if (done) break;
+                watch();
+                if (offset+value.length>buffer.length) throw new Error('Неверный размер файла');
+                buffer.set(value,offset);offset+=value.length;
+                passengerProgress[kind]=committed+offset;passengerRender();
+            }
+            if (offset!==part.size) throw new Error('Файл загружен не полностью');
+            const digest=await crypto.subtle.digest('SHA-256',buffer);
+            const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+            if (hash!==part.sha256) throw new Error('Повреждённый файл');
+            return buffer;
+        } catch (error) {
+            controller.abort();lastError=error;
+            passengerProgress[kind]=committed;
+            passengerStage='Повтор загрузки '+(attempt+1)+'/3';passengerRender();
+        } finally {clearTimeout(timer);}
     }
-    const stream = new Blob(chunks).stream().pipeThrough(new DecompressionStream('gzip'));
-    const original = await new Response(stream).arrayBuffer();
-    return passengerPreload(original, path || file);
+    throw new Error('Не удалось загрузить '+part.file+'. '+lastError.message+' Нажмите «Повторить загрузку».');
+}
+function passengerStream(kind) {
+    let index=0,committed=0;
+    return new ReadableStream({
+        async pull(controller) {
+            try {
+                if (index===passengerFiles[kind].length) {controller.close();return;}
+                const part=passengerFiles[kind][index];
+                const bytes=await passengerDownload(part,kind,committed);
+                index++;committed+=bytes.byteLength;
+                passengerProgress[kind]=committed;passengerStage='Загрузка файлов';passengerRender();
+                controller.enqueue(bytes);
+            } catch(error) {controller.error(error);}
+        }
+    });
+}
+// Godot keeps its normal WebAssembly initialization. Only its download is
+// supplied as a stream of small immutable files with per-file retry/validation.
+window.fetch=function(input,options) {
+    const url=new URL(typeof input==='string'?input:input.url,location.href);
+    if (url.origin===location.origin && url.pathname===new URL('index.wasm',location.href).pathname) {
+        return Promise.resolve(new Response(passengerStream('wasm'),{headers:{'Content-Type':'application/wasm','Content-Length':String(passengerFiles.wasmBytes)}}));
+    }
+    return passengerNativeFetch(input,options);
 };
+engine.preloadFile=async function(file,path) {
+    if (file!=='index.pck') return passengerPreload(file,path);
+    if (typeof DecompressionStream==='undefined') throw new Error('Для этой версии нужен актуальный Chrome или Samsung Internet.');
+    const stream=passengerStream('pack').pipeThrough(new DecompressionStream('gzip'));
+    const original=await new Response(stream).arrayBuffer();
+    if (original.byteLength!==passengerFiles.packBytes) throw new Error('Неверный размер игровых данных');
+    passengerStage='Подготовка станции и поезда';passengerRender();
+    return passengerPreload(new Uint8Array(original),path||file);
+};
+const passengerRetry=document.createElement('button');
+passengerRetry.textContent='Повторить загрузку';
+passengerRetry.style.cssText='display:block;position:relative;z-index:3;margin:16px auto 0;padding:12px 20px;font-size:16px';
+passengerRetry.onclick=()=>location.reload();
+document.getElementById('status-notice').insertAdjacentElement('afterend',passengerRetry);
+passengerRender();
 
 
 (function () {
@@ -204,15 +267,7 @@ engine.preloadFile = async function(file, path) {
 	} else {
 		setStatusMode('progress');
 		engine.startGame({
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
+			'onProgress': function () { passengerRender(); },
 		}).then(() => {
 			setStatusMode('hidden');
 		}, displayFailureNotice);
