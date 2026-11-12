@@ -1,6 +1,9 @@
 name: Metro2 Uruchye passenger demo V50
-run-name: Uruchye passenger demo — export with explicit Godot types
+run-name: Full playable Uruchye game — original cab, all cameras and passengers
 on:
+  push:
+    branches: [feature/metro2-passengers-godot-v50]
+    paths: ['.github/workflows/metro2-passenger-demo-v50.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,6 +18,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Restore original V106 model bytes
         run: python3 metro2/tools/prepare_first_playable_assets.py
+      - name: Restore saved original cab assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PYCODE'
+          import sys,io,zipfile,pathlib
+          sys.path.insert(0,'metro2/tools')
+          from web_publication import GitHub,Archive,REPO
+          api=GitHub();archive=Archive(api,'7a1ddfc6b07408340eab560904c11de42463b79f')
+          asset=archive.assets['cab-r21-source-7a1ddfc6b07408340eab560904c11de42463b79f-1.zip']
+          data=api.request(f'/repos/{REPO}/releases/assets/{asset["id"]}',raw=True,headers={'Accept':'application/octet-stream'})
+          out=pathlib.Path('metro2/assets/cab_r21');out.mkdir(parents=True,exist_ok=True)
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              for name in ['cab_r21.glb','cab_r21.json','malinovka_arrival.mp3','malinovka_departure_petrovshchina.mp3']:
+                  (out/name).write_bytes(z.read('assets/cab_r21/'+name))
+          PYCODE
       - name: Stage only Uruchye, original train and passenger dependencies
         run: python3 metro2/tools/prepare_passenger_demo.py "$RUNNER_TEMP/passenger-project"
       - name: Import required resources with Godot 4.3
@@ -22,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -w "$RUNNER_TEMP/passenger-project" barichello/godot-ci:4.3 godot --headless --editor --path "$RUNNER_TEMP/passenger-project" --import > "$RUNNER_TEMP/passenger-import.log" 2>&1
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-import.log"; then exit 1; fi
+          if grep -A 2 -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-import.log"; then exit 1; fi
       - name: Export the Web demo
         shell: bash
         run: |
@@ -32,7 +51,7 @@ jobs:
             cat "$RUNNER_TEMP/passenger-export.log"
             exit 1
           fi
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-export.log"; then exit 1; fi
+          if grep -A 2 -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-export.log"; then exit 1; fi
       - name: Package export within GitHub file limits
         run: python3 metro2/tools/package_passenger_web.py passenger-web
       - uses: actions/upload-artifact@v4
@@ -47,7 +66,7 @@ jobs:
           git fetch --depth=1 origin gh-pages
           git worktree add "$RUNNER_TEMP/passenger-pages" origin/gh-pages
           mkdir -p "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo"
-          cp -a passenger-web/. "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
+          rsync -a --delete passenger-web/ "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
           cd "$RUNNER_TEMP/passenger-pages"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

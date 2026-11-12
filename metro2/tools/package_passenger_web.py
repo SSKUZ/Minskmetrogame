@@ -29,6 +29,7 @@ let passengerStage = 'Загрузка файлов';
 function passengerRender() {
     const loaded = passengerProgress.pack+passengerProgress.wasm;
     const progress = document.getElementById('status-progress');
+    if (!progress) return;
     progress.max=passengerTotal;progress.value=loaded;
     passengerStatus.textContent=passengerStage+' · '+(loaded/1048576).toFixed(1)+' / '+(passengerTotal/1048576).toFixed(1)+' МБ';
 }
@@ -104,6 +105,36 @@ passengerRetry.textContent='Повторить загрузку';
 passengerRetry.style.cssText='display:block;position:relative;z-index:3;margin:16px auto 0;padding:12px 20px;font-size:16px';
 passengerRetry.onclick=()=>location.reload();
 document.getElementById('status-notice').insertAdjacentElement('afterend',passengerRetry);
+
+window.metroGameReady=false;
+let metroFatal=false;
+const metroErrors=[];
+function metroShowError(message) {
+    metroFatal=true;
+    metroErrors.push(String(message));
+    while (metroErrors.length>12) metroErrors.shift();
+    let box=document.getElementById('metro-runtime-error');
+    if (!box) {
+        box=document.createElement('div');box.id='metro-runtime-error';
+        box.style.cssText='position:fixed;z-index:20000;inset:12% 5%;padding:20px;background:#301f29;color:white;overflow:auto;white-space:pre-wrap;font:15px monospace';
+        document.body.appendChild(box);
+    }
+    box.textContent='Ошибка запуска игры:\n'+metroErrors.join('\n')+'\n\nОбновите страницу. Если ошибка повторяется, пришлите этот текст.';
+}
+window.metroBootStage=function(stage) {
+    if (stage==='ready') {
+        window.metroGameReady=true;
+        if (!metroFatal) {const overlay=document.getElementById('status');if(overlay)overlay.remove();}
+    } else {passengerStage=stage;passengerRender();}
+};
+engine.config.onPrintError=function(...args) {
+    const message=args.join(' ');console.error(...args);
+    if (metroFatal || /SCRIPT ERROR|Parse Error|Failed to load|^ERROR:|WebGL.*lost/i.test(message)) metroShowError(message);
+};
+window.addEventListener('error',event=>metroShowError(event.message||'Ошибка JavaScript'));
+window.addEventListener('unhandledrejection',event=>metroShowError(event.reason?.message||String(event.reason)));
+document.getElementById('canvas').addEventListener('webglcontextlost',event=>{event.preventDefault();metroShowError('Браузер потерял графический контекст WebGL.');});
+
 passengerRender();
 '''.replace('__MANIFEST__',json.dumps(manifest,separators=(',',':')))
 html=folder/'index.html';content=html.read_text();needle='const engine = new Engine(GODOT_CONFIG);'
@@ -114,8 +145,10 @@ content=content.replace(needle,needle+'\n'+loader,1)
 a=content.index("'onProgress': function (current, total) {")
 b=content.index('\n\t\t}).then',a)
 content=content[:a]+"'onProgress': function () { passengerRender(); },"+content[b:]
-content=content.replace('src="index.js"','src="index.js?loader=2"')
+content=content.replace('src="index.js"','src="index.js?loader=3"')
+content=content.replace("setStatusMode('hidden');\n\t\t}, displayFailureNotice);", "if (window.metroGameReady && !metroFatal) setStatusMode('hidden'); else { passengerStage='Запуск игровой сцены'; passengerRender(); }\n\t\t}, displayFailureNotice);")
+content=content.replace('html, body, #canvas {','html, body, #canvas {\n width:100%;height:100%;height:100dvh;')
 html.write_text(content)
 pack.unlink();wasm.unlink()
-(folder/'build-info.json').write_text(json.dumps({'source_commit':os.environ.get('PASSENGER_SOURCE_COMMIT',os.environ.get('GITHUB_SHA','c726ba72fe739a697c852a45e820aed343188f3a')),'godot':'4.3','passenger_glb_files':24,'platform_passengers':18,'pack_original_bytes':len(raw),'transfer_bytes':len(compressed)+manifest['wasmBytes'],'pack_parts':manifest['pack'],'wasm_parts':manifest['wasm'],'loader_version':2},indent=2))
+(folder/'build-info.json').write_text(json.dumps({'source_commit':os.environ.get('PASSENGER_SOURCE_COMMIT',os.environ.get('GITHUB_SHA','c726ba72fe739a697c852a45e820aed343188f3a')),'godot':'4.3','passenger_glb_files':24,'platform_passengers':18,'boarding_passengers':12,'mode':'full playable cab and cameras','pack_original_bytes':len(raw),'transfer_bytes':len(compressed)+manifest['wasmBytes'],'pack_parts':manifest['pack'],'wasm_parts':manifest['wasm'],'loader_version':3},indent=2))
 print('Packaged saved export with 2 MiB streamed files, timeouts and retries; no Godot rebuild')
