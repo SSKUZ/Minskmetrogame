@@ -1,0 +1,15 @@
+{
+  "source_commit": "c726ba72fe739a697c852a45e820aed343188f3a",
+  "godot": "4.3",
+  "passenger_glb_files": 24,
+  "platform_passengers": 18,
+  "pack_original_bytes": 109895472,
+  "transfer_bytes": 101956375,
+  "pack_parts": [
+    "passengers-000.pck.gz.part",
+    "passengers-001.pck.gz.part",
+    "passengers-002.pck.gz.part",
+    "passengers-003.pck.gz.part",
+    "passengers-004.pck.gz.part"
+  ]
+}
