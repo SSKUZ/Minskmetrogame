@@ -1,0 +1,62 @@
+name: Metro2 Uruchye passenger demo V50
+on:
+  push:
+    branches: [feature/metro2-passengers-godot-v50]
+    paths: ['.github/workflows/metro2-passenger-demo-v50.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro2-passenger-demo-v50
+  cancel-in-progress: false
+jobs:
+  export-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original V106 model bytes
+        run: python3 metro2/tools/prepare_first_playable_assets.py
+      - name: Stage only Uruchye, original train and passenger dependencies
+        run: python3 metro2/tools/prepare_passenger_demo.py "$RUNNER_TEMP/passenger-project"
+      - name: Import required resources with Godot 4.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -w "$RUNNER_TEMP/passenger-project" barichello/godot-ci:4.3 godot --headless --editor --path "$RUNNER_TEMP/passenger-project" --import > "$RUNNER_TEMP/passenger-import.log" 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-import.log"; then exit 1; fi
+      - name: Export the Web demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p passenger-web
+          if ! docker run --rm -v "$RUNNER_TEMP:$RUNNER_TEMP" -v "$PWD:$PWD" -w "$PWD" barichello/godot-ci:4.3 godot --headless --path "$RUNNER_TEMP/passenger-project" --export-release 'Web Passenger Demo' "$PWD/passenger-web/index.html" > "$RUNNER_TEMP/passenger-export.log" 2>&1; then
+            cat "$RUNNER_TEMP/passenger-export.log"
+            exit 1
+          fi
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' "$RUNNER_TEMP/passenger-export.log"; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uruchye-passenger-demo-${{ github.sha }}
+          path: passenger-web/
+          retention-days: 14
+      - name: Publish only metro2/passenger-demo, preserve all other pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages
+          git worktree add "$RUNNER_TEMP/passenger-pages" origin/gh-pages
+          mkdir -p "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo"
+          cp -a passenger-web/. "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
+          cd "$RUNNER_TEMP/passenger-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/passenger-demo
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish Uruchye passenger demo ${GITHUB_SHA}"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:gh-pages; then exit 0; fi
+            git fetch origin gh-pages
+            git rebase origin/gh-pages
+          done
+          exit 1
