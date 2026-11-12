@@ -20,7 +20,7 @@ func assign(agents: Array,stop_offset: float) -> void:
         var best: Dictionary={}
         var score := INF
         for d in layout.doors:
-            var free := layout.places.filter(func(p):return p.car==d.car and not p.used).size()
+            var free: int = layout.places.filter(func(p):return p.car==d.car and not p.used).size()
             if int(car_loads.get(d.car,0))+group.size()>free: continue
             var target: Vector3=d.marker.global_position+Vector3(-1.5,0,stop_offset)
             target.y=1.1805

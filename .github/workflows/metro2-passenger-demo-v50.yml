@@ -1,4 +1,5 @@
 name: Metro2 Uruchye passenger demo V50
+run-name: Uruchye passenger demo — export with explicit Godot types
 on:
   push:
     branches: [feature/metro2-passengers-godot-v50]
