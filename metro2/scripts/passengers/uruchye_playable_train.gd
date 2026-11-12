@@ -105,10 +105,16 @@ func _physics_process(delta: float) -> void:
     if is_instance_valid(passenger_manager) and passenger_manager.exchange_enabled:
         status="Посадка завершена — закройте двери" if passenger_manager.complete() else "Посадка пассажиров"
     if _service_message!="":status=_service_message
-    hud.text="V106 · %.0f км/ч · %s"%[speed*3.6,status]
+    hud.text="V106 · %.0f км/ч · %s · %s"%[speed*3.6,status,camera_mode]
 
 func _update_camera() -> void:
     if not is_instance_valid(camera) or not is_instance_valid(train):return
+    var viewport:=get_viewport()
+    viewport.disable_3d=false
+    camera.cull_mask=(1<<20)-1
+    camera.near=0.04
+    camera.far=400.0
+    if viewport.get_camera_3d()!=camera:camera.make_current()
     _place_consist()
     if camera_mode=="flight":
         camera.global_position=flight_position
@@ -124,6 +130,7 @@ func _set_camera_mode(mode: String) -> void:
     if mode=="flight" and is_instance_valid(camera):flight_position=camera.global_position
     super._set_camera_mode(mode)
     if mode=="salon":camera.fov=_saloon_fov
+    camera.make_current()
 
 func _zoom_view(ratio: float) -> void:
     if camera_mode=="salon":

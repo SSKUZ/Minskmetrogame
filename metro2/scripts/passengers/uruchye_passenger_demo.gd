@@ -33,7 +33,9 @@ func _prepare_passengers() -> void:
     for z in [17.0,39.5,62.0]:footprints.append(Rect2(-6.65,z-2.8,2.56,5.6))
     passengers.configure(train.train,train.door_system,9.603-train.distance,footprints)
     train.passenger_manager=passengers
-    train.camera.current=true
+    get_viewport().disable_3d=false
+    train.camera.cull_mask=(1<<20)-1
+    train.camera.make_current()
     _boot_stage("ready")
 
 func _boot_stage(message: String) -> void:

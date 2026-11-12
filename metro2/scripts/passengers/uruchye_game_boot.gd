@@ -6,6 +6,10 @@ var overlay: CanvasLayer
 var boot_camera: Camera3D
 
 func _ready() -> void:
+    # The game and every auxiliary viewport must share the main 3D scenario.
+    var main_viewport:=get_viewport()
+    main_viewport.disable_3d=false
+    main_viewport.world_3d=World3D.new()
     var world:=WorldEnvironment.new()
     var environment:=Environment.new()
     environment.background_mode=Environment.BG_COLOR
@@ -24,25 +28,25 @@ func _ready() -> void:
     overlay.add_child(label)
     await get_tree().process_frame
     await get_tree().process_frame
-    var result:=ResourceLoader.load_threaded_request(GAME_PATH,"PackedScene")
-    if result!=OK:
-        label.text="Не удалось начать загрузку сцены: %s"%result
+    # Web export uses a single-threaded renderer. Instantiate GPU resources
+    # from the main thread after the loading screen has its first frame.
+    label.text="Подготовка станции, кабины и состава…"
+    if OS.has_feature("web"):
+        JavaScriptBridge.eval("window.metroBootStage && window.metroBootStage('Подготовка 3D-ресурсов игры')",true)
+    var scene:=load(GAME_PATH) as PackedScene
+    if scene==null:
+        label.text="Не удалось загрузить игровую сцену"
         return
-    while true:
-        var progress: Array=[]
-        var status:=ResourceLoader.load_threaded_get_status(GAME_PATH,progress)
-        if status==ResourceLoader.THREAD_LOAD_LOADED:break
-        if status==ResourceLoader.THREAD_LOAD_FAILED or status==ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-            label.text="Ошибка загрузки игровой сцены. Нажмите «Повторить загрузку»."
-            return
-        if not progress.is_empty():label.text="МИНСКОЕ МЕТРО 2.0 · Подготовка ресурсов: %d%%"%int(float(progress[0])*100)
-        await get_tree().process_frame
-    var scene:=ResourceLoader.load_threaded_get(GAME_PATH) as PackedScene
-    label.text="Создание станции, оригинальной кабины и пассажиров…"
     var game:=scene.instantiate()
     add_child(game)
     # The HTML overlay remains until the playable controller and passengers
     # explicitly report ready; engine.startGame alone is not scene readiness.
     while not is_instance_valid(game.get("passengers")):
         await get_tree().process_frame
+    var controller:=game.get("train") as Node3D
+    var game_camera:=controller.get("camera") as Camera3D
+    boot_camera.clear_current(false)
+    boot_camera.queue_free()
+    get_viewport().disable_3d=false
+    game_camera.make_current()
     overlay.queue_free()

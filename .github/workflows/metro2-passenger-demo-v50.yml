@@ -1,5 +1,5 @@
 name: Metro2 Uruchye passenger demo V50
-run-name: Full playable Uruchye game — original cab, all cameras and passengers
+run-name: Fix main 3D viewport and camera handoff in playable Uruchye
 on:
   push:
     branches: [feature/metro2-passengers-godot-v50]
