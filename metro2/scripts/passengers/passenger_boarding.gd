@@ -9,7 +9,7 @@ var opened := false
 func assign(agents: Array,stop_offset: float) -> void:
     var units: Dictionary={}
     for a in agents:
-        if a.space!="platform": continue
+        if a.space!="platform" or not a.wants_board: continue
         var key: int=a.group_id if a.group_id>=0 else 10000+a.id
         if not units.has(key): units[key]=[]
         units[key].append(a)

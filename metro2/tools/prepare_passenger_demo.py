@@ -4,9 +4,9 @@ import json,re,shutil,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 out=Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
-queue=['scenes/passengers/uruchye_passenger_demo.tscn']
+queue=['scenes/passengers/uruchye_game_boot.tscn']
 for folder in ['assets/passengers','assets/saloon_v46','assets/saloon_v49']:
-    queue.extend(str(p.relative_to(ROOT)) for p in (ROOT/folder).rglob('*') if p.is_file() and not p.name.endswith('.import'))
+    queue.extend(str(p.relative_to(ROOT)) for p in (ROOT/folder).rglob('*') if p.is_file() and not p.name.endswith('.import') and (p.suffix!='.glb' or p.name.endswith('-low.glb')))
 seen=set()
 while queue:
     name=queue.pop()
@@ -16,12 +16,14 @@ while queue:
         queue.extend(str(p.relative_to(ROOT)) for p in source.rglob('*') if p.is_file() and not p.name.endswith('.import'));continue
     if not source.is_file():raise RuntimeError('Missing export dependency: '+name)
     target=out/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
+    sidecar=Path(str(source)+'.import')
+    if sidecar.is_file():shutil.copy2(sidecar,str(target)+'.import')
     if source.suffix in {'.gd','.tscn','.tres','.json','.gdshader'}:
         queue.extend(re.findall(r"res://([^\"'\s]+)",source.read_text()))
 (out/'project.godot').write_text('''config_version=5
 [application]
-config/name="METRO 2.0 — URUCHYE PASSENGER DEMO"
-run/main_scene="res://scenes/passengers/uruchye_passenger_demo.tscn"
+config/name="МИНСКОЕ МЕТРО 2.0 — УРУЧЬЕ"
+run/main_scene="res://scenes/passengers/uruchye_game_boot.tscn"
 [display]
 window/size/viewport_width=960
 window/size/viewport_height=540

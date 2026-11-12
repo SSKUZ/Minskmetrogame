@@ -14,6 +14,7 @@ var animation = Animator.new()
 var visual: Node3D
 var clock := 0.0
 var destination := 1
+var wants_board := true
 var skeleton: Skeleton3D
 var hips := -1
 var pelvis_rest := Vector3.ZERO
