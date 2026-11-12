@@ -20,20 +20,16 @@ while queue:
     if sidecar.is_file():shutil.copy2(sidecar,str(target)+'.import')
     if source.suffix in {'.gd','.tscn','.tres','.json','.gdshader'}:
         queue.extend(re.findall(r"res://([^\"'\s]+)",source.read_text()))
-(out/'project.godot').write_text('''config_version=5
-[application]
-config/name="МИНСКОЕ МЕТРО 2.0 — УРУЧЬЕ"
-run/main_scene="res://scenes/passengers/uruchye_game_boot.tscn"
-[display]
-window/size/viewport_width=960
-window/size/viewport_height=540
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
-[rendering]
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
-textures/default_filters/use_nearest_mipmap_filter=false
-''')
+# Preserve the original game's Web renderer workarounds and import settings.
+# In Godot 4.3 single-threaded Web, losing threaded_cull_minimum_instances.web
+# makes large scenes render only their background (godotengine/godot#88192).
+project=(ROOT/'project.godot').read_text()
+project=re.sub(r'config/name="[^"]*"','config/name="МИНСКОЕ МЕТРО 2.0 — УРУЧЬЕ"',project)
+project=re.sub(r'run/main_scene="[^"]*"','run/main_scene="res://scenes/passengers/uruchye_game_boot.tscn"',project)
+project=re.sub(r'window/size/viewport_width=\d+','window/size/viewport_width=960',project)
+project=re.sub(r'window/size/viewport_height=\d+','window/size/viewport_height=540',project)
+project=project.replace('[rendering]','window/stretch/mode="canvas_items"\nwindow/stretch/aspect="expand"\n\n[rendering]',1)
+(out/'project.godot').write_text(project)
 (out/'export_presets.cfg').write_text('''[preset.0]
 name="Web Passenger Demo"
 platform="Web"
