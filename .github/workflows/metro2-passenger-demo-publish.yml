@@ -1,0 +1,41 @@
+name: Publish saved Uruchye passenger Web export
+on:
+  push:
+    branches: [feature/metro2-passengers-godot-v50]
+    paths: ['.github/workflows/metro2-passenger-demo-publish.yml']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: metro2-passenger-demo-v50
+  cancel-in-progress: false
+jobs:
+  publish-saved:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: uruchye-passenger-demo-c726ba72fe739a697c852a45e820aed343188f3a
+          run-id: 43286138830
+          github-token: ${{ github.token }}
+          path: passenger-web
+      - name: Package the saved export within GitHub file limits
+        env:
+          PASSENGER_SOURCE_COMMIT: c726ba72fe739a697c852a45e820aed343188f3a
+        run: python3 metro2/tools/package_passenger_web.py passenger-web
+      - name: Publish only passenger demo files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin gh-pages
+          git worktree add "$RUNNER_TEMP/passenger-pages" origin/gh-pages
+          mkdir -p "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo"
+          cp -a passenger-web/. "$RUNNER_TEMP/passenger-pages/metro2/passenger-demo/"
+          cd "$RUNNER_TEMP/passenger-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/passenger-demo
+          git commit -m "Publish saved Uruchye passenger demo with bounded pack transfers"
+          git push origin HEAD:gh-pages
