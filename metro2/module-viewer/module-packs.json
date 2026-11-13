@@ -48,10 +48,11 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-5dc9e4245f84c6fd7b35.pck",
-      "bytes": 432256,
-      "sha256": "5dc9e4245f84c6fd7b35e5d5aaf82c97abee02e1e8b61c773b3ae124cd151d06",
+      "file": "uruchye-f4bfd066057e8728e3f2.pck",
+      "bytes": 461440,
+      "sha256": "f4bfd066057e8728e3f2da627585f6c35f2158eab96b77822bd6471df653d50c",
       "warmup": [
+        "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
         "res://assets/station/photo_reference/ad_travel.png",
@@ -63,9 +64,9 @@
       ]
     },
     "v106": {
-      "bytes": 47046240,
-      "file": "v106-448939aef3bf0f157cb5.pck",
-      "sha256": "448939aef3bf0f157cb55835ad672ebdf68c62307fb7b918fa2578592e5e9c72",
+      "file": "v106-ce35202d071e2f465949.pck",
+      "bytes": 47155296,
+      "sha256": "ce35202d071e2f465949f1156c617a44b7b8d0eaf1930c9d0369fe01bc582bed",
       "warmup": [
         "res://assets/cab_r21/cab_r21_0.png",
         "res://assets/cab_r21/cab_r21_1.png",
@@ -121,6 +122,7 @@
         "res://assets/saloon_v49/do_not_lean.svg",
         "res://assets/saloon_v49/emergency_exit.svg",
         "res://assets/saloon_v49/goodmix-duo-zakhar.jpg",
+        "res://assets/signage_v54/moscow_line.svg",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_0.png",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_1.png",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_2.png",
@@ -142,55 +144,15 @@
         "res://assets/v106_original/car04/v106_car_04_3.png",
         "res://assets/v106_original/car04/v106_car_04_4.png",
         "res://assets/v106_warning/v106_warning_caution.png"
-      ],
-      "chunks": [
-        {
-          "file": "v106-part-471e566e77d0786f1914.bin",
-          "bytes": 6291456,
-          "sha256": "471e566e77d0786f1914c95d0b4b09b20ee5e795d2e1090b46d3a28807f6f725"
-        },
-        {
-          "file": "v106-part-40a31927524e5c62d9bb.bin",
-          "bytes": 6291456,
-          "sha256": "40a31927524e5c62d9bb812cb2dca6e51f4cc83fe3918ff908147370da626b61"
-        },
-        {
-          "file": "v106-part-760cf63e5b7c5df50c35.bin",
-          "bytes": 6291456,
-          "sha256": "760cf63e5b7c5df50c354814d460fd99df0c1bfbf07cc111ead467f84a42e7f3"
-        },
-        {
-          "file": "v106-part-d62d9afdcc38c85bd740.bin",
-          "bytes": 6291456,
-          "sha256": "d62d9afdcc38c85bd740b966cbed670a1f98c7efe0a65e27ed9169da33400fdd"
-        },
-        {
-          "file": "v106-part-5dcbb0d77ee52bbe88ca.bin",
-          "bytes": 6291456,
-          "sha256": "5dcbb0d77ee52bbe88ca028629131bd929727c5909f23ef7980c016a04a06774"
-        },
-        {
-          "file": "v106-part-c2a5348a7d9085bf1dc1.bin",
-          "bytes": 6291456,
-          "sha256": "c2a5348a7d9085bf1dc10af2893080e787def7df4fa7b21b9e1a0163b68b173a"
-        },
-        {
-          "file": "v106-part-7bbc6938991e97bb28a8.bin",
-          "bytes": 6291456,
-          "sha256": "7bbc6938991e97bb28a895344641da7978881d05af613c4f5777cf159f2e1887"
-        },
-        {
-          "file": "v106-part-51aae174cabb80de7bd2.bin",
-          "bytes": 3006048,
-          "sha256": "51aae174cabb80de7bd2d46fc88f292f2865182ec19067634534a61a92c7c45a"
-        }
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-7c57ad63cb1a6eda5bd0.pck",
-      "bytes": 673664,
-      "sha256": "7c57ad63cb1a6eda5bd0b474f00caeca6ca256a02f0f545105116b66fcc7ccd7",
-      "warmup": []
+      "file": "borisovsky_trakt-536d25aaf740bfcc3bcd.pck",
+      "bytes": 693344,
+      "sha256": "536d25aaf740bfcc3bcd74d494cb19669bd8bfabce28f296e3676893df9078c9",
+      "warmup": [
+        "res://assets/signage_v54/borisovsky_name.svg"
+      ]
     }
   },
   "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813",

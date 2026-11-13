@@ -159,5 +159,9 @@
     "count": 8,
     "assets": "two existing passenger models; original geometry retained",
     "reference": "https://www.mos.ru/news/item/106964073/"
+  },
+  "artwork_v54": {
+    "source_commit": "fd3530898f93381dbc8a9d5a21fc4d09bc2f104a",
+    "changes": "Goodmix original art, explicit upright UVs; silver/bronze station lettering; bilingual route order"
   }
 }

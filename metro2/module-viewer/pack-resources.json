@@ -37,6 +37,7 @@
       "res://.godot/imported/no_boarding.png-58661c8c0ea88dd7bcd86e79c7bf1a11.ctex",
       "res://.godot/imported/route.png-5179f60dd411f129e9071ae63a35d626.ctex",
       "res://.godot/imported/uruchye_granite.png-e7645ddf564e60f91ee7f7cd544039d5.ctex",
+      "res://assets/signage_v54/uruchye_name.svg.remap",
       "res://assets/station/photo_reference/ad_city.png.import",
       "res://assets/station/photo_reference/ad_city.png.remap",
       "res://assets/station/photo_reference/ad_theatre.png.import",
@@ -262,6 +263,7 @@
       "res://assets/saloon_v49/goodmix-duo-zakhar.jpg.remap",
       "res://assets/saloon_v49/interior_wear.gdshader",
       "res://assets/saloon_v49/mounts.json",
+      "res://assets/signage_v54/moscow_line.svg.remap",
       "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.import",
       "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb.remap",
       "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_0.png.import",
@@ -331,6 +333,7 @@
       "res://viewers/v106_inspection.tscn"
     ],
     "borisovsky_trakt": [
+      "res://assets/signage_v54/borisovsky_name.svg.remap",
       "res://modules/stations/borisovsky_trakt/borisovsky_trakt.gd",
       "res://modules/stations/borisovsky_trakt/station_base.gd",
       "res://scripts/infrastructure/station_infrastructure.gd"
