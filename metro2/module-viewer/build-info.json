@@ -133,5 +133,14 @@
     "web_resource_loading": "sequential cached models",
     "download_chunk_bytes": 6291456,
     "stall_retry_seconds": 20
+  },
+  "borisovsky_trakt": {
+    "source_commit": "53eb582c9fcb178cbf0abc7e876970f9ae69938c",
+    "pack": {
+      "file": "borisovsky_trakt-0ec5ef910ba60a2386e8.pck",
+      "sha256": "0ec5ef910ba60a2386e87cf85ef901f8f5c09671f21f29bea2f6e6d92be7de52",
+      "bytes": 662640
+    },
+    "validation": "ZERO TESTING; editor import and export only"
   }
 }
