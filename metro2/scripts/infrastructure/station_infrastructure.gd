@@ -45,8 +45,10 @@ func _contact_rails() -> void:
     var conductor := _mat(Color("#555b5a"),0.78)
     var cover := _mat(Color("#594d39"))
     var porcelain := _mat(Color("#c5c3b0"))
-    var length := track_max_z-track_min_z
-    var middle := (track_max_z+track_min_z)*0.5
+    var start := portal_min_z-6.5
+    var finish := portal_max_z+6.5
+    var length := finish-start
+    var middle := (finish+start)*0.5
     for track in range(2):
         var side := 1.0 if track==0 else -1.0
         var x: float = TRACKS[track]+side*1.48
@@ -64,7 +66,7 @@ func _contact_rails() -> void:
         mm.transform_format=MultiMesh.TRANSFORM_3D
         mm.mesh=mesh
         mm.instance_count=int(ceil(length/2.0))
-        for i in range(mm.instance_count): mm.set_instance_transform(i,Transform3D(Basis(),Vector3(x,0.025,track_min_z+float(i)*2.0)))
+        for i in range(mm.instance_count): mm.set_instance_transform(i,Transform3D(Basis(),Vector3(x,0.025,start+float(i)*2.0)))
         var n := MultiMeshInstance3D.new()
         n.name="ContactRailInsulators%d" % track
         n.multimesh=mm
