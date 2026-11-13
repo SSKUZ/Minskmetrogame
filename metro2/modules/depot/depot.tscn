@@ -1,9 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/depot/depot_yard.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/depot/depot_hall.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/depot/depot_track.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/depot/depot_portal.gd" id="5"]
+
+[ext_resource type="Script" path="res://scripts/depot/depot_workers.gd" id="6"]
 
 [node name="DepotModule" type="Node3D"]
 
@@ -26,3 +28,6 @@ position = Vector3(0.992, 0, 96)
 
 [node name="TrainSpawn" type="Marker3D" parent="Connections"]
 position = Vector3(0.992, 6, 430)
+
+[node name="TrackMaintenanceCrew" type="Node3D" parent="."]
+script = ExtResource("6")

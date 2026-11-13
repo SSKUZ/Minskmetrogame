@@ -1,0 +1,57 @@
+name: Metro2 calm passengers and eight depot workers
+on:
+  push:
+    branches: [feature/metro2-passenger-natural-v53]
+    paths:
+      - '.github/workflows/metro2-passenger-natural-v53.yml'
+      - 'metro2/scripts/passengers/**'
+      - 'metro2/scripts/depot/depot_workers.gd'
+      - 'metro2/tools/passenger_natural/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reuse published game and module assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/natural-pages-base"
+          python3 metro2/tools/passenger_natural/publish.py prepare natural-web "$(cat "$RUNNER_TEMP/natural-pages-base")"
+      - name: Import changed scripts and export updated Web resource packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/passenger_natural/publish.py build natural-web
+          python3 metro2/tools/passenger_natural/publish.py finish natural-web
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: natural-passenger-build-${{ github.sha }}
+          path: natural-web/
+          retention-days: 7
+      - name: Publish passengers and depot without replacing other modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/natural-pages" "$(cat "$RUNNER_TEMP/natural-pages-base")"
+          cp -a natural-web/passenger/. "$RUNNER_TEMP/natural-pages/metro2/passenger-demo/"
+          cp -a natural-web/viewer/. "$RUNNER_TEMP/natural-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/natural-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/passenger-demo metro2/module-viewer
+          git commit -m 'Calm passenger activities and eight animated depot track workers'
+          git push origin HEAD:gh-pages
