@@ -25,7 +25,7 @@ func _ready() -> void:
     if _last_departure > int(Time.get_unix_time_from_system()): _last_departure=0
     _stop_marks()
     _platform_mirror()
-    _clock()
+
 
 func _find_game() -> void:
     var node: Node = get_parent()
@@ -181,11 +181,6 @@ func _update_clock(now: int) -> void:
             _digit_mesh.set_instance_color(digit*7+segment,_amber if (bits & (1<<segment)) != 0 else Color(0.07,0.045,0.02))
 
 func _process(delta: float) -> void:
-    var now := int(Time.get_unix_time_from_system())
-    _observe_departure(now)
-    if now != _clock_second:
-        _clock_second=now
-        _update_clock(now)
     _mirror_tick+=delta
     if _mirror_tick < 0.2: return
     _mirror_tick=0.0

@@ -29,20 +29,7 @@ func _ready() -> void:
         _branch(side,start,end)
         _straight(side*5.4,end,528.0,false)
     for x in [-10.8,-5.4,0.0,5.4,10.8]: _buffer(x,525.5)
-    # Protected supply follows the running bay; the four repair/storage
-    # sidings stay unelectrified. A deliberate break protects the road crossing.
-    var cover := b.mat("ContactRailCover",Color("#76664a"),0.92)
-    var porcelain := b.mat("ContactRailInsulators",Color("#c5c3b0"),0.65)
-    for z in range(96,528,4):
-        if z >= 348 and z < 360: continue
-        var a := Vector3(Route.CENTER_X+1.48,Route.height(z),z)
-        var c := Vector3(Route.CENTER_X+1.48,Route.height(float(z)+4.0),float(z)+4.0)
-        b.beam(side_steel,a+Vector3(0,0.225,0),c+Vector3(0,0.225,0),0.085,0.12)
-        b.beam(side_steel,a+Vector3(0,0.15,0),c+Vector3(0,0.15,0),0.13,0.035)
-        b.beam(cover,a+Vector3(0,0.325,0),c+Vector3(0,0.325,0),0.27,0.055)
-        b.beam(cover,a+Vector3(0.145,0.245,0),c+Vector3(0.145,0.245,0),0.025,0.16)
-        b.cylinder(porcelain,Vector3(Route.CENTER_X+1.48,Route.height(float(z)+1.0)+0.025,float(z)+1.0),0.075,0.16)
-        b.box(clip,Vector3(Route.CENTER_X+1.48,Route.height(float(z)+1.0)-0.075,float(z)+1.0),Vector3(0.30,0.035,0.14))
+    # Supply starts at every track's first geometry segment, including sidings.
     b.label("КОНТАКТНЫЙ РЕЛЬС • 750 В",Vector3(Route.CENTER_X+3.1,7.0,350),0.005,0.0,Color("#e2c261"))
     for z in range(100,405,16):
         var yy := Route.height(z)
@@ -68,6 +55,7 @@ func _straight(x: float,z0: float,z1: float,main: bool) -> void:
         var end := minf(z+4.0,z1)
         var a := Vector3(Route.CENTER_X+x,Route.height(z),z)
         var c := Vector3(Route.CENTER_X+x,Route.height(end),end)
+        _supply(a,c)
         # A beam's local X is the rail width, local Z its vertical thickness.
         _rail_pair(a,c)
         if z < 410.0:
@@ -96,7 +84,9 @@ func _branch(side: float,z0: float,z1: float) -> void:
         var u := float(i)/34.0
         var x := side*5.4*u*u*(3.0-2.0*u)
         var point := Vector3(Route.CENTER_X+x,6.0,lerpf(z0,z1,u))
-        if absf(x) > 0.08: _rail_pair(previous,point)
+        if absf(x) > 0.08:
+            _rail_pair(previous,point)
+            _supply(previous,point)
         previous = point
     var count := int((z1-z0)/0.64)
     for i in range(count):
@@ -118,3 +108,14 @@ func _buffer(x: float,z: float) -> void:
         b.beam(clip,Vector3(Route.CENTER_X+x+side*0.81,5.93,z-1.1),Vector3(Route.CENTER_X+x+side*0.81,6.8,z),0.18)
     b.box(clip,Vector3(Route.CENTER_X+x,6.8,z),Vector3(2.0,0.28,0.28))
     for i in range(6): b.box(yellow,Vector3(Route.CENTER_X+x-0.8+float(i)*0.32,6.81,z-0.15),Vector3(0.17,0.24,0.025))
+
+func _supply(a: Vector3,c: Vector3) -> void:
+    var d := (c-a).normalized()
+    var lateral := Vector3(d.z,0,-d.x).normalized()
+    var offset := lateral*1.48
+    var cover := b.mat("ContinuousContactCover",Color("#76664a"),0.92)
+    b.beam(side_steel,a+offset+Vector3(0,0.225,0),c+offset+Vector3(0,0.225,0),0.085,0.12)
+    b.beam(side_steel,a+offset+Vector3(0,0.15,0),c+offset+Vector3(0,0.15,0),0.13,0.035)
+    b.beam(cover,a+offset+Vector3(0,0.325,0),c+offset+Vector3(0,0.325,0),0.27,0.055)
+    var porcelain := b.mat("ContinuousContactInsulators",Color("#c5c3b0"),0.65)
+    b.cylinder(porcelain,(a+c)*0.5+offset+Vector3(0,0.025,0),0.075,0.16)

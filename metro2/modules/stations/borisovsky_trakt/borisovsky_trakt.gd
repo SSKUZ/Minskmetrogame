@@ -116,9 +116,6 @@ func _floor_details() -> void:
         _b("FloorJoint",Vector3(9.4,0.003,0.009),Vector3(-5.37,1.183,z),_material(Color(0.38,0.38,0.36)))
     for x in [-0.408, -10.332]:
         _b("EdgeStone",Vector3(0.12,0.008,105),Vector3(x,1.185,39.612),white)
-    for x in [2.12,-12.86]:
-        _b("ContactRailCover",Vector3(0.19,0.15,121),Vector3(x,0.24,39.612),brown)
-        _b("ContactRail",Vector3(0.075,0.10,121),Vector3(x,0.11,39.612),steel)
 
 func _walls() -> void:
     for side in [-1,1]:
@@ -286,11 +283,6 @@ func _text(value: String,p: Vector3,size: int,colour: Color,yaw: float=0.0) -> v
     add_child(label)
 
 func _equipment() -> void:
-    for x in [0.992,-11.732]:
-        for z in [-9.7,83.5]:
-            _b("ClockHousing",Vector3(2.8,0.53,0.15),Vector3(x,3.93,z),dark)
-            for face in [0,1]:
-                _text("12.59.11   1.02",Vector3(x,3.93,z+(-0.09 if face==0 else 0.09)),34,Color(1.0,0.63,0.08),PI if face==0 else 0.0)
     for z in [2.0,32.0,62.0,81.0]:
         for x in [-8.0,-2.74]:
             _b("PublicAddressSpeaker",Vector3(0.15,0.29,0.18),Vector3(x,5.15,z),steel)

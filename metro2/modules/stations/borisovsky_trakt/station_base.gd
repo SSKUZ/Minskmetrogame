@@ -126,6 +126,15 @@ func _ready() -> void:
         light.shadow_enabled = false
         add_child(light)
 
+    var infrastructure := preload("res://scripts/infrastructure/station_infrastructure.gd").new()
+    infrastructure.name = "StationInfrastructure"
+    infrastructure.station_id = "borisovsky_trakt"
+    infrastructure.track_min_z = track_min_z
+    infrastructure.track_max_z = track_max_z
+    infrastructure.portal_min_z = -12.888
+    infrastructure.portal_max_z = 92.112
+    add_child(infrastructure)
+
 func _material(color: Color, metallic: float = 0.0, roughness: float = 1.0) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
     m.albedo_color = color
