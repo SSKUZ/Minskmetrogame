@@ -1,5 +1,5 @@
 name: Metro2 Uruchye passenger demo V50
-run-name: Preserve original Godot 4.3 Web culling workaround — restore 3D geometry
+run-name: Passenger passing and original V106 seating — Web only
 on:
   push:
     branches: [feature/metro2-passengers-godot-v50]

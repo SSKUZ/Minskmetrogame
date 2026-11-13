@@ -64,9 +64,12 @@ func step(dt: float,agents: Array) -> bool:
     var amount:=minf(offset.length(),walk_speed*dt)
     var desired:=position+offset.normalized()*amount
     var blocker: Node3D
+    var frame:=get_parent() as Node3D
+    var inverse:=frame.global_transform.affine_inverse()
     for other in agents:
-        if other==self or other.get_parent()!=get_parent():continue
-        var center:=Vector2(other.position.x,other.position.z)
+        if other==self:continue
+        var other_point: Vector3=inverse*other.global_position
+        var center:=Vector2(other_point.x,other_point.z)
         var start:=Vector2(position.x,position.z)
         var finish:=Vector2(desired.x,desired.z)
         var clearance: float=radius+other.radius+0.025
@@ -86,8 +89,9 @@ func step(dt: float,agents: Array) -> bool:
             if blocked_for>=yield_time:
                 var people: Array=[]
                 for other in agents:
-                    if other==self or other.get_parent()!=get_parent():continue
-                    people.append({"position":other.position,"clearance":radius+other.radius+0.07})
+                    if other==self:continue
+                    var other_point: Vector3=inverse*other.global_position
+                    people.append({"position":other_point,"clearance":radius+other.radius+0.07})
                 var region: Rect2=navigation.platform if space=="platform" else aisle
                 var replacement: Array[Vector3]=navigation.route(position,path[0],people,region,space=="platform")
                 if not replacement.is_empty():detour=replacement
