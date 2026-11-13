@@ -142,5 +142,16 @@
       "bytes": 662640
     },
     "validation": "ZERO TESTING; editor import and export only"
+  },
+  "station_infrastructure": {
+    "source_commit": "65cf1b9bcbf49253f62cc89a9847affe7d43def0",
+    "modules": [
+      "uruchye",
+      "borisovsky_trakt",
+      "depot"
+    ],
+    "clock_timezone": "Europe/Minsk UTC+3",
+    "departure_interval": "per track; starts only after full departure",
+    "tests": "not run"
   }
 }

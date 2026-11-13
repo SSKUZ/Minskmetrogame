@@ -53,6 +53,7 @@
       "res://modules/stations/uruchye/uruchye.tscn",
       "res://scenes/StationBaseStatic.tscn",
       "res://scenes/depot/route_station_v41.tscn",
+      "res://scripts/infrastructure/station_infrastructure.gd",
       "res://scripts/playable_track_path.gd",
       "res://scripts/station/uruchye_architecture.gd",
       "res://scripts/station/uruchye_platform_equipment.gd",
@@ -325,6 +326,11 @@
       "res://scripts/v33_door_controller.gd",
       "res://viewers/v106_inspection.gd",
       "res://viewers/v106_inspection.tscn"
+    ],
+    "borisovsky_trakt": [
+      "res://modules/stations/borisovsky_trakt/borisovsky_trakt.gd",
+      "res://modules/stations/borisovsky_trakt/station_base.gd",
+      "res://scripts/infrastructure/station_infrastructure.gd"
     ]
   }
 }

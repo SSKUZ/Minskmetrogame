@@ -30,9 +30,9 @@
   },
   "packs": {
     "depot": {
-      "bytes": 53600,
-      "file": "depot-025c1997281d0fe538ce.pck",
-      "sha256": "025c1997281d0fe538ced205b90bb9c47d555c0dc393faa5dcc3c33aaf03dcd4",
+      "file": "depot-46f18c42b02870eb4853.pck",
+      "bytes": 53344,
+      "sha256": "46f18c42b02870eb48536acae23122d7e7d2889b18c5b8e8fce6a05bf89c2854",
       "warmup": []
     },
     "shared": {
@@ -48,9 +48,9 @@
       "warmup": []
     },
     "uruchye": {
-      "bytes": 423968,
-      "file": "uruchye-782349f747301f21c18c.pck",
-      "sha256": "782349f747301f21c18c4fab4b8d87b3bc59eedab3029f3298beb13e463c2f40",
+      "file": "uruchye-e3b9121186fd4262ea76.pck",
+      "bytes": 432224,
+      "sha256": "e3b9121186fd4262ea762bec959dc5d285ab846fbf724864646897bd119c5a27",
       "warmup": [
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
@@ -187,9 +187,9 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-0ec5ef910ba60a2386e8.pck",
-      "sha256": "0ec5ef910ba60a2386e87cf85ef901f8f5c09671f21f29bea2f6e6d92be7de52",
-      "bytes": 662640,
+      "file": "borisovsky_trakt-0182fde0f1a927b7ad81.pck",
+      "bytes": 673632,
+      "sha256": "0182fde0f1a927b7ad810d619e8d8a0a8a57397e3089bd5df5c776faa236cbf0",
       "warmup": []
     }
   },
