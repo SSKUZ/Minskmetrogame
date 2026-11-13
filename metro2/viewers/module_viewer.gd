@@ -101,7 +101,7 @@ func _build_ui() -> void:
     _menu_scroll.add_child(list)
     for group in [
         ["ПОЕЗДА",[["Состав V106 · 4 вагона","v106"],["Вагон №1","car1"],["Вагон №2","car2"],["Вагон №3","car3"],["Вагон №4","car4"]]],
-        ["СТАНЦИИ",[["Уручье","uruchye"]]],
+        ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"]]],
         ["ТОННЕЛИ",[["Стандартный участок · 16 м","tunnel_16m"]]],
         ["ДЕПО",[["Электродепо","depot"]]]]:
         var heading := Label.new()
@@ -204,6 +204,9 @@ func open_module(key: String) -> void:
             reset_view()
     else:
         match key:
+            "borisovsky_trakt":
+                _home_point = Vector3(-4.3,2.6,48.0)
+                _home_radius = 3.0
             "uruchye":
                 _home_point = Vector3(-5.37,2.5,39.6)
                 _home_radius = 45.0
@@ -235,8 +238,8 @@ func unload_module() -> void:
     await get_tree().process_frame
 
 func _configure_light(key: String) -> void:
-    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key == "uruchye" else 0.65
-    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key == "uruchye" else 1.05
+    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key in ["uruchye","borisovsky_trakt"] else 0.65
+    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key in ["uruchye","borisovsky_trakt"] else 1.05
     _environment.background_color = Color(0.006,0.008,0.012) if key == "tunnel_16m" else Color(0.08,0.10,0.13)
 
 func _set_car_visibility() -> void:

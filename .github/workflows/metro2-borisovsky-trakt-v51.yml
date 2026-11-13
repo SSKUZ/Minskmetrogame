@@ -1,0 +1,77 @@
+name: Metro2 Borisovsky Trakt V51 Web module
+on:
+  push:
+    branches: [feature/metro2-borisovsky-trakt-station]
+    paths:
+      - '.github/workflows/metro2-borisovsky-trakt-v51.yml'
+      - 'metro2/modules/stations/borisovsky_trakt/**'
+      - 'metro2/tools/borisovsky_trakt/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/feature/metro2-borisovsky-trakt-station'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage station and mandatory resource import
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          mkdir -p bt-web bt-logs "$RUNNER_TEMP/bt-module"
+          python3 metro2/tools/borisovsky_trakt/stage.py "$RUNNER_TEMP/bt-module"
+          godot --headless --editor --path "$RUNNER_TEMP/bt-module" --import > bt-logs/import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' bt-logs/import.log; then exit 1; fi
+      - name: Export station Web resource pack once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          if [ "$HOME" != /root ]; then cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"; fi
+          if ! godot --headless --path "$RUNNER_TEMP/bt-module" --export-pack 'Web Station' "$PWD/bt-web/station.pck" > bt-logs/export.log 2>&1; then cat bt-logs/export.log; exit 1; fi
+      - name: Prepare existing viewer menu and add module package
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          pages_base=$(git rev-parse FETCH_HEAD)
+          echo "$pages_base" > bt-logs/pages-base
+          python3 metro2/tools/borisovsky_trakt/publication.py prepare bt-web "$pages_base"
+          mkdir -p "$RUNNER_TEMP/bt-boot"
+          BT_SOURCE="$PWD/metro2" BT_OUTPUT="$PWD/bt-web/new-boot.pck" godot --headless --path "$RUNNER_TEMP/bt-boot" --main-pack "$PWD/bt-web/old-boot.pck" --script "$PWD/metro2/tools/borisovsky_trakt/refresh_boot.gd" > bt-logs/boot.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load' bt-logs/boot.log; then cat bt-logs/boot.log; exit 1; fi
+          python3 metro2/tools/borisovsky_trakt/publication.py finish bt-web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: borisovsky-trakt-web-${{ github.sha }}
+          path: bt-web/
+          retention-days: 30
+      - name: Publish permanent viewer without changing any other module pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages_base=$(cat bt-logs/pages-base)
+          git worktree add --detach "$RUNNER_TEMP/bt-pages" "$pages_base"
+          cp -a bt-web/. "$RUNNER_TEMP/bt-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/bt-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Add Borisovsky Trakt module to permanent viewer; preserve other published packs'
+          git push origin HEAD:gh-pages
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: borisovsky-trakt-build-logs-${{ github.sha }}
+          path: bt-logs/
+          retention-days: 14

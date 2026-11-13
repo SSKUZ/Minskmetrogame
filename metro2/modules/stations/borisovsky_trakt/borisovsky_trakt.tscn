@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://modules/stations/borisovsky_trakt/borisovsky_trakt.gd" id="1"]
+
+[node name="BorisovskyTrakt" type="Node3D"]
+script = ExtResource("1")
+track_min_z = -20.888
+track_max_z = 100.112
+rail_center = 0.8075
+rail_width = 0.095
+
+[node name="Connections" type="Node3D" parent="."]
+[node name="Entry" type="Marker3D" parent="Connections"]
+position = Vector3(0.992, 0, 92.112)
+[node name="Exit" type="Marker3D" parent="Connections"]
+position = Vector3(0.992, 0, -12.888)
+[node name="Track2Entry" type="Marker3D" parent="Connections"]
+position = Vector3(-11.732, 0, 92.112)
+[node name="Track2Exit" type="Marker3D" parent="Connections"]
+position = Vector3(-11.732, 0, -12.888)
+[node name="PassengerAnchors" type="Node3D" parent="."]
+[node name="WestExit" type="Marker3D" parent="PassengerAnchors"]
+position = Vector3(-5.37, 1.1805, 85)
+[node name="PlatformCentre" type="Marker3D" parent="PassengerAnchors"]
+position = Vector3(-5.37, 1.1805, 39.612)
