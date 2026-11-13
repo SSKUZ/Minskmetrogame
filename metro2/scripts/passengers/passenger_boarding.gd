@@ -5,6 +5,7 @@ var layout: RefCounted
 var navigation: RefCounted
 var platform_root: Node3D
 var opened := false
+var exchange_active := false
 
 func assign(agents: Array,stop_offset: float) -> void:
     var units: Dictionary={}
@@ -64,7 +65,12 @@ func request_alight(agents: Array) -> void:
         layout.release(a.slot)
 
 func update(agents: Array,can_exchange: bool) -> void:
-    if not can_exchange: return
+    if not can_exchange:
+        exchange_active=false
+        return
+    if not exchange_active:
+        refresh_waiting_bays()
+        exchange_active=true
     opened=true
     for d in layout.doors:
         var active=d.active
@@ -73,6 +79,7 @@ func update(agents: Array,can_exchange: bool) -> void:
                 if active.state=="boarding":
                     active.reparent(d.car,true)
                     active.space="train"
+                    active.aisle=layout.aisle_bounds(d.car)
                     d.enter.erase(active);d.active=null
                     settle(active,d,agents)
                 elif active.state=="alighting":
@@ -92,7 +99,7 @@ func update(agents: Array,can_exchange: bool) -> void:
             var seam: Vector3=d.marker.position
             var outside: Vector3=d.car.to_local(d.marker.global_position+Vector3(-1.25,0,0))
             outside.y=d.car.to_local(Vector3(0,1.1805,0)).y
-            var path: Array[Vector3]=[Vector3(0,a.position.y,a.position.z),Vector3(0,seam.y,seam.z),seam,outside]
+            var path: Array[Vector3]=[Vector3(free_aisle_x(d.car,a.position.z,agents),a.position.y,a.position.z),Vector3(0,seam.y,seam.z),seam,outside]
             a.follow(path,"alighting");d.active=a
         elif not d.enter.is_empty():
             var a=d.enter[0]
@@ -109,10 +116,11 @@ func update(agents: Array,can_exchange: bool) -> void:
 func settle(a: Node3D,d: Dictionary,agents: Array) -> void:
     var seat_preference: bool=a.id%4!=0
     a.slot=layout.reserve(d.car,a.position.z,seat_preference)
+    a.aisle=layout.aisle_bounds(d.car)
     if a.slot.is_empty():
         a.state="riding";a.animation.play("Idle");return
     var p: Vector3=a.slot.position
-    var path: Array[Vector3]=[Vector3(0,a.position.y,a.position.z),Vector3(0,p.y,p.z),p]
+    var path: Array[Vector3]=[Vector3(0,a.position.y,a.position.z),Vector3(free_aisle_x(d.car,p.z,agents),p.y,p.z),p]
     a.follow(path,"settling")
 
 func complete(agents: Array) -> bool:
@@ -122,3 +130,23 @@ func complete(agents: Array) -> bool:
     for a in agents:
         if a.state in ["boarding","alighting","queueing","queued","settling","sittingDown","standingUp","exitQueued"]: return false
     return true
+
+func refresh_waiting_bays() -> void:
+    # The driver's actual stop may differ from the predicted stop. Re-form side
+    # queues around the real open doorway, leaving its central passage clear.
+    for d in layout.doors:
+        var rank:=0
+        for a in d.enter:
+            if a==d.active or a.space!="platform":continue
+            var point: Vector3=d.marker.global_position
+            point.x-=1.65+float(int(rank/2))*0.35
+            point.z+=(-1.0 if rank%2==0 else 1.0)*(1.4+float(int(rank/2))*0.7)
+            point.y=1.1805
+            a.follow(navigation.route(a.global_position,point),"queueing")
+            rank+=1
+
+func free_aisle_x(car: Node3D,z: float,agents: Array) -> float:
+    for other in agents:
+        if other.space=="train" and other.car==car and other.state=="riding" and other.path.is_empty() and absf(other.position.z-z)<0.7 and absf(other.position.x)<0.65:
+            return -signf(other.position.x)*0.35
+    return 0.0

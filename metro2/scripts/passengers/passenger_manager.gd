@@ -20,6 +20,7 @@ func configure(train: Node3D,doors: Node,stop_offset: float,obstacles: Array[Rec
     navigation.obstacles=obstacles
     agents=spawner.spawn(self,passenger_count,navigation,layout.doors)
     for a in agents:
+        a.navigation=navigation
         a.wants_board=a.id<boarding_count
         if not a.wants_board:a.position.x=-3.3-float(a.id%2)*0.7
     boarding.layout=layout;boarding.navigation=navigation;boarding.platform_root=self
