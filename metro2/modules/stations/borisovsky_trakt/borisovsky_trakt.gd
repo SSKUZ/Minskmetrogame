@@ -42,7 +42,7 @@ func _ready() -> void:
 
 func _stone(file: String, tint: Color, rough: float) -> StandardMaterial3D:
     var mat := _material(tint,0.05,rough)
-    mat.albedo_texture = load(DIR+file)
+    mat.albedo_texture = load("res://assets/signage_v54/borisovsky_name.svg") if file=="name.png" else load(DIR+file)
     mat.uv1_triplanar = true
     mat.uv1_scale = Vector3(0.65,0.65,0.65)
     return mat
@@ -223,7 +223,7 @@ func _bench(x: float,z: float,side: int) -> void:
 
 func _picture(label: String,file: String,size: Vector2,p: Vector3,yaw: float,transparent: bool=false) -> void:
     var mat := _material(Color.WHITE,0.0,0.8)
-    mat.albedo_texture = load(DIR+file)
+    mat.albedo_texture = load("res://assets/signage_v54/borisovsky_name.svg") if file=="name.png" else load(DIR+file)
     if transparent: mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
     else:
         mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

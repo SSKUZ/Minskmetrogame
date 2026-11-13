@@ -51,7 +51,9 @@ func _decorate_car(_game: Node3D,car: Node3D,_index: int) -> void:
     _tools.clear()
     var counts := {"advertisement":0,"network_map":0,"line_diagram":0,"notice":0,"emergency_exit":0}
     for mount in manifest[str(car.name)].mounts:
-        var texture := load(str(mount.asset)) as Texture2D
+        var asset := str(mount.asset)
+        if str(mount.kind)=="line_diagram": asset="res://assets/signage_v54/moscow_line.svg"
+        var texture := load(asset) as Texture2D
         if texture == null:
             push_error("V49: missing artwork " + str(mount.asset))
             continue

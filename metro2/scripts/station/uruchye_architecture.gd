@@ -144,32 +144,9 @@ func _floor_and_walls() -> void:
             _ornament(side,face,z)
 
 func _wall_title(side: float,face: float,z: float) -> void:
-    # Raised Belarusian lettering and blue water silhouette, both track walls.
-    var root := Node3D.new()
-    root.position=Vector3(face-side*0.08,2.92,z)
-    root.rotation.y=-side*PI/2.0
-    root.name="UruchchaRaisedWallName"
-    add_child(root)
-    var cobalt := _mat(Color("#226398"),0.35,0.38)
-    var shape := PackedVector2Array([Vector2(-2.45,-0.20),Vector2(-1.65,-0.13),Vector2(-0.7,0.35),Vector2(0.0,0.43),Vector2(0.75,0.20),Vector2(1.45,-0.08),Vector2(2.45,-0.18),Vector2(1.55,-0.25),Vector2(0.4,-0.34),Vector2(-0.8,-0.30)])
-    var st := SurfaceTool.new()
-    st.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var indices := Geometry2D.triangulate_polygon(shape)
-    for index in indices:
-        st.set_normal(Vector3.BACK)
-        st.add_vertex(Vector3(shape[index].x,shape[index].y,0))
-    var wave := MeshInstance3D.new()
-    wave.mesh=st.commit(); wave.material_override=cobalt
-    root.add_child(wave)
-    var letters := MeshInstance3D.new()
-    var mesh := TextMesh.new()
-    mesh.text="УРУЧЧА"; mesh.font_size=100; mesh.pixel_size=0.0068
-    mesh.depth=0.055
-    mesh.material=steel
-    letters.mesh=mesh; letters.position=Vector3(0,-0.02,0.045)
-    root.add_child(letters)
-    _ornament(side,face,z-3.15)
-    _ornament(side,face,z+3.15)
+    # Owner original 6702.jpg: rounded silver plates, blue crest and water loops.
+    var title := _picture(preload("res://assets/signage_v54/uruchye_name.svg"),Vector2(7.0,1.69),Vector3(face-side*0.09,2.92,z),-side*PI/2.0)
+    (title.mesh.material as StandardMaterial3D).transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 
 func _ornament(side: float,face: float,z: float) -> void:
     var x: float=face-side*0.07

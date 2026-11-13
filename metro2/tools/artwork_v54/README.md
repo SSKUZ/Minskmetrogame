@@ -1,0 +1,7 @@
+V54 — visual artwork repair only. The already published original Goodmix Duo/Zakhar JPG is reused; it is not altered or reuploaded from a private photograph. Both head cars receive upright, explicitly UV-mapped end and two side prints. Existing named print surfaces supply dimensions; merged-model fallbacks use the established car/door layout. Materials are unshaded white, avoiding black tinted print faces.
+
+Owner's original references located: 6702.jpg (Uruchye name), 6726.jpg and 6724.jpg (Borisovsky Trakt name). Uploaded photographs remain private reference files, no photo pixels are included. Letter silhouettes, coloured backgrounds and wave ornaments are independently drawn SVG paths. These are approximations of the photographed contours, not certified identical scans; profiles remain flat vector prints.
+
+The particular original photograph of the above-door carriage route was not resolved. The replacement uses confirmed station order, codes 124–110, Belarusian/Russian names and the two photographed transfer names, with readable vector letters and restrained blue slanted-panel styling. Exact comparison to that missing carriage-specific photograph remains open. No unrelated Library images are published.
+
+Current published PCKs and engine are reused. Only changed scripts, imported vector textures and pack manifests are updated. Source model geometry, controls, passengers, depot workers and other modules are retained. No scene execution, browser viewing, screenshots or visual testing.
