@@ -144,7 +144,7 @@
     "validation": "ZERO TESTING; editor import and export only"
   },
   "station_infrastructure": {
-    "source_commit": "65cf1b9bcbf49253f62cc89a9847affe7d43def0",
+    "source_commit": "463fb58296b38271ec57dd0429e1505182c09076",
     "modules": [
       "uruchye",
       "borisovsky_trakt",

@@ -48,9 +48,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-e3b9121186fd4262ea76.pck",
-      "bytes": 432224,
-      "sha256": "e3b9121186fd4262ea762bec959dc5d285ab846fbf724864646897bd119c5a27",
+      "file": "uruchye-5dc9e4245f84c6fd7b35.pck",
+      "bytes": 432256,
+      "sha256": "5dc9e4245f84c6fd7b35e5d5aaf82c97abee02e1e8b61c773b3ae124cd151d06",
       "warmup": [
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
@@ -187,9 +187,9 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-0182fde0f1a927b7ad81.pck",
-      "bytes": 673632,
-      "sha256": "0182fde0f1a927b7ad810d619e8d8a0a8a57397e3089bd5df5c776faa236cbf0",
+      "file": "borisovsky_trakt-7c57ad63cb1a6eda5bd0.pck",
+      "bytes": 673664,
+      "sha256": "7c57ad63cb1a6eda5bd0b474f00caeca6ca256a02f0f545105116b66fcc7ccd7",
       "warmup": []
     }
   },
