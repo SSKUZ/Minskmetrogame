@@ -28,9 +28,10 @@ elif mode=='build':
  def run(key,mode,files,inputfile,output,extra=None):
   env=dict(os.environ,PATCH_SOURCE=str(ROOT),PATCH_MODE=mode,PATCH_FILES=json.dumps(files),PATCH_INPUT=str(inputfile.resolve()),PATCH_OUTPUT=str(output.resolve()),PATCH_EXTRA=str(extra.resolve()) if extra else '',PATCH_REPORT=str((OUT/'worker-resources.json').resolve()))
   with (OUT/'logs'/(key+'-'+mode+'.log')).open('w') as f:subprocess.run(['godot','--headless','--path',str(isolated),'--script',str(helper)],env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
- run('shared','unpack',[],OUT/'shared-import.pck',stage)
- run('depot','unpack',DEPOT,OUT/'depot-old.pck',stage,OUT/'passenger-old.pck')
- run('passenger','unpack',FILES,OUT/'passenger-old.pck',stage)
+ import shutil
+ for name in set(FILES+DEPOT):
+  if not name.endswith('.gd'):continue
+  target=stage/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,target)
  (stage/'project.godot').write_text('config_version=5\n[application]\nconfig/name="Passenger resource import"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
  with (OUT/'logs/import.log').open('w') as f:subprocess.run(['godot','--headless','--editor','--path',str(stage),'--import'],stdout=f,stderr=subprocess.STDOUT,check=True)
  text=(OUT/'logs/import.log').read_text()
@@ -50,7 +51,7 @@ elif mode=='finish':
  (OUT/'passenger/build-info.json').write_text(json.dumps(info,ensure_ascii=False,indent=2)+'\n')
  p=OUT/'depot-new.pck';digest=hashfile(p);name='depot-'+digest[:20]+'.pck';p.rename(OUT/'viewer'/name)
  m=json.loads((OUT/'viewer/module-packs.json').read_text());extra=json.loads((OUT/'worker-resources.json').read_text())
- warmup=[x.removesuffix('.remap') for x in extra if x.endswith(('.png.remap','.jpg.remap','.jpeg.remap'))]
+ warmup=[x.removesuffix('.remap') for x in extra if x.endswith(('.png.remap','.jpg.remap','.jpeg.remap','.ctex'))]
  m['packs']['depot']={'file':name,'bytes':(OUT/'viewer'/name).stat().st_size,'sha256':digest,'warmup':warmup}
  (OUT/'viewer/module-packs.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
  info=json.loads((OUT/'viewer/build-info.json').read_text());info['depot_workers']={'source_commit':os.environ['GITHUB_SHA'],'count':8,'assets':'two existing passenger models; original geometry retained','reference':'https://www.mos.ru/news/item/106964073/'}

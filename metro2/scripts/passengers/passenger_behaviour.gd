@@ -56,7 +56,7 @@ func _prop(kind: String) -> Node3D:
 func _pose(name: String) -> Transform3D:
     return skeleton.get_bone_global_pose(int(bones[name]))
 
-func _set(name: String,pose: Transform3D,weight: float=1.0) -> void:
+func _apply_bone(name: String,pose: Transform3D,weight: float=1.0) -> void:
     if bones.has(name): skeleton.set_bone_global_pose_override(int(bones[name]),pose,weight,true)
 
 func _aim(pose: Transform3D,from: Vector3,to: Vector3) -> Transform3D:
@@ -86,9 +86,9 @@ func _arm(side: String,target: Vector3,weight: float) -> void:
     b=_aim(b,c.origin-b.origin,wrist-elbow)
     b.origin=elbow
     c.origin=wrist
-    _set(upper,a,weight)
-    _set(fore,b,weight)
-    _set(hand,c,weight)
+    _apply_bone(upper,a,weight)
+    _apply_bone(fore,b,weight)
+    _apply_bone(hand,c,weight)
 
 func _process(delta: float) -> void:
     if not is_instance_valid(agent) or skeleton==null: return
@@ -109,7 +109,7 @@ func _process(delta: float) -> void:
         var head := _pose("head")
         var glance := sin(age*0.13+phase)*0.09 if not reading else sin(age*0.11+phase)*0.018
         head.basis=head.basis*Basis.from_euler(Vector3(0.13 if reading else 0.0,glance,0.0))
-        _set("head",head,blend)
+        _apply_bone("head",head,blend)
     if reading:
         var target := torso.origin+Vector3(-0.08,-0.05,0.28 if seated else 0.26)
         target.y+=sin(age*0.35+phase)*0.002
