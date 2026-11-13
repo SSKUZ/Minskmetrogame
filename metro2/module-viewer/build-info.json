@@ -153,5 +153,11 @@
     "clock_timezone": "Europe/Minsk UTC+3",
     "departure_interval": "per track; starts only after full departure",
     "tests": "not run"
+  },
+  "depot_workers": {
+    "source_commit": "9b6290df993c9418f2c787020b727122cf67d01e",
+    "count": 8,
+    "assets": "two existing passenger models; original geometry retained",
+    "reference": "https://www.mos.ru/news/item/106964073/"
   }
 }

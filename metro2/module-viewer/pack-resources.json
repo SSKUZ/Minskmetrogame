@@ -14,7 +14,10 @@
       "res://scripts/depot/depot_hall.gd",
       "res://scripts/depot/depot_portal.gd",
       "res://scripts/depot/depot_track.gd",
-      "res://scripts/depot/depot_yard.gd"
+      "res://scripts/depot/depot_workers.gd",
+      "res://scripts/depot/depot_yard.gd",
+      "res://scripts/passengers/passenger_animation.gd",
+      "res://scripts/passengers/passenger_behaviour.gd"
     ],
     "shared": [
       "res://scripts/depot/route_profile.gd",

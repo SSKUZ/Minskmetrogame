@@ -1,207 +1,207 @@
 {
-  "source_commit": "5c205137999c5b8359e1234fa8f26d89554e9464",
+  "source_commit": "9b6290df993c9418f2c787020b727122cf67d01e",
   "godot": "4.3",
   "passenger_glb_files": 24,
   "platform_passengers": 18,
   "boarding_passengers": 12,
   "mode": "full playable cab and cameras",
-  "pack_original_bytes": 89599328,
-  "transfer_bytes": 116158577,
+  "pack_original_bytes": 89612768,
+  "transfer_bytes": 116128405,
   "pack_parts": [
     {
-      "file": "pack-c8f0b34baf55c2c9-000.bin",
+      "file": "pack-82058ae43ba55192-000.bin",
       "size": 2097152,
-      "sha256": "7abf7f6c4833ce493e3966fbc92db1f46d5329551d18685f3a919e1679165c0c"
+      "sha256": "bb2293bf00ddf4db1a605389c24a1be69ddf5bb6d41b2d5300940b9d0c7e2d20"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-001.bin",
+      "file": "pack-82058ae43ba55192-001.bin",
       "size": 2097152,
-      "sha256": "888862496bdedfb80f6f4f2690533da7634a2ab44cd6d1bdf7832f8b11e51cf1"
+      "sha256": "b1cdaa1d9cc1feda2e6eea9a7ef1bc7877b084435d9507e362a78ea48c573b13"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-002.bin",
+      "file": "pack-82058ae43ba55192-002.bin",
       "size": 2097152,
-      "sha256": "50527790b84cde1649a63a922ccc9d35e931714e5928fa72b420bbdf9fd86362"
+      "sha256": "7d8ff1c47e7a67f45b20275da5405373c7596e69d65a8185f77e5c15a8dc2200"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-003.bin",
+      "file": "pack-82058ae43ba55192-003.bin",
       "size": 2097152,
-      "sha256": "0dca638fdd53b17ec346ca68ff007248ea11f2d617cfbc5b232446aa9b47a063"
+      "sha256": "b7b212df9234baff34538a592c2be0de3e7afb253ca6c163d17b3fcf7aae2935"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-004.bin",
+      "file": "pack-82058ae43ba55192-004.bin",
       "size": 2097152,
-      "sha256": "3f84670303979af1ad5884c09c70f9cc39163de1308be818726e98bad8cb850d"
+      "sha256": "286070f36632b197b15ec0136e5e831e968bbc99c1cfdd2ec63143bb48c89f7f"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-005.bin",
+      "file": "pack-82058ae43ba55192-005.bin",
       "size": 2097152,
-      "sha256": "4388021849855054f8eec145f61e20487f1dc539344656efcbe3886245fb1ac1"
+      "sha256": "b1bee3079150ff5bb542d6e864d7ef9b4996a50f1fb99b99cc635b021c3fda2b"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-006.bin",
+      "file": "pack-82058ae43ba55192-006.bin",
       "size": 2097152,
-      "sha256": "07b322fd65da408d35632076f92b3e8884873d396eccda3530568f10286544c7"
+      "sha256": "677176b2a4415b6699af371f51b7955037c286d7c40c0a11c152b3bd3aae93e7"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-007.bin",
+      "file": "pack-82058ae43ba55192-007.bin",
       "size": 2097152,
-      "sha256": "393bb9e701efaf4390a44e86b08ff52154bc8550367f4bff37b4397782c99a8b"
+      "sha256": "a0846f4c734051a2551b52e74ab1f9d4a6e6f72f77f7ae2e12c2c6cd85fa8e84"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-008.bin",
+      "file": "pack-82058ae43ba55192-008.bin",
       "size": 2097152,
-      "sha256": "0fc6701353ff4253d6d252ce48bfec52c7281d73a580929a48abd7b2263e005a"
+      "sha256": "3cce0aabce2e6ec2b27f5ea6e5571d3369beecab15a71ed05bf6b2bfe1200deb"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-009.bin",
+      "file": "pack-82058ae43ba55192-009.bin",
       "size": 2097152,
-      "sha256": "97850c600eed6a0637c25310b67b2c24a60137eb439c0ebed81538c4d50a5300"
+      "sha256": "7dd03116c33943491aa2ae954d73cb4e08121b30a3dc6bd607b65f1b9f8145ec"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-010.bin",
+      "file": "pack-82058ae43ba55192-010.bin",
       "size": 2097152,
-      "sha256": "c4d424efeeb9849a94effbe02a5b7a14123d3db639b663c7629464bf06f7580a"
+      "sha256": "f8c923dd2947726870de19511251dfb7f4b741675cedab24bc36eccbd3562787"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-011.bin",
+      "file": "pack-82058ae43ba55192-011.bin",
       "size": 2097152,
-      "sha256": "76884a96254ea9155654cac9554cc95b449db99fbafaa1751c18d71eac63827a"
+      "sha256": "5ae27486d8c11303c068b482b2c849204df8b8a60e03504cb458e82620a3a434"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-012.bin",
+      "file": "pack-82058ae43ba55192-012.bin",
       "size": 2097152,
-      "sha256": "86fc901199405221b7bd31572135ca8c4a84f329d98d2719d7e472d48c79a254"
+      "sha256": "a682780fe8111a54cb972c8ab3aa5ce9ab0353280db781a3b1ac81936f13124d"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-013.bin",
+      "file": "pack-82058ae43ba55192-013.bin",
       "size": 2097152,
-      "sha256": "95ad94318a8b48d214b3ce2630c8b9215b020add418b1fa55bb6a23f4eea0d89"
+      "sha256": "a2095888d4f70c681371fd6fc3618289ba955934ec3630c15770bf516e63aa71"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-014.bin",
+      "file": "pack-82058ae43ba55192-014.bin",
       "size": 2097152,
-      "sha256": "d30741667c8550e90aef079d9894714fc3c30b3d2351e1eb51d47e996676dec4"
+      "sha256": "c768524333c30305021b89225bf6de50b6e71d96717352134b3c60b195e2c4ed"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-015.bin",
+      "file": "pack-82058ae43ba55192-015.bin",
       "size": 2097152,
-      "sha256": "5d6fe29511b5814a66b657563bc4d82009039885cd9f0fa69bfa75406a79f700"
+      "sha256": "677a2676d574e105095a4d9a46aa577478add8ae9ba2c58de4f60b0f9272265a"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-016.bin",
+      "file": "pack-82058ae43ba55192-016.bin",
       "size": 2097152,
-      "sha256": "34aef2a9de5f5baccb62341bbfb7c4ef0821b124ebf745dd3d370b4e4a3578d4"
+      "sha256": "313d3a02d48a4912be225ca97b830ff0ba824929bd2f323991b3cc7590ee0e43"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-017.bin",
+      "file": "pack-82058ae43ba55192-017.bin",
       "size": 2097152,
-      "sha256": "41a737b922c7c317ff7abebaf298c0a2f5395650d0d269aeee6501c6c70e3a71"
+      "sha256": "2ddc06f4c11dd74c64993a95418562fdf77112920a26e3d6e1db24a706af3b66"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-018.bin",
+      "file": "pack-82058ae43ba55192-018.bin",
       "size": 2097152,
-      "sha256": "58685d9280e9e3f9c5980328e1ae1d8b663513b2710ee1c66ebd38922a35a32d"
+      "sha256": "0641183fd338334567a8f7efc3708a37d476ec9b7f4c40c09f0fe895098ff3d9"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-019.bin",
+      "file": "pack-82058ae43ba55192-019.bin",
       "size": 2097152,
-      "sha256": "c45281d5d581b8f4389b032419fcc578f8ddfa423658bb4b2769a8a658c47ac2"
+      "sha256": "430918bd60ff8719cdf0155812e3d9be0702482cafd9dea1d3cb757b21498975"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-020.bin",
+      "file": "pack-82058ae43ba55192-020.bin",
       "size": 2097152,
-      "sha256": "bdc3d337576f4ceea1bfd853d4bb4faad9b1274dd16217e3ae771a779bc226be"
+      "sha256": "9ce2761304fc732e9139972ecad1563267a4f17fa52fd205a76dd5a1d5dc6a96"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-021.bin",
+      "file": "pack-82058ae43ba55192-021.bin",
       "size": 2097152,
-      "sha256": "f756d57f7e4bfdef0e461734f9fe1468a0a02efa4f0340f0f8bd386d8c4beba9"
+      "sha256": "cb1257f548b1531a3fa7dfef87594982b4a8873ef6a4b0db4e92ae46fecd27e7"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-022.bin",
+      "file": "pack-82058ae43ba55192-022.bin",
       "size": 2097152,
-      "sha256": "1b0a07bbc696085e6a75f3851624f4cc01976ba89dc8a54babed3f8ba41fccbd"
+      "sha256": "1543dff7bb6090d69f3be161f5c969b0b52e268ca7d2a8c5c9d1d7db77008c3e"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-023.bin",
+      "file": "pack-82058ae43ba55192-023.bin",
       "size": 2097152,
-      "sha256": "875f8bc066e893a6befea4471e7b0c49f3188481cfdd1478bedc47e9e7d1697b"
+      "sha256": "9395a80418b33a60c625cb27f082d7c6882a6d8af569726c598b8625d20f04f3"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-024.bin",
+      "file": "pack-82058ae43ba55192-024.bin",
       "size": 2097152,
-      "sha256": "a8166f02d1f772a5a35bf44ea78f5f98fb353f5c5fdb854f79a4ad36635b9280"
+      "sha256": "999ee32c55c106b8e670eb7d8b47d335dcafc0a3e466385754900062d4ff9bce"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-025.bin",
+      "file": "pack-82058ae43ba55192-025.bin",
       "size": 2097152,
-      "sha256": "eb83b13b0780a19e11aacfee2a7c9b59bb169be62fded4639ac4f7cb3e63942f"
+      "sha256": "733b64cd6039dfc9bc0254f4b7c9417d599c6bf37c5b4e8e03784598d7e031e9"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-026.bin",
+      "file": "pack-82058ae43ba55192-026.bin",
       "size": 2097152,
-      "sha256": "e915a72c2d7c1da687863dd3cc50462144a39e962cf76e58a2b40bad6a0fe04a"
+      "sha256": "3375f07f4662e4d642cf6252a357f3762cc1b7e80764095faedea74eaa2ec1f5"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-027.bin",
+      "file": "pack-82058ae43ba55192-027.bin",
       "size": 2097152,
-      "sha256": "d940ae22d67af2cbf357deefd7184d8be02413de475239b44e9ec6e48730de23"
+      "sha256": "f314ed9dce8d7460e97ae24b9f057f95c81b7c340f71f2b24360d5d71ef3f202"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-028.bin",
+      "file": "pack-82058ae43ba55192-028.bin",
       "size": 2097152,
-      "sha256": "400a4b4001a3f8e52267dfe9090592b9edee3edb6a6f68c19b49d70bfd838446"
+      "sha256": "58c65267ee321be416f1590e8ca0c8c938dd4582a9ffa9eab98176ceeb771f77"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-029.bin",
+      "file": "pack-82058ae43ba55192-029.bin",
       "size": 2097152,
-      "sha256": "c60c7bf628f12b3425c7c2916b06afc528967421aeee52505e8aa9b8efad838c"
+      "sha256": "21566752f54c15e2a37f579ac6a9b33e66ca8013cd61a622634ef19c1184c81d"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-030.bin",
+      "file": "pack-82058ae43ba55192-030.bin",
       "size": 2097152,
-      "sha256": "50bb0c3b2b67beaa7a5367ce9d7f564cc70e68e3192184477300fd3adf4fc424"
+      "sha256": "c22010bd679bed61fd775b258b2fc121641b19908d3122b159396184e560b796"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-031.bin",
+      "file": "pack-82058ae43ba55192-031.bin",
       "size": 2097152,
-      "sha256": "57781750aabf63cade7b9db6ec5a80fec574e0941a77b8f4235e54c31059541d"
+      "sha256": "e89f10f7dd54c08d6ad5f6773af78872d6851656bd496fdd61402a9ec5f39695"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-032.bin",
+      "file": "pack-82058ae43ba55192-032.bin",
       "size": 2097152,
-      "sha256": "0f43500c2d01a158df47d826dec1cc4c2e7c6109f2ebde3824ed1ecef6ab9f4a"
+      "sha256": "ca3f01dfeef9b0981bea34e7443358a560493dd49f6cc89a0608a539a9437ef9"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-033.bin",
+      "file": "pack-82058ae43ba55192-033.bin",
       "size": 2097152,
-      "sha256": "9ec67bec5aecd7462a4bae6c58f3798c6e5ac40f03998addf7be3d3ad108a422"
+      "sha256": "d5cb0eb509071f5a9a2166b7c0ac2e64c36f4aa9e48d38b7c2966784a62c9ea4"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-034.bin",
+      "file": "pack-82058ae43ba55192-034.bin",
       "size": 2097152,
-      "sha256": "13b0956137d977c0eff2e39786481736fb5579cce2b1e7e0678f7d8b5e5fc425"
+      "sha256": "4ed4d0d12c981340c4da2ef3e478a45336d69dc359ada8c56fc361f554c92f7d"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-035.bin",
+      "file": "pack-82058ae43ba55192-035.bin",
       "size": 2097152,
-      "sha256": "3b4f54398f9a37b3575bf0c78314fda4f022064c77d38edd2b0e657fe14cb98b"
+      "sha256": "fd37e398666675c85f05f7cc7b9d97852cfb407ef9e7b1b08f75029606b42898"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-036.bin",
+      "file": "pack-82058ae43ba55192-036.bin",
       "size": 2097152,
-      "sha256": "f37ad0a78e20328029df75aaa6bbdffa52b08587f8eedcd9d520a66555cee834"
+      "sha256": "98d04f68b6287fc806c517d00468ce75fe58766d3cad4b915af1a2b7038424b7"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-037.bin",
+      "file": "pack-82058ae43ba55192-037.bin",
       "size": 2097152,
-      "sha256": "cb874897870eabf34d2f57ab047426ab58d9858870b60dc12ff072df3829a512"
+      "sha256": "68bc3c6917cc60bb7d6c393e1546d95999cb21f345f70adca88cf2b2ed4b5f31"
     },
     {
-      "file": "pack-c8f0b34baf55c2c9-038.bin",
-      "size": 1089892,
-      "sha256": "e5eb977807767fc7354b4d852bc52401705320c849737ce75c76f77f599e1cc7"
+      "file": "pack-82058ae43ba55192-038.bin",
+      "size": 1059720,
+      "sha256": "83ef9c9e3917244ef6a32d53b3dc9681f9361779c467b87abda59ff3b661bf65"
     }
   ],
   "wasm_parts": [
@@ -291,5 +291,6 @@
       "sha256": "07c76a91f0e1bd8b86363c1c68403d23bafdf70acb4d18e70ce9941b422063d9"
     }
   ],
-  "loader_version": 3
+  "loader_version": 3,
+  "natural_behaviour": "stable seated pelvis; calm gaze, phone, leaflet and handrail grip"
 }
