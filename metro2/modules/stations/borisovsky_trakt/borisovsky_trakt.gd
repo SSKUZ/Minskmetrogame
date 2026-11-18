@@ -11,6 +11,7 @@ var wood: StandardMaterial3D
 var glow: StandardMaterial3D
 var chocolate: StandardMaterial3D
 var _batches: Dictionary = {}
+var _profiles: Dictionary = {}
 
 func _ready() -> void:
     super._ready()
@@ -38,11 +39,14 @@ func _ready() -> void:
     _supports()
     _ends()
     _equipment()
+    _finish_details()
     _flush_batches()
 
 func _stone(file: String, tint: Color, rough: float) -> StandardMaterial3D:
     var mat := _material(tint,0.05,rough)
     mat.albedo_texture = load("res://assets/signage_v54/borisovsky_name.svg") if file=="name.png" else load(DIR+file)
+    mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    mat.uv1_world_triplanar = true
     mat.uv1_triplanar = true
     mat.uv1_scale = Vector3(0.65,0.65,0.65)
     return mat
@@ -69,6 +73,12 @@ func _flush_batches() -> void:
         node.multimesh = mm
         add_child(node)
     _batches.clear()
+    for key in _profiles:
+        var data: Dictionary = _profiles[key]
+        var surface: SurfaceTool = data.surface
+        surface.generate_normals()
+        _mesh(str(data.label),surface.commit(),Vector3.ZERO,data.material)
+    _profiles.clear()
 
 func _mesh(label: String, mesh: Mesh, p: Vector3, mat: Material) -> MeshInstance3D:
     var node := MeshInstance3D.new()
@@ -111,9 +121,10 @@ func _floor_details() -> void:
         _b("FloorRibbon",Vector3(0.18,0.008,103),Vector3(x,1.185,39.612),dark)
     for x in [-10.1,-0.64]:
         _b("TactileStrip",Vector3(0.16,0.012,105),Vector3(x,1.192,39.612),_material(Color(0.83,0.57,0.09)))
+    var joint := _material(Color(0.38,0.38,0.36))
     for i in range(88):
         var z := -12.3+float(i)*1.2
-        _b("FloorJoint",Vector3(9.4,0.003,0.009),Vector3(-5.37,1.183,z),_material(Color(0.38,0.38,0.36)))
+        _b("FloorJoint",Vector3(9.4,0.003,0.009),Vector3(-5.37,1.187,z),joint)
     for x in [-0.408, -10.332]:
         _b("EdgeStone",Vector3(0.12,0.008,105),Vector3(x,1.185,39.612),white)
 
@@ -137,16 +148,18 @@ func _walls() -> void:
 
 # Extrude an X/Y section along Z; used for the continuous curved ceiling bands.
 func _profile(label: String, profile: Array[Vector2], z0: float,z1: float,mat: Material) -> void:
-    var st := SurfaceTool.new()
-    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var key := label+str(mat.get_instance_id())
+    if not _profiles.has(key):
+        var surface := SurfaceTool.new()
+        surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+        var double_mat := mat.duplicate() as StandardMaterial3D
+        double_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+        _profiles[key] = {"label":label,"surface":surface,"material":double_mat}
+    var st: SurfaceTool = _profiles[key].surface
     for i in range(profile.size()-1):
         var a := profile[i]
         var b := profile[i+1]
         for v in [Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1)]: st.add_vertex(v)
-    st.generate_normals()
-    var double_mat := mat.duplicate() as StandardMaterial3D
-    double_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-    _mesh(label,st.commit(),Vector3.ZERO,double_mat)
 
 func _ceiling() -> void:
     _b("CeilingSlab",Vector3(18.2,0.18,105),Vector3(-5.37,5.7,39.612),white)
@@ -201,13 +214,16 @@ func _supports() -> void:
                 _b("PierChocolateStripe",Vector3(1.57,0.16,2.77),Vector3(-5.37,y,z),dark)
             for side in [-1,1]:
                 _bench(-5.37+float(side)*1.12,z,side)
-                _b("Downlighter",Vector3(0.12,0.02,2.2),Vector3(-5.37+float(side)*0.96,4.72,z),glow)
+                for dz in [-0.82,0.0,0.82]:
+                    var lamp := Vector3(-5.37+float(side)*1.03,4.72,z+float(dz))
+                    _cylinder("DownlightSteelRim",0.115,0.025,lamp,steel)
+                    _cylinder("RoundDownlightDiffuser",0.095,0.028,lamp-Vector3(0,0.012,0),glow)
         if i in [2,7,12]:
             for side in [-1,1]:
                 var x := -5.37+float(side)*2.3
                 for face in [0,1]:
                     var file := "direction_1.jpg" if side == 1 else "direction_2.jpg"
-                    _picture("TrackDirection","%s" % file,Vector2(3.5,0.70),Vector3(x,4.06,z+float(face)*0.08),PI if face==1 else 0.0)
+                    _picture("TrackDirection","%s" % file,Vector2(3.5,0.70),Vector3(x,4.06,z+float(face)*0.08),0.0 if face==1 else PI)
                 _b("SignSuspension",Vector3(0.035,0.85,0.035),Vector3(x,4.75,z),steel)
 
 func _bench(x: float,z: float,side: int) -> void:
@@ -235,20 +251,32 @@ func _picture(label: String,file: String,size: Vector2,p: Vector3,yaw: float,tra
 func _ends() -> void:
     # Working west exit, broad granite flight with a distinct intermediate landing.
     var start := 85.0
+    var landing := 1.24
     for i in range(30):
-        var z := start+float(i)*0.31
+        var z := start+float(i)*0.31+(landing if i>=15 else 0.0)
         var height := float(i+1)*0.145
         _b("WestGraniteStep",Vector3(7.2,height,0.32),Vector3(-5.37,1.1805+height*0.5,z),brown)
         if i in [0,14,29]:
             _b("YellowStairNosing",Vector3(7.2,0.025,0.05),Vector3(-5.37,1.20+height,z-0.14),_material(Color(0.95,0.68,0.08)))
+    _b("IntermediateStairLanding",Vector3(7.2,0.16,landing),Vector3(-5.37,1.1805+15.0*0.145-0.08,start+14.5*0.31+landing*0.5),brown)
     for x in [-9.12,-6.60,-1.62]:
-        for y in [0.72,1.06]: _rod(Vector3(x,1.1805+y,start-0.2),Vector3(x,5.54+y,start+9.3),0.025,steel)
-        for i in range(7):
-            var z := start+float(i)*1.5
-            var y := 1.1805+(z-start)*0.468
-            _rod(Vector3(x,y,z),Vector3(x,y+1.1,z),0.026,steel)
+        for offset in [0.72,1.06]:
+            var y: float=1.1805+float(offset)
+            var a := Vector3(x,y,start-0.2)
+            var b := Vector3(x,y+2.175,start+14.5*0.31)
+            var c := b+Vector3(0,0,landing)
+            var d := Vector3(x,y+4.35,start+29.5*0.31+landing)
+            _rod(a,b,0.025,steel)
+            _rod(b,c,0.025,steel)
+            _rod(c,d,0.025,steel)
+            _rod(a-Vector3(0,0,0.4),a,0.025,steel)
+        for i in range(9):
+            var u := float(i)/8.0
+            var z: float=start+u*(9.3+landing)
+            var rise: float=clampf((z-start)/0.31,0.0,15.0)*0.145 if z<start+14.5*0.31 else 2.175 if z<start+14.5*0.31+landing else 2.175+(z-start-14.5*0.31-landing)*0.145/0.31
+            _rod(Vector3(x,1.1805+rise,z),Vector3(x,2.2805+rise,z),0.026,steel)
     for side in [-1,1]:
-        _b("StairSideMarble",Vector3(0.25,5.4,10),Vector3(-5.37+float(side)*3.8,3.87,89.5),stone)
+        _b("StairSideMarble",Vector3(0.25,5.4,11.5),Vector3(-5.37+float(side)*3.8,3.87,90.0),stone)
     _picture("WestExitDestinations","exit.jpg",Vector2(7.05,0.78),Vector3(-5.37,4.1,84.65),PI)
     _b("WestVestibuleFloor",Vector3(7.2,0.2,4),Vector3(-5.37,5.53,96.3),brown)
     _b("WestVestibuleBack",Vector3(7.5,3.0,0.2),Vector3(-5.37,7.1,98.4),stone)
@@ -296,3 +324,40 @@ func _equipment() -> void:
     for x in [-9.1,-1.65]:
         _b("EmergencyCallPanel",Vector3(0.24,0.45,0.05),Vector3(x,2.27,84.0),_material(Color(0.95,0.77,0.12)))
         _b("SOSButton",Vector3(0.08,0.10,0.065),Vector3(x,2.27,83.97),_material(Color(0.75,0.08,0.04)))
+
+func _finish_details() -> void:
+    # Construction details visible in the supplied photographs; no invented signs.
+    var joint := _material(Color(0.43,0.42,0.39),0.0,0.8)
+    for i in range(16):
+        var z := -5.0+float(i)*6.0
+        if i%2==0:
+            _cylinder("ColumnFootCollar",0.462,0.055,Vector3(-5.37,1.60,z),steel)
+            _cylinder("ColumnCapitalCollar",0.463,0.035,Vector3(-5.37,4.59,z),steel)
+            for y in [2.55,3.21,3.87]:
+                _cylinder("MarbleColumnJoint",0.431,0.006,Vector3(-5.37,float(y),z),joint)
+        else:
+            for y in [2.56,3.22,3.88]:
+                _b("PierMarbleJoint",Vector3(1.558,0.006,2.758),Vector3(-5.37,float(y),z),joint)
+            for side in [-1.0,1.0]:
+                for dz in [-0.69,0.0,0.69]:
+                    _b("PierVerticalJoint",Vector3(0.008,2.30,0.007),Vector3(-5.37+float(side)*0.778,3.19,z+float(dz)),joint)
+                _b("PierSteelReveal",Vector3(0.025,0.82,2.80),Vector3(-5.37+float(side)*0.79,4.57,z),dark)
+                for dz in [-0.92,0.92]:
+                    _b("BenchMetalEndBand",Vector3(0.67,0.036,0.028),Vector3(-5.37+float(side)*1.12,1.811,z+float(dz)),steel)
+    for z in [7.0,37.0,67.0]:
+        for side in [-1.0,1.0]:
+            var x: float=-5.37+float(side)*2.3
+            _b("DirectionBoardCase",Vector3(3.59,0.79,0.065),Vector3(x,4.06,z+0.04),steel)
+            for dx in [-1.73,1.73]:
+                _b("BoardEndCap",Vector3(0.055,0.71,0.12),Vector3(x+float(dx),4.06,z+0.04),steel)
+    for side in [-1.0,1.0]:
+        var x: float=-5.37+float(side)*8.86
+        for i in range(54):
+            _b("CableWallClip",Vector3(0.045,0.075,0.035),Vector3(x,4.02,-12.0+float(i)*1.95),steel)
+    for x in [-9.12,-6.60,-1.62]:
+        _b("StairRailFootPlate",Vector3(0.16,0.018,0.18),Vector3(float(x),1.197,85.0),steel)
+    for side in [-1.0,1.0]:
+        var x: float=-5.37+float(side)*4.8
+        for i in range(70):
+            var z := -12.0+float(i)*1.5
+            _b("GlobeMountingPlate",Vector3(0.16,0.16,0.025),Vector3(x,4.85,z),steel)

@@ -30,6 +30,7 @@ func _ready() -> void:
     _lift()
     _advertising()
     _station_ends()
+    _finish_details()
     _flush()
     var equipment := preload("res://scripts/station/uruchye_platform_equipment.gd").new()
     equipment.name="UruchyePlatformEquipment"
@@ -244,6 +245,8 @@ func _rib(side: float,z: float) -> void:
     material.cull_mode=BaseMaterial3D.CULL_DISABLED; mesh.material_override=material
     add_child(mesh)
     _box(Vector3(3.15,0.06,0.13),Vector3(CX+side*3.975,5.53,z),white)
+    _box(Vector3(0.75,0.028,0.13),Vector3(CX+side*5.175,5.958,z),white)
+    _box(Vector3(0.025,0.43,0.13),Vector3(CX+side*5.55,5.745,z),white)
 
 func _torus(x: float,y: float,z: float,radius: float,tube: float,material: Material) -> void:
     for i in range(40):
@@ -525,3 +528,44 @@ func _station_ends() -> void:
                     var tie_z: float = end_z+direction*(float(i)+0.5)*0.58
                     _box(Vector3(2.65,0.12,0.24),Vector3(track_x,-0.22,tie_z),dark)
                 _box(Vector3(half_width*2.0,portal_top+0.30,0.12),Vector3(track_x,(portal_top-0.30)*0.5,end_z+direction*6.45),black)
+
+func _finish_details() -> void:
+    # Small finishing elements follow the existing photographed fixtures and finishes.
+    var seam := _mat(Color("#606d76"),0.25,0.65)
+    var fastener := _mat(Color("#939fa7"),0.7,0.32)
+    for side in [-1.0,1.0]:
+        var face: float=CX+side*(8.85-0.19)
+        _box(Vector3(0.014,0.025,112),Vector3(face-side*0.045,1.79,36.112),steel)
+        _box(Vector3(0.014,0.022,112),Vector3(face-side*0.045,4.34,36.112),steel)
+        _box(Vector3(0.035,0.08,105),Vector3(CX+side*2.40,5.54,39.612),steel)
+        for i in range(53):
+            var z := Z0+1.0+float(i)*1.98
+            var x: float=CX+side*5.55
+            _cylinder(0.09,0.025,Vector3(x,5.325,z),fastener)
+            # Reflector housing and lens frame around the existing linear lamp.
+            for dz in [-0.073,0.073]:
+                _box(Vector3(2.25,0.038,0.016),Vector3(CX+side*3.60,5.425,z+float(dz)),steel)
+            for dx in [-1.11,1.11]:
+                _box(Vector3(0.028,0.06,0.15),Vector3(CX+side*3.60+float(dx),5.45,z),steel)
+    for z in [17.0,39.5,62.0]:
+        for end in [-1.0,1.0]:
+            var ez: float=float(z)+float(end)*1.5
+            for j in [0,10,20,30]:
+                var angle: float=-PI/2.0+float(j)*PI/30.0
+                var radial := Vector3(sin(angle),0,float(end)*cos(angle))
+                var yaw := atan2(radial.x,radial.z)
+                _box(Vector3(0.045,0.018,0.58),Vector3(CX,FLOOR+0.56,ez)+radial*0.92,steel,Basis(Vector3.UP,yaw))
+            for y in [FLOOR+1.38,FLOOR+2.02,FLOOR+2.66]:
+                _cylinder(0.674,0.006,Vector3(CX,float(y),ez),seam)
+    for direction in [-1.0,1.0]:
+        var start: float=Z1-11.0 if direction>0.0 else Z0+11.0
+        for side in [-1.0,1.0]:
+            for rail_side in [-1.0,1.0]:
+                var x: float=CX+side*2.65+rail_side*1.58
+                _bar(Vector3(x,FLOOR+0.65,start),Vector3(x,FLOOR+4.05,start+direction*6.4),0.022,steel)
+                for h in [0.65,0.92]:
+                    _bar(Vector3(x,FLOOR+float(h),start-direction*0.35),Vector3(x,FLOOR+float(h),start),0.025,steel)
+                _cylinder(0.073,0.018,Vector3(x,FLOOR+0.012,start),fastener)
+    for z in [5.0,28.0,51.0,73.0]:
+        for x in [CX-2.45,CX+2.45]:
+            _box(Vector3(0.20,0.025,0.12),Vector3(float(x),5.64,float(z)),steel)
