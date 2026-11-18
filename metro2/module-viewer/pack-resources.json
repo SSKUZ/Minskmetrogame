@@ -342,6 +342,7 @@
       "res://scripts/infrastructure/station_infrastructure.gd"
     ],
     "vostok": [
+      "res://modules/stations/vostok/REFERENCES.md",
       "res://modules/stations/vostok/art/direction_north.svg",
       "res://modules/stations/vostok/art/direction_south.svg",
       "res://modules/stations/vostok/art/exit.svg",
@@ -357,6 +358,8 @@
       "res://scripts/infrastructure/station_infrastructure.gd"
     ],
     "moskovskaya": [
+      "res://modules/stations/moskovskaya/ART_CREDITS.md",
+      "res://modules/stations/moskovskaya/REFERENCES.md",
       "res://modules/stations/moskovskaya/art/direction_north.svg",
       "res://modules/stations/moskovskaya/art/direction_south.svg",
       "res://modules/stations/moskovskaya/art/exit.svg",
@@ -364,6 +367,12 @@
       "res://modules/stations/moskovskaya/art/line.svg",
       "res://modules/stations/moskovskaya/art/mosaic_0.svg",
       "res://modules/stations/moskovskaya/art/mosaic_1.svg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_10.jpg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_11.jpg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_12.jpg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_13.jpg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_14.jpg",
+      "res://modules/stations/moskovskaya/art/moscow_mural_21.jpg",
       "res://modules/stations/moskovskaya/art/name_be.svg",
       "res://modules/stations/moskovskaya/art/name_ru.svg",
       "res://modules/stations/moskovskaya/art/network.svg",
@@ -375,6 +384,7 @@
       "res://scripts/infrastructure/station_infrastructure.gd"
     ],
     "park_chelyuskintsev": [
+      "res://modules/stations/park_chelyuskintsev/REFERENCES.md",
       "res://modules/stations/park_chelyuskintsev/art/direction_north.svg",
       "res://modules/stations/park_chelyuskintsev/art/direction_south.svg",
       "res://modules/stations/park_chelyuskintsev/art/exit.svg",

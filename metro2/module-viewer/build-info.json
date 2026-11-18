@@ -138,21 +138,21 @@
       ]
     },
     "vostok": {
-      "file": "vostok-066d0125aebf5c3259b4.pck",
-      "sha256": "066d0125aebf5c3259b4567dc4c18bef753a110320151b3b485696c50476df27",
-      "bytes": 266544,
+      "file": "vostok-4406ab1ae5181a4a2489.pck",
+      "sha256": "4406ab1ae5181a4a24897e314bf907ecb6a930a1b4027f2af321ce0459d758f3",
+      "bytes": 276656,
       "warmup": []
     },
     "moskovskaya": {
-      "file": "moskovskaya-b64e09d80a0d6555d4a6.pck",
-      "sha256": "b64e09d80a0d6555d4a6d0ef307c804202b073aea607804e535bfc0f2b37e92c",
-      "bytes": 327584,
+      "file": "moskovskaya-37e4cba113c7c823a42b.pck",
+      "sha256": "37e4cba113c7c823a42bd3f07796991c4b367e52d4538a5aa53ee0a296279d7d",
+      "bytes": 4406816,
       "warmup": []
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-27bd19a1af427f809427.pck",
-      "sha256": "27bd19a1af427f809427f170722d9e77556e24fafbd8070093fed0f0620604e7",
-      "bytes": 304016,
+      "file": "park_chelyuskintsev-a992d98a0cbda8480fd0.pck",
+      "sha256": "a992d98a0cbda8480fd05723ec9fd002eb55d649eeb12d32b1370317f9df3acd",
+      "bytes": 315984,
       "warmup": []
     }
   },
@@ -231,5 +231,17 @@
     "references": "Internet photo series and lighting refurbishment sources; owner photos pending",
     "limitations": "estimated dimensions and fixture/sign spacing; simplified Moscow mosaics and approximate lettering; hidden vestibules omitted",
     "validation": "Godot 4.3 mandatory resource import and one Web pack export per new station; no game/scene/browser/visual/performance tests"
+  },
+  "station_realism_v58": {
+    "source_commit": "ecca0644bdfbf8cab379610b8fc1a8ffb65b3d91",
+    "stations": {
+      "vostok": "Восток",
+      "moskovskaya": "Московская",
+      "park_chelyuskintsev": "Парк Челюскинцев"
+    },
+    "changes": "curved Vostok light coffers; native cast-glass chandelier prototype and sculpted Park vault; real licensed Moscow mosaics, fluted columns, rounded coffer beams and live stair clocks; joined upper vestibules",
+    "credits": "station-photo-credits-v58.html",
+    "validation": "Godot 4.3 mandatory resource import and native Web pack export only; no scene/game/browser/visual/performance tests",
+    "limitations": "Station Base dimensions and element spacing remain scaled estimates; full hidden corridors and street surroundings are not reconstructed"
   }
 }
