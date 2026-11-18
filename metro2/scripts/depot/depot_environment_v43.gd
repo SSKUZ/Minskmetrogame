@@ -268,7 +268,7 @@ func _city_backdrop() -> void:
     # Side quarters appear in peripheral views while the train is still outside.
     for side in [-1.0,1.0]:
         for i in range(5):
-            var x := Route.CENTER_X+side*(635.0+float(i%2)*75.0)
+            var x: float=Route.CENTER_X+float(side)*(635.0+float(i%2)*75.0)
             var z := 130.0+float(i)*133.0
             var height := float(9+i%3*3)*2.95
             var base := Vector3(x,Route.ground(x,z)-0.5,z)
