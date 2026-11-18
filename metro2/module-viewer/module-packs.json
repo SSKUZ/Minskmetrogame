@@ -30,9 +30,9 @@
   },
   "packs": {
     "depot": {
-      "file": "depot-15e1242354a0a14055d2.pck",
-      "bytes": 66816,
-      "sha256": "15e1242354a0a14055d2c9f75047497c53237658c7506a29ceadbbdf1dd3adb1",
+      "file": "depot-047f3693453b81589c6f.pck",
+      "bytes": 74784,
+      "sha256": "047f3693453b81589c6f6f36489d8575fbcb5c823fd15b383a00972e57d67e1c",
       "warmup": []
     },
     "shared": {

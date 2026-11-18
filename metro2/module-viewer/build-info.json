@@ -14,9 +14,9 @@
   "before_initial_bytes": 83793524,
   "module_packs": {
     "depot": {
-      "bytes": 53600,
-      "file": "depot-025c1997281d0fe538ce.pck",
-      "sha256": "025c1997281d0fe538ced205b90bb9c47d555c0dc393faa5dcc3c33aaf03dcd4",
+      "file": "depot-047f3693453b81589c6f.pck",
+      "bytes": 74784,
+      "sha256": "047f3693453b81589c6f6f36489d8575fbcb5c823fd15b383a00972e57d67e1c",
       "warmup": []
     },
     "shared": {
@@ -163,5 +163,18 @@
   "artwork_v54": {
     "source_commit": "fd3530898f93381dbc8a9d5a21fc4d09bc2f104a",
     "changes": "Goodmix original art, explicit upright UVs; silver/bronze station lettering; bilingual route order"
+  },
+  "depot_detail_v55": {
+    "source_commit": "b767d7fd15a3359091aa53856092fdde21d1e13f",
+    "pack": {
+      "file": "depot-047f3693453b81589c6f.pck",
+      "bytes": 74784,
+      "sha256": "047f3693453b81589c6f6f36489d8575fbcb5c823fd15b383a00972e57d67e1c",
+      "warmup": []
+    },
+    "workers": 8,
+    "added_skyline_buildings": 40,
+    "changes": "sealed glazing/eave/gable joints, workshop details and distant city backdrop",
+    "validation": "Godot 4.3 resource import and pack export only; no scene execution"
   }
 }
