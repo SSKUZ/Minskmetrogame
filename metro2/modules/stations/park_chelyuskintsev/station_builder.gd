@@ -87,9 +87,9 @@ func rod(a: Vector3,b: Vector3,r: float,mat: Material) -> void:
 func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
     var key := str(mat.get_instance_id())
     if not surfaces.has(key):
-        var st := SurfaceTool.new()
-        st.begin(Mesh.PRIMITIVE_TRIANGLES)
-        surfaces[key]={"surface":st,"mat":mat}
+        var new_surface := SurfaceTool.new()
+        new_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+        surfaces[key]={"surface":new_surface,"mat":mat}
     var st: SurfaceTool=surfaces[key].surface
     for i in range(points.size()-1):
         var a: Vector2=points[i]
