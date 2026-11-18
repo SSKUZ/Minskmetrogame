@@ -48,9 +48,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-f4bfd066057e8728e3f2.pck",
-      "bytes": 461440,
-      "sha256": "f4bfd066057e8728e3f2da627585f6c35f2158eab96b77822bd6471df653d50c",
+      "file": "uruchye-8e0ec94fa85e008c20af.pck",
+      "bytes": 463936,
+      "sha256": "8e0ec94fa85e008c20afc080e1d521250ef6f42c791542c83a0cc30f856ef993",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/station/photo_reference/ad_city.png",
@@ -147,9 +147,9 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-536d25aaf740bfcc3bcd.pck",
-      "bytes": 693344,
-      "sha256": "536d25aaf740bfcc3bcd74d494cb19669bd8bfabce28f296e3676893df9078c9",
+      "file": "borisovsky_trakt-4bf7eae1b1b698c28067.pck",
+      "bytes": 696896,
+      "sha256": "4bf7eae1b1b698c280675a9d2a64b5ea15360d698d39476e3c016e5cf37180de",
       "warmup": [
         "res://assets/signage_v54/borisovsky_name.svg"
       ]
