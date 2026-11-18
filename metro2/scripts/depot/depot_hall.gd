@@ -108,4 +108,93 @@ func _ready() -> void:
         light.omni_attenuation = 1.3
         light.shadow_enabled = false
         add_child(light)
+    _finish_envelope(b)
     b.flush()
+
+func _finish_envelope(b: Builder) -> void:
+    # Cover envelope joints, not inspection channels or the three open gates.
+    var x0 := Route.CENTER_X
+    var trim := b.mat("FoldedZincFlashings",Color("#9ba7a3"),0.48,0.62)
+    var blue := b.mat("HallBlueGreyPaint",Color("#557c8c"),0.70,0.18)
+    var wall := b.mat("GableCladding",Color("#809194"),0.76,0.20,2.0)
+    var rubber := b.mat("GateRubberSeals",Color("#252e31"),0.95)
+    var red := b.mat("SmallFireDetails",Color("#a04d3b"),0.80)
+    var pale := b.mat("InteriorPlasterBand",Color("#c4c7ba"),0.91)
+    var grille := b.mat("VentGrille",Color("#424e51"),0.78,0.35)
+    for side in [-1.0,1.0]:
+        var x: float=x0+side*20.0
+        # Existing window bands start 25 mm above brick and end 25 mm below cladding.
+        for y in [10.71,14.39]:
+            b.box(trim,Vector3(x,y,470),Vector3(0.42,0.14,120.3))
+        b.box(wall,Vector3(x,16.74,470),Vector3(0.38,0.18,120.35))
+        b.box(blue,Vector3(x-side*0.19,7.05,470),Vector3(0.035,0.72,119.8))
+        b.box(pale,Vector3(x-side*0.195,8.45,470),Vector3(0.03,0.12,119.8))
+        for z in range(413,530,6):
+            # Full perimeter glazing rebates and fine vertical mullions.
+            for dz in [-2.90,0.0,2.90]:
+                b.box(trim,Vector3(x,12.55,float(z)+dz),Vector3(0.22,3.79,0.065))
+        for z in range(416,530,12):
+            b.box(trim,Vector3(x+side*0.19,13.68,z),Vector3(0.06,5.95,0.14))
+        for z in [410.0,530.0]:
+            b.box(trim,Vector3(x,11.3,z),Vector3(0.52,11.2,0.52))
+        # Two horizontal pipe runs and supports: modest reusable details.
+        for y in [8.85,9.18]:
+            b.cylinder(blue,Vector3(x-side*0.28,y,470),0.045,117.5,Basis(Vector3.RIGHT,PI*0.5))
+        for z in range(420,529,12):
+            b.box(trim,Vector3(x-side*0.30,9.02,z),Vector3(0.10,0.50,0.055))
+        # Weathered sill caps and feet connect the existing downpipes to the wall.
+        for z in [412.0,442.0,472.0,502.0,528.0]:
+            for y in [7.0,11.5,15.9]:
+                b.box(trim,Vector3(x+side*0.24,y,z),Vector3(0.25,0.07,0.20))
+            b.box(trim,Vector3(x+side*0.35,5.78,z),Vector3(0.24,0.18,0.32))
+    # Close the missing triangular gable faces at both ends of the existing roof.
+    for z in [409.79,530.21]:
+        var a := Vector3(x0-20.16,16.66,z)
+        var peak := Vector3(x0,17.51,z)
+        var c := Vector3(x0+20.16,16.66,z)
+        _triangle(b,wall,a,peak,c)
+        b.beam(trim,a,peak,0.12,0.10)
+        b.beam(trim,peak,c,0.12,0.10)
+        b.box(trim,Vector3(x0,16.69,z),Vector3(40.3,0.10,0.12))
+        for x in [-13.0,-6.5,0.0,6.5,13.0]:
+            b.box(grille,Vector3(x0+x,14.25,z),Vector3(2.4,0.68,0.10))
+            for row in range(5):
+                b.box(trim,Vector3(x0+x,14.0+float(row)*0.12,z+(-0.07 if z<470 else 0.07)),Vector3(2.3,0.025,0.025))
+    # Ridge cap and standing seams follow the existing pitch exactly.
+    b.box(trim,Vector3(x0,17.53,470),Vector3(0.26,0.10,122.6))
+    for side in [-1.0,1.0]:
+        for strip in range(1,26):
+            var dx := float(strip)*0.76
+            var y := 17.5-dx*(0.75/20.3)+0.018
+            b.box(trim,Vector3(x0+side*dx,y,470),Vector3(0.025,0.035,122.0))
+    # Visible guides, panel ribs and door seals; leave gate apertures unchanged.
+    for i in range(5):
+        var x := x0+float(i-2)*5.4
+        for side in [-1.0,1.0]:
+            b.box(rubber,Vector3(x+side*2.22,8.46,409.59),Vector3(0.06,5.48,0.07))
+            b.box(trim,Vector3(x+side*2.31,8.55,409.56),Vector3(0.08,5.7,0.15))
+        if i in [0,4]:
+            for row in range(18):
+                b.box(trim,Vector3(x,5.84+float(row)*0.30,409.83),Vector3(4.34,0.022,0.025))
+    # Small equipment details on the existing wall-side workbench bays only.
+    for side in [-1.0,1.0]:
+        var x: float=x0+side*17.5
+        for z in [445.0,480.0,508.0]:
+            b.box(blue,Vector3(x,7.39,z),Vector3(0.76,0.20,0.55))
+            b.box(trim,Vector3(x,7.51,z),Vector3(0.82,0.04,0.60))
+            b.box(rubber,Vector3(x,7.56,z),Vector3(0.20,0.06,0.06))
+            for tool in range(3):
+                b.box(trim,Vector3(x+0.10,7.65,z-0.65+float(tool)*0.20),Vector3(0.05,0.22,0.04))
+        b.cylinder(red,Vector3(x0+side*19.56,6.23,420),0.13,0.65)
+        b.box(rubber,Vector3(x0+side*19.56,6.61,420),Vector3(0.13,0.10,0.10))
+
+func _triangle(b: Builder,material: Material,a: Vector3,c: Vector3,d: Vector3) -> void:
+    if not b.surfaces.has(material):
+        var st := SurfaceTool.new()
+        st.begin(Mesh.PRIMITIVE_TRIANGLES)
+        b.surfaces[material]=st
+    var st: SurfaceTool=b.surfaces[material]
+    var normal := (c-a).cross(d-a).normalized()
+    for p in [a,c,d]:
+        st.set_normal(normal)
+        st.add_vertex(p)

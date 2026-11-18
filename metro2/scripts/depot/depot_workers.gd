@@ -39,7 +39,7 @@ func _ready() -> void:
     steel=_mat(Color("#666d72"),0.7)
     timber=_mat(Color("#8e5e30"))
     var files := ["res://assets/passengers/man-casual-low.glb","res://assets/passengers/man-shirt-low.glb"]
-    var locations := [Vector3(-14,6,425),Vector3(-8.1,6,444),Vector3(-14,6,464),Vector3(8.8,6,426),Vector3(15,6,452),Vector3(-8.2,6,483),Vector3(8.8,6,480),Vector3(15,6,503)]
+    var locations := [Vector3(-14,5.735,425),Vector3(-8.1,5.735,444),Vector3(-14,5.735,464),Vector3(8.8,5.735,426),Vector3(15,5.735,452),Vector3(-8.2,5.735,483),Vector3(8.8,5.735,480),Vector3(15,5.735,503)]
     for i in range(8):
         var scene := load(files[i%2]) as PackedScene
         if scene==null: continue
@@ -106,6 +106,7 @@ func _process(delta: float) -> void:
             a.play("Idle")
             var skeleton: Skeleton3D=w.skeleton
             skeleton.clear_bones_global_pose_override()
+            skeleton.force_update_all_bone_transforms()
             for bone in ["Spine","Spine1"]:
                 var idx := skeleton.find_bone(bone)
                 if idx<0: continue

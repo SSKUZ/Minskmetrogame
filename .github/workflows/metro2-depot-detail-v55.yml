@@ -1,0 +1,58 @@
+name: Metro2 depot envelope details and city backdrop V55
+on:
+  push:
+    branches: [feature/metro2-depot-detail-v55]
+    paths:
+      - '.github/workflows/metro2-depot-detail-v55.yml'
+      - 'metro2/scripts/depot/depot_hall.gd'
+      - 'metro2/scripts/depot/depot_environment_v43.gd'
+      - 'metro2/scripts/depot/depot_yard.gd'
+      - 'metro2/scripts/depot/depot_workers.gd'
+      - 'metro2/tools/depot_v55/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare current depot assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/depot-v55-pages-base"
+          python3 metro2/tools/depot_v55/publish.py prepare depot-v55 "$(cat "$RUNNER_TEMP/depot-v55-pages-base")"
+      - name: Mandatory Godot resource import and depot Web pack export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/depot_v55/publish.py build depot-v55
+          python3 metro2/tools/depot_v55/publish.py finish depot-v55
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: depot-v55-${{ github.sha }}
+          path: depot-v55/
+          retention-days: 7
+      - name: Publish depot only to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/depot-v55-pages" "$(cat "$RUNNER_TEMP/depot-v55-pages-base")"
+          cp -a depot-v55/web/. "$RUNNER_TEMP/depot-v55-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/depot-v55-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Detail depot envelope and distant city; retain eight workers and track layout'
+          git push origin HEAD:gh-pages

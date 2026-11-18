@@ -26,6 +26,7 @@ func _ready() -> void:
     steel = b.mat("GalvanisedSteel",Color("#7e8885"),0.61,0.65)
     yellow = b.mat("YardSafetyYellow",Color("#baa14e"),0.8)
     red = b.mat("UtilityRed",Color("#8b4c3f"),0.85)
+    _terrain(-850,850,-1280,-600)
     _terrain(-850,-5,-600,1000)
     _terrain(5,850,-600,1000)
     _terrain(-5,5,-600,96)

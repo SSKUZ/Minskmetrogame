@@ -38,6 +38,7 @@ func _ready() -> void:
     _make_resources()
     _housing()
     _distant_skyline()
+    _city_backdrop()
     _woodland()
     _yard_planting()
     _portal_landscape()
@@ -67,6 +68,26 @@ func _make_resources() -> void:
             material.metallic=0.45
             material.roughness=0.62
         _materials[key]=material
+
+    var skyline_shader := Shader.new()
+    skyline_shader.code="""shader_type spatial;
+varying vec3 world_p;
+varying vec3 world_n;
+varying vec4 facade_color;
+void vertex(){world_p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;world_n=normalize(MODEL_NORMAL_MATRIX*NORMAL);facade_color=COLOR;}
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void fragment(){
+ vec2 p=abs(world_n.x)>0.6?world_p.zy:world_p.xy;
+ vec2 cell=p/vec2(3.15,2.95);vec2 f=fract(cell);
+ float window=step(0.22,f.x)*step(f.x,0.69)*step(0.25,f.y)*step(f.y,0.73)*step(abs(world_n.y),0.45);
+ vec3 pane=mix(vec3(0.25,0.34,0.40),vec3(0.57,0.65,0.67),hash(floor(cell)));
+ vec3 wall=facade_color.rgb*(0.94+hash(floor(cell))*0.06);
+ ALBEDO=mix(wall,pane,window);ROUGHNESS=mix(0.93,0.48,window);
+}
+"""
+    var skyline_mat := ShaderMaterial.new()
+    skyline_mat.shader=skyline_shader
+    _materials["skyline"]=skyline_mat
 
 func _leaf_mesh(sides: int,rings: int) -> ArrayMesh:
     # Uneven solid crowns rather than transparent leaf cards or smooth spheres.
@@ -223,6 +244,38 @@ func _distant_skyline() -> void:
         _homes.append(Rect2(Vector2(x-item.w*0.5,z-depth*0.5),Vector2(item.w,depth)))
         _residential(Vector3(x,Route.ground(x,z)-0.5,z),Vector2(item.w,depth),int(item.z),i+30)
 
+func _city_backdrop() -> void:
+    # Three distant layers, visible along the existing depot-to-city (-Z) view.
+    # Generic outskirts, not invented claims about particular Minsk addresses.
+    var palette := [Color("#b6c0bc"),Color("#cec5b4"),Color("#bec3ce"),Color("#c9b6a2"),Color("#acb9bd")]
+    for row in range(3):
+        for col in range(10):
+            var z := -795.0-float(row)*150.0+float((col*7+row)%5)*14.0
+            var x := Route.CENTER_X-615.0+float(col)*136.0+float(row%2)*39.0
+            var floors := 9+((col*5+row*3)%14)
+            var height := float(floors)*2.95+0.65
+            var width := 29.0+float((col+row)%4)*9.0
+            var depth := 19.0+float(col%3)*3.0
+            var base := Vector3(x,Route.ground(x,z)-0.6,z)
+            var color: Color=palette[(col+row)%palette.size()]
+            color=color.lerp(Color("#aebec7"),float(row)*0.13)
+            _homes.append(Rect2(Vector2(x-width*0.5,z-depth*0.5),Vector2(width,depth)))
+            _emit("box","skyline",base+Vector3(0,height*0.5,0),Vector3(width,height,depth),color)
+            _emit("box","metal",base+Vector3(0,height+0.18,0),Vector3(width+0.6,0.36,depth+0.6),Color("#78878b"))
+            _emit("box","wall",base+Vector3(width*0.18,height+1.15,0),Vector3(4.2,2.0,4.0),color)
+            # Narrow stair/elevator spine breaks up the slab silhouette.
+            _emit("box","skyline",base+Vector3(width*0.24,height*0.5,depth*0.5+0.7),Vector3(4.0,height,1.4),color.darkened(0.04))
+    # Side quarters appear in peripheral views while the train is still outside.
+    for side in [-1.0,1.0]:
+        for i in range(5):
+            var x := Route.CENTER_X+side*(635.0+float(i%2)*75.0)
+            var z := 130.0+float(i)*133.0
+            var height := float(9+i%3*3)*2.95
+            var base := Vector3(x,Route.ground(x,z)-0.5,z)
+            var color: Color=palette[i%palette.size()]
+            _emit("box","skyline",base+Vector3(0,height*0.5,0),Vector3(48,height,19),color)
+            _emit("box","metal",base+Vector3(0,height+0.14,0),Vector3(48.5,0.28,19.5),Color("#7b8789"))
+
 func _residential(base: Vector3,footprint: Vector2,floors: int,index: int) -> void:
     var height := float(floors)*2.95+0.65
     var palette := [Color("#c4c5b6"),Color("#cfcdc0"),Color("#b4bcb7"),Color("#c9c3b1")]
@@ -339,7 +392,7 @@ func _flush() -> void:
         node.layers=65
         var distant: bool=absf(node.position.x-Route.CENTER_X) > 250.0 or node.position.z < -80.0
         node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if distant else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-        node.visibility_range_end=740.0 if distant else 480.0
+        node.visibility_range_end=1850.0 if str(batch.material)=="skyline" or node.position.z < -740.0 else 1450.0 if distant else 480.0
         node.visibility_range_end_margin=35.0
         add_child(node)
     _batches.clear()
