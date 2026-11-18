@@ -19,6 +19,15 @@
     ],
     "borisovsky_trakt": [
       "borisovsky_trakt"
+    ],
+    "vostok": [
+      "vostok"
+    ],
+    "moskovskaya": [
+      "moskovskaya"
+    ],
+    "park_chelyuskintsev": [
+      "park_chelyuskintsev"
     ]
   },
   "names": {
@@ -26,7 +35,10 @@
     "tunnel_16m": "Тоннель",
     "uruchye": "Уручье",
     "v106": "V106",
-    "borisovsky_trakt": "Борисовский тракт"
+    "borisovsky_trakt": "Борисовский тракт",
+    "vostok": "Восток",
+    "moskovskaya": "Московская",
+    "park_chelyuskintsev": "Парк Челюскинцев"
   },
   "packs": {
     "depot": {
@@ -153,6 +165,24 @@
       "warmup": [
         "res://assets/signage_v54/borisovsky_name.svg"
       ]
+    },
+    "vostok": {
+      "file": "vostok-066d0125aebf5c3259b4.pck",
+      "sha256": "066d0125aebf5c3259b4567dc4c18bef753a110320151b3b485696c50476df27",
+      "bytes": 266544,
+      "warmup": []
+    },
+    "moskovskaya": {
+      "file": "moskovskaya-b64e09d80a0d6555d4a6.pck",
+      "sha256": "b64e09d80a0d6555d4a6d0ef307c804202b073aea607804e535bfc0f2b37e92c",
+      "bytes": 327584,
+      "warmup": []
+    },
+    "park_chelyuskintsev": {
+      "file": "park_chelyuskintsev-27bd19a1af427f809427.pck",
+      "sha256": "27bd19a1af427f809427f170722d9e77556e24fafbd8070093fed0f0620604e7",
+      "bytes": 304016,
+      "warmup": []
     }
   },
   "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813",

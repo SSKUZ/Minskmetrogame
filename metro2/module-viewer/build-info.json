@@ -136,6 +136,24 @@
       "warmup": [
         "res://assets/signage_v54/borisovsky_name.svg"
       ]
+    },
+    "vostok": {
+      "file": "vostok-066d0125aebf5c3259b4.pck",
+      "sha256": "066d0125aebf5c3259b4567dc4c18bef753a110320151b3b485696c50476df27",
+      "bytes": 266544,
+      "warmup": []
+    },
+    "moskovskaya": {
+      "file": "moskovskaya-b64e09d80a0d6555d4a6.pck",
+      "sha256": "b64e09d80a0d6555d4a6d0ef307c804202b073aea607804e535bfc0f2b37e92c",
+      "bytes": 327584,
+      "warmup": []
+    },
+    "park_chelyuskintsev": {
+      "file": "park_chelyuskintsev-27bd19a1af427f809427.pck",
+      "sha256": "27bd19a1af427f809427f170722d9e77556e24fafbd8070093fed0f0620604e7",
+      "bytes": 304016,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -201,5 +219,17 @@
     ],
     "changes": "Uruchye ceiling rib closures, fixture and furniture fittings; Borisovsky stair landing, round downlights, jointing and direction cases",
     "validation": "Godot 4.3 import and native Web resource pack export only; no scene execution"
+  },
+  "three_stations_v57": {
+    "source_commit": "e84e20a6fb30c83f28d1786d888c0cb68b33bc78",
+    "stations": {
+      "vostok": "Восток",
+      "moskovskaya": "Московская",
+      "park_chelyuskintsev": "Парк Челюскинцев"
+    },
+    "boot": "boot-37171efd2ae0daae9cac.pck",
+    "references": "Internet photo series and lighting refurbishment sources; owner photos pending",
+    "limitations": "estimated dimensions and fixture/sign spacing; simplified Moscow mosaics and approximate lettering; hidden vestibules omitted",
+    "validation": "Godot 4.3 mandatory resource import and one Web pack export per new station; no game/scene/browser/visual/performance tests"
   }
 }

@@ -3,7 +3,10 @@
     "depot": "modules/depot/depot.tscn",
     "tunnel_16m": "modules/tunnels/tunnel_section_16m.tscn",
     "uruchye": "modules/stations/uruchye/uruchye.tscn",
-    "v106": "viewers/v106_inspection.tscn"
+    "v106": "viewers/v106_inspection.tscn",
+    "vostok": "modules/stations/vostok/vostok.tscn",
+    "moskovskaya": "modules/stations/moskovskaya/moskovskaya.tscn",
+    "park_chelyuskintsev": "modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn"
   },
   "resources": {
     "depot": [
@@ -336,6 +339,54 @@
       "res://assets/signage_v54/borisovsky_name.svg.remap",
       "res://modules/stations/borisovsky_trakt/borisovsky_trakt.gd",
       "res://modules/stations/borisovsky_trakt/station_base.gd",
+      "res://scripts/infrastructure/station_infrastructure.gd"
+    ],
+    "vostok": [
+      "res://modules/stations/vostok/art/direction_north.svg",
+      "res://modules/stations/vostok/art/direction_south.svg",
+      "res://modules/stations/vostok/art/exit.svg",
+      "res://modules/stations/vostok/art/line.svg",
+      "res://modules/stations/vostok/art/name_be.svg",
+      "res://modules/stations/vostok/art/name_ru.svg",
+      "res://modules/stations/vostok/art/network.svg",
+      "res://modules/stations/vostok/station_base.gd",
+      "res://modules/stations/vostok/station_builder.gd",
+      "res://modules/stations/vostok/vostok.gd",
+      "res://modules/stations/vostok/vostok.tscn",
+      "res://scripts/playable_track_path.gd",
+      "res://scripts/infrastructure/station_infrastructure.gd"
+    ],
+    "moskovskaya": [
+      "res://modules/stations/moskovskaya/art/direction_north.svg",
+      "res://modules/stations/moskovskaya/art/direction_south.svg",
+      "res://modules/stations/moskovskaya/art/exit.svg",
+      "res://modules/stations/moskovskaya/art/kremlin_clock.svg",
+      "res://modules/stations/moskovskaya/art/line.svg",
+      "res://modules/stations/moskovskaya/art/mosaic_0.svg",
+      "res://modules/stations/moskovskaya/art/mosaic_1.svg",
+      "res://modules/stations/moskovskaya/art/name_be.svg",
+      "res://modules/stations/moskovskaya/art/name_ru.svg",
+      "res://modules/stations/moskovskaya/art/network.svg",
+      "res://modules/stations/moskovskaya/moskovskaya.gd",
+      "res://modules/stations/moskovskaya/moskovskaya.tscn",
+      "res://modules/stations/moskovskaya/station_base.gd",
+      "res://modules/stations/moskovskaya/station_builder.gd",
+      "res://scripts/playable_track_path.gd",
+      "res://scripts/infrastructure/station_infrastructure.gd"
+    ],
+    "park_chelyuskintsev": [
+      "res://modules/stations/park_chelyuskintsev/art/direction_north.svg",
+      "res://modules/stations/park_chelyuskintsev/art/direction_south.svg",
+      "res://modules/stations/park_chelyuskintsev/art/exit.svg",
+      "res://modules/stations/park_chelyuskintsev/art/line.svg",
+      "res://modules/stations/park_chelyuskintsev/art/name_be.svg",
+      "res://modules/stations/park_chelyuskintsev/art/name_ru.svg",
+      "res://modules/stations/park_chelyuskintsev/art/network.svg",
+      "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
+      "res://modules/stations/park_chelyuskintsev/station_base.gd",
+      "res://modules/stations/park_chelyuskintsev/station_builder.gd",
+      "res://scripts/playable_track_path.gd",
       "res://scripts/infrastructure/station_infrastructure.gd"
     ]
   }
