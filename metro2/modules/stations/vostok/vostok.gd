@@ -10,10 +10,17 @@ func _ready() -> void:
     portals(7.55)
     stairs(-1.0,-3.5)
     stairs(1.0,82.5)
-    for z in [21.0,57.0]:information_pylon(float(z))
-    for z in [10.0,36.0,70.0]:
+    for z in [19.0,43.0,67.0]:
+        information_pylon(float(z))
         for side in [-1.0,1.0]:
-            board("direction_north.svg" if side>0.0 else "direction_south.svg",Vector3(CX+side*2.5,4.28,float(z)),Vector2(3.45,0.61))
+            for j in range(18):
+                box(Vector3(0.43,0.05,0.058),Vector3(CX+side*0.50,FY+0.47,float(z)-0.62+float(j)*0.073),timber)
+            box(Vector3(0.40,0.10,1.35),Vector3(CX+side*0.50,FY+0.40,float(z)),metal)
+            for dz in [-0.47,0.47]:
+                box(Vector3(0.19,0.35,0.15),Vector3(CX+side*0.50,FY+0.20,float(z)+float(dz)),granite)
+    vestibule(-1.0,-3.5,"vostok")
+    vestibule(1.0,82.5,"vostok")
+    finish_hall()
     flush()
 
 func _floor() -> void:
@@ -40,7 +47,11 @@ func _walls() -> void:
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
         box(Vector3(0.30,1.48,105),Vector3(x,0.75,MID),redstone)
-        box(Vector3(0.18,2.0,105),Vector3(x,2.48,MID),white)
+        var lower: Array[Vector2]=[]
+        for j in range(25):
+            var t: float=float(j)/24.0
+            lower.append(Vector2(x-side*0.20*sin(t*PI),1.48+t*1.98))
+        profile(lower,ZA,ZB,white)
         box(Vector3(0.44,0.55,105),Vector3(x-side*0.10,3.68,MID),marble)
         box(Vector3(0.47,0.025,105),Vector3(x-side*0.11,3.57,MID),brass)
         box(Vector3(0.56,0.035,105),Vector3(x-side*0.14,3.98,MID),glow)
@@ -51,26 +62,28 @@ func _walls() -> void:
             box(Vector3(0.52,0.76,4.5),Vector3(x-side*0.14,3.70,float(z)),marble)
             picture("name_be.svg" if side>0.0 else "name_ru.svg",Vector2(3.8,0.48),Vector3(x-side*0.41,3.69,float(z)),-side*PI/2.0,true)
         for z in [34.0,79.0]:
-            picture("line.svg",Vector2(4.6,0.78),Vector3(x-side*0.13,2.17,float(z)),-side*PI/2.0)
+            picture("line.svg",Vector2(4.6,0.78),Vector3(x-side*0.29,2.17,float(z)),-side*PI/2.0)
 
 func _vault() -> void:
-    var shell: Array[Vector2]=[]
-    for j in range(49):
-        var a: float=PI*float(j)/48.0
-        shell.append(Vector2(CX+8.98*cos(a),3.94+3.50*sin(a)))
-    profile(shell,ZA,ZB,white)
-    var reveal := _material(Color("#a4a69e"),0.0,0.75)
-    # Four broad light portals occupy each petal bay; vertical ribs turn into the vault.
+    # Smooth uninterrupted crown. Petals are local ribs, not ribs across the entire arch.
+    for side in [-1.0,1.0]:curved_band(float(side),0.0,PI/2.0,ZA,ZB,3.94,3.50,0.0,white)
+    var shadow := _material(Color("#92968e"),0.0,0.82)
     for i in range(35):
-        var z: float=ZA+0.25+float(i)*3.0
+        var z: float=ZA+0.20+float(i)*3.0
         for side in [-1.0,1.0]:
-            var rib: Array[Vector2]=[]
-            for j in range(17):
-                var a: float=float(j)/16.0*0.82
-                rib.append(Vector2(CX+side*(8.96*cos(a)-0.075),3.94+3.50*sin(a)-0.055))
-            profile(rib,z,z+0.13,white)
+            # Broad rounded return at the top of each petal and a recessed lower light bay.
+            curved_band(float(side),0.0,0.69,z,z+0.14,3.94,3.50,0.095,white)
+            for j in range(16):
+                var a: float=0.67+float(j)*0.0038
+                var w: float=0.14+0.24*sqrt(maxf(0.0,1.0-pow((a-0.696)/0.030,2.0)))
+                curved_band(float(side),a,a+0.0038,z-(w-0.14)*0.5,z+0.14+(w-0.14)*0.5,3.94,3.50,0.095,white)
             for j in range(4):
-                var zz: float=z+0.27+float(j)*0.64
-                box(Vector3(0.08,1.20,0.58),Vector3(CX+side*8.70,4.56,zz),reveal)
-                box(Vector3(0.035,1.10,0.51),Vector3(CX+side*8.64,4.56,zz),glow)
-                box(Vector3(0.12,0.035,0.60),Vector3(CX+side*8.67,5.17,zz),metal)
+                var zz: float=z+0.25+float(j)*0.66
+                # Curved diffusers sit in reveal boxes. Their long axes follow the vault.
+                curved_band(float(side),0.025,0.34,zz,zz+0.59,3.94,3.50,0.022,shadow)
+                curved_band(float(side),0.045,0.325,zz+0.035,zz+0.555,3.94,3.50,0.042,glow)
+                curved_band(float(side),0.025,0.34,zz,zz+0.025,3.94,3.50,0.068,white)
+                curved_band(float(side),0.025,0.34,zz+0.565,zz+0.59,3.94,3.50,0.068,white)
+                curved_band(float(side),0.025,0.047,zz,zz+0.59,3.94,3.50,0.068,white)
+                curved_band(float(side),0.323,0.345,zz,zz+0.59,3.94,3.50,0.068,white)
+            curved_band(float(side),0.355,0.365,z+0.22,z+2.90,3.94,3.50,0.05,metal)

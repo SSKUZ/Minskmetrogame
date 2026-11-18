@@ -1,0 +1,7 @@
+# V58 — photo-derived station architecture pass
+
+Sources: existing V57 reference sets plus mirmetro close-ups of ceilings and staircase ends; Wikimedia Commons Antares 610 photograph series Maskousk, Pchelus and Ushod; BELINTEGRA lighting refurbishment portfolios. Manufacturer video https://www.youtube.com/watch?v=rwJDzKvyoyc was located, but fetch was blocked; no claim of having watched it. Further video indexes: https://www.youtube.com/watch?v=E4wb4ChVx-g and https://rutube.ru/video/9f9f2f965c8f2df5a09420bfb377d6df/ . Geometry decisions use inspected still images, not unviewed video.
+
+Changes: sculpted Vostok coffers and curved wall returns; real licensed Moscow panel imagery, fluted columns, rounded beam profiles, live stair clocks; Park cast-glass bowl prototypes, brass cage and coffered vault; joined stair parapets and visible upper vestibules, detailed fixtures and multiscale stone. Generic floating direction panels removed from the two column-free halls. Track geometry, rail/clock infrastructure and other modules remain unchanged.
+
+Dimensions, spacing, panel order and hidden circulation remain inferred. This is a substantial model refinement, not a measured architectural survey or a claim of complete photogrammetric recovery. No game/browser/scene execution, screenshots, visual tests or performance tests. Only mandatory Godot import and native Web resource export. Publication replaces only the three station packs in the current manifest.
