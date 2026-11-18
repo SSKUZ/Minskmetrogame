@@ -1,0 +1,57 @@
+name: Metro2 photo-derived station realism V58
+on:
+  push:
+    branches: [feature/metro2-stations-realism-v58]
+    paths:
+      - '.github/workflows/metro2-stations-realism-v58.yml'
+      - 'metro2/modules/stations/vostok/**'
+      - 'metro2/modules/stations/moskovskaya/**'
+      - 'metro2/modules/stations/park_chelyuskintsev/**'
+      - 'metro2/tools/station_realism_v58/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export rebuilt stations
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/station-realism-v58-pages-base"
+          python3 metro2/tools/station_realism_v58/publish.py prepare station-realism-v58 "$(cat "$RUNNER_TEMP/station-realism-v58-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/station_realism_v58/publish.py build station-realism-v58
+          python3 metro2/tools/station_realism_v58/publish.py finish station-realism-v58
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-realism-v58-${{ github.sha }}
+          path: station-realism-v58/
+          retention-days: 7
+      - name: Publish three photo-derived station modules to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/station-realism-v58-pages" "$(cat "$RUNNER_TEMP/station-realism-v58-pages-base")"
+          cp -a station-realism-v58/web/. "$RUNNER_TEMP/station-realism-v58-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/station-realism-v58-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Rebuild Vostok, Moskovskaya and Park Chelyuskintsev from detailed photographic references'
+          git push origin HEAD:gh-pages
