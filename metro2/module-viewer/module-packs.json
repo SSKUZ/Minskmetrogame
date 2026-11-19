@@ -167,9 +167,9 @@
       ]
     },
     "vostok": {
-      "file": "vostok-4406ab1ae5181a4a2489.pck",
-      "sha256": "4406ab1ae5181a4a24897e314bf907ecb6a930a1b4027f2af321ce0459d758f3",
-      "bytes": 276656,
+      "file": "vostok-f8d26092e08fb22eb770.pck",
+      "sha256": "f8d26092e08fb22eb770d0d75e630047c677cc9c13b90234661f61795c7f06ee",
+      "bytes": 2256352,
       "warmup": []
     },
     "moskovskaya": {
