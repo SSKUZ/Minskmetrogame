@@ -1,0 +1,58 @@
+[
+  {
+    "source": "08-7980.jpg",
+    "sha256": "382708fd78a21a889e2c78505b5ece7d95eea45001e6a2ed95a81d9e60b3805c",
+    "asset": "screen_year_2026.jpg",
+    "source_quad_pixels": [
+      [
+        282,
+        100
+      ],
+      [
+        732,
+        27
+      ],
+      [
+        759,
+        301
+      ],
+      [
+        314,
+        348
+      ]
+    ]
+  },
+  {
+    "source": "01-7997.jpg",
+    "sha256": "61ca157ab02096c6f336f59b423699d505a518966f596a31d3cadc5eda56809e",
+    "asset": "red_granite.jpg",
+    "source_rectangle_pixels": [
+      494,
+      576,
+      600,
+      687
+    ]
+  },
+  {
+    "source": "02-7957.jpg",
+    "sha256": "30feb5cafbdd71d96cb23d875e0e859ff98512b248d7e4138e7e1437ba2d196a",
+    "asset": "grey_granite.jpg",
+    "source_rectangle_pixels": [
+      602,
+      1021,
+      731,
+      1209
+    ]
+  },
+  {
+    "source": "03-7958.jpg",
+    "sha256": "8840641f05d7f93c98a6efbe1c86d09fcb3dc135f891faeeb7227169639a6270",
+    "asset": "stair_marble.jpg",
+    "source_rectangle_pixels": [
+      423,
+      597,
+      631,
+      619
+    ]
+  }
+]

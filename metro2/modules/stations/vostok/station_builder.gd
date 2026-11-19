@@ -108,7 +108,7 @@ func flush() -> void:
             mesh=data.mesh
         elif data.kind=="cylinder":
             var c := CylinderMesh.new()
-            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=16
+            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=8
             mesh=c
         elif data.kind=="sphere":
             var s := SphereMesh.new()
@@ -379,6 +379,6 @@ func wood_material() -> ShaderMaterial:
 varying vec3 p;
 void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
 void fragment(){float w=sin(p.z*47.0+sin(p.x*2.3+p.y*4.0)*3.0);float fine=sin(p.z*290.0+sin(p.x*8.0)*4.0);float grain=pow(abs(w),4.0)*0.45+fine*0.06;
-ALBEDO=mix(vec3(0.29,0.15,0.055),vec3(0.58,0.36,0.15),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
+ALBEDO=mix(vec3(0.40,0.25,0.12),vec3(0.72,0.52,0.29),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader;return mat

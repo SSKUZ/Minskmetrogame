@@ -1,0 +1,55 @@
+name: Metro2 Vostok owner-photo reconstruction V59
+on:
+  push:
+    branches: [feature/metro2-vostok-photo-v59]
+    paths:
+      - '.github/workflows/metro2-vostok-photo-v59.yml'
+      - 'metro2/modules/stations/vostok/**'
+      - 'metro2/tools/vostok_photo_v59/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Vostok
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/vostok-photo-v59-pages-base"
+          python3 metro2/tools/vostok_photo_v59/publish.py prepare vostok-photo-v59 "$(cat "$RUNNER_TEMP/vostok-photo-v59-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/vostok_photo_v59/publish.py build vostok-photo-v59
+          python3 metro2/tools/vostok_photo_v59/publish.py finish vostok-photo-v59
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vostok-photo-v59-${{ github.sha }}
+          path: vostok-photo-v59/
+          retention-days: 7
+      - name: Publish updated Vostok to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/vostok-photo-v59-pages" "$(cat "$RUNNER_TEMP/vostok-photo-v59-pages-base")"
+          cp -a vostok-photo-v59/web/. "$RUNNER_TEMP/vostok-photo-v59-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/vostok-photo-v59-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Reconstruct Vostok from owner photographs; preserve other station packs'
+          git push origin HEAD:gh-pages
