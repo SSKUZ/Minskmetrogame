@@ -144,9 +144,9 @@
       "warmup": []
     },
     "moskovskaya": {
-      "file": "moskovskaya-37e4cba113c7c823a42b.pck",
-      "sha256": "37e4cba113c7c823a42bd3f07796991c4b367e52d4538a5aa53ee0a296279d7d",
-      "bytes": 4406816,
+      "file": "moskovskaya-fcf756ca066a9decf224.pck",
+      "sha256": "fcf756ca066a9decf224d56cb4774b0dd8f6ae15877168998d6904d8d88dfd4d",
+      "bytes": 13357648,
       "warmup": []
     },
     "park_chelyuskintsev": {
@@ -252,5 +252,14 @@
     "changes": "Owner-photo vault, triple diffuser bays, granite floor ornament, curved wall panels, raised station names, bilingual track/exit signs, five-seat benches, equipment pylons, red portal clocks, four working driver mirrors, staircases and vestibules",
     "validation": "Resource import and native Godot 4.3 Web pack export; no gameplay/browser/performance tests",
     "limitations": "Hidden rooms, exact survey dimensions and precise fixture counts remain estimates; screen is a still image from the owner photograph; only nearest visible driver mirror updates at 6 Hz"
+  },
+  "moskovskaya_photo_v60": {
+    "source_commit": "ef7ca27d94120209ef9e87b9b4013f5871311b71",
+    "stations": {
+      "moskovskaya": "Московская"
+    },
+    "changes": "Owner photographs and both videos: fluted marble columns, white rounded transverse ceiling ribs, girder-edge lighting, red/grey granite floor grid, real marble-inlay imagery, raised bronze lettering, accurate bilingual signs, five-seat backless benches, animated advertising screens, portal mirrors and CCTV monitors",
+    "validation": "Godot 4.3 resource import and native Web pack export only; no gameplay/browser/performance tests",
+    "limitations": "Dimensions, fixture counts and concealed rooms remain estimates; mosaic sections are rectified photo/video samples, not a surveyed panorama; advertising is an original animated vector loop; nearest visible mirror updates at 6 Hz"
   }
 }

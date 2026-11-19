@@ -173,9 +173,9 @@
       "warmup": []
     },
     "moskovskaya": {
-      "file": "moskovskaya-37e4cba113c7c823a42b.pck",
-      "sha256": "37e4cba113c7c823a42bd3f07796991c4b367e52d4538a5aa53ee0a296279d7d",
-      "bytes": 4406816,
+      "file": "moskovskaya-fcf756ca066a9decf224.pck",
+      "sha256": "fcf756ca066a9decf224d56cb4774b0dd8f6ae15877168998d6904d8d88dfd4d",
+      "bytes": 13357648,
       "warmup": []
     },
     "park_chelyuskintsev": {
