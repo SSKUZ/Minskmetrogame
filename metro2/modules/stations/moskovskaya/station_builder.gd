@@ -108,7 +108,7 @@ func flush() -> void:
             mesh=data.mesh
         elif data.kind=="cylinder":
             var c := CylinderMesh.new()
-            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=16
+            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=8
             mesh=c
         elif data.kind=="sphere":
             var s := SphereMesh.new()

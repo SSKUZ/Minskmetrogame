@@ -1,0 +1,55 @@
+name: Metro2 Moskovskaya owner-photo reconstruction V60
+on:
+  push:
+    branches: [feature/metro2-moskovskaya-photo-v60]
+    paths:
+      - '.github/workflows/metro2-moskovskaya-photo-v60.yml'
+      - 'metro2/modules/stations/moskovskaya/**'
+      - 'metro2/tools/moskovskaya_photo_v60/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Moskovskaya
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/moskovskaya-photo-v60-pages-base"
+          python3 metro2/tools/moskovskaya_photo_v60/publish.py prepare moskovskaya-photo-v60 "$(cat "$RUNNER_TEMP/moskovskaya-photo-v60-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/moskovskaya_photo_v60/publish.py build moskovskaya-photo-v60
+          python3 metro2/tools/moskovskaya_photo_v60/publish.py finish moskovskaya-photo-v60
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: moskovskaya-photo-v60-${{ github.sha }}
+          path: moskovskaya-photo-v60/
+          retention-days: 7
+      - name: Publish updated Moskovskaya to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/moskovskaya-photo-v60-pages" "$(cat "$RUNNER_TEMP/moskovskaya-photo-v60-pages-base")"
+          cp -a moskovskaya-photo-v60/web/. "$RUNNER_TEMP/moskovskaya-photo-v60-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/moskovskaya-photo-v60-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Reconstruct Moskovskaya from owner photographs; preserve other station packs'
+          git push origin HEAD:gh-pages

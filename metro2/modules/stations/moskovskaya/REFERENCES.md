@@ -1,18 +1,32 @@
-# moskovskaya — reference record, 18 November 2026
+# Московская / Маскоўская — owner-photo reconstruction V60
 
-First pass from Internet sources; owner photographs are pending. Architecture and dimensions remain provisional. Technical geometry is a station-local copy of the existing Station Base (V56), retaining two tracks, 105×10 m platform and standard connection coordinates. Modules never reference each other's architecture.
+Authoritative visual references: all 31 supplied photographs 7865–7897 and videos 7879.mp4 (13.87 s), 7880.mp4 (8.33 s), supplied by the project owner on 19 November 2026. Both videos were reviewed across their complete duration at one-second frame intervals; full-resolution samples at 11.5 s and 2.6 s supply additional marble-inlay details. These references supersede the V58 assumptions about ceiling panels, stair decoration, benches and signage.
 
-Sources read:
-- https://mirmetro.net/metro/minsk/stations/stancyya-maskouskaya
-- https://ru.wikipedia.org/wiki/Московская_(станция_метро,_Минск)
-- https://mirmetro.net/uploaded/images/minsk/01/21_maskouskaya/01.jpg — platform/finish/lettering reference only.
-- https://mirmetro.net/uploaded/images/minsk/01/21_maskouskaya/05.jpg — platform/finish/lettering reference only.
-- https://mirmetro.net/uploaded/images/minsk/01/21_maskouskaya/06.jpg — platform/finish/lettering reference only.
-- https://mirmetro.net/uploaded/images/minsk/01/21_maskouskaya/08.jpg — platform/finish/lettering reference only.
-- https://mirmetro.net/uploaded/images/minsk/01/21_maskouskaya/10.jpg — platform/finish/lettering reference only.
+| References | Appearance used |
+| --- | --- |
+| 7868, 7871, 7874, 7887, 7894 | Red-brown granite rectangles; broad grey paving bands aligned with the columns; thin cream dividing lines; grey platform margin and yellow tactile strip |
+| 7875 | Pale polished marble columns with narrow paired vertical channels, thin horizontal slab joints and a low black stone plinth |
+| 7874, 7884, 7887, 7889 | High white centre ceiling; frequent narrow transverse ribs with rounded end transitions; lower side aisles; continuous rows of individual long diffusers on the inner upper girder edges |
+| 7869–7870, 7877–7878, 7882, 7888, 7896–7897 and both videos | Pale veined marble walls, dark plinth, low-contrast architectural inlays assembled from contrasting marble; fine mouldings around the station lettering band |
+| 7872–7873, 7890, 7893 | Separate bilingual side-hung track boards: track 1 toward 122–124, track 2 toward 120–110; station 121 highlighted; film studio, Makaenka and Volgogradskaya streets |
+| 7866–7867 | Exit: Independence Avenue, Filimonov street, Belarusfilm studio |
+| 7891–7892 | Opposite exit: Makaenka street, Belteleradiocompany, Volgogradskaya street, Belarusian State Agrarian Technical University |
+| 7877, 7888 | Distinct diagonal route maps on the two track walls; 121 highlighted; 115/314 and 116/216 interchanges |
+| 7895, 7876, 7894 | Five wide timber seat modules without backs, dark solid base and dividers; longitudinal benches between columns |
+| 7865–7867, 7881, 7891 | Broad two-flight stairs, yellow nosings, full-height marble side walls, continuous stainless handrails, cable runs, white driver mirrors, red portal clocks and small CCTV screens |
+| 7883–7885, 7894 | Suspended black television cases and brackets, back-to-back screens, nearby small equipment boxes |
 
-Photograph pixels and watermarks are not distributed. Procedural stone and native geometry are original. SVG labels use outlined DejaVu Sans Condensed (approximate glyph style); maps have a station-specific highlight. Exit text is limited to verified public destinations; precise end assignments, sign counts and heights require owner photos. Ceiling/column spacings, floor repeats and fixture counts are inferred. Moscow mosaics are simplified vector interpretations, not exact reproductions. Updated light sources guide the lighting treatment; no claim of measured photometry.
+## Implementation
 
-No game/scene execution, browser checks, screenshots or visual/performance tests. Mandatory Godot 4.3 resource import and Web pack export only.
+- The existing station-local Station Base, two tracks, 105 × 10 m island, standard connection markers and shared departure clock hooks are retained.
+- The incorrect grey/gold centre coffer panels and decorative stair clocks from V58 are no longer constructed. White ribs, rounded girder transitions, pale side ceilings and girder-edge diffusers follow the owner's modern photographs.
+- Two rows of twenty fluted marble columns; shallow channels are physical geometry, not painted stripes. Exact station-wide counts and spacing remain scaled estimates.
+- Wall and column materials use small samples of the real stone. Upper inlays use rectified owner photo/video regions under native lighting. They are arranged as a coherent band; their precise station-wide order is not a measured panorama. No passengers or faces are embedded in these crops.
+- Bronze station lettering is physical layered TextMesh geometry with dark centres and a narrow bronze rim. Typeface approximation: DejaVu Sans Condensed, with its licence included.
+- Five separate seats on each backless bench, side-hung bilingual signs, two distinct wall route panels, two distinct end exit boards, floor grilles/covers and visible equipment fittings.
+- Main televisions play an original 21-second vector advertisement loop: coffee, city outings and reading. Each seven-second card has moving highlights/progress and a crossfade; no network requests or video decoding. It is fictional advertising made for the game.
+- Four white-framed driver mirrors, independently copied local reflection controller. Only the nearest front-facing mirror within 32 m refreshes at 6 Hz, at 192 × 512 pixels. Small CCTV screens show a still cropped from the supplied train-platform photo.
 
-V58: the simplified skyline drawings have been replaced by UV-selected photographs of the real marble panels, credited separately in ART_CREDITS.md (Antares 610, CC BY-SA 3.0). Closed fluted column outlines and curved beam end sections follow the 2011 close-ups; stair-clock hands use Minsk time. Two rows contain twenty columns each; spacing and the positioning of panels are scaled estimates within Station Base, not survey measurements.
+Photo and video hashes, source regions and sampled times are recorded in `art/owner_photo_assets.json`. Original full photographs, passenger faces, original video audio and complete videos are not redistributed. Legacy V58 Wikimedia assets remain in source with their original credit file but are excluded from the V60 module export.
+
+Validation is limited to native Godot 4.3 resource import and Web pack export. Texture mip levels are generated during the build for oblique marble, floor and signage views. No gameplay, browser, visual or performance test suite. Exact dimensions, hidden rooms, measured photometry and complete fixture counts cannot be established from these views.
