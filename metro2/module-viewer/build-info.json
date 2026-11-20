@@ -150,9 +150,9 @@
       "warmup": []
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-5ef6fb879ecec2950cf6.pck",
-      "sha256": "5ef6fb879ecec2950cf661083abae7d22b5c023a0e74127db51be979c63a1de5",
-      "bytes": 4638208,
+      "file": "park_chelyuskintsev-75b332b9446593a2b92d.pck",
+      "sha256": "75b332b9446593a2b92d90b9c48c1db253b016cc6506df94f44b76b26f298e1e",
+      "bytes": 4144512,
       "warmup": []
     }
   },
@@ -263,12 +263,17 @@
     "limitations": "Dimensions, fixture counts and concealed rooms remain estimates; mosaic sections are rectified photo/video samples, not a surveyed panorama; advertising is an original animated vector loop; nearest visible mirror updates at 6 Hz"
   },
   "park_chelyuskintsev_photo_v61": {
-    "source_commit": "866804705125d27f888146fccf0ff3ea562c6f69",
+    "source_commit": "b7a38f1a0ab71c2ceb12c3fa2b3ccb38c8044dfa",
     "stations": {
       "park_chelyuskintsev": "Парк Челюскинцев"
     },
     "changes": "28 owner photographs and 7801.mp4: column-free segmented vault, central cove light, embossed glass chandeliers and side lanterns, dark granite walls, actual sculpted bronze names, stepped rose and aggregate floor, four-sided route/exit pylons, central backless benches, animated TVs, stairs with curved lintels, mirrors and red portal clocks",
     "validation": "Godot 4.3 resource import and native Web pack export only; no gameplay/browser/performance tests",
     "limitations": "Dimensions, bay counts and inferred pylon/bench positions are estimates from perspective photographs; no measured plan or photometry; concealed underpasses are not reconstructed; original vector advertisement loop; nearest visible mirror refreshes at 6 Hz"
+  },
+  "park_chelyuskintsev_vault_fix_v61_1": {
+    "source_commit": "b7a38f1a0ab71c2ceb12c3fa2b3ccb38c8044dfa",
+    "changes": "Correct clockwise interior winding and two-sided plaster; continuous curved white crown with rounded bay ends; brighter neutral side vault, cove bounce and six reused hall lights; raised flush chandelier mounts; corrected coping notches and solid stair corbels",
+    "validation": "Godot import/export only; no game, browser or visual tests"
   }
 }
