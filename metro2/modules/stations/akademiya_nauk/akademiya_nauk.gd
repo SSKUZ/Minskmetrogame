@@ -90,12 +90,13 @@ func _walls() -> void:
     var alternate := _photo("wall_marble_alt.jpg",Vector2(1.2,0.48),0.38)
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
-        box(Vector3(0.28,1.08,105),Vector3(x,0.54,MID),granite)
-        box(Vector3(0.28,4.65,105),Vector3(x,3.405,MID),wall_stone)
-        for y in [1.08,1.105]:box(Vector3(0.31,0.018,105),Vector3(x-side*0.025,float(y),MID),metal)
+        var plinth_top: float=FY+0.60
+        box(Vector3(0.28,plinth_top,105),Vector3(x,plinth_top*0.5,MID),granite)
+        box(Vector3(0.28,5.73-plinth_top,105),Vector3(x,(5.73+plinth_top)*0.5,MID),wall_stone)
+        for y in [plinth_top,plinth_top+0.025]:box(Vector3(0.31,0.018,105),Vector3(x-side*0.025,float(y),MID),metal)
         # Individual horizontal courses have real seams; upper plates turn vertical.
-        for row in range(8):
-            var y: float=1.11+float(row)*0.48
+        for row in range(6):
+            var y: float=plinth_top+0.03+float(row)*0.48
             box(Vector3(0.006,0.0035,105),Vector3(x-side*0.144,y,MID),joint)
             for j in range(88):
                 var z: float=ZA+float(j)*1.20+(0.60 if row%2==1 else 0.0)
