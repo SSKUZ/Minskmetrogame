@@ -1,0 +1,419 @@
+[
+  {
+    "source": "20261120_131444.jpg",
+    "sha256": "83681563ef92da14afbca3f4f460d7817547fb4eb3be37a26f54cff3e1c6ff51",
+    "asset": "wall_breccia.jpg",
+    "coordinates_at_width_800": [
+      544,
+      270,
+      611,
+      315
+    ]
+  },
+  {
+    "source": "20261120_131444.jpg",
+    "sha256": "83681563ef92da14afbca3f4f460d7817547fb4eb3be37a26f54cff3e1c6ff51",
+    "asset": "wall_breccia_alt.jpg",
+    "coordinates_at_width_800": [
+      672,
+      339,
+      755,
+      384
+    ]
+  },
+  {
+    "source": "20261120_131450.jpg",
+    "sha256": "beba9e1bdbcaf718fbe1d6ead0907e6ab461591f708f63cbd98f50e04c9c7da4",
+    "asset": "white_marble.jpg",
+    "coordinates_at_width_800": [
+      302,
+      310,
+      394,
+      370
+    ]
+  },
+  {
+    "source": "20261120_131539.jpg",
+    "sha256": "8d072e55ab1d4f4a09b06cc3e97e821fbfd7d45e5f8cf25ec9c1837d88409db0",
+    "asset": "floor_grey.jpg",
+    "coordinates_at_width_800": [
+      215,
+      342,
+      267,
+      382
+    ]
+  },
+  {
+    "source": "20261120_131539.jpg",
+    "sha256": "8d072e55ab1d4f4a09b06cc3e97e821fbfd7d45e5f8cf25ec9c1837d88409db0",
+    "asset": "floor_veined.jpg",
+    "coordinates_at_width_800": [
+      350,
+      357,
+      390,
+      390
+    ]
+  },
+  {
+    "source": "20261120_131539.jpg",
+    "sha256": "8d072e55ab1d4f4a09b06cc3e97e821fbfd7d45e5f8cf25ec9c1837d88409db0",
+    "asset": "floor_dark.jpg",
+    "coordinates_at_width_800": [
+      147,
+      305,
+      171,
+      322
+    ]
+  },
+  {
+    "source": "20261120_131615.jpg",
+    "sha256": "78bc6d7deecb4948b712da6fca5dcc8bdf72061a078e06bc7639dc27fb5d3637",
+    "asset": "stair_granite.jpg",
+    "coordinates_at_width_800": [
+      220,
+      305,
+      330,
+      312
+    ]
+  },
+  {
+    "source": "20261120_131524.jpg",
+    "sha256": "e9697df21786c980814ae0ff92a965c5b1d8990676b000450ee7367fdb51b904",
+    "asset": "ceiling_paint.jpg",
+    "coordinates_at_width_800": [
+      35,
+      73,
+      100,
+      130
+    ]
+  },
+  {
+    "source": "20261120_131450.jpg",
+    "sha256": "beba9e1bdbcaf718fbe1d6ead0907e6ab461591f708f63cbd98f50e04c9c7da4",
+    "asset": "name_ru.jpg",
+    "coordinates_at_width_800": [
+      [
+        230,
+        194
+      ],
+      [
+        625,
+        185
+      ],
+      [
+        638,
+        389
+      ],
+      [
+        231,
+        416
+      ]
+    ]
+  },
+  {
+    "source": "20261120_131524.jpg",
+    "sha256": "e9697df21786c980814ae0ff92a965c5b1d8990676b000450ee7367fdb51b904",
+    "asset": "order_face.jpg",
+    "coordinates_at_width_800": [
+      [
+        330,
+        78
+      ],
+      [
+        465,
+        78
+      ],
+      [
+        465,
+        213
+      ],
+      [
+        330,
+        213
+      ]
+    ]
+  },
+  {
+    "source": "20261120_131615.jpg",
+    "sha256": "78bc6d7deecb4948b712da6fca5dcc8bdf72061a078e06bc7639dc27fb5d3637",
+    "asset": "lenin_relief.jpg",
+    "coordinates_at_width_800": [
+      [
+        366,
+        205
+      ],
+      [
+        474,
+        205
+      ],
+      [
+        474,
+        264
+      ],
+      [
+        366,
+        264
+      ]
+    ]
+  },
+  {
+    "source": "20261120_131618.jpg",
+    "sha256": "f730a98689c276a144bbb1c10fd7dcf30b9137e3d57f447f3ea2f1d055acd2ba",
+    "asset": "platform_cctv.jpg",
+    "coordinates_at_width_800": [
+      [
+        517,
+        106
+      ],
+      [
+        540,
+        107
+      ],
+      [
+        540,
+        121
+      ],
+      [
+        517,
+        120
+      ]
+    ]
+  },
+  {
+    "reference": "20261120_131334.jpg",
+    "sha256": "5a1588a9b5b4cd0d6607282a6d3eaf931a29af3034bbb1bc18af2ac50a786569",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131339.jpg",
+    "sha256": "3cb58bb5a1ebf872545a61dec5b3bb3c7e4d9003ce29d89865a22be4608cf0e1",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131346.jpg",
+    "sha256": "547ea5ac41baa4317ad6e680b79d8a9e71446ec0c4952451bc8d6f368a9710ff",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131353.jpg",
+    "sha256": "684bf3e4ab497f856b666558c248e144931a6a2abffad1c8f64fd02b120defc6",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131357.jpg",
+    "sha256": "b42585a86d37e3e69b4c06828b0e683e7b47380de1239dd4860a12d6c815b0a3",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131407-video-0.jpg",
+    "sha256": "7057b6c8689b6fa689133e751709eaa68c3cb329d299470e20061fabf91c42c4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131407-video-1.jpg",
+    "sha256": "a2ec37e18865ce30f34add17dedb5c311ef2601086b5baf830eb8230b8f7a0dd",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131415.jpg",
+    "sha256": "566520188df8bd21834732d3c3ae6ece9f2277cf71a696db56588b0d5c7c5a5c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131416(0).jpg",
+    "sha256": "58e26aec3fb35508a91cf19e06354eb0b4f09dcd079333869f73b1d7311be606",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131416(1).jpg",
+    "sha256": "bce5a8503c246675b50c285cff1d499071b1f9a1333278b4c528dbc74e5677d7",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131416.jpg",
+    "sha256": "695229a8ac14aca0055f0d971de646a84ea160e7d94bd08184de121fe072d4b8",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131417(0).jpg",
+    "sha256": "bdde1038e98b59b93f223b26a15e8a542bc4ac0ff6ac57caea3ebad405f54e2c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131417(1).jpg",
+    "sha256": "22cf105736977a7de72e19b06a3101ecc1b2d8603dfd7bd1252afb72778a7a40",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131417(2).jpg",
+    "sha256": "a59c8ff5f0e7e1fc0077804a989b97e37fc6c66e101ddfbfd7b6b1615cb6ea80",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131417.jpg",
+    "sha256": "85c33484287d9dec917284693c8da044dce2968361d44595310a875135d8dcc4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131423.jpg",
+    "sha256": "ddd8a0329cc7cf9b224709d5d36c18c276f76bb007660cdb58e9c9f1ec07a1de",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131428.jpg",
+    "sha256": "7641d3821e3e38e040ae39759cc9d0b3c1438d0606d0b4beb4a4cbfafea0cc3f",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131434.jpg",
+    "sha256": "8b53c2e0b48c320dbff3dbcc62723dd16e336125f91866513fbbc20ec9c10a58",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131444.jpg",
+    "sha256": "83681563ef92da14afbca3f4f460d7817547fb4eb3be37a26f54cff3e1c6ff51",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131450.jpg",
+    "sha256": "beba9e1bdbcaf718fbe1d6ead0907e6ab461591f708f63cbd98f50e04c9c7da4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131504.jpg",
+    "sha256": "4bd43a956e3bc1f8875bf50b1c398c01950768d5b73573717d866e89d6bd07c5",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131507.jpg",
+    "sha256": "8d2a3efb7f0a55bb5d95d0b7ac330ae5e1ecee2f433679b4c65a240186bd8ef6",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131524.jpg",
+    "sha256": "e9697df21786c980814ae0ff92a965c5b1d8990676b000450ee7367fdb51b904",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131525.jpg",
+    "sha256": "1db6ac22d1b30ba87f2d0f16fc439a8bc8527d80a76f7ae182013f73e76afcad",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131528.jpg",
+    "sha256": "819cd25d9a66f0b5ec5667e69baefd7b05b05ce0ed70822380c13ea962e193ad",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131535.jpg",
+    "sha256": "95d3f50ba29cafed470164d37a1beb98fb2f77fe6178d43a40aa2ee3003c0d35",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131538.jpg",
+    "sha256": "c2b67be06b758873223a6b93200d34468341c8d4f2d9fffd2b59f3eefa5c76dc",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131539.jpg",
+    "sha256": "8d072e55ab1d4f4a09b06cc3e97e821fbfd7d45e5f8cf25ec9c1837d88409db0",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131548-video-0.jpg",
+    "sha256": "01c3f16e6d8cac52dcaa00f203cf6c77e6ac50cd4f3464049b0abc24fd281efd",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131555.jpg",
+    "sha256": "604f351091b93f02e3e04aea8168a55df718539e6ea4ae860017fed07df12c4a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131557.jpg",
+    "sha256": "f3ad8df8f01d68a4ab960282b392d3300b50a8f83a06b297ac8d7605d0cdb291",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131558.jpg",
+    "sha256": "246e9fe0c86b65b5e8dad55d257fa074255efe5ef9aaaca321f5ab317c016e08",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131612.jpg",
+    "sha256": "1fafaec8e61c7843d9c3c531f35bd080136777b2b9b05d2455c687bbba1e462b",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131614.jpg",
+    "sha256": "229dc70d17df9b32a0b8d6bed81a3d717597994957be66c2002a495e97705936",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131615.jpg",
+    "sha256": "78bc6d7deecb4948b712da6fca5dcc8bdf72061a078e06bc7639dc27fb5d3637",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131618.jpg",
+    "sha256": "f730a98689c276a144bbb1c10fd7dcf30b9137e3d57f447f3ea2f1d055acd2ba",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131624.jpg",
+    "sha256": "61dd362e34867fecd6fbe785606b6a179cdcdf97467881e6cf1f39bf6adfe196",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131625.jpg",
+    "sha256": "68ade955336b7aa16b92715fd32a01aca44e5e71b2d30d06a2e47e47a0b98484",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131631.jpg",
+    "sha256": "83ac9855bc875e9ee775ec7aa8cba5577b4c9f6d6910baa1f19ce23e2cfa8c16",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131647.jpg",
+    "sha256": "3b3c74bd52d92aa9c7f47415556c19be3c6204dc1b58539768dc53f115e2fe8e",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131649.jpg",
+    "sha256": "9f1c269daf99b47d1821b510f575243d1ead6ba4212de218e798cbfa18e97580",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131653.jpg",
+    "sha256": "56265552557455b793eda92164493f483c4dcd9b730d6eb334542d48f081c48b",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131655.jpg",
+    "sha256": "a031f9f043539fdb4acfd583b5344509d428eb8ddb6781409f5f0de87af66eb4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131656.jpg",
+    "sha256": "32e6edbcfc59ac0574aa815dc1ac4a671abe932e57c72c176d73cda9c87237df",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131710.jpg",
+    "sha256": "358d7eb52ca8f02bf4b906d10537b7594066ff397f01c28e1763f4291be36b7d",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_131407.mp4",
+    "sha256": "8401effc4a2488f272e0503d9fa77464e12448369f930afe7c821369ee2343d9",
+    "duration_seconds": 3.605271,
+    "review": "Complete video decoded and quarter-second reference sequence reviewed"
+  },
+  {
+    "reference": "20261120_131548.mp4",
+    "sha256": "2de0ee9228fa6361f8a92df06b8afeb6745d75528a6521d76d3411272afff734",
+    "duration_seconds": 2.538625,
+    "review": "Complete video decoded and quarter-second reference sequence reviewed"
+  }
+]
