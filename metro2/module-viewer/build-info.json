@@ -160,6 +160,12 @@
       "sha256": "895cf66123821fb9bfe9bf05f60f6c8899825c9e92b36003834c5be61a53e516",
       "bytes": 4363376,
       "warmup": []
+    },
+    "yakuba_kolasa": {
+      "file": "yakuba_kolasa-2ddcfa7b89cdd6ec5111.pck",
+      "sha256": "2ddcfa7b89cdd6ec5111c6868d5d61601a233255743e41700931272983d2c77e",
+      "bytes": 18205680,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -308,5 +314,16 @@
     "changes": "Uruchye only: all four wall maps and eight faces of the four suspended route boards use aligned blue diagonal station cells with white separators; only station 124 Uruchye is yellow; bilingual transfer names and codes 115/314 to line 3 Vokzalnaya, 116/216 to line 2 Kupalovskaya; corrected artwork aspect ratio",
     "preserved": "All other station packs, including Vostok, and existing Uruchye no-boarding/exit boards unchanged",
     "validation": "Resource import, mipmaps and native PCK packaging only; no scene, visual, browser, game or performance tests"
+  },
+  "yakuba_kolasa_photo_v64": {
+    "source_commit": "3a5e1fe43cf55a6a5117693bf0da1219c11b6256",
+    "stations": {
+      "yakuba_kolasa": "Площадь Якуба Коласа"
+    },
+    "boot": "boot-94c3bb3e67d5e968110d.pck",
+    "references": "40 owner photographs from Yakuba Kolasa archive; no videos in archive",
+    "features": "13 distinct front compositions on 13 opposing column pairs; common wheat ornament; photo-derived geometric relief meshes with normal maps and physical octagonal rims; white chevron-plan ceiling ribs, side coffer braces and continuous girder lighting; pale marble walls, reddish granite plinth, longitudinal red/tan floor bands; photographed bilingual hanging signs, station 118 route panels, stairs, three escalators, mirrors, clocks and CCTV",
+    "limitations": "Motif inventory represents distinct front compositions visible in the supplied archive; opposite columns are paired by owner instruction; unknown column faces repeat the documented front; relief depth and unsurveyed dimensions are estimated from photographs; hidden vestibules omitted",
+    "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
   }
 }

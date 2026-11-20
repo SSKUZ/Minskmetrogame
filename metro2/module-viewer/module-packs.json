@@ -31,6 +31,9 @@
     ],
     "akademiya_nauk": [
       "akademiya_nauk"
+    ],
+    "yakuba_kolasa": [
+      "yakuba_kolasa"
     ]
   },
   "names": {
@@ -42,7 +45,8 @@
     "vostok": "Восток",
     "moskovskaya": "Московская",
     "park_chelyuskintsev": "Парк Челюскинцев",
-    "akademiya_nauk": "Академия наук"
+    "akademiya_nauk": "Академия наук",
+    "yakuba_kolasa": "Площадь Якуба Коласа"
   },
   "packs": {
     "depot": {
@@ -192,6 +196,12 @@
       "file": "akademiya_nauk-895cf66123821fb9bfe9.pck",
       "sha256": "895cf66123821fb9bfe9bf05f60f6c8899825c9e92b36003834c5be61a53e516",
       "bytes": 4363376,
+      "warmup": []
+    },
+    "yakuba_kolasa": {
+      "file": "yakuba_kolasa-2ddcfa7b89cdd6ec5111.pck",
+      "sha256": "2ddcfa7b89cdd6ec5111c6868d5d61601a233255743e41700931272983d2c77e",
+      "bytes": 18205680,
       "warmup": []
     }
   },
