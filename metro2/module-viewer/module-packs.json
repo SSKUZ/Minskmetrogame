@@ -64,18 +64,18 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-8e0ec94fa85e008c20af.pck",
-      "bytes": 463936,
-      "sha256": "8e0ec94fa85e008c20afc080e1d521250ef6f42c791542c83a0cc30f856ef993",
+      "file": "uruchye-bc77e9520cf6fbfa3c0e.pck",
+      "bytes": 563680,
+      "sha256": "bc77e9520cf6fbfa3c0eed50c9785b6b842440c141aa4dd8e5468dbdbf988ade",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
+        "res://assets/signage_v63/uruchye_route.svg",
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
         "res://assets/station/photo_reference/ad_travel.png",
         "res://assets/station/photo_reference/exit_a.png",
         "res://assets/station/photo_reference/exit_b.png",
         "res://assets/station/photo_reference/no_boarding.png",
-        "res://assets/station/photo_reference/route.png",
         "res://assets/station/uruchye_granite.png"
       ]
     },

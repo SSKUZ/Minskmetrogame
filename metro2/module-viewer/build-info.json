@@ -32,18 +32,18 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-8e0ec94fa85e008c20af.pck",
-      "bytes": 463936,
-      "sha256": "8e0ec94fa85e008c20afc080e1d521250ef6f42c791542c83a0cc30f856ef993",
+      "file": "uruchye-bc77e9520cf6fbfa3c0e.pck",
+      "bytes": 563680,
+      "sha256": "bc77e9520cf6fbfa3c0eed50c9785b6b842440c141aa4dd8e5468dbdbf988ade",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
+        "res://assets/signage_v63/uruchye_route.svg",
         "res://assets/station/photo_reference/ad_city.png",
         "res://assets/station/photo_reference/ad_theatre.png",
         "res://assets/station/photo_reference/ad_travel.png",
         "res://assets/station/photo_reference/exit_a.png",
         "res://assets/station/photo_reference/exit_b.png",
         "res://assets/station/photo_reference/no_boarding.png",
-        "res://assets/station/photo_reference/route.png",
         "res://assets/station/uruchye_granite.png"
       ]
     },
@@ -302,5 +302,11 @@
     "features": "Opaque square banded marble columns, stainless strips, physical capitals, plaster transverse ceiling ribs and continuous lighting, grey floor with dark bands and cream grid, pale wall courses above low dark granite plinth, bilingual station 119 route panels and photographed hanging signs, broad stairs, three escalators, mirrors, red clocks and CCTV",
     "limitations": "Unsurveyed dimensions and total fixture counts are estimates; upper vestibules outside owner views are omitted; escalators are architectural geometry; single original event card and black TV faces as photographed",
     "validation": "Mandatory Godot import and resource pack export only; no scene, game, browser, visual or performance tests"
+  },
+  "uruchye_route_signs_v63": {
+    "source_commit": "cbf7c8153fd14d1b60643b0f55198247798bfa3a",
+    "changes": "Uruchye only: all four wall maps and eight faces of the four suspended route boards use aligned blue diagonal station cells with white separators; only station 124 Uruchye is yellow; bilingual transfer names and codes 115/314 to line 3 Vokzalnaya, 116/216 to line 2 Kupalovskaya; corrected artwork aspect ratio",
+    "preserved": "All other station packs, including Vostok, and existing Uruchye no-boarding/exit boards unchanged",
+    "validation": "Resource import, mipmaps and native PCK packaging only; no scene, visual, browser, game or performance tests"
   }
 }
