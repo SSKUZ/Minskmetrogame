@@ -40,6 +40,9 @@
     ],
     "oktyabrskaya": [
       "oktyabrskaya"
+    ],
+    "ploshchad_lenina": [
+      "ploshchad_lenina"
     ]
   },
   "names": {
@@ -54,7 +57,8 @@
     "akademiya_nauk": "Академия наук",
     "yakuba_kolasa": "Площадь Якуба Коласа",
     "ploshchad_pobedy": "Площадь Победы",
-    "oktyabrskaya": "Октябрьская"
+    "oktyabrskaya": "Октябрьская",
+    "ploshchad_lenina": "Площадь Ленина"
   },
   "packs": {
     "depot": {
@@ -222,6 +226,12 @@
       "file": "oktyabrskaya-e6598c17b92dab116aee.pck",
       "sha256": "e6598c17b92dab116aee5ccb0792d68a339ec3146cc0d140c00a81cb8e28f0d3",
       "bytes": 8978032,
+      "warmup": []
+    },
+    "ploshchad_lenina": {
+      "file": "ploshchad_lenina-0215fda750a63620768b.pck",
+      "sha256": "0215fda750a63620768bd027b2332b0dbd37ff4195d4d316835991f7f1bc7358",
+      "bytes": 4404048,
       "warmup": []
     }
   },

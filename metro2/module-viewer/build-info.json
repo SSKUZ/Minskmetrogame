@@ -178,6 +178,12 @@
       "sha256": "e6598c17b92dab116aee5ccb0792d68a339ec3146cc0d140c00a81cb8e28f0d3",
       "bytes": 8978032,
       "warmup": []
+    },
+    "ploshchad_lenina": {
+      "file": "ploshchad_lenina-0215fda750a63620768b.pck",
+      "sha256": "0215fda750a63620768bd027b2332b0dbd37ff4195d4d316835991f7f1bc7358",
+      "bytes": 4404048,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -369,6 +375,17 @@
     "references": "63 owner photographs and both complete videos, 6.7984 and 6.323167 seconds; entire 0.25-second reference sequences reviewed",
     "features": "New independent Station Base module: open central transfer with two opposed flights, thin stair slabs and individual treads, upper landing and glazed bridge across one track into an upper approach; genuine clearance beneath stairs and deck, structural colliders and route anchors; concave fluted marble columns, four-prong torch heads and curved amber lanterns; geometric ceiling frames, unbanded red granite paving, photo-derived gold names and sculptural end friezes, crisp bilingual line 116 and transfer 216 signs, six stainless escalators, benches, clocks and mirrors",
     "limitations": "Dimensions and placement inferred from photographs without survey; unsupplied Kupalovskaya station not built; upper transfer approach ends at a connection marker; frieze sections are assembled from the visible owner views and relief depth inferred from tonal structure; whole-station column cadence estimated",
+    "validation": "Mandatory Godot resource import, mipmaps and Web PCK export only; no game, scene, browser, visual or performance tests"
+  },
+  "lenina_photo_v67": {
+    "source_commit": "cac29d9d27a951a8f4d101f47e00050b64b81422",
+    "stations": {
+      "ploshchad_lenina": "Площадь Ленина"
+    },
+    "boot": "boot-e7fa53d812d075d7e562.pck",
+    "references": "42 owner photographs and both complete videos (3.605271 and 2.538625 seconds); full quarter-second reference sequences reviewed",
+    "features": "Independent Station Base module: column-free elliptical vault and concealed cove light bays; warm brecciated stone walls and outlined bronze names on pale inset panels; grey double rectangular floor inlays; faceted order monument with isolated photo hammer-and-sickle relief, native metal laurel leaves, stone pedestal and timber seats; genuine central platform opening, glazed balustrades, chrome lamp pole, two descending stair flights and lower Vakzalnaya approach; two ascending end stairs, photo-based Lenin sculptural portrait, bilingual exit and line 115/314 interchange signs, contact rails, clocks and mirrors",
+    "limitations": "Reference-based proportions without a measured survey. Sculpture relief depths are inferred from photographs. Both pictured ends use stairs, so no unreferenced escalators were inserted. Lower interchange ends at a connection marker; Vakzalnaya station itself and unseen vestibules are not reconstructed. Advertising screens remain neutral.",
     "validation": "Mandatory Godot resource import, mipmaps and Web PCK export only; no game, scene, browser, visual or performance tests"
   }
 }
