@@ -1,0 +1,89 @@
+{
+  "pair_count": 13,
+  "column_count": 26,
+  "pairs": [
+    {
+      "pair": 1,
+      "source": "20261120_133623.jpg",
+      "front_asset": "relief_01.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 2,
+      "source": "20261120_133756.jpg",
+      "front_asset": "relief_02.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 3,
+      "source": "20261120_133804.jpg",
+      "front_asset": "relief_03.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 4,
+      "source": "20261120_133833.jpg",
+      "front_asset": "relief_04.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 5,
+      "source": "20261120_133849.jpg",
+      "front_asset": "relief_05.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 6,
+      "source": "20261120_133854.jpg",
+      "front_asset": "relief_06.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 7,
+      "source": "20261120_133905.jpg",
+      "front_asset": "relief_07.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 8,
+      "source": "20261120_133913.jpg",
+      "front_asset": "relief_08.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 9,
+      "source": "20261120_133924.jpg",
+      "front_asset": "relief_09.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 10,
+      "source": "20261120_133932.jpg",
+      "front_asset": "relief_10.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 11,
+      "source": "20261120_133946.jpg",
+      "front_asset": "relief_11.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 12,
+      "source": "20261120_134007.jpg",
+      "front_asset": "relief_12.jpg",
+      "opposite_pair_same": true
+    },
+    {
+      "pair": 13,
+      "source": "20261120_134014.jpg",
+      "front_asset": "relief_13.jpg",
+      "opposite_pair_same": true
+    }
+  ],
+  "duplicates": [
+    "133649 adjacent face of first motif",
+    "133807 adjacent face of dance motif",
+    "133955 same harvest composition as 133946"
+  ]
+}

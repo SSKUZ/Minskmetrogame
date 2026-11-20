@@ -1,0 +1,810 @@
+{
+  "references": [
+    {
+      "file": "20261120_133614.jpg",
+      "sha256": "51ad6fdc67b16fbdd680fc601d26ff2e783100cd7d8508d3c89b4fc9534c5096"
+    },
+    {
+      "file": "20261120_133617.jpg",
+      "sha256": "cce08b65de5927f5f91ed8352a3b0c550cb77e551451bc0b3d38690cc87c20f5"
+    },
+    {
+      "file": "20261120_133623.jpg",
+      "sha256": "c12def23fb249d45f00827c26c20184f4ca77eca60b058314f207c01dd4b8f42"
+    },
+    {
+      "file": "20261120_133628.jpg",
+      "sha256": "afb4c3859a0c3c55544fa884d79115155ae59137d88964542e8deb141fc7cda9"
+    },
+    {
+      "file": "20261120_133632.jpg",
+      "sha256": "640f79bf6740c9aff1bd22284ecdc84754c0c90a84678e592c06e175c3dc8aeb"
+    },
+    {
+      "file": "20261120_133635.jpg",
+      "sha256": "d144cd979042fc95f4fc83001db4a2f08641a17373acb6c1600acfe218d3e77c"
+    },
+    {
+      "file": "20261120_133649.jpg",
+      "sha256": "3e6fdeb393d68f5919663a640d9448f0bc83eff33e4a5a1b13135783ebe6b1fd"
+    },
+    {
+      "file": "20261120_133654.jpg",
+      "sha256": "dd7d6e015668d6dbaab6f84f96a2af6e172d2abb21f981d6979157d3b28c84cf"
+    },
+    {
+      "file": "20261120_133704.jpg",
+      "sha256": "e30a2f08f1f05569e8e840fff2f2e6bb5d605ccf790ba59bc4778962a0b408a6"
+    },
+    {
+      "file": "20261120_133708.jpg",
+      "sha256": "f6bce73b52e39710b2442de0b8258259e5912c299306f70e5466ab1422523df2"
+    },
+    {
+      "file": "20261120_133735.jpg",
+      "sha256": "1ea4da71cadc0dffec24fb83fec0aa58bf527adbc13756092584515282f58e07"
+    },
+    {
+      "file": "20261120_133739.jpg",
+      "sha256": "a91cd59c8b728e40c2ad69a13d8acd0759380ed9fbaf2c5c3970b0bf5a5bade7"
+    },
+    {
+      "file": "20261120_133756.jpg",
+      "sha256": "9d015dd472022378a4cac175dac45942bf0055b2303d1cdbe668bc92475b4fc5"
+    },
+    {
+      "file": "20261120_133804.jpg",
+      "sha256": "354e7909dba8242c891532e34982738a530a78e63158b71c09d58cc2710d9294"
+    },
+    {
+      "file": "20261120_133807.jpg",
+      "sha256": "7f0ae08c78a3982f47abc4da5d4c5618744cf91b614c4706ed099bc281db0750"
+    },
+    {
+      "file": "20261120_133812.jpg",
+      "sha256": "0e4c47cf6232a9fe29bb6ac419e654ff28b777b035f7a4fc82c3557df8ba3694"
+    },
+    {
+      "file": "20261120_133815(0).jpg",
+      "sha256": "d57782ff33dd0d25aab09a4871f1f95bee5b71e2bb08557435981861c332379f"
+    },
+    {
+      "file": "20261120_133815.jpg",
+      "sha256": "76cd9b3b12b3fe1bccf061099831715c0dd9c3a9e261d018d8116265f8e21ecf"
+    },
+    {
+      "file": "20261120_133825.jpg",
+      "sha256": "dc23ab49d2e02adec284a6cc359776b76f59d33d46eb91bff935e8851077d1c2"
+    },
+    {
+      "file": "20261120_133827.jpg",
+      "sha256": "4ac2935b0a87ebf9700e1864300f3f0a7ca455f9ff6d4d8d36b6e18ddc5bb235"
+    },
+    {
+      "file": "20261120_133833.jpg",
+      "sha256": "8a7d716fffebf785ddade5e0cf2666c6f1589764a0de48bc6ddcd3a3af9d2509"
+    },
+    {
+      "file": "20261120_133835.jpg",
+      "sha256": "65e553d61fd64ae0cebe069cea0272b193de06552e7f8c7822d86120d166afed"
+    },
+    {
+      "file": "20261120_133844.jpg",
+      "sha256": "c58f405e50a40082653472c0bfb2b86176a30ccbc0a46d7a562efd3119e6e8c4"
+    },
+    {
+      "file": "20261120_133849.jpg",
+      "sha256": "a13b16aadf6d1517f8ab9f04d32a142030b0f386b2cb814370665e7273485c18"
+    },
+    {
+      "file": "20261120_133854.jpg",
+      "sha256": "9c8bad2fe2cd2986e6a8e84f4671fdd054fb59d675f2d46313152c21d82664f2"
+    },
+    {
+      "file": "20261120_133905.jpg",
+      "sha256": "46f8d041662c0c6ed2c71908a1c7651e17b181bbcaa7500884aed47543257e92"
+    },
+    {
+      "file": "20261120_133913.jpg",
+      "sha256": "a1f864ef343a17805d507cd1d20c0445c76a1e4bb2ac26dfce0c2b1482f83caf"
+    },
+    {
+      "file": "20261120_133924.jpg",
+      "sha256": "651820aef4f798ed643733af1f8aff2310336a530fc336f5202f3a2c642b0abe"
+    },
+    {
+      "file": "20261120_133932.jpg",
+      "sha256": "e52d3194ad908c5bf218b9853f2261465f819490afd10831032bf1528e79cf66"
+    },
+    {
+      "file": "20261120_133938.jpg",
+      "sha256": "0b201541b70f1156ae7ffd51ec67d4b78cb4b003eef2d52853e7869f486ce0a8"
+    },
+    {
+      "file": "20261120_133939.jpg",
+      "sha256": "8d89fd9ea899f36d2b6f4f86f6aad85c0f93ccbcdddbf0f750e1d02f57c34d7b"
+    },
+    {
+      "file": "20261120_133946.jpg",
+      "sha256": "0073c252c7a5ef9671fb0d4e295aa5a4553bc958fd53e8ac585d2401ac85246b"
+    },
+    {
+      "file": "20261120_133955.jpg",
+      "sha256": "6b4d9a906953d3829b15a31230f95784962c8e4da3d74df9643601e34d7a2a70"
+    },
+    {
+      "file": "20261120_134007.jpg",
+      "sha256": "5fcd149739fef9d3ee2e57bb6303a441c5f761715032b97022d45d5faf19652e"
+    },
+    {
+      "file": "20261120_134014.jpg",
+      "sha256": "81a484f645948376623ec1ade2136c80111512419405be6fedccb714eb4aa53e"
+    },
+    {
+      "file": "20261120_134020.jpg",
+      "sha256": "cbf7bc7acc42d03bb1b7a232c05ecd1d00b123a6de73cf066171a9bcbc02d9aa"
+    },
+    {
+      "file": "20261120_134027.jpg",
+      "sha256": "098039af16bc02e4b558ed20598db5ecddb6fa99349f5401c59147641a29568d"
+    },
+    {
+      "file": "20261120_134032.jpg",
+      "sha256": "3f2f39280281715250fcdeb40ce2ecb3c1e5ccfc017d25c440afff7c69132023"
+    },
+    {
+      "file": "20261120_134035.jpg",
+      "sha256": "a3d71daf7370a1182795b84543f1df9318fb67dc6be3914bba47843cc02262ac"
+    },
+    {
+      "file": "20261120_134038.jpg",
+      "sha256": "2ac9c88a00418e5415d0d825b54028c6920cb85fafdb766c2145ffeef013bd6c"
+    }
+  ],
+  "crops": [
+    {
+      "source": "20261120_133623.jpg",
+      "asset": "relief_01.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          138,
+          194
+        ],
+        [
+          253,
+          198
+        ],
+        [
+          257,
+          308
+        ],
+        [
+          143,
+          313
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133756.jpg",
+      "asset": "relief_02.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          103,
+          214
+        ],
+        [
+          233,
+          181
+        ],
+        [
+          234,
+          376
+        ],
+        [
+          103,
+          378
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133804.jpg",
+      "asset": "relief_03.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          127,
+          223
+        ],
+        [
+          253,
+          190
+        ],
+        [
+          256,
+          362
+        ],
+        [
+          128,
+          363
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133833.jpg",
+      "asset": "relief_04.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          104,
+          179
+        ],
+        [
+          250,
+          177
+        ],
+        [
+          252,
+          333
+        ],
+        [
+          105,
+          334
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133849.jpg",
+      "asset": "relief_05.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          137,
+          203
+        ],
+        [
+          255,
+          193
+        ],
+        [
+          262,
+          312
+        ],
+        [
+          142,
+          316
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133854.jpg",
+      "asset": "relief_06.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          137,
+          171
+        ],
+        [
+          294,
+          193
+        ],
+        [
+          309,
+          377
+        ],
+        [
+          146,
+          378
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133905.jpg",
+      "asset": "relief_07.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          116,
+          168
+        ],
+        [
+          212,
+          166
+        ],
+        [
+          220,
+          277
+        ],
+        [
+          117,
+          279
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133913.jpg",
+      "asset": "relief_08.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          101,
+          171
+        ],
+        [
+          212,
+          150
+        ],
+        [
+          216,
+          301
+        ],
+        [
+          103,
+          303
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133924.jpg",
+      "asset": "relief_09.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          113,
+          200
+        ],
+        [
+          235,
+          179
+        ],
+        [
+          241,
+          330
+        ],
+        [
+          114,
+          327
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133932.jpg",
+      "asset": "relief_10.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          168,
+          154
+        ],
+        [
+          273,
+          181
+        ],
+        [
+          274,
+          301
+        ],
+        [
+          173,
+          304
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133946.jpg",
+      "asset": "relief_11.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          112,
+          104
+        ],
+        [
+          203,
+          101
+        ],
+        [
+          204,
+          220
+        ],
+        [
+          113,
+          221
+        ]
+      ]
+    },
+    {
+      "source": "20261120_134007.jpg",
+      "asset": "relief_12.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          120,
+          129
+        ],
+        [
+          247,
+          93
+        ],
+        [
+          245,
+          299
+        ],
+        [
+          117,
+          297
+        ]
+      ]
+    },
+    {
+      "source": "20261120_134014.jpg",
+      "asset": "relief_13.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          144,
+          245
+        ],
+        [
+          238,
+          247
+        ],
+        [
+          237,
+          363
+        ],
+        [
+          146,
+          365
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133833.jpg",
+      "asset": "lower_ornament.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          105,
+          334
+        ],
+        [
+          252,
+          333
+        ],
+        [
+          257,
+          661
+        ],
+        [
+          108,
+          662
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133833.jpg",
+      "asset": "upper_ornament.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          104,
+          101
+        ],
+        [
+          248,
+          101
+        ],
+        [
+          250,
+          178
+        ],
+        [
+          104,
+          179
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133812.jpg",
+      "asset": "wall_marble.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          6,
+          43
+        ],
+        [
+          40,
+          43
+        ],
+        [
+          40,
+          69
+        ],
+        [
+          6,
+          69
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133815.jpg",
+      "asset": "wall_marble_alt.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          286,
+          61
+        ],
+        [
+          320,
+          63
+        ],
+        [
+          320,
+          80
+        ],
+        [
+          286,
+          79
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133812.jpg",
+      "asset": "wall_plinth.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          95,
+          167
+        ],
+        [
+          220,
+          172
+        ],
+        [
+          220,
+          190
+        ],
+        [
+          95,
+          185
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133833.jpg",
+      "asset": "base_marble.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          137,
+          669
+        ],
+        [
+          239,
+          666
+        ],
+        [
+          239,
+          692
+        ],
+        [
+          137,
+          693
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133827.jpg",
+      "asset": "floor_red.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          160,
+          550
+        ],
+        [
+          182,
+          550
+        ],
+        [
+          202,
+          691
+        ],
+        [
+          164,
+          691
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133827.jpg",
+      "asset": "floor_tan.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          97,
+          565
+        ],
+        [
+          112,
+          565
+        ],
+        [
+          96,
+          692
+        ],
+        [
+          74,
+          692
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133708.jpg",
+      "asset": "escalator_wood.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          150,
+          24
+        ],
+        [
+          158,
+          24
+        ],
+        [
+          148,
+          40
+        ],
+        [
+          140,
+          40
+        ]
+      ]
+    },
+    {
+      "source": "20261120_134027.jpg",
+      "asset": "stair_granite.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          88,
+          157
+        ],
+        [
+          181,
+          157
+        ],
+        [
+          181,
+          162
+        ],
+        [
+          88,
+          162
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133739.jpg",
+      "asset": "platform_track1.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          23,
+          52
+        ],
+        [
+          377,
+          63
+        ],
+        [
+          378,
+          100
+        ],
+        [
+          23,
+          92
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133735.jpg",
+      "asset": "platform_track2.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          88,
+          84
+        ],
+        [
+          314,
+          67
+        ],
+        [
+          315,
+          92
+        ],
+        [
+          88,
+          109
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133704.jpg",
+      "asset": "exit_escalators.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          81,
+          74
+        ],
+        [
+          240,
+          56
+        ],
+        [
+          242,
+          78
+        ],
+        [
+          83,
+          95
+        ]
+      ]
+    },
+    {
+      "source": "20261120_134027.jpg",
+      "asset": "exit_stairs.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          105,
+          58
+        ],
+        [
+          238,
+          59
+        ],
+        [
+          238,
+          77
+        ],
+        [
+          105,
+          76
+        ]
+      ]
+    },
+    {
+      "source": "20261120_133628.jpg",
+      "asset": "platform_cctv.jpg",
+      "reference_width": 400,
+      "source_quad": [
+        [
+          161,
+          60
+        ],
+        [
+          177,
+          61
+        ],
+        [
+          177,
+          70
+        ],
+        [
+          161,
+          69
+        ]
+      ]
+    }
+  ]
+}

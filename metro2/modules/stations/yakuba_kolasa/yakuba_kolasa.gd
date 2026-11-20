@@ -1,0 +1,384 @@
+extends "res://modules/stations/yakuba_kolasa/station_builder.gd"
+## Yakuba Kolasa V64: 40 owner photographs; thirteen opposing relief pairs.
+const ART := "res://modules/stations/yakuba_kolasa/art/"
+const NORTH := -2.80
+const SOUTH := 82.024
+const PITCH := 6.80
+const COL_X := 2.60
+var wall_stone: StandardMaterial3D
+var column_stones: Array[StandardMaterial3D]=[]
+var stair_stone: StandardMaterial3D
+var trim: StandardMaterial3D
+var yellow: StandardMaterial3D
+var floor_stone: StandardMaterial3D
+var floor_dark: StandardMaterial3D
+var lettering: StandardMaterial3D
+var _depths: Dictionary={}
+var _relief_meshes: Dictionary={}
+var _relief_materials: Dictionary={}
+
+func _ready() -> void:
+    super._ready()
+    begin_station()
+    white=_photo("ceiling_paint.jpg",Vector2(0.9,0.9),0.88)
+    wall_stone=_photo("wall_marble.jpg",Vector2(1.2,0.65),0.35)
+    granite=_photo("wall_plinth.jpg",Vector2(1.2,0.50),0.40)
+    stair_stone=_photo("stair_granite.jpg",Vector2(1.4,0.16),0.66)
+    floor_stone=_photo("floor_red.jpg",Vector2(0.60,1.20),0.40)
+    floor_dark=_photo("floor_tan.jpg",Vector2(0.55,1.20),0.43)
+    floor_dark.albedo_color=Color(1.22,1.32,1.40)
+    trim=_material(Color("#c4b28d"),0.16,0.38)
+    lettering=_material(Color("#aa8b47"),0.65,0.30)
+    yellow=_material(Color("#d5ae3c"),0.0,0.68)
+    var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"relief_heights.json"))
+    _depths=data["depths"]
+    _floor()
+    _walls()
+    _columns_and_girders()
+    _ceilings()
+    _stairs(-1.0,NORTH)
+    _escalators(SOUTH)
+    _signs()
+    _track_details()
+    _portal_equipment()
+    _floor_fittings()
+    for z in [18.0,47.0,73.0]:_television(float(z),false)
+    for side in [-1.0,1.0]:
+        for bay in [3,6,9]:_bench(Vector3(CX+side*COL_X,FY,-1.1+(float(bay)+0.5)*PITCH))
+    flush()
+
+func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
+    var mat := StandardMaterial3D.new()
+    mat.albedo_texture=load(ART+file)
+    mat.transparency=BaseMaterial3D.TRANSPARENCY_DISABLED
+    mat.cull_mode=BaseMaterial3D.CULL_DISABLED
+    mat.roughness=roughness
+    mat.uv1_triplanar=true;mat.uv1_world_triplanar=true;mat.uv1_triplanar_sharpness=8.0
+    mat.uv1_scale=Vector3(1.0/slab.x,1.0/slab.y,1.0/slab.x)
+    mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    return mat
+
+func _floor() -> void:
+    (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_stone
+    # Parallel reddish granite fields and narrow beige/brown strips, not a square grid.
+    var red: Array[StandardMaterial3D]=[]
+    for i in range(4):
+        var m := floor_stone.duplicate() as StandardMaterial3D
+        m.albedo_color=Color(0.91+float(i)*0.035,0.91+float(i)*0.035,0.89+float(i)*0.035)
+        m.uv1_offset=Vector3(float(i)*0.37,0,float(i)*0.23);red.append(m)
+    for row in range(88):
+        for col in range(14):
+            box(Vector3(0.598,0.008,1.194),Vector3(CX-3.90+float(col)*0.60,FY+0.005,ZA+0.6+float(row)*1.20),red[(row*3+col)%4])
+    for x in [-4.05,-3.32,-2.05,-1.46,0.0,1.46,2.05,3.32,4.05]:
+        box(Vector3(0.15 if absf(float(x))<3.0 else 0.22,0.012,105),Vector3(CX+float(x),FY+0.014,MID),floor_dark)
+    var edge := _photo("floor_tan.jpg",Vector2(0.6,1.2),0.6)
+    edge.albedo_color=Color(1.08,1.07,1.03)
+    for side in [-1.0,1.0]:
+        box(Vector3(0.45,0.014,105),Vector3(CX+side*4.77,FY+0.011,MID),edge)
+        box(Vector3(0.19,0.013,105),Vector3(CX+side*4.43,FY+0.017,MID),yellow)
+        for i in range(1312):
+            var z: float=ZA+0.04+float(i)*0.08
+            for dx in [-0.058,0.0,0.058]:cylinder(0.011,0.004,Vector3(CX+side*4.43+float(dx),FY+0.026,z),yellow)
+
+func _walls() -> void:
+    var joint := _material(Color("#9b9b90"),0.0,0.8)
+    var alt := _photo("wall_marble_alt.jpg",Vector2(1.2,0.65),0.36)
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*8.90
+        var base: float=FY+0.57
+        box(Vector3(0.28,base,105),Vector3(x,base*0.5,MID),granite)
+        box(Vector3(0.28,6.4-base,105),Vector3(x,(6.4+base)*0.5,MID),wall_stone)
+        box(Vector3(0.30,0.016,105),Vector3(x-side*0.02,base,MID),trim)
+        for row in range(7):
+            var y: float=base+float(row)*0.65
+            box(Vector3(0.006,0.0035,105),Vector3(x-side*0.144,y,MID),joint)
+            for i in range(88):
+                var z: float=ZA+float(i)*1.20+(0.6 if row%2==1 else 0.0)
+                box(Vector3(0.006,0.65,0.0035),Vector3(x-side*0.145,y+0.325,z),joint)
+                if (i*3+row)%9==0 and z+1.2<ZB:box(Vector3(0.004,0.644,1.194),Vector3(x-side*0.145,y+0.325,z+0.6),alt)
+        for y in [6.01,6.08]:rod(Vector3(x-side*0.20,float(y),ZA),Vector3(x-side*0.20,float(y),ZB),0.016,lettering)
+        rod(Vector3(x-side*0.18,5.98,ZA),Vector3(x-side*0.18,5.98,ZB),0.013,black)
+        for i in range(62):box(Vector3(0.055,0.045,0.035),Vector3(x-side*0.20,5.98,ZA+float(i)*1.70),metal)
+        for z in [4.0,23.0,42.0,61.0,80.0]:
+            _name("ПЛОШЧА  ЯКУБА  КОЛАСА" if side>0 else "ПЛОЩАДЬ  ЯКУБА  КОЛАСА",Vector3(x-side*0.19,3.66,float(z)),-side*PI/2.0)
+            picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.80,0.86),Vector3(x-side*0.20,2.87,float(z)),-side*PI/2.0,true)
+
+func _name(value: String,p: Vector3,yaw: float) -> void:
+    var font: Font=load(ART+"station_letters.ttf")
+    var frame := Node3D.new();frame.name="OutlinedMetalStationLetters";frame.position=p;frame.rotation.y=yaw;add_child(frame)
+    var size := 0.0043
+    var total: float=font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size+float(value.length())*0.035
+    var cursor: float=-total*0.5
+    for letter in value:
+        var advance: float=font.get_string_size(letter,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size
+        for face in range(2):
+            var mesh := TextMesh.new();mesh.font=font;mesh.text=letter;mesh.font_size=72;mesh.pixel_size=size;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+            mesh.depth=0.033 if face==0 else 0.004;mesh.material=lettering if face==0 else lettering
+            var node := MeshInstance3D.new();node.mesh=mesh;node.position=Vector3(cursor+advance*0.5,0,0.0 if face==0 else 0.019)
+            if face==1:node.scale=Vector3(0.84,0.84,1.0)
+            frame.add_child(node)
+        cursor+=advance+0.035
+
+func _columns_and_girders() -> void:
+    var ceramic := _material(Color("#bca679"),0.12,0.43)
+    var base_mat := _photo("base_marble.jpg",Vector2(1.0,0.24),0.44)
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*COL_X
+        box(Vector3(1.0,0.42,86.8),Vector3(x,6.14,39.6),white)
+        for i in range(13):
+            var z: float=-1.1+float(i)*PITCH
+            var p := Vector3(x,FY,z)
+            box(Vector3(1.01,0.20,1.01),p+Vector3(0,0.10,0),base_mat)
+            box(Vector3(0.96,3.44,0.96),p+Vector3(0,1.92,0),ceramic)
+            box(Vector3(0.97,1.15,0.97),p+Vector3(0,4.215,0),white)
+            box(Vector3(0.99,0.028,0.99),p+Vector3(0,3.655,0),metal)
+            # Pair i shares every relief face with the opposite column. The order
+            # is deterministic and follows the photographic walk through the hall.
+            var motif := "relief_%02d" % (i+1)
+            for face in range(4):
+                var yaw: float=float(face)*PI/2.0
+                var basis := Basis(Vector3.UP,yaw)
+                _relief_panel("lower_ornament",Vector2(0.945,1.96),0.023,p+basis*Vector3(0,1.18,0.505),yaw)
+                _relief_panel(motif,Vector2(0.975,1.03),0.042,p+basis*Vector3(0,2.675,0.525),yaw)
+                _relief_panel("upper_ornament",Vector2(0.945,0.45),0.023,p+basis*Vector3(0,3.415,0.505),yaw)
+                # Physical octagonal rim surrounds the figurative relief.
+                var outline := [Vector2(-0.34,-0.51),Vector2(0.34,-0.51),Vector2(0.48,-0.35),Vector2(0.48,0.35),Vector2(0.34,0.51),Vector2(-0.34,0.51),Vector2(-0.48,0.35),Vector2(-0.48,-0.35)]
+                for j in range(8):
+                    var a: Vector2=outline[j];var b: Vector2=outline[(j+1)%8]
+                    rod(p+basis*Vector3(a.x,a.y+2.675,0.552),p+basis*Vector3(b.x,b.y+2.675,0.552),0.009,trim)
+                for dx in [-0.475,0.0,0.475]:box(Vector3(0.012,1.94,0.014),p+basis*Vector3(float(dx),1.18,0.529),trim,basis)
+    # Long diffusers run continuously along the four girder edges.
+    for side in [-1.0,1.0]:
+        for face in [-1.0,1.0]:
+            for j in range(49):box(Vector3(0.055,0.065,1.69),Vector3(CX+side*COL_X+face*0.43,6.14,-2.3+float(j)*1.76),glow)
+
+func _relief_panel(asset: String,size: Vector2,depth: float,p: Vector3,yaw: float) -> void:
+    var key := asset
+    if not _relief_meshes.has(key):
+        var mat := StandardMaterial3D.new()
+        mat.albedo_texture=load(ART+asset+".jpg")
+        mat.normal_enabled=true;mat.normal_texture=load(ART+asset+"_normal.png");mat.normal_scale=0.65
+        mat.roughness=0.37;mat.metallic=0.16
+        mat.cull_mode=BaseMaterial3D.CULL_DISABLED
+        mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+        _relief_materials[key]=mat
+        var values: Array=_depths[asset]
+        var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+        for row in range(48):
+            for col in range(40):
+                for corner in [Vector2i(col,row),Vector2i(col+1,row),Vector2i(col,row+1),Vector2i(col+1,row),Vector2i(col+1,row+1),Vector2i(col,row+1)]:
+                    var u: float=float(corner.x)/40.0;var v: float=float(corner.y)/48.0
+                    var index: int=corner.y*41+corner.x
+                    var h: float=float(values[index])
+                    var left: float=float(values[corner.y*41+maxi(0,corner.x-1)])
+                    var right: float=float(values[corner.y*41+mini(40,corner.x+1)])
+                    var up: float=float(values[maxi(0,corner.y-1)*41+corner.x])
+                    var down: float=float(values[mini(48,corner.y+1)*41+corner.x])
+                    st.set_normal(Vector3(-(right-left)*depth*20.0/size.x,-(up-down)*depth*24.0/size.y,1.0).normalized())
+                    st.set_uv(Vector2(u,v))
+                    st.add_vertex(Vector3((u-0.5)*size.x,(0.5-v)*size.y,(h-0.5)*depth))
+        st.generate_tangents()
+        var mesh := st.commit();mesh.surface_set_material(0,mat);_relief_meshes[key]=mesh
+    var label := "Relief"+asset
+    if not batches.has(label):batches[label]={"kind":"custom","mesh":_relief_meshes[key],"mat":_relief_materials[key],"poses":[]}
+    batches[label].poses.append(Transform3D(Basis(Vector3.UP,yaw),p))
+
+func _ceilings() -> void:
+    box(Vector3(5.22,0.14,86.9),Vector3(CX,6.76,39.6),white)
+    for side in [-1.0,1.0]:box(Vector3(6.29,0.13,105),Vector3(CX+side*5.76,6.48,MID),white)
+    # The central rib is a chevron in plan, with two broad diagonal arms.
+    for i in range(36):
+        var z: float=-2.6+float(i)*2.43
+        var apex := Vector3(CX,6.54,z-0.78)
+        _beam(Vector3(CX-2.16,6.54,z+0.30),apex,0.15,0.26,white)
+        _beam(apex,Vector3(CX+2.16,6.54,z+0.30),0.15,0.26,white)
+    for side in [-1.0,1.0]:
+        for i in range(44):
+            var z: float=ZA+float(i)*2.43
+            _beam(Vector3(CX+side*3.10,6.27,z),Vector3(CX+side*8.85,6.27,z),0.15,0.29,white)
+            _beam(Vector3(CX+side*3.10,6.27,z),Vector3(CX+side*5.62,6.27,z+1.21),0.13,0.29,white)
+            _beam(Vector3(CX+side*5.62,6.27,z+1.21),Vector3(CX+side*8.85,6.27,z),0.13,0.29,white)
+    for child in get_children():
+        if child is OmniLight3D:
+            child.position.y=6.18;child.light_energy=1.65;child.light_color=Color(1.0,0.98,0.94)
+    for z in [8.0,35.0,61.0,83.0]:
+        var light := OmniLight3D.new();light.position=Vector3(CX,6.55,float(z));light.light_energy=0.50;light.omni_range=16.0;light.shadow_enabled=false;add_child(light)
+
+func _beam(a: Vector3,b: Vector3,width: float,height: float,mat: Material) -> void:
+    var d := b-a
+    var basis := Basis(Vector3.UP,atan2(d.x,d.z))
+    box(Vector3(width,height,d.length()),(a+b)*0.5,mat,basis)
+
+func _stairs(direction: float,start: float) -> void:
+    var width := 7.1
+    var rise := 0.13
+    var run := 0.30
+    var landing := 0.90
+    var top: float=FY+36*rise
+    for i in range(36):
+        var h: float=float(i+1)*rise
+        var z: float=start+direction*(float(i)*run+(landing if i>=20 else 0.0))
+        box(Vector3(width,h,run+0.003),Vector3(CX,FY+h*0.5,z),stair_stone)
+        if i in [0,19,20,35]:box(Vector3(width,0.016,0.06),Vector3(CX,FY+h+0.009,z-direction*0.12),yellow)
+    box(Vector3(width,0.18,landing),Vector3(CX,FY+20*rise-0.09,start+direction*6.30),stair_stone)
+    var finish: float=start+direction*(35*run+landing+run*0.5)
+    box(Vector3(width,0.20,3.8),Vector3(CX,top-0.10,finish+direction*1.8),floor_stone)
+    _exit_hall(direction,start,width,top,14.8)
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*(width*0.5-0.045)
+        var points := [Vector2(-0.30,0),Vector2(5.85,20*rise),Vector2(6.75,20*rise),Vector2(11.55,36*rise)]
+        for i in range(points.size()-1):
+            var a: Vector2=points[i];var b: Vector2=points[i+1]
+            rod(Vector3(x,FY+0.88+a.y,start+direction*a.x),Vector3(x,FY+0.88+b.y,start+direction*b.x),0.027,metal)
+        rod(Vector3(x,FY+0.88,start),Vector3(x,FY+0.67,start-direction*0.20),0.027,metal)
+    board("exit_stairs.jpg",Vector3(CX,4.72,start-direction*0.45),Vector2(5.75,0.84))
+    foot_grille(start-direction*0.7,7.35)
+
+func _escalators(start: float) -> void:
+    var width := 7.10
+    var rise := 4.65
+    var run := 9.20
+    var lower := 1.2
+    var tan := _photo("escalator_wood.jpg",Vector2(0.7,1.8),0.40)
+    var rubber := _material(Color("#20241f"),0.05,0.60)
+    var stepmat := _material(Color("#5d625b"),0.45,0.50)
+    _exit_hall(1.0,start,width,FY+rise,14.7)
+    for lane in range(3):
+        var x: float=CX+(float(lane)-1.0)*2.05
+        for i in range(49):
+            var t: float=float(i)/48.0
+            var z: float=start+lower+t*run
+            box(Vector3(1.05,0.18+rise*t,0.205),Vector3(x,FY+(0.18+rise*t)*0.5,z),stepmat)
+            for groove in range(11):box(Vector3(0.006,0.007,0.185),Vector3(x-0.47+float(groove)*0.094,FY+0.185+rise*t,z),black)
+        box(Vector3(1.05,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
+        for side in [-1.0,1.0]:
+            var bx: float=x+side*0.69
+            var offsets := [Vector2(0.0,0.0),Vector2(1.2,0.0),Vector2(10.4,rise),Vector2(12.2,rise)]
+            for i in range(offsets.size()-1):
+                var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
+                var slope: float=atan2(b.y-a.y,b.x-a.x)
+                var length: float=a.distance_to(b)
+                box(Vector3(0.30,0.76,length),Vector3(bx,FY+(a.y+b.y)*0.5+0.38,start+(a.x+b.x)*0.5),tan,Basis(Vector3.RIGHT,-slope))
+                rod(Vector3(bx,FY+a.y+0.82,start+a.x),Vector3(bx,FY+b.y+0.82,start+b.x),0.045,rubber)
+                rod(Vector3(bx-side*0.16,FY+a.y+0.70,start+a.x),Vector3(bx-side*0.16,FY+b.y+0.70,start+b.x),0.022,metal)
+            cylinder(0.085,0.57,Vector3(bx,FY+0.285,start+0.06),metal)
+            picture("escalator_warning.svg",Vector2(0.22,0.25),Vector3(bx,FY+0.31,start-0.05),PI)
+            box(Vector3(0.15,0.68,0.26),Vector3(bx,FY+0.34,start-0.10),metal)
+        box(Vector3(1.05,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
+        var indicator := _material(Color("#0f9d57") if lane==0 else Color("#bc274a"),0,0.4)
+        indicator.emission_enabled=true;indicator.emission=indicator.albedo_color
+        box(Vector3(0.08,0.10,0.02),Vector3(x-0.69,FY+0.58,start-0.245),indicator)
+    box(Vector3(width,0.22,4.2),Vector3(CX,FY+rise-0.11,start+12.5),floor_stone)
+    board("exit_escalators.jpg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
+    foot_grille(start-0.46,7.25)
+
+func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*(width*0.5+0.14)
+        box(Vector3(0.28,7.9-FY,length),Vector3(x,(7.9+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
+        box(Vector3(0.29,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
+        picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.46),0.0 if direction<0 else PI)
+        picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.462),0.0 if direction<0 else PI)
+        _camera_box(Vector3(x-side*0.16,4.92,start-direction*0.5),0.0 if direction<0 else PI)
+    box(Vector3(width+0.55,0.20,length),Vector3(CX,7.95,start+direction*(length*0.5-0.3)),white)
+    box(Vector3(width+0.55,2.56,0.40),Vector3(CX,6.62,start-direction*0.36),white)
+    for i in range(10):
+        var z: float=start+direction*float(i)*1.4
+        box(Vector3(width+0.1,0.20,0.16),Vector3(CX,7.75,z),white)
+        if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,7.62,z),glow)
+    # Upper landing is deliberately limited to the photographed approach.
+    box(Vector3(width+0.55,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
+
+func _signs() -> void:
+    for bay in [1,5,9]:
+        var z: float=-1.1+(float(bay)+0.5)*PITCH
+        for side in [-1.0,1.0]:
+            var p := Vector3(CX+side*COL_X,5.55,z)
+            var size := Vector2(3.95,0.60)
+            box(Vector3(0.075,0.68,4.03),p,metal)
+            for face in [-1.0,1.0]:picture("platform_track1.jpg" if side>0.0 else "platform_track2.jpg",size,p+Vector3(face*0.043,0,0),face*PI/2.0)
+            for dz in [-1.75,1.75]:rod(p+Vector3(0,0.34,float(dz)),Vector3(p.x,5.98,z+float(dz)),0.020,metal)
+
+func _bench(p: Vector3) -> void:
+    var timbermat := _material(Color("#aa8956"),0.0,0.47)
+    for i in range(5):box(Vector3(0.51,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
+    for dz in [-0.78,0.78]:box(Vector3(0.45,0.43,0.10),p+Vector3(0,0.23,float(dz)),black)
+
+func _television(z: float,_event: bool) -> void:
+    var p := Vector3(CX,5.15,z)
+    box(Vector3(1.56,0.95,0.13),p,black)
+    for dx in [-0.48,0.48]:
+        rod(p+Vector3(float(dx),0.50,0),Vector3(CX+float(dx),6.65,z),0.015,metal)
+        box(Vector3(0.14,0.02,0.16),Vector3(CX+float(dx),6.65,z),metal)
+    for face in [-1.0,1.0]:
+        box(Vector3(1.48,0.86,0.006),p+Vector3(0,0,face*0.07),_material(Color("#111719"),0.35,0.15))
+
+func _floor_fittings() -> void:
+    for z in [11.0,37.0,65.0]:
+        cylinder(0.20,0.014,Vector3(CX+0.3,FY+0.023,float(z)),metal)
+        for i in range(6):box(Vector3(0.012,0.016,0.25),Vector3(CX+0.22+float(i)*0.032,FY+0.030,float(z)),black)
+        box(Vector3(0.35,0.018,0.38),Vector3(CX-0.25,FY+0.025,float(z)+3.4),trim)
+        for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
+
+func _track_details() -> void:
+    for name in ["Track1","Track2"]:
+        var root := get_node(name)
+        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
+        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
+        var x: float=0.992 if name=="Track1" else -11.732
+        for i in range(161):
+            var z: float=ZA+float(i)*0.65
+            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
+        for direction in [-1.0,1.0]:
+            var end: float=ZA if direction<0.0 else ZB
+            box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
+            for side in [-1.0,1.0]:
+                box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
+            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
+
+func _portal_equipment() -> void:
+    var infra := get_node("StationInfrastructure")
+    infra.set("_amber",Color(1.0,0.13,0.055))
+    var displays: Array=infra.get("_displays")
+    for display in displays:
+        for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
+    for node in infra.get_children():
+        if node is Node3D and "Portal" in str(node.name):node.position.y=4.68
+    for direction in [-1.0,1.0]:
+        var end: float=ZA if direction<0.0 else ZB
+        for side in [-1.0,1.0]:
+            var tx: float=CX+side*6.362
+            var yaw: float=0.0 if direction<0.0 else PI
+            box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
+            var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
+            var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/yakuba_kolasa/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
+            var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
+            var pts: Array[Vector3]=[]
+            for corner in range(4):
+                var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
+                for j in range(9):
+                    var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
+            for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
+            _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
+            for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
+            _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
+            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
+            box(Vector3(0.72,0.46,0.08),p,black)
+            picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
+            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
+
+func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> void:
+    var mesh := CylinderMesh.new();mesh.top_radius=r;mesh.bottom_radius=r;mesh.height=a.distance_to(b);mesh.radial_segments=10;mesh.material=mat
+    var n := MeshInstance3D.new();n.mesh=mesh;n.position=(a+b)*0.5
+    var d := (b-a).normalized();var axis := Vector3.UP.cross(d)
+    if axis.length_squared()>0.00001:n.basis=Basis(axis.normalized(),Vector3.UP.angle_to(d))
+    parent.add_child(n)
+
+func _camera_box(p: Vector3,yaw: float) -> void:
+    var b := Basis(Vector3.UP,yaw)
+    box(Vector3(0.17,0.13,0.30),p,white,b)
+    box(Vector3(0.19,0.02,0.34),p+Vector3(0,0.09,0),white,b)
+    sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
+    rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
+
