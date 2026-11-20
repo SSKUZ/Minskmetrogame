@@ -1,12 +1,12 @@
 extends "res://modules/stations/moskovskaya/station_builder.gd"
-## V60.1: continuous marble wall to a low plinth; closed, opaque fluted columns.
+## V60.2: clean owner marble, native opaque materials, sign/column separation and textured ceiling.
 const ART := "res://modules/stations/moskovskaya/art/"
 const NORTH := -2.8
 const SOUTH := 82.024
-var column_stone: ShaderMaterial
-var wall_stone: ShaderMaterial
-var stair_stone: ShaderMaterial
-var oak: ShaderMaterial
+var column_stone: StandardMaterial3D
+var wall_stone: StandardMaterial3D
+var stair_stone: StandardMaterial3D
+var oak: StandardMaterial3D
 var trim: StandardMaterial3D
 var yellow: StandardMaterial3D
 var _advert: ShaderMaterial
@@ -14,7 +14,8 @@ var _advert: ShaderMaterial
 func _ready() -> void:
     super._ready()
     begin_station()
-    white.albedo_color=Color("#e7e8e0")
+    white=_paint_material()
+    granite=_photo_stone("dark_plinth_v60_2.jpg",Color.WHITE,Vector2(0.90,0.35),0.48,false)
     glow.albedo_color=Color("#f7f8ee")
     glow.emission=Color(0.97,1.0,0.95)
     trim=_material(Color("#aaa79b"),0.45,0.34)
@@ -40,24 +41,27 @@ func _ready() -> void:
     _small_fittings()
     flush()
 
-func _photo_stone(file: String,tint: Color,slab: Vector2,roughness: float,joints: bool=true) -> ShaderMaterial:
-    var shader := Shader.new()
-    shader.code="""shader_type spatial;render_mode cull_disabled,depth_draw_opaque;
-uniform sampler2D stone_tex : source_color,filter_linear_mipmap_anisotropic,repeat_enable;
-uniform vec4 tint : source_color;uniform vec2 slab=vec2(1.2,0.6);uniform float roughness=0.35;uniform bool joints=true;
-varying vec3 p;varying vec3 n;
-void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(MODEL_NORMAL_MATRIX*NORMAL);}
-float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
-void fragment(){vec2 q=n.x>0.5?p.zy:n.y>0.5?p.xz:p.xy;
-vec2 cell=floor(q/slab);float v=h(cell);vec2 uv=q/slab;
-vec3 c=texture(stone_tex,uv).rgb;
-vec2 f=fract(q/slab);float seam=1.0-smoothstep(0.001,0.003,min(min(f.x,1.0-f.x),min(f.y,1.0-f.y)));
-// No ALPHA output: marble stays in the opaque pass on all faces.
-ALBEDO=c*tint.rgb*(0.985+v*0.03)-vec3(joints?seam*0.025:0.0);EMISSION=c*tint.rgb*0.035;ROUGHNESS=roughness+v*0.035;SPECULAR=0.47;}
-"""
-    var mat := ShaderMaterial.new();mat.shader=shader
-    mat.set_shader_parameter("stone_tex",load(ART+file));mat.set_shader_parameter("tint",tint)
-    mat.set_shader_parameter("slab",slab);mat.set_shader_parameter("roughness",roughness);mat.set_shader_parameter("joints",joints)
+func _photo_stone(file: String,tint: Color,slab: Vector2,roughness: float,_joints: bool=true) -> StandardMaterial3D:
+    # Native Godot material: no custom architectural shader or grey shader fallback.
+    var mat := StandardMaterial3D.new()
+    mat.albedo_texture=load(ART+file)
+    mat.albedo_color=tint
+    mat.transparency=BaseMaterial3D.TRANSPARENCY_DISABLED
+    mat.cull_mode=BaseMaterial3D.CULL_DISABLED
+    mat.roughness=roughness
+    mat.metallic=0.0
+    mat.uv1_triplanar=true
+    mat.uv1_world_triplanar=true
+    mat.uv1_triplanar_sharpness=8.0
+    mat.uv1_scale=Vector3(1.0/slab.x,1.0/slab.y,1.0/slab.x)
+    mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    return mat
+
+func _paint_material() -> StandardMaterial3D:
+    var mat := _photo_stone("ceiling_paint_v60_2.jpg",Color(1.0,1.0,0.99),Vector2(0.85,0.85),0.88,false)
+    mat.normal_enabled=true
+    mat.normal_texture=load(ART+"ceiling_normal_v60_2.png")
+    mat.normal_scale=0.22
     return mat
 
 func _floor() -> void:
@@ -97,19 +101,19 @@ func _walls() -> void:
         for j in range(9):
             var z0: float=ZA+float(j)*12.2
             var z1: float=minf(z0+12.2,ZB)
-            _mural("owner_lower_marble.jpg",Vector2(z1-z0,1.32),Vector3(x-side*0.142,1.21,(z0+z1)*0.5),-side*PI/2.0)
+            _mural("lower_clean_v60_2.jpg",Vector2(z1-z0,1.06),Vector3(x-side*0.142,1.08,(z0+z1)*0.5),-side*PI/2.0)
         # Raised narrow stone mouldings bracket the station lettering band.
-        for y in [1.87,1.91,2.45,2.49]:box(Vector3(0.30,0.016,105),Vector3(x-side*0.03,float(y),MID),trim)
+        for y in [1.61,1.65,2.19,2.23]:box(Vector3(0.30,0.016,105),Vector3(x-side*0.03,float(y),MID),trim)
         # Low-contrast inlaid architecture is sampled from the owner's actual marble.
-        var files := ["owner_mural_domes.jpg","owner_mural_kremlin.jpg","owner_mural_university.jpg","owner_mural_video.jpg","owner_mural_panorama.jpg","owner_mural_kremlin.jpg","owner_mural_domes.jpg"]
+        var files := ["mural_domes_clean_v60_2.jpg","mural_kremlin_clean_v60_2.jpg","mural_university_clean_v60_2.jpg","mural_kremlin_clean_v60_2.jpg","mural_university_clean_v60_2.jpg","mural_kremlin_clean_v60_2.jpg","mural_domes_clean_v60_2.jpg"]
         for i in range(files.size()):
             var index: int=i if side>0.0 else files.size()-1-i
             var z: float=3.0+float(i)*12.2
-            _mural(files[index],Vector2(12.2,2.46),Vector3(x-side*0.142,3.72,z),-side*PI/2.0)
+            _mural(files[index],Vector2(12.2,2.72),Vector3(x-side*0.142,3.59,z),-side*PI/2.0)
         # Plain stone sections remain at the two ends, as seen in the long views.
-        for z in [15.2,39.6,64.0]:_station_name("МАСКОЎСКАЯ" if side>0.0 else "МОСКОВСКАЯ",Vector3(x-side*0.18,2.16,float(z)),-side*PI/2.0)
+        for z in [15.2,39.6,64.0]:_station_name("МАСКОЎСКАЯ" if side>0.0 else "МОСКОВСКАЯ",Vector3(x-side*0.18,1.90,float(z)),-side*PI/2.0)
         for z in [3.0,27.4,51.8,76.2]:
-            picture("route_track1.svg" if side>0.0 else "route_track2.svg",Vector2(4.35,0.76),Vector3(x-side*0.20,2.25,float(z)),-side*PI/2.0,true)
+            picture("route_track1.svg" if side>0.0 else "route_track2.svg",Vector2(4.35,0.76),Vector3(x-side*0.20,1.99,float(z)),-side*PI/2.0,true)
         rod(Vector3(x-side*0.25,4.88,ZA),Vector3(x-side*0.25,4.88,ZB),0.012,black)
         for i in range(58):
             var z: float=ZA+float(i)*1.83
@@ -190,6 +194,10 @@ func _ceiling() -> void:
             # Individual long white diffusers along the upper edges of the girders.
             var x: float=CX+side*2.25
             _round_box(Vector3(0.13,0.10,1.51),Vector3(x-side*0.26,5.18,z+0.85),glow,0.04)
+    var joint := _material(Color("#cfcfc6"),0.0,0.90)
+    box(Vector3(0.003,0.002,length),Vector3(CX,5.383,(z0+z1)*0.5),joint)
+    for z in [12.3,39.3,66.3]:
+        box(Vector3(0.24,0.004,0.19),Vector3(CX+0.42,5.381,float(z)),white)
     for z in [18.3,47.1,74.1]:
         for side in [-1.0,1.0]:box(Vector3(0.025,0.38,0.15),Vector3(CX+side*2.17,5.19,float(z)),white)
 
@@ -262,13 +270,16 @@ func _stairs(direction: float,start: float) -> void:
         box(Vector3(0.23,0.045,0.36),Vector3(x,top_y+0.94,finish+direction*1.95),black)
 
 func _signs() -> void:
-    for z in [6.8,32.9,67.7]:
+    # Column centres: -1.5 + i*4.35, half-width 0.40. Each board including its
+    # frame is 3.26m long inside the 3.55m clear gap; no structural column removed.
+    for bay in [2,8,15]:
+        var z: float=-1.5+(float(bay)+0.5)*4.35
         for side in [-1.0,1.0]:
-            var size := Vector2(3.8,0.59)
-            var p := Vector3(CX+side*2.25,4.25,float(z))
+            var size := Vector2(3.18,0.56)
+            var p := Vector3(CX+side*2.25,4.23,z)
             box(Vector3(0.08,size.y+0.07,size.x+0.08),p,metal)
             for face in [-1.0,1.0]:picture("platform_track1.svg" if side>0.0 else "platform_track2.svg",size,p+Vector3(face*0.047,0,0),face*PI/2.0)
-            for dz in [-1.60,1.60]:rod(p+Vector3(0,size.y*0.5,float(dz)),p+Vector3(0,4.67-p.y,float(dz)),0.019,metal)
+            for dz in [-1.30,1.30]:rod(p+Vector3(0,size.y*0.5,float(dz)),p+Vector3(0,4.67-p.y,float(dz)),0.019,metal)
 
 func _bench(p: Vector3) -> void:
     var brown := _material(Color("#514339"),0.25,0.61)

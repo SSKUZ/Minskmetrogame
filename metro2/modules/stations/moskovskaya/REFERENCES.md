@@ -39,3 +39,16 @@ Revisited all 31 photographs, especially 7869/7870 (plain marble courses), 7875 
 Column transparency was consistent with the helper's incorrect counter-clockwise front-face winding. Godot geometry is now clockwise; marble shaders are opaque, two-sided, and do not write ALPHA. Column facings are closed with end caps and an opaque solid core. The square profile now has broad flat marble faces, two rounded narrow flutes per face, bevelled corners, fine horizontal course seams and a small dark foot, rather than five grooves across each face. No transparent or glass material is used. Metric positions and profile dimensions remain estimates from photographs, not a survey.
 
 No scene/game execution, browser, visual or performance tests. Only GitHub's import/export required for publication. Existing station layout, signs, advertisements, mirrors, train and other published station packs are retained.
+
+
+## V60.2 — owner screenshot defects, signs, clean art and native materials
+
+Inputs: screenshots 8046/8048/8050/8052/8054 and original 7865–7897 photographs. Both 7879.mp4 and 7880.mp4 were decoded completely and compared as quarter-second frame sequences (source video analysis, not a game test). The frames confirm the low marble lettering band, plain lower stone courses, upper inlay and signs hanging in the clear column bays.
+
+- Previous sign centres 6.8/32.9/67.7 overlapped the column grid. New centres are calculated from the midpoint of bays 2/8/15 of the unchanged -1.5 + i×4.35 column grid. A 3.26 m frame fits inside the 3.55 m clear opening with 0.145 m margin at each end; rods attach to the girder between columns. Real structural columns are retained.
+- Lettering, mouldings and wall diagrams lowered by 0.26 m. Upper inlay extends to the lowered top moulding; pale marble continues underneath to the low plinth.
+- The old lower crop contained route/interchange fragments; all active lower and upper images are now cropped from clean sign-free portions of the owner's photographs. Previous owner_mural_* and owner_lower_marble images are excluded from the exported module. Only the explicitly placed SVG route panels remain.
+- Screenshots showed flat grey custom-material architectural surfaces. All marble, wood-seat photo material, stair treads and dark plinth now use opaque native StandardMaterial3D with world triplanar mapping. This removes dependence on the custom architecture shader; no ALPHA pass or transparent marble. Closed columns and cores retained.
+- Ceiling/girders/ribs receive actual photographed paint grain and a very subtle derived normal map, restrained roughness, fine centre seam and a few flush inspection plates from the ceiling close-up. Existing rounded transverse ribs and individual white diffusers retained.
+
+Clean crop coordinates and original hashes: art/repair_provenance_v60_2.json. Rebuild: tools/moskovskaya_photo_v60/repair_art_v60_2.py. No generated replacement murals, no unrelated new assets. No scene/game execution, browser, screenshot, visual or performance test run. Appearance has not been independently verified in the viewer; the owner reviews the published result. GitHub only imports and exports resources required for publication.

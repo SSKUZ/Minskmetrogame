@@ -1,0 +1,151 @@
+[
+  {
+    "asset": "lower_clean_v60_2.jpg",
+    "source": "02-7896.jpg",
+    "sha256": "d0108f8931e325e9939a8fbddee757907ddc71fe67594e1ace607ac22b524ed7",
+    "quad_pixels": [
+      [
+        0,
+        665
+      ],
+      [
+        1535,
+        632
+      ],
+      [
+        1535,
+        710
+      ],
+      [
+        0,
+        774
+      ]
+    ],
+    "excludes": "route boards, interchange tags, lettering and people"
+  },
+  {
+    "asset": "mural_university_clean_v60_2.jpg",
+    "source": "02-7896.jpg",
+    "sha256": "d0108f8931e325e9939a8fbddee757907ddc71fe67594e1ace607ac22b524ed7",
+    "quad_pixels": [
+      [
+        0,
+        115
+      ],
+      [
+        1535,
+        170
+      ],
+      [
+        1535,
+        511
+      ],
+      [
+        0,
+        532
+      ]
+    ],
+    "excludes": "route boards, interchange tags, lettering and people"
+  },
+  {
+    "asset": "mural_kremlin_clean_v60_2.jpg",
+    "source": "01-7897.jpg",
+    "sha256": "d0b4402c57aa2ac69e8da5b92b1b3582cb449e7947eba3c8fe3c88add78ac167",
+    "quad_pixels": [
+      [
+        0,
+        132
+      ],
+      [
+        1535,
+        198
+      ],
+      [
+        1535,
+        486
+      ],
+      [
+        0,
+        515
+      ]
+    ],
+    "excludes": "route boards, interchange tags, lettering and people"
+  },
+  {
+    "asset": "mural_domes_clean_v60_2.jpg",
+    "source": "03-7877.jpg",
+    "sha256": "c04e50d35b6b175e89f44cadfaebf04c269bab56636eda990dcbfc15ce3d6da9",
+    "quad_pixels": [
+      [
+        0,
+        85
+      ],
+      [
+        1535,
+        95
+      ],
+      [
+        1535,
+        454
+      ],
+      [
+        0,
+        466
+      ]
+    ],
+    "excludes": "route boards, interchange tags, lettering and people"
+  },
+  {
+    "asset": "dark_plinth_v60_2.jpg",
+    "source": "02-7896.jpg",
+    "sha256": "d0108f8931e325e9939a8fbddee757907ddc71fe67594e1ace607ac22b524ed7",
+    "quad_pixels": [
+      [
+        500,
+        808
+      ],
+      [
+        1000,
+        790
+      ],
+      [
+        1000,
+        852
+      ],
+      [
+        500,
+        860
+      ]
+    ],
+    "excludes": "route boards, interchange tags, lettering and people"
+  },
+  {
+    "assets": [
+      "ceiling_paint_v60_2.jpg",
+      "ceiling_normal_v60_2.png"
+    ],
+    "source": "03-7887.jpg",
+    "rectangle": [
+      550,
+      420,
+      690,
+      550
+    ],
+    "sha256": "18f998c82a4eb239196fdf36040ff006882d92b262df75492e4d5b3ee9e20c77",
+    "processing": "subtract broad illumination; preserve photographed paint grain; derive low-amplitude normal"
+  },
+  {
+    "source": "7879.mp4",
+    "sha256": "3211f40d5cd9ebb85dff5bc4a453f82a3d4ecd2324974617806c0e6308fce3ee",
+    "seconds": 13.872958,
+    "analysis": "full video decoded; contact sequences every 0.25 seconds compared with still photographs",
+    "finding": "marble moulding band below upper inlay; no floating/duplicated route fragments; signs fit between column bays"
+  },
+  {
+    "source": "7880.mp4",
+    "sha256": "26be85e5ba86f3178a4ebb292760437451858af3e0f83938fc3947fe8a6ac419",
+    "seconds": 8.3311,
+    "analysis": "full video decoded; contact sequences every 0.25 seconds compared with still photographs",
+    "finding": "marble moulding band below upper inlay; no floating/duplicated route fragments; signs fit between column bays"
+  }
+]

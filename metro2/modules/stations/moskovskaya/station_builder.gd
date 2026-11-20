@@ -12,7 +12,7 @@ var metal: StandardMaterial3D
 var brass: StandardMaterial3D
 var black: StandardMaterial3D
 var marble: ShaderMaterial
-var granite: ShaderMaterial
+var granite: Material
 var redstone: ShaderMaterial
 var glow: StandardMaterial3D
 var timber: ShaderMaterial

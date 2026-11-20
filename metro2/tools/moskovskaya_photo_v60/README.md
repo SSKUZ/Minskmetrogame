@@ -13,3 +13,12 @@ python metro2/tools/moskovskaya_photo_v60/build_art.py --photos PHOTOS --frames 
 `publish.py prepare OUTPUT GH_PAGES_SHA`, `build OUTPUT`, `finish OUTPUT` preserve the live manifests, export only the Moskovskaya pack with Godot 4.3, then replace only its manifest entry. Publication is serialised with all other permanent-viewer updates. Legacy unused V58 mural/clock artwork is excluded from this pack; licences remain in source.
 
 The ad loop is original vector artwork, animated by native shader TIME, with no external playback service. Reference mapping and reconstruction limits are in the station's REFERENCES.md.
+
+
+V60.2 active clean marble and paint assets (run after the earlier source-art scripts):
+
+```
+python metro2/tools/moskovskaya_photo_v60/repair_art_v60_2.py --photos PHOTOS
+```
+
+The contaminated legacy owner_mural_* and owner_lower_marble photos are excluded by publish.py. All architecture photo materials now use StandardMaterial3D. Hanging signs are placed from the column-bay midpoint formula rather than independent coordinates.
