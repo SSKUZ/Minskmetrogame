@@ -1,0 +1,57 @@
+name: Metro2 Ploshchad Pobedy owner-photo reconstruction V65
+on:
+  push:
+    branches: [feature/metro2-pobedy-photo-v65]
+    paths:
+      - '.github/workflows/metro2-pobedy-photo-v65.yml'
+      - 'metro2/modules/stations/ploshchad_pobedy/**'
+      - 'metro2/tools/pobedy_photo_v65/**'
+      - 'metro2/modules/core/module_catalog.gd'
+      - 'metro2/viewers/module_viewer.gd'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Ploshchad Pobedy
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/pobedy-photo-v65-pages-base"
+          python3 metro2/tools/pobedy_photo_v65/publish.py prepare pobedy-photo-v65 "$(cat "$RUNNER_TEMP/pobedy-photo-v65-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/pobedy_photo_v65/publish.py build pobedy-photo-v65
+          python3 metro2/tools/pobedy_photo_v65/publish.py finish pobedy-photo-v65
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pobedy-photo-v65-${{ github.sha }}
+          path: pobedy-photo-v65/
+          retention-days: 7
+      - name: Publish updated Ploshchad Pobedy to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/pobedy-photo-v65-pages" "$(cat "$RUNNER_TEMP/pobedy-photo-v65-pages-base")"
+          cp -a pobedy-photo-v65/web/. "$RUNNER_TEMP/pobedy-photo-v65-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/pobedy-photo-v65-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Reconstruct Ploshchad Pobedy from owner photographs; preserve other station packs'
+          git push origin HEAD:gh-pages
