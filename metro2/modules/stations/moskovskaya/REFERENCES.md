@@ -30,3 +30,12 @@ Authoritative visual references: all 31 supplied photographs 7865–7897 and vid
 Photo and video hashes, source regions and sampled times are recorded in `art/owner_photo_assets.json`. Original full photographs, passenger faces, original video audio and complete videos are not redistributed. Legacy V58 Wikimedia assets remain in source with their original credit file but are excluded from the V60 module export.
 
 Validation is limited to native Godot 4.3 resource import and Web pack export. Texture mip levels are generated during the build for oblique marble, floor and signage views. No gameplay, browser, visual or performance test suite. Exact dimensions, hidden rooms, measured photometry and complete fixture counts cannot be established from these views.
+
+
+## V60.1 — owner-requested continuous marble and solid column correction
+
+Revisited all 31 photographs, especially 7869/7870 (plain marble courses), 7875 (column close-up), 7877/7882/7896/7897 (inlay, lettering band, lower marble and dark plinth). The architecture inlay remains above the moulded lettering band, exactly as the photographs show; the same pale marble continues BELOW that band to a low 0.55 m dark stone plinth. The previous plain lower region now has actual rectified owner marble courses instead of a small, heavily resampled procedural-looking texture. New quiet wall and tall column textures retain the original vein direction. Crop provenance: art/marble_refinement_v60_1.json; reproducible script: tools/moskovskaya_photo_v60/refine_marble_v60_1.py.
+
+Column transparency was consistent with the helper's incorrect counter-clockwise front-face winding. Godot geometry is now clockwise; marble shaders are opaque, two-sided, and do not write ALPHA. Column facings are closed with end caps and an opaque solid core. The square profile now has broad flat marble faces, two rounded narrow flutes per face, bevelled corners, fine horizontal course seams and a small dark foot, rather than five grooves across each face. No transparent or glass material is used. Metric positions and profile dimensions remain estimates from photographs, not a survey.
+
+No scene/game execution, browser, visual or performance tests. Only GitHub's import/export required for publication. Existing station layout, signs, advertisements, mirrors, train and other published station packs are retained.

@@ -1,0 +1,71 @@
+[
+  {
+    "asset": "owner_lower_marble.jpg",
+    "source": "01-7897.jpg",
+    "sha256": "d0b4402c57aa2ac69e8da5b92b1b3582cb449e7947eba3c8fe3c88add78ac167",
+    "quad_pixels": [
+      [
+        0,
+        650
+      ],
+      [
+        1535,
+        615
+      ],
+      [
+        1535,
+        699
+      ],
+      [
+        0,
+        792
+      ]
+    ]
+  },
+  {
+    "asset": "wall_marble_v60_1.jpg",
+    "source": "05-7869.jpg",
+    "sha256": "6322b9a6b63e8813ff29cde3dbff864d6b552a791f2074976d91a50274d6c682",
+    "quad_pixels": [
+      [
+        7,
+        13
+      ],
+      [
+        558,
+        85
+      ],
+      [
+        558,
+        384
+      ],
+      [
+        7,
+        421
+      ]
+    ]
+  },
+  {
+    "asset": "column_marble_v60_1.jpg",
+    "source": "01-7875.jpg",
+    "sha256": "147149f281469c3c0f32282685a2cada739eb4e05aae715392d8919664abb717",
+    "quad_pixels": [
+      [
+        250,
+        551
+      ],
+      [
+        316,
+        541
+      ],
+      [
+        316,
+        700
+      ],
+      [
+        250,
+        714
+      ]
+    ]
+  }
+]

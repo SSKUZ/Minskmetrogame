@@ -1,5 +1,5 @@
 extends "res://modules/stations/moskovskaya/station_builder.gd"
-## V60: owner's 31 photographs and both platform videos replace V58 assumptions.
+## V60.1: continuous marble wall to a low plinth; closed, opaque fluted columns.
 const ART := "res://modules/stations/moskovskaya/art/"
 const NORTH := -2.8
 const SOUTH := 82.024
@@ -19,8 +19,8 @@ func _ready() -> void:
     glow.emission=Color(0.97,1.0,0.95)
     trim=_material(Color("#aaa79b"),0.45,0.34)
     yellow=_material(Color("#d7b34a"),0.0,0.7)
-    wall_stone=_photo_stone("wall_marble.jpg",Color(1.0,1.0,0.98),Vector2(1.25,0.63),0.31)
-    column_stone=_photo_stone("column_marble.jpg",Color(1.10,1.10,1.05),Vector2(0.76,0.67),0.26)
+    wall_stone=_photo_stone("wall_marble_v60_1.jpg",Color(1.0,1.0,0.99),Vector2(2.40,1.80),0.36,false)
+    column_stone=_photo_stone("column_marble_v60_1.jpg",Color(1.04,1.04,1.01),Vector2(0.32,0.74),0.33,false)
     stair_stone=_photo_stone("stair_granite.jpg",Color(0.86,0.88,0.84),Vector2(1.2,0.6),0.48)
     oak=_photo_stone("bench_oak.jpg",Color(0.99,0.92,0.77),Vector2(0.48,0.60),0.40,false)
     _floor()
@@ -42,17 +42,18 @@ func _ready() -> void:
 
 func _photo_stone(file: String,tint: Color,slab: Vector2,roughness: float,joints: bool=true) -> ShaderMaterial:
     var shader := Shader.new()
-    shader.code="""shader_type spatial;
+    shader.code="""shader_type spatial;render_mode cull_disabled,depth_draw_opaque;
 uniform sampler2D stone_tex : source_color,filter_linear_mipmap_anisotropic,repeat_enable;
 uniform vec4 tint : source_color;uniform vec2 slab=vec2(1.2,0.6);uniform float roughness=0.35;uniform bool joints=true;
 varying vec3 p;varying vec3 n;
 void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(MODEL_NORMAL_MATRIX*NORMAL);}
 float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 void fragment(){vec2 q=n.x>0.5?p.zy:n.y>0.5?p.xz:p.xy;
-vec2 cell=floor(q/slab);float v=h(cell);vec2 uv=q/slab+vec2(v,v*0.71);
-vec3 c=texture(stone_tex,uv).rgb*0.73+texture(stone_tex,q/slab*0.61+vec2(0.21,0.17)).rgb*0.27;
+vec2 cell=floor(q/slab);float v=h(cell);vec2 uv=q/slab;
+vec3 c=texture(stone_tex,uv).rgb;
 vec2 f=fract(q/slab);float seam=1.0-smoothstep(0.001,0.003,min(min(f.x,1.0-f.x),min(f.y,1.0-f.y)));
-ALBEDO=c*tint.rgb*(0.97+v*0.06)-vec3(joints?seam*0.043:0.0);ROUGHNESS=roughness+v*0.055;SPECULAR=0.63;}
+// No ALPHA output: marble stays in the opaque pass on all faces.
+ALBEDO=c*tint.rgb*(0.985+v*0.03)-vec3(joints?seam*0.025:0.0);EMISSION=c*tint.rgb*0.035;ROUGHNESS=roughness+v*0.035;SPECULAR=0.47;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader
     mat.set_shader_parameter("stone_tex",load(ART+file));mat.set_shader_parameter("tint",tint)
@@ -90,8 +91,13 @@ func _edges() -> void:
 func _walls() -> void:
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
-        box(Vector3(0.28,0.83,105),Vector3(x,0.415,MID),granite)
-        box(Vector3(0.26,4.17,105),Vector3(x,2.915,MID),wall_stone)
+        box(Vector3(0.28,0.55,105),Vector3(x,0.275,MID),granite)
+        box(Vector3(0.26,4.45,105),Vector3(x,2.775,MID),wall_stone)
+        # Actual lower marble courses continue to the low dark plinth.
+        for j in range(9):
+            var z0: float=ZA+float(j)*12.2
+            var z1: float=minf(z0+12.2,ZB)
+            _mural("owner_lower_marble.jpg",Vector2(z1-z0,1.32),Vector3(x-side*0.142,1.21,(z0+z1)*0.5),-side*PI/2.0)
         # Raised narrow stone mouldings bracket the station lettering band.
         for y in [1.87,1.91,2.45,2.49]:box(Vector3(0.30,0.016,105),Vector3(x-side*0.03,float(y),MID),trim)
         # Low-contrast inlaid architecture is sampled from the owner's actual marble.
@@ -99,7 +105,7 @@ func _walls() -> void:
         for i in range(files.size()):
             var index: int=i if side>0.0 else files.size()-1-i
             var z: float=3.0+float(i)*12.2
-            _mural(files[index],Vector2(12.2,2.38),Vector3(x-side*0.142,3.72,z),-side*PI/2.0)
+            _mural(files[index],Vector2(12.2,2.46),Vector3(x-side*0.142,3.72,z),-side*PI/2.0)
         # Plain stone sections remain at the two ends, as seen in the long views.
         for z in [15.2,39.6,64.0]:_station_name("МАСКОЎСКАЯ" if side>0.0 else "МОСКОВСКАЯ",Vector3(x-side*0.18,2.16,float(z)),-side*PI/2.0)
         for z in [3.0,27.4,51.8,76.2]:
@@ -112,7 +118,9 @@ func _walls() -> void:
 
 func _mural(file: String,size: Vector2,p: Vector3,yaw: float) -> void:
     var mat := StandardMaterial3D.new();mat.albedo_texture=load(ART+file)
-    mat.albedo_color=Color(1.0,1.0,0.98);mat.roughness=0.39;mat.metallic=0.0
+    mat.albedo_color=Color(1.0,1.0,0.99);mat.roughness=0.36;mat.metallic=0.0
+    mat.transparency=BaseMaterial3D.TRANSPARENCY_DISABLED
+    mat.cull_mode=BaseMaterial3D.CULL_DISABLED
     mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
     var mesh := QuadMesh.new();mesh.size=size;mesh.material=mat
     var n := MeshInstance3D.new();n.name="OwnerMarbleInlay";n.mesh=mesh;n.position=p;n.rotation.y=yaw
@@ -136,25 +144,34 @@ func _station_name(value: String,p: Vector3,yaw: float) -> void:
         cursor+=advance+0.13
 
 func _columns() -> void:
-    # Rectangular section with shallow paired vertical channels on every face.
-    var coords := PackedFloat32Array([-0.40,-0.355,-0.343,-0.329,-0.315,-0.285,-0.270,-0.256,-0.242,-0.035,-0.020,0.020,0.035,0.242,0.256,0.270,0.285,0.315,0.329,0.343,0.355,0.40])
+    # Two shallow rounded flutes per broad face, bevelled corners and flat marble fields.
+    # The earlier five grooves per face did not match the owner's close-up 7875.
+    var profile_points := [Vector2(-0.40,0.020),Vector2(-0.38,0),Vector2(-0.13,0),Vector2(-0.12,0.008),Vector2(-0.115,0.022),Vector2(-0.10,0.029),Vector2(-0.085,0.022),Vector2(-0.08,0.008),Vector2(-0.07,0),Vector2(0.07,0),Vector2(0.08,0.008),Vector2(0.085,0.022),Vector2(0.10,0.029),Vector2(0.115,0.022),Vector2(0.12,0.008),Vector2(0.13,0),Vector2(0.38,0),Vector2(0.40,0.020)]
     var outline := PackedVector2Array()
     for face in range(4):
-        for x in coords:
-            var ax: float=absf(x)
-            var inset: float=0.026 if (ax>0.255 and ax<0.286) or (ax>0.328 and ax<0.356) or ax<0.022 else 0.0
-            outline.append(Vector2(x,-0.40+inset).rotated(float(face)*PI/2.0))
-    var seam := _material(Color("#9e9d91"),0.0,0.8)
+        for point in profile_points:outline.append(Vector2(point.x,-0.40+point.y).rotated(float(face)*PI/2.0))
+    var caps := Geometry2D.triangulate_polygon(outline)
+    var bottom: float=FY+0.075
+    var top := 4.82
+    var seam := _material(Color("#b0afa4"),0.0,0.75)
     for side in [-1.0,1.0]:
         var x: float=CX+side*2.25
         for i in range(20):
             var z: float=-1.5+float(i)*4.35
+            # Opaque solid core closes every sightline behind the fluted facing.
+            box(Vector3(0.738,top-bottom,0.738),Vector3(x,(top+bottom)*0.5,z),column_stone)
             for edge in range(outline.size()):
                 var a: Vector2=outline[edge];var b: Vector2=outline[(edge+1)%outline.size()]
                 if a.distance_squared_to(b)<0.00000001:continue
-                quad(Vector3(x+a.x,FY+0.08,z+a.y),Vector3(x+b.x,FY+0.08,z+b.y),Vector3(x+b.x,4.82,z+b.y),Vector3(x+a.x,4.82,z+a.y),column_stone,Vector3((a.x+b.x)*0.5,0,(a.y+b.y)*0.5))
-            box(Vector3(0.81,0.08,0.81),Vector3(x,FY+0.04,z),granite)
-            for y in [FY+0.67,FY+1.34,FY+2.01,FY+2.68]:box(Vector3(0.802,0.003,0.802),Vector3(x,float(y),z),seam)
+                quad(Vector3(x+a.x,bottom,z+a.y),Vector3(x+b.x,bottom,z+b.y),Vector3(x+b.x,top,z+b.y),Vector3(x+a.x,top,z+a.y),column_stone,Vector3((a.x+b.x)*0.5,0,(a.y+b.y)*0.5))
+            for height in [bottom,top]:
+                for k in range(0,caps.size(),3):
+                    var a: Vector2=outline[caps[k]];var b: Vector2=outline[caps[k+1]];var c: Vector2=outline[caps[k+2]]
+                    triangle(Vector3(x+a.x,float(height),z+a.y),Vector3(x+b.x,float(height),z+b.y),Vector3(x+c.x,float(height),z+c.y),column_stone,Vector3.DOWN if height==bottom else Vector3.UP)
+            box(Vector3(0.81,0.075,0.81),Vector3(x,FY+0.0375,z),granite)
+            for j in range(1,6):
+                var height: float=bottom+float(j)*0.70
+                if height<top-0.08:box(Vector3(0.8005,0.0015,0.8005),Vector3(x,height,z),seam)
 
 func _ceiling() -> void:
     var z0 := NORTH-0.5
