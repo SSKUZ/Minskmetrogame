@@ -144,9 +144,9 @@
       "warmup": []
     },
     "moskovskaya": {
-      "file": "moskovskaya-4f4f74c78e1b2d791c81.pck",
-      "sha256": "4f4f74c78e1b2d791c8139b01ea209c3a76c9ab9fa21940bf7ebf8d6f15c4324",
-      "bytes": 15049600,
+      "file": "moskovskaya-9c0f7278ece57130c2d8.pck",
+      "sha256": "9c0f7278ece57130c2d8f41719a2c49b39c59ab49e646097c1f4ba88fd5cf150",
+      "bytes": 11413616,
       "warmup": []
     },
     "park_chelyuskintsev": {
@@ -254,7 +254,7 @@
     "limitations": "Hidden rooms, exact survey dimensions and precise fixture counts remain estimates; screen is a still image from the owner photograph; only nearest visible driver mirror updates at 6 Hz"
   },
   "moskovskaya_photo_v60": {
-    "source_commit": "378171feff27f8a585e991af24022dc57b112369",
+    "source_commit": "3daf4068868b45925039d1122c5ee749a7430045",
     "stations": {
       "moskovskaya": "Московская"
     },
@@ -277,8 +277,13 @@
     "validation": "Godot import/export only; no game, browser or visual tests"
   },
   "moskovskaya_marble_fix_v60_1": {
-    "source_commit": "378171feff27f8a585e991af24022dc57b112369",
+    "source_commit": "3daf4068868b45925039d1122c5ee749a7430045",
     "changes": "Continuous actual marble lower courses to a reduced 0.55m dark plinth; upper marble inlay joined to lettering mouldings; new owner wall/column texture samples; clockwise geometry, explicitly opaque two-sided marble and closed capped fluted columns with solid cores",
     "validation": "Godot import/export for publication only; no game, browser or visual tests"
+  },
+  "moskovskaya_layout_repair_v60_2": {
+    "source_commit": "3daf4068868b45925039d1122c5ee749a7430045",
+    "changes": "Signs centred between existing column bays with 0.29m clearance; remove sign fragments embedded in marble crops; native StandardMaterial3D for columns, wall band, plinth and stairs; lower lettering band by 0.26m; photographic ceiling paint and subtle normal map; both full videos decoded and 0.25-second contact sequences reviewed",
+    "validation": "Resource import/export for publication only; no scene, game, browser or performance tests"
   }
 }
