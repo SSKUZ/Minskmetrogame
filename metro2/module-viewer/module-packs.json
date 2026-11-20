@@ -37,6 +37,9 @@
     ],
     "ploshchad_pobedy": [
       "ploshchad_pobedy"
+    ],
+    "oktyabrskaya": [
+      "oktyabrskaya"
     ]
   },
   "names": {
@@ -50,7 +53,8 @@
     "park_chelyuskintsev": "Парк Челюскинцев",
     "akademiya_nauk": "Академия наук",
     "yakuba_kolasa": "Площадь Якуба Коласа",
-    "ploshchad_pobedy": "Площадь Победы"
+    "ploshchad_pobedy": "Площадь Победы",
+    "oktyabrskaya": "Октябрьская"
   },
   "packs": {
     "depot": {
@@ -212,6 +216,12 @@
       "file": "ploshchad_pobedy-ed68978e78780d155e4f.pck",
       "sha256": "ed68978e78780d155e4f5fd6e386cdb68c9c8ea30a02c02a02c142679ca298f5",
       "bytes": 5073824,
+      "warmup": []
+    },
+    "oktyabrskaya": {
+      "file": "oktyabrskaya-e6598c17b92dab116aee.pck",
+      "sha256": "e6598c17b92dab116aee5ccb0792d68a339ec3146cc0d140c00a81cb8e28f0d3",
+      "bytes": 8978032,
       "warmup": []
     }
   },

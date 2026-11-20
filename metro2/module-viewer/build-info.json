@@ -172,6 +172,12 @@
       "sha256": "ed68978e78780d155e4f5fd6e386cdb68c9c8ea30a02c02a02c142679ca298f5",
       "bytes": 5073824,
       "warmup": []
+    },
+    "oktyabrskaya": {
+      "file": "oktyabrskaya-e6598c17b92dab116aee.pck",
+      "sha256": "e6598c17b92dab116aee5ccb0792d68a339ec3146cc0d140c00a81cb8e28f0d3",
+      "bytes": 8978032,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -353,5 +359,16 @@
     "features": "V65.1: corrected clean, periodically blended stone samples; continuous closed square flared capitals with corner-wrapping brown bronze lamps and restrained amber tubes; genuine recessed photographed bilingual name plaques; non-overlapping single-height floor fields; completely re-outlined uncropped bilingual information panels; reprofiled stair flights and curved shared escalator balustrades with wood faces, comb landings and rounded handrail returns; contoured modular seating; white coffered ceiling, line 117 route maps and transfers, mirrors, clocks and CCTV",
     "limitations": "Unsurveyed spacing and dimensions estimated from photographs within the Station Base footprint; 18 opposing column pairs; lamp ornament reconstructed as muted bronze cups and glass beads; hidden upper vestibules omitted",
     "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
+  },
+  "oktyabrskaya_photo_v66": {
+    "source_commit": "8df7490b113f98a0ccfcfb5985fbfdf7048f6485",
+    "stations": {
+      "oktyabrskaya": "Октябрьская"
+    },
+    "boot": "boot-33efdf6cdef4eb9502c8.pck",
+    "references": "63 owner photographs and both complete videos, 6.7984 and 6.323167 seconds; entire 0.25-second reference sequences reviewed",
+    "features": "New independent Station Base module: open central transfer with two opposed flights, thin stair slabs and individual treads, upper landing and glazed bridge across one track into an upper approach; genuine clearance beneath stairs and deck, structural colliders and route anchors; concave fluted marble columns, four-prong torch heads and curved amber lanterns; geometric ceiling frames, unbanded red granite paving, photo-derived gold names and sculptural end friezes, crisp bilingual line 116 and transfer 216 signs, six stainless escalators, benches, clocks and mirrors",
+    "limitations": "Dimensions and placement inferred from photographs without survey; unsupplied Kupalovskaya station not built; upper transfer approach ends at a connection marker; frieze sections are assembled from the visible owner views and relief depth inferred from tonal structure; whole-station column cadence estimated",
+    "validation": "Mandatory Godot resource import, mipmaps and Web PCK export only; no game, scene, browser, visual or performance tests"
   }
 }
