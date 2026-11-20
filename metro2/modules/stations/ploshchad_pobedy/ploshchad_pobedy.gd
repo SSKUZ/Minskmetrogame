@@ -320,7 +320,8 @@ func _escalators(start: float) -> void:
         for i in range(75,-1,-1):
             var s: float=float(i)*0.18
             outline.append(Vector2(s,_escalator_height(s)+0.10))
-        for j in range(17):
+        # The top/bottom endpoints already belong to the straight outline; do not repeat polygon vertices.
+        for j in range(1,16):
             var a: float=-PI/2.0-float(j)*PI/16.0
             outline.append(Vector2(0.37*cos(a),0.47+0.37*sin(a)))
         _side_panel(outline,x-0.26,x+0.26,start,casing)
