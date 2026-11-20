@@ -154,6 +154,12 @@
       "sha256": "75b332b9446593a2b92d90b9c48c1db253b016cc6506df94f44b76b26f298e1e",
       "bytes": 4144512,
       "warmup": []
+    },
+    "akademiya_nauk": {
+      "file": "akademiya_nauk-c676e4c77ef007c49876.pck",
+      "sha256": "c676e4c77ef007c49876fd97739bb2db5af1f05c2614a0cb7b038b0f4532bdc1",
+      "bytes": 4220752,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -285,5 +291,16 @@
     "source_commit": "3daf4068868b45925039d1122c5ee749a7430045",
     "changes": "Signs centred between existing column bays with 0.29m clearance; remove sign fragments embedded in marble crops; native StandardMaterial3D for columns, wall band, plinth and stairs; lower lettering band by 0.26m; photographic ceiling paint and subtle normal map; both full videos decoded and 0.25-second contact sequences reviewed",
     "validation": "Resource import/export for publication only; no scene, game, browser or performance tests"
+  },
+  "akademiya_nauk_photo_v62": {
+    "source_commit": "e1135091bad75ec0979e730eafee282f4bfe07e3",
+    "stations": {
+      "akademiya_nauk": "Академия наук"
+    },
+    "boot": "boot-19ef7fc9b8469d8e66bf.pck",
+    "references": "26 owner photos 7744–7770 and complete 2.716-second video 7761; quarter-second contact sequence",
+    "features": "Opaque square banded marble columns, stainless strips, physical capitals, plaster transverse ceiling ribs and continuous lighting, grey floor with dark bands and cream grid, pale wall courses above low dark granite plinth, bilingual station 119 route panels and photographed hanging signs, broad stairs, three escalators, mirrors, red clocks and CCTV",
+    "limitations": "Unsurveyed dimensions and total fixture counts are estimates; upper vestibules outside owner views are omitted; escalators are architectural geometry; single original event card and black TV faces as photographed",
+    "validation": "Mandatory Godot import and resource pack export only; no scene, game, browser, visual or performance tests"
   }
 }

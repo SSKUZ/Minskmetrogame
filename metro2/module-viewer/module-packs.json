@@ -28,6 +28,9 @@
     ],
     "park_chelyuskintsev": [
       "park_chelyuskintsev"
+    ],
+    "akademiya_nauk": [
+      "akademiya_nauk"
     ]
   },
   "names": {
@@ -38,7 +41,8 @@
     "borisovsky_trakt": "Борисовский тракт",
     "vostok": "Восток",
     "moskovskaya": "Московская",
-    "park_chelyuskintsev": "Парк Челюскинцев"
+    "park_chelyuskintsev": "Парк Челюскинцев",
+    "akademiya_nauk": "Академия наук"
   },
   "packs": {
     "depot": {
@@ -182,6 +186,12 @@
       "file": "park_chelyuskintsev-75b332b9446593a2b92d.pck",
       "sha256": "75b332b9446593a2b92d90b9c48c1db253b016cc6506df94f44b76b26f298e1e",
       "bytes": 4144512,
+      "warmup": []
+    },
+    "akademiya_nauk": {
+      "file": "akademiya_nauk-c676e4c77ef007c49876.pck",
+      "sha256": "c676e4c77ef007c49876fd97739bb2db5af1f05c2614a0cb7b038b0f4532bdc1",
+      "bytes": 4220752,
       "warmup": []
     }
   },
