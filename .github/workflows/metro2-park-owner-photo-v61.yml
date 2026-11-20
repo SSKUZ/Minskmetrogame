@@ -1,0 +1,55 @@
+name: Metro2 Park Chelyuskintsev owner-photo reconstruction V61
+on:
+  push:
+    branches: [feature/metro2-park-owner-photo-v61]
+    paths:
+      - '.github/workflows/metro2-park-owner-photo-v61.yml'
+      - 'metro2/modules/stations/park_chelyuskintsev/**'
+      - 'metro2/tools/park_photo_v61/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Park Chelyuskintsev
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages-base"
+          python3 metro2/tools/park_photo_v61/publish.py prepare park_chelyuskintsev-photo-v61 "$(cat "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/park_photo_v61/publish.py build park_chelyuskintsev-photo-v61
+          python3 metro2/tools/park_photo_v61/publish.py finish park_chelyuskintsev-photo-v61
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: park_chelyuskintsev-photo-v61-${{ github.sha }}
+          path: park_chelyuskintsev-photo-v61/
+          retention-days: 7
+      - name: Publish updated Park Chelyuskintsev to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages" "$(cat "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages-base")"
+          cp -a park_chelyuskintsev-photo-v61/web/. "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/park_chelyuskintsev-photo-v61-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Reconstruct Park Chelyuskintsev from owner photographs; preserve other station packs'
+          git push origin HEAD:gh-pages
