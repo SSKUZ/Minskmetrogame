@@ -156,9 +156,9 @@
       "warmup": []
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-c676e4c77ef007c49876.pck",
-      "sha256": "c676e4c77ef007c49876fd97739bb2db5af1f05c2614a0cb7b038b0f4532bdc1",
-      "bytes": 4220752,
+      "file": "akademiya_nauk-895cf66123821fb9bfe9.pck",
+      "sha256": "895cf66123821fb9bfe9bf05f60f6c8899825c9e92b36003834c5be61a53e516",
+      "bytes": 4363376,
       "warmup": []
     }
   },
@@ -293,7 +293,7 @@
     "validation": "Resource import/export for publication only; no scene, game, browser or performance tests"
   },
   "akademiya_nauk_photo_v62": {
-    "source_commit": "e1135091bad75ec0979e730eafee282f4bfe07e3",
+    "source_commit": "dafee717c83ddea6b6d84a705e45e656a0ac3258",
     "stations": {
       "akademiya_nauk": "Академия наук"
     },
