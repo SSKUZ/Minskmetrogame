@@ -168,8 +168,8 @@
       "warmup": []
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-0acbcaef40ba8c284906.pck",
-      "sha256": "0acbcaef40ba8c2849068605fe8251816a70a292e003c43921caf0db4932bb54",
+      "file": "ploshchad_pobedy-ed68978e78780d155e4f.pck",
+      "sha256": "ed68978e78780d155e4f5fd6e386cdb68c9c8ea30a02c02a02c142679ca298f5",
       "bytes": 5073824,
       "warmup": []
     }
@@ -344,7 +344,7 @@
     "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
   },
   "pobedy_photo_v65_1": {
-    "source_commit": "f586183d58bc6a5c0499c685877761b451ebb89c",
+    "source_commit": "078ed33acd55a49562dcbe95a23c4c32c1676cbd",
     "stations": {
       "ploshchad_pobedy": "Площадь Победы"
     },
