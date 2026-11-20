@@ -1,4 +1,12 @@
-# Площадь Победы / Плошча Перамогі — V65
+# Площадь Победы / Плошча Перамогі — V65.1
+
+## V65.1 reconstruction corrections
+
+The initial V65 sampling and geometry were inadequate. The column albedo included the tunnel beside the shaft; floor samples included photographed seams; several printed faces were clipped by incorrect perspective coordinates. V65.1 replaces those samples, uses periodic border blending without mirrored mineral patterns, and rebuilds the full information faces as crisp outlined vector artwork from the photographed wording and layout.
+
+Columns now have continuous closed square curved flared capitals. Brown bronze lamp half-trays wrap four corners, with slender restrained amber tubes, bronze cup ornament and muted glass beads; the old luminous triangular sheets and diamond prisms are removed. Wall names sit inside actual 14cm-deep openings with stone reveals, a back and a shaded upper lip. Floor regions are partitioned into non-overlapping cells at one height. Benches have contoured five-module seats and a continuous dark base. Stairs have individual slab treads, darker risers, a landing and rail brackets. Three escalators share four curved wood-faced balustrades with rounded handrail returns, ribbed treads, comb plates, checker landings and tall status posts.
+
+This revision uses `tools/pobedy_photo_v65_1/build_art.py` and a station-only publisher. The existing boot/menu and other station packs are retained. The observations below remain the source inventory; V65.1 geometry supersedes the earlier independent-branch/prism description.
 
 Owner archive `площадь Победы.zip`: 40 photographs and two videos, all dated 20 November 2026. All photographs were inspected; both entire clips were decoded to reference sequences at 0.25-second intervals. Original photos/videos are not redistributed. Only isolated material samples, printed signs and monitor content are included; source hashes and exact crop/homography coordinates are in `art/owner_sources.json`.
 

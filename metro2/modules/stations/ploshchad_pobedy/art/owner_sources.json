@@ -1,116 +1,24 @@
 [
   {
-    "source": "20261120_133108.jpg",
-    "sha256": "b201f3e99a0157fa401d37f0d7520877c7b20c280ccfbb9294d060f0b18f180a",
-    "asset": "platform_track1.jpg",
-    "coordinates_at_width_400": [
-      [
-        65,
-        135
-      ],
-      [
-        375,
-        97
-      ],
-      [
-        380,
-        123
-      ],
-      [
-        69,
-        161
-      ]
-    ]
-  },
-  {
-    "source": "20261120_132952.jpg",
-    "sha256": "e6f6651ce277c0ade5ba5304b5ff265f97e0bcf15561901b149cb96a64c92929",
-    "asset": "platform_track2.jpg",
-    "coordinates_at_width_400": [
-      [
-        107,
-        256
-      ],
-      [
-        296,
-        276
-      ],
-      [
-        291,
-        307
-      ],
-      [
-        103,
-        287
-      ]
-    ]
-  },
-  {
-    "source": "20261120_132926.jpg",
-    "sha256": "3a6a3d259f91717b989f066e7ac5b02f125ad6f95fd186bfcc08cab71527d2a1",
-    "asset": "exit_stairs.jpg",
-    "coordinates_at_width_400": [
-      [
-        91,
-        69
-      ],
-      [
-        306,
-        64
-      ],
-      [
-        307,
-        103
-      ],
-      [
-        92,
-        110
-      ]
-    ]
-  },
-  {
-    "source": "20261120_133122.jpg",
-    "sha256": "2e75d222e0f18f167f9a7795b72f7019d3816eb19e3ca615e8363e78c0e6490f",
-    "asset": "exit_escalators.jpg",
-    "coordinates_at_width_400": [
-      [
-        79,
-        227
-      ],
-      [
-        264,
-        184
-      ],
-      [
-        265,
-        216
-      ],
-      [
-        78,
-        255
-      ]
-    ]
-  },
-  {
     "source": "20261120_133015.jpg",
     "sha256": "1242cf205381598da394c8ff7fc4842069fcf6085d499bad028b3c54252d1760",
     "asset": "name_ru.jpg",
-    "coordinates_at_width_400": [
+    "coordinates_at_width_800": [
       [
-        101,
-        88
+        203,
+        178
       ],
       [
-        279,
-        89
+        558,
+        178
       ],
       [
-        279,
-        105
+        558,
+        208
       ],
       [
-        101,
-        107
+        203,
+        221
       ]
     ]
   },
@@ -118,191 +26,166 @@
     "source": "20261120_133024.jpg",
     "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
     "asset": "name_be.jpg",
-    "coordinates_at_width_400": [
+    "coordinates_at_width_800": [
       [
-        99,
-        89
+        195,
+        180
       ],
       [
-        351,
-        85
+        697,
+        175
       ],
       [
-        350,
-        108
+        697,
+        215
       ],
       [
-        99,
-        111
+        195,
+        222
       ]
     ]
   },
   {
-    "source": "20261120_133024.jpg",
-    "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
-    "asset": "wall_marble.jpg",
-    "coordinates_at_width_400": [
-      15,
-      17,
-      86,
-      58
-    ]
-  },
-  {
-    "source": "20261120_133015.jpg",
-    "sha256": "1242cf205381598da394c8ff7fc4842069fcf6085d499bad028b3c54252d1760",
-    "asset": "wall_marble_alt.jpg",
-    "coordinates_at_width_400": [
-      283,
-      59,
-      344,
-      78
-    ]
-  },
-  {
-    "source": "20261120_133024.jpg",
-    "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
-    "asset": "plinth_granite.jpg",
-    "coordinates_at_width_400": [
-      205,
-      179,
-      290,
-      207
-    ]
-  },
-  {
-    "source": "20261120_133000.jpg",
-    "sha256": "372a8863c8367e85cdea1cb72e8299429335474a9bc196404375064a0400370c",
+    "source": "20261120_133029.jpg",
+    "sha256": "9838b57627eed4f6a10b710dc4aed01494c73d936b6a1d0910ee702337b24130",
     "asset": "column_marble.jpg",
-    "coordinates_at_width_400": [
-      [
-        153,
-        442
-      ],
-      [
-        187,
-        452
-      ],
-      [
-        189,
-        685
-      ],
-      [
-        153,
-        680
-      ]
+    "coordinates_at_width_800": [
+      288,
+      267,
+      332,
+      347
     ]
   },
   {
     "source": "20261120_133000.jpg",
     "sha256": "372a8863c8367e85cdea1cb72e8299429335474a9bc196404375064a0400370c",
     "asset": "column_marble_alt.jpg",
-    "coordinates_at_width_400": [
-      [
-        196,
-        452
-      ],
-      [
-        220,
-        446
-      ],
-      [
-        231,
-        684
-      ],
-      [
-        196,
-        686
-      ]
+    "coordinates_at_width_800": [
+      353,
+      765,
+      392,
+      930
     ]
   },
   {
-    "source": "20261120_132956.jpg",
-    "sha256": "ea9c71ebff8f7505894c450b41db3e5a9f2499674d552b643e13f60767ec02e4",
+    "source": "20261120_133024.jpg",
+    "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
+    "asset": "wall_marble.jpg",
+    "coordinates_at_width_800": [
+      520,
+      101,
+      535,
+      132
+    ]
+  },
+  {
+    "source": "20261120_133024.jpg",
+    "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
+    "asset": "wall_marble_alt.jpg",
+    "coordinates_at_width_800": [
+      522,
+      104,
+      534,
+      131
+    ]
+  },
+  {
+    "source": "20261120_133024.jpg",
+    "sha256": "f4d8956ffff00e2b722a627c24773a7a08602a706ce5f2ac2e3e125da5eb6b24",
+    "asset": "plinth_granite.jpg",
+    "coordinates_at_width_800": [
+      514,
+      351,
+      583,
+      394
+    ]
+  },
+  {
+    "source": "20261120_133029.jpg",
+    "sha256": "9838b57627eed4f6a10b710dc4aed01494c73d936b6a1d0910ee702337b24130",
     "asset": "floor_red.jpg",
-    "coordinates_at_width_400": [
-      52,
-      530,
-      235,
-      670
+    "coordinates_at_width_800": [
+      25,
+      1007,
+      156,
+      1080
     ]
   },
   {
     "source": "20261120_133029.jpg",
     "sha256": "9838b57627eed4f6a10b710dc4aed01494c73d936b6a1d0910ee702337b24130",
     "asset": "floor_grey.jpg",
-    "coordinates_at_width_400": [
-      255,
-      615,
-      280,
-      660
+    "coordinates_at_width_800": [
+      231,
+      1050,
+      273,
+      1123
     ]
   },
   {
     "source": "20261120_133029.jpg",
     "sha256": "9838b57627eed4f6a10b710dc4aed01494c73d936b6a1d0910ee702337b24130",
     "asset": "floor_dark.jpg",
-    "coordinates_at_width_400": [
-      [
-        160,
-        510
-      ],
-      [
-        180,
-        507
-      ],
-      [
-        226,
-        675
-      ],
-      [
-        176,
-        686
-      ]
+    "coordinates_at_width_800": [
+      375,
+      973,
+      451,
+      1033
     ]
   },
   {
-    "source": "20261120_132926.jpg",
-    "sha256": "3a6a3d259f91717b989f066e7ac5b02f125ad6f95fd186bfcc08cab71527d2a1",
+    "source": "20261120_133029.jpg",
+    "sha256": "9838b57627eed4f6a10b710dc4aed01494c73d936b6a1d0910ee702337b24130",
     "asset": "stair_granite.jpg",
-    "coordinates_at_width_400": [
-      279,
-      177,
-      294,
-      180
+    "coordinates_at_width_800": [
+      231,
+      1050,
+      273,
+      1123
+    ]
+  },
+  {
+    "source": "20261120_133122.jpg",
+    "sha256": "2e75d222e0f18f167f9a7795b72f7019d3816eb19e3ca615e8363e78c0e6490f",
+    "asset": "escalator_oak.jpg",
+    "coordinates_at_width_800": [
+      440,
+      830,
+      500,
+      863
     ]
   },
   {
     "source": "20261120_133049.jpg",
     "sha256": "5258cfd0402775a1b96a7f7b1bac8cbc3a07f71fee1ef34386193a37adf4979b",
     "asset": "bench_oak.jpg",
-    "coordinates_at_width_400": [
-      282,
-      109,
-      293,
-      113
+    "coordinates_at_width_800": [
+      441,
+      243,
+      474,
+      252
     ]
   },
   {
     "source": "20261120_133118.jpg",
     "sha256": "d4f93760a930217c0e9a89c1b9eeba25b7036ef55c245c7c09be544919fd8100",
     "asset": "platform_cctv.jpg",
-    "coordinates_at_width_400": [
+    "coordinates_at_width_800": [
       [
-        102,
-        200
+        205,
+        401
       ],
       [
-        142,
-        209
+        283,
+        420
       ],
       [
-        140,
-        229
+        279,
+        455
       ],
       [
-        101,
-        222
+        204,
+        440
       ]
     ]
   },
@@ -310,34 +193,34 @@
     "source": "20261120_132956.jpg",
     "sha256": "ea9c71ebff8f7505894c450b41db3e5a9f2499674d552b643e13f60767ec02e4",
     "asset": "burger_ad.jpg",
-    "coordinates_at_width_400": [
+    "coordinates_at_width_800": [
       [
-        49,
-        150
+        100,
+        302
       ],
       [
-        165,
-        143
+        331,
+        288
       ],
       [
-        172,
-        220
+        342,
+        439
       ],
       [
-        56,
-        220
+        113,
+        440
       ]
     ]
   },
   {
     "source": "20261120_132932.jpg",
     "sha256": "91a9f7cc96599216dfab8628a2b016cfd147d930c1a8393363f12d4b422e927e",
-    "asset": "ceiling_paint.jpg / ceiling_normal.png",
-    "coordinates_at_width_400": [
-      155,
-      60,
-      220,
-      107
+    "asset": "ceiling_paint.jpg",
+    "coordinates_at_width_800": [
+      300,
+      129,
+      360,
+      200
     ]
   },
   {

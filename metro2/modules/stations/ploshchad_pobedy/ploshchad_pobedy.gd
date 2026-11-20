@@ -1,5 +1,5 @@
 extends "res://modules/stations/ploshchad_pobedy/station_builder.gd"
-## Ploshchad Pobedy V65: 40 owner photos and both complete video clips.
+## Ploshchad Pobedy V65.1, owner-reference reconstruction: 40 owner photos and both complete video clips.
 const ART := "res://modules/stations/ploshchad_pobedy/art/"
 const NORTH := -5.10
 const SOUTH := 84.20
@@ -14,33 +14,38 @@ var floor_stone: StandardMaterial3D
 var floor_dark: StandardMaterial3D
 var lettering: StandardMaterial3D
 var floor_red: StandardMaterial3D
-var crystal_mesh: ArrayMesh
-var crystals: Array[StandardMaterial3D]=[]
+var bronze: StandardMaterial3D
+var lamp_bead: StandardMaterial3D
+var lamp_tube: StandardMaterial3D
+var oak: StandardMaterial3D
 
 func _ready() -> void:
     super._ready()
     begin_station()
     white=_photo("ceiling_paint.jpg",Vector2(1.0,1.0),0.90)
-    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.16
-    wall_stone=_photo("wall_marble.jpg",Vector2(1.20,0.60),0.36)
-    granite=_photo("plinth_granite.jpg",Vector2(1.20,0.60),0.42)
-    stair_stone=_photo("stair_granite.jpg",Vector2(1.4,0.16),0.64)
+    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.045
+    wall_stone=_photo("wall_marble.jpg",Vector2(0.90,0.90),0.46)
+    granite=_photo("plinth_granite.jpg",Vector2(0.65,0.65),0.48)
+    stair_stone=_photo("stair_granite.jpg",Vector2(0.55,0.55),0.62)
     floor_stone=_photo("floor_grey.jpg",Vector2(0.60,0.60),0.42)
-    floor_dark=_photo("floor_dark.jpg",Vector2(1.20,0.15),0.36)
+    floor_dark=_photo("floor_dark.jpg",Vector2(0.75,0.75),0.45)
     floor_red=_photo("floor_red.jpg",Vector2(0.6,0.6),0.38)
-    trim=_material(Color("#bdb9a8"),0.15,0.42)
-    brass=_material(Color("#be9d53"),0.65,0.24)
-    _make_crystal_mesh()
+    trim=_material(Color("#a6a493"),0.12,0.52)
+    brass=_material(Color("#8d6b38"),0.50,0.37)
+    bronze=_material(Color("#6f4c2d"),0.38,0.43)
+    lamp_bead=_material(Color("#ad9060"),0.25,0.29)
+    lamp_tube=_material(Color("#cdb585"),0.05,0.46)
+    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(0.70,0.47,0.20);lamp_tube.emission_energy_multiplier=0.13
+    lettering=_material(Color("#b69b60"),0.45,0.32)
+    yellow=_material(Color("#d7ad39"),0.0,0.67)
+    oak=_photo("bench_oak.jpg",Vector2(0.65,0.30),0.48)
     for i in range(4):
-        var m := _material(Color(0.88+float(i)*0.025,0.84+float(i)*0.031,0.69+float(i)*0.069),0.22,0.12)
-        m.emission_enabled=true;m.emission=Color(1.0,0.87,0.61);m.emission_energy_multiplier=0.22+float(i)*0.14
-        crystals.append(m)
-    lettering=_material(Color("#d0cbc0"),0.55,0.29)
-    yellow=_material(Color("#d9ac37"),0.0,0.68)
-    for i in range(4):
-        var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.82,2.65),0.26)
-        m.uv1_offset=Vector3(0.0,float(i)*0.26,0.0)
+        var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.80,0.80),0.41)
+        m.uv1_offset=Vector3(float(i)*0.21,float(i)*0.13,0.0)
         column_stones.append(m)
+    for file in ["floor_red","floor_grey","floor_dark"]:
+        var mat: StandardMaterial3D=floor_red if file=="floor_red" else floor_stone if file=="floor_grey" else floor_dark
+        mat.normal_enabled=true;mat.normal_texture=load(ART+file+"_normal.png");mat.normal_scale=0.12
     _floor()
     _walls()
     _columns_and_girders()
@@ -68,146 +73,154 @@ func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
     return mat
 
 func _floor() -> void:
-    (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_red
-    # Red granite fields bounded by grey strips; dark veined bands cross under each column pair.
-    for row in range(175):
-        var z: float=ZA+0.30+float(row)*0.60
-        for col in range(15):
-            box(Vector3(0.598,0.008,0.598),Vector3(CX-4.20+float(col)*0.60,FY+0.005,z),floor_red)
-    for side in [-1.0,1.0]:
-        box(Vector3(0.22,0.014,105),Vector3(CX+side*2.02,FY+0.013,MID),floor_stone)
-        box(Vector3(0.75,0.015,105),Vector3(CX+side*2.55,FY+0.014,MID),floor_dark)
-        box(Vector3(0.20,0.016,105),Vector3(CX+side*3.025,FY+0.015,MID),floor_stone)
-    for i in range(19):
+    (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_stone
+    # One material per paving cell, all at exactly the same top plane: no overlapping cross-stripes.
+    var xs: Array[float]=[-5.0,-4.50,-4.31,-3.10,-2.90,-2.15,-1.95,1.95,2.15,2.90,3.10,4.31,4.50,5.0]
+    var zs: Array[float]=[ZA,ZB]
+    for i in range(8):xs.append(-4.2+float(i)*1.2)
+    for i in range(175):zs.append(ZA+float(i)*0.60)
+    for i in range(18):
         var z: float=-1.2+float(i)*PITCH
-        box(Vector3(8.92,0.016,0.75),Vector3(CX,FY+0.015,z),floor_dark)
-        for offset in [-0.49,0.49]:box(Vector3(8.92,0.018,0.23),Vector3(CX,FY+0.016,z+float(offset)),floor_stone)
+        for off in [-0.60,-0.38,0.38,0.60]:zs.append(z+float(off))
+    xs.sort();zs.sort()
+    var edge := _material(Color("#9f9786"),0,0.65)
+    for ix in range(xs.size()-1):
+        for iz in range(zs.size()-1):
+            var w: float=xs[ix+1]-xs[ix];var l: float=zs[iz+1]-zs[iz]
+            if w<0.004 or l<0.004:continue
+            var x: float=(xs[ix]+xs[ix+1])*0.5;var z: float=(zs[iz]+zs[iz+1])*0.5
+            var near: float=abs(fposmod(z+1.2+PITCH*0.5,PITCH)-PITCH*0.5)
+            var cross_band: bool=near<0.38 and z>-1.8 and z<81.1
+            var border: bool=near<0.60 and z>-1.8 and z<81.1
+            var mat: Material=floor_red
+            if abs(x)>4.50:mat=edge
+            elif abs(x)>4.31:mat=yellow
+            elif cross_band:mat=floor_dark
+            elif border:mat=floor_stone
+            elif abs(x)>2.15 and abs(x)<2.90:mat=floor_dark
+            elif (abs(x)>1.95 and abs(x)<2.15) or (abs(x)>2.90 and abs(x)<3.10):mat=floor_stone
+            box(Vector3(w-0.002,0.012,l-0.002),Vector3(CX+x,FY+0.015,z),mat)
     for side in [-1.0,1.0]:
-        box(Vector3(0.46,0.020,105),Vector3(CX+side*4.77,FY+0.014,MID),_material(Color("#9a917b"),0.0,0.58))
-        box(Vector3(0.19,0.022,105),Vector3(CX+side*4.42,FY+0.018,MID),yellow)
         for i in range(1312):
-            var z: float=ZA+0.04+float(i)*0.08
-            for dx in [-0.058,0.0,0.058]:cylinder(0.011,0.004,Vector3(CX+side*4.42+float(dx),FY+0.032,z),yellow)
+            for dx in [-0.058,0.0,0.058]:cylinder(0.010,0.004,Vector3(CX+side*4.405+float(dx),FY+0.025,ZA+0.04+float(i)*0.08),yellow)
+
+func _wall_names() -> Array[float]:
+    return [1.8,20.6,39.4,58.2,77.0]
 
 func _walls() -> void:
-    var joint := _material(Color("#8c8d81"),0.0,0.85)
-    var alternate := _photo("wall_marble_alt.jpg",Vector2(1.2,0.60),0.38)
+    var bed := _material(Color("#8c8779"),0.0,0.76)
+    var alternate := _photo("wall_marble_alt.jpg",Vector2(0.90,0.90),0.46)
+    var names: Array[float]=_wall_names()
+    var y0: float=FY+0.70
+    var cuts_y: Array[float]=[y0,3.08,3.56,6.20]
+    var cuts_z: Array[float]=[ZA,ZB]
+    for i in range(8):
+        var y: float=y0+float(i)*0.60
+        if y<6.20:cuts_y.append(y)
+    for i in range(88):cuts_z.append(ZA+float(i)*1.20)
+    for z in names:cuts_z.append(z-2.48);cuts_z.append(z+2.48)
+    cuts_y.sort();cuts_z.sort()
     for side in [-1.0,1.0]:
+        # Base at the BACK of each recess; a separate marble skin forms the visible wall.
         var x: float=CX+side*8.90
-        var plinth_top: float=FY+0.60
-        box(Vector3(0.28,plinth_top,105),Vector3(x,plinth_top*0.5,MID),granite)
-        box(Vector3(0.28,6.15-plinth_top,105),Vector3(x,(6.15+plinth_top)*0.5,MID),wall_stone)
-        for y in [plinth_top,plinth_top+0.025]:box(Vector3(0.31,0.018,105),Vector3(x-side*0.025,float(y),MID),metal)
-        # Individual horizontal courses have real seams; upper plates turn vertical.
-        for row in range(7):
-            var y: float=plinth_top+0.03+float(row)*0.60
-            box(Vector3(0.006,0.0035,105),Vector3(x-side*0.144,y,MID),joint)
-            for j in range(88):
-                var z: float=ZA+float(j)*1.20+(0.60 if row%2==1 else 0.0)
-                box(Vector3(0.006,0.60,0.003),Vector3(x-side*0.145,y+0.30,z),joint)
-                if (j+row*3)%7==0 and z+0.60<ZB:
-                    box(Vector3(0.003,0.593,1.193),Vector3(x-side*0.143,y+0.30,z+0.60),alternate)
-        for i in range(59):
-            var z: float=ZA+float(i)*1.80
-            box(Vector3(0.009,0.78,0.005),Vector3(x-side*0.15,5.34,z),joint)
-        rod(Vector3(x-side*0.19,4.89,ZA),Vector3(x-side*0.19,4.89,ZB),0.016,metal)
-        rod(Vector3(x-side*0.18,4.94,ZA),Vector3(x-side*0.18,4.94,ZB),0.009,black)
-        for i in range(74):
-            var z: float=ZA+float(i)*1.44
-            box(Vector3(0.045,0.035,0.026),Vector3(x-side*0.195,4.91,z),black)
-        for j in range(5):
-            var z: float=1.8+float(j)*18.8
-            var yaw: float=-side*PI/2.0
-            var p := Vector3(x-side*0.19,3.17,z)
-            box(Vector3(0.055,0.38,4.65),p,brass)
-            picture("name_be.jpg" if side>0.0 else "name_ru.jpg",Vector2(4.60,0.36),p+Vector3(-side*0.032,0,0),yaw)
-            picture("route_track1.svg" if side>0.0 else "route_track2.svg",Vector2(4.75,0.80),Vector3(x-side*0.23,2.55,z),yaw,true)
+        box(Vector3(0.36,6.2-y0,105),Vector3(CX+side*9.10,(y0+6.2)*0.5,MID),bed)
+        box(Vector3(0.30,y0,105),Vector3(x,y0*0.5,MID),granite)
+        for iy in range(cuts_y.size()-1):
+            for iz in range(cuts_z.size()-1):
+                var h: float=cuts_y[iy+1]-cuts_y[iy];var w: float=cuts_z[iz+1]-cuts_z[iz]
+                if h<0.004 or w<0.004:continue
+                var y: float=(cuts_y[iy]+cuts_y[iy+1])*0.5;var z: float=(cuts_z[iz]+cuts_z[iz+1])*0.5
+                var opening: bool=false
+                if y>3.08 and y<3.56:
+                    for center in names:
+                        if abs(z-center)<2.48:opening=true
+                if not opening:box(Vector3(0.16,h-0.002,w-0.002),Vector3(CX+side*8.84,y,z),alternate if (iy+iz)%7==0 else wall_stone)
+        rod(Vector3(CX+side*8.73,4.88,ZA),Vector3(CX+side*8.73,4.88,ZB),0.014,metal)
+        for j in range(74):box(Vector3(0.025,0.035,0.022),Vector3(CX+side*8.72,4.88,ZA+float(j)*1.44),bronze)
+        for z in names:
+            _name_recess(side,z)
+            picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.92,0.80),Vector3(CX+side*8.70,2.60,z),-side*PI/2.0,true)
+        box(Vector3(0.035,0.020,105),Vector3(CX+side*8.73,y0+0.01,MID),metal)
+
+func _name_recess(side: float,z: float) -> void:
+    var yaw: float=-side*PI/2.0
+    # Actual opening, 14cm deep, with back, four stone reveals and a narrow shaded upper lip.
+    box(Vector3(0.012,0.48,4.96),Vector3(CX+side*8.917,3.32,z),wall_stone)
+    for dz in [-2.48,2.48]:box(Vector3(0.16,0.48,0.025),Vector3(CX+side*8.84,3.32,z+float(dz)),wall_stone)
+    for y in [3.08,3.56]:box(Vector3(0.16,0.025,4.96),Vector3(CX+side*8.84,float(y),z),wall_stone)
+    box(Vector3(0.13,0.015,4.93),Vector3(CX+side*8.843,3.545,z),bronze)
+    _lit_picture("name_be.jpg" if side>0 else "name_ru.jpg",Vector2(4.84,0.405),Vector3(CX+side*8.895,3.32,z),yaw)
+
+func _lit_picture(file: String,size: Vector2,p: Vector3,yaw: float) -> void:
+    var mat := StandardMaterial3D.new();mat.albedo_texture=load(ART+file);mat.roughness=0.52
+    mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    var q := QuadMesh.new();q.size=size;q.material=mat
+    var n := MeshInstance3D.new();n.mesh=q;n.position=p;n.rotation.y=yaw;add_child(n)
+
+func _capital_radius(t: float) -> float:
+    return 0.42+0.98*pow(t,2.30)
+
+func _capital_point(o: Vector3,face: int,t: float,u: float,offset: float=0.0) -> Vector3:
+    var angle: float=float(face)*PI/2.0
+    var radial := Vector3(sin(angle),0,cos(angle))
+    var tangent := Vector3(cos(angle),0,-sin(angle))
+    var r: float=_capital_radius(t)
+    return o+radial*(r+offset)+tangent*u+Vector3.UP*(4.12+1.98*t)
 
 func _columns_and_girders() -> void:
-    var joint := _material(Color("#aaa99c"),0.0,0.72)
-    # Matching rows; four diagonal concrete branches leave four open faces for the fan chandeliers.
+    var joint := _material(Color("#969184"),0.10,0.60)
     for side in [-1.0,1.0]:
         var x: float=CX+side*COL_X
-        box(Vector3(0.52,0.30,90.3),Vector3(x,6.08,39.6),white)
         for i in range(18):
-            var z: float=-1.20+float(i)*PITCH
-            box(Vector3(0.86,0.075,0.86),Vector3(x,FY+0.0375,z),black)
-            box(Vector3(0.84,4.12-FY,0.84),Vector3(x,(4.12+FY)*0.5,z),column_stones[i%4])
-            box(Vector3(0.84,0.32,0.84),Vector3(x,4.28,z),white)
-            for y in [FY+1.03,FY+2.02]:box(Vector3(0.842,0.0025,0.842),Vector3(x,float(y),z),joint)
-            for offset in [-0.19,0.19]:
-                for face in [-1.0,1.0]:
-                    box(Vector3(0.0035,2.94,0.004),Vector3(x+float(offset),FY+1.55,z+face*0.422),joint)
-                    box(Vector3(0.004,2.94,0.0035),Vector3(x+face*0.422,FY+1.55,z+float(offset)),joint)
-            for k in range(4):
-                var angle: float=float(k)*PI/2.0
-                _branch(Vector3(x,0,z),angle+PI/4.0)
-                _fan_light(Vector3(x,0,z),angle,i+k)
-                var d := Vector3(sin(angle),0,cos(angle))
-                rod(Vector3(x,3.59,z)+d*0.426,Vector3(x,4.52,z)+d*0.426,0.014,brass)
-                rod(Vector3(x,4.09,z)+d*0.429,Vector3(x,4.09,z)+d*0.429+Vector3(cos(angle),0,-sin(angle))*0.40,0.007,brass)
+            var z: float=-1.2+float(i)*PITCH
+            var o := Vector3(x,0,z)
+            box(Vector3(0.85,0.075,0.85),Vector3(x,FY+0.0375,z),black)
+            box(Vector3(0.84,4.12-FY-0.075,0.84),Vector3(x,(4.12+FY+0.075)*0.5,z),column_stones[i%4])
+            for y in [FY+0.91,FY+1.82,FY+2.71]:
+                box(Vector3(0.842,0.002,0.842),Vector3(x,float(y),z),joint)
+            for face in range(4):
+                var angle: float=float(face)*PI/2.0
+                var radial := Vector3(sin(angle),0,cos(angle))
+                var tangent := Vector3(cos(angle),0,-sin(angle))
+                for off in [-0.045,0.045]:
+                    box(Vector3(0.006,2.86,0.004),o+radial*0.422+tangent*float(off)+Vector3.UP*(FY+1.50),joint,Basis(Vector3.UP,angle))
+                # Smooth, CLOSED square trumpet capital. Fixtures wrap its corners, not four floating triangles.
+                for row in range(28):
+                    var t0: float=float(row)/28.0;var t1: float=float(row+1)/28.0
+                    var r0: float=_capital_radius(t0);var r1: float=_capital_radius(t1)
+                    quad(_capital_point(o,face,t0,-r0),_capital_point(o,face,t0,r0),_capital_point(o,face,t1,r1),_capital_point(o,face,t1,-r1),white,radial-Vector3.UP)
+                for wing in [-1.0,1.0]:_lamp_wing(o,face,wing)
+                var corner: Vector3=(radial+tangent).normalized()*0.597
+                rod(o+corner+Vector3.UP*3.61,o+corner+Vector3.UP*4.58,0.012,brass)
+            box(Vector3(2.80,0.14,2.80),Vector3(x,6.17,z),white)
 
-func _branch(origin: Vector3,angle: float) -> void:
-    # Curved haunch extruded across each of the four white shoulder arms.
-    var d := Vector3(sin(angle),0,cos(angle))
-    var t := Vector3(cos(angle),0,-sin(angle))
-    var outline := PackedVector2Array([Vector2(0.42,4.07),Vector2(0.45,4.43),Vector2(0.51,4.76),Vector2(0.65,5.09),Vector2(0.90,5.38),Vector2(1.23,5.61),Vector2(1.62,5.80),Vector2(2.15,5.94),Vector2(2.15,6.20),Vector2(0.42,6.20)])
-    var caps := Geometry2D.triangulate_polygon(outline)
-    for side in [-1.0,1.0]:
-        for j in range(0,caps.size(),3):
-            var a: Vector2=outline[caps[j]];var b: Vector2=outline[caps[j+1]];var c: Vector2=outline[caps[j+2]]
-            triangle(origin+d*a.x+Vector3.UP*a.y+t*side*0.18,origin+d*b.x+Vector3.UP*b.y+t*side*0.18,origin+d*c.x+Vector3.UP*c.y+t*side*0.18,white,t*side)
-    for j in range(outline.size()):
-        var a: Vector2=outline[j];var b: Vector2=outline[(j+1)%outline.size()]
-        quad(origin+d*a.x+Vector3.UP*a.y-t*0.18,origin+d*a.x+Vector3.UP*a.y+t*0.18,origin+d*b.x+Vector3.UP*b.y+t*0.18,origin+d*b.x+Vector3.UP*b.y-t*0.18,white)
+func _lamp_point(o: Vector3,face: int,wing: float,t: float,u: float,offset: float=0.022) -> Vector3:
+    var level: float=0.21+t*0.715
+    var inner: float=0.24+0.045*t
+    var outer: float=_capital_radius(level)-0.035
+    return _capital_point(o,face,level,wing*lerpf(inner,outer,u),offset)
 
-func _fan_point(origin: Vector3,angle: float,t: float,across: float=0.0) -> Vector3:
+func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
+    var angle: float=float(face)*PI/2.0
     var radial := Vector3(sin(angle),0,cos(angle))
-    var tangent := Vector3(cos(angle),0,-sin(angle))
-    return origin+radial*(0.53+t*1.34)+Vector3.UP*(4.52+t*1.45)+tangent*across*(0.07+t*0.59)
-
-func _fan_light(origin: Vector3,angle: float,variant: int) -> void:
-    var a := _fan_point(origin,angle,0.0,-1.0)
-    var b := _fan_point(origin,angle,0.0,1.0)
-    var c := _fan_point(origin,angle,1.0,1.0)
-    var d := _fan_point(origin,angle,1.0,-1.0)
-    var radial := Vector3(sin(angle),0,cos(angle))
-    # Four separate sloping tapered fixtures; warm core behind brass rails and individual prisms.
-    var lift: Vector3=(radial-Vector3.UP)*0.025
-    quad(a-lift,b-lift,c-lift,d-lift,glow,radial-Vector3.UP)
-    for ends in [[a,b],[b,c],[c,d],[d,a]]:rod(ends[0],ends[1],0.014,brass)
-    for lane in range(7):
-        var u: float=-0.88+float(lane)*1.76/6.0
-        rod(_fan_point(origin,angle,0.03,u)+lift,_fan_point(origin,angle,0.98,u)+lift,0.007,brass)
-    var slope := (c-b).normalized()
-    var tangent := Vector3(cos(angle),0,-sin(angle))
-    var basis := Basis(tangent,slope,tangent.cross(slope).normalized())
+    # Brown stamped-metal trays, slender amber tubes, rows of bronze cups and muted glass beads.
+    for row in range(18):
+        var t0: float=float(row)/18.0;var t1: float=float(row+1)/18.0
+        quad(_lamp_point(o,face,wing,t0,0),_lamp_point(o,face,wing,t0,1),_lamp_point(o,face,wing,t1,1),_lamp_point(o,face,wing,t1,0),bronze,radial-Vector3.UP)
+        for u in [0.0,1.0]:rod(_lamp_point(o,face,wing,t0,float(u),0.030),_lamp_point(o,face,wing,t1,float(u),0.030),0.010,brass)
+        for lane in range(5):
+            var u: float=(float(lane)+0.5)/5.0
+            rod(_lamp_point(o,face,wing,t0,u,0.041),_lamp_point(o,face,wing,t1,u,0.041),0.006,brass)
+            if lane in [1,3]:rod(_lamp_point(o,face,wing,t0,u,0.048),_lamp_point(o,face,wing,t1,u,0.048),0.009,lamp_tube)
     for row in range(10):
-        var t: float=0.065+float(row)*0.097
-        rod(_fan_point(origin,angle,t,-0.95)+lift,_fan_point(origin,angle,t,0.95)+lift,0.005,brass)
-        var count: int=3+int(t*7.0)
+        var t: float=0.05+float(row)*0.10
+        rod(_lamp_point(o,face,wing,t,0,0.035),_lamp_point(o,face,wing,t,1,0.035),0.006,brass)
+        var count: int=2+int(t*3.0)
         for j in range(count):
-            var u: float=-0.86+float(j)*1.72/float(count-1)
-            var mat: StandardMaterial3D=crystals[(j+row+variant)%4]
-            var key: String="crystal"+str(mat.get_instance_id())
-            var p: Vector3=_fan_point(origin,angle,t,u)+lift*2.4
-            batch("crystal",mat,Transform3D(basis*Basis.from_scale(Vector3(0.052+t*0.020,0.100,0.065)),p))
-            batches[key]["mesh"]=crystal_mesh
-    # Central concealed warm tube remains legible from the far end of the platform.
-    rod(_fan_point(origin,angle,0.08)+lift,_fan_point(origin,angle,0.93)+lift,0.018,glow)
-
-func _make_crystal_mesh() -> void:
-    var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
-    for i in range(4):
-        var a := Vector3(cos(float(i)*PI/2.0)*0.5,0,sin(float(i)*PI/2.0)*0.5)
-        var b := Vector3(cos(float(i+1)*PI/2.0)*0.5,0,sin(float(i+1)*PI/2.0)*0.5)
-        for tip in [Vector3(0,0.5,0),Vector3(0,-0.5,0)]:
-            var n: Vector3=(a-tip).cross(b-tip).normalized()
-            var reverse: bool=n.dot((a+b+tip)/3.0)<0.0
-            if reverse:n=-n
-            st.set_normal(n)
-            st.add_vertex(tip);st.add_vertex(a if reverse else b);st.add_vertex(b if reverse else a)
-    crystal_mesh=st.commit()
+            var u: float=(float(j)+0.5)/float(count)
+            var p: Vector3=_lamp_point(o,face,wing,t,u,0.052)
+            sphere(Vector3(0.048,0.045,0.048),p,brass)
+            sphere(Vector3(0.027,0.028,0.027),p+radial*0.016,lamp_bead)
 
 func _ceilings() -> void:
     # Solid white soffit, recessed panel fields and narrow panel joints instead of repeated Academy ribs.
@@ -222,98 +235,155 @@ func _ceilings() -> void:
         var x: float=CX-8.4+float(j)*2.4
         var central: bool=abs(x-CX)<3.85
         box(Vector3(0.008,0.004,SOUTH-NORTH if central else 105.0),Vector3(x,6.203,(SOUTH+NORTH)*0.5 if central else MID),seam)
+    for side in [-1.0,1.0]:box(Vector3(0.44,0.30,SOUTH-NORTH),Vector3(CX+side*COL_X,6.12,(SOUTH+NORTH)*0.5),white)
     for i in range(18):
         var z: float=-1.2+float(i)*PITCH
-        box(Vector3(17.9,0.27,0.42),Vector3(CX,6.10,z),white)
+        box(Vector3(17.9,0.30,0.44),Vector3(CX,6.12,z),white)
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.52;child.light_energy=1.28;child.light_color=Color(1.0,0.94,0.82)
+            child.position.y=5.52;child.light_energy=0.78;child.light_color=Color(1.0,0.96,0.88)
     # Local non-shadowing pools at selected lamp heads, with restrained falloff.
-    for i in range(9):
+    for i in range(6):
         for side in [-1.0,1.0]:
             var light := OmniLight3D.new()
-            light.position=Vector3(CX+side*COL_X,5.3,1.2+float(i)*9.6)
-            light.light_energy=0.30;light.light_color=Color(1.0,0.87,0.62);light.omni_range=6.5;light.shadow_enabled=false;add_child(light)
+            light.position=Vector3(CX+side*COL_X,5.3,1.2+float(i)*15.4)
+            light.light_energy=0.12;light.light_color=Color(1.0,0.87,0.62);light.omni_range=6.5;light.shadow_enabled=false;add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
-    var width := 7.1
-    var rise := 0.13
-    var run := 0.30
-    var landing := 0.90
-    var top: float=FY+36*rise
-    for i in range(36):
-        var h: float=float(i+1)*rise
-        var z: float=start+direction*(float(i)*run+(landing if i>=20 else 0.0))
-        box(Vector3(width,h,run+0.003),Vector3(CX,FY+h*0.5,z),stair_stone)
-        if i in [0,19,20,35]:box(Vector3(width,0.016,0.06),Vector3(CX,FY+h+0.009,z-direction*0.12),yellow)
-    box(Vector3(width,0.18,landing),Vector3(CX,FY+20*rise-0.09,start+direction*6.30),stair_stone)
-    var finish: float=start+direction*(35*run+landing+run*0.5)
-    box(Vector3(width,0.20,3.8),Vector3(CX,top-0.10,finish+direction*1.8),floor_stone)
-    _exit_hall(direction,start,width,top,14.8)
+    var width := 7.12
+    var rise := 0.145
+    var run := 0.31
+    var landing := 1.15
+    var count := 32
+    var top: float=FY+float(count)*rise
+    var riser := stair_stone.duplicate() as StandardMaterial3D;riser.albedo_color=Color(0.76,0.76,0.73)
+    for i in range(count):
+        var y: float=FY+float(i+1)*rise
+        var z: float=start+direction*(float(i)*run+(landing if i>=16 else 0.0))
+        for slab in range(5):
+            var x: float=CX-width*0.5+(float(slab)+0.5)*width/5.0
+            box(Vector3(width/5.0-0.003,0.055,run-0.002),Vector3(x,y-0.0275,z),stair_stone)
+            box(Vector3(width/5.0-0.003,rise-0.052,0.022),Vector3(x,y-rise*0.5-0.026,z-direction*(run*0.5-0.012)),riser)
+        box(Vector3(width,0.005,0.026),Vector3(CX,y+0.003,z-direction*0.125),yellow if i in [0,15,16,31] else metal)
+    var middle: float=start+direction*(15.5*run+landing*0.5)
+    box(Vector3(width,0.08,landing),Vector3(CX,FY+16.0*rise-0.04,middle),stair_stone)
+    var finish: float=start+direction*(31.5*run+landing)
+    box(Vector3(width,0.15,3.40),Vector3(CX,top-0.075,finish+direction*1.7),floor_stone)
+    _exit_hall(direction,start,width,top,14.7)
     for side in [-1.0,1.0]:
-        var x: float=CX+side*(width*0.5-0.045)
-        var points := [Vector2(-0.30,0),Vector2(5.85,20*rise),Vector2(6.75,20*rise),Vector2(11.55,36*rise)]
+        var x: float=CX+side*(width*0.5-0.11)
+        var points: Array[Vector2]=[Vector2(-0.32,0),Vector2(15.5*run,16.0*rise),Vector2(15.5*run+landing,16.0*rise),Vector2(31.5*run+landing,32.0*rise),Vector2(13.5,32.0*rise)]
         for i in range(points.size()-1):
             var a: Vector2=points[i];var b: Vector2=points[i+1]
-            rod(Vector3(x,FY+0.88+a.y,start+direction*a.x),Vector3(x,FY+0.88+b.y,start+direction*b.x),0.027,metal)
-        rod(Vector3(x,FY+0.88,start),Vector3(x,FY+0.67,start-direction*0.20),0.027,metal)
-    board("exit_stairs.jpg",Vector3(CX,4.72,start-direction*0.45),Vector2(5.75,0.84))
-    foot_grille(start-direction*0.7,7.35)
+            rod(Vector3(x,FY+0.90+a.y,start+direction*a.x),Vector3(x,FY+0.90+b.y,start+direction*b.x),0.025,metal)
+            for j in range(3):
+                var t: float=(float(j)+0.5)/3.0;var q: Vector2=a.lerp(b,t)
+                rod(Vector3(x,FY+0.90+q.y,start+direction*q.x),Vector3(x+side*0.11,FY+0.80+q.y,start+direction*q.x),0.011,metal)
+    board("exit_stairs.svg",Vector3(CX,4.66,start-direction*0.50),Vector2(5.90,0.959))
+    _landing(start-direction*0.75,7.35,0.55)
+
+func _escalator_height(s: float) -> float:
+    if s<1.0:return 0.0
+    if s<2.60:return 0.58*pow(s-1.0,2.0)/3.20
+    if s<10.40:return 0.464+(s-2.60)*0.58
+    if s<12.0:
+        var t: float=s-10.40
+        return 4.988+0.58*t-0.58*t*t/3.20
+    return 5.452
 
 func _escalators(start: float) -> void:
-    var width := 7.10
-    var rise := 4.65
-    var run := 9.20
-    var lower := 1.2
-    var tan := _material(Color("#aa844d"),0.25,0.38)
-    var rubber := _material(Color("#20241f"),0.05,0.60)
-    var stepmat := _material(Color("#5d625b"),0.45,0.50)
-    _exit_hall(1.0,start,width,FY+rise,14.7)
+    var width := 7.12
+    var rubber := _material(Color("#1d201d"),0.0,0.52)
+    var stepmat := _material(Color("#555a54"),0.55,0.46)
+    var casing := _photo("escalator_oak.jpg",Vector2(0.65,0.80),0.47)
+    _exit_hall(1.0,start,width,FY+5.452,16.5)
+    _landing(start+0.18,7.12,1.60)
     for lane in range(3):
-        var x: float=CX+(float(lane)-1.0)*2.05
-        for i in range(49):
-            var t: float=float(i)/48.0
-            var z: float=start+lower+t*run
-            box(Vector3(1.05,0.18+rise*t,0.205),Vector3(x,FY+(0.18+rise*t)*0.5,z),stepmat)
-            for groove in range(11):box(Vector3(0.006,0.007,0.185),Vector3(x-0.47+float(groove)*0.094,FY+0.185+rise*t,z),black)
-        box(Vector3(1.05,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
-        for side in [-1.0,1.0]:
-            var bx: float=x+side*0.69
-            var offsets := [Vector2(0.0,0.0),Vector2(1.2,0.0),Vector2(10.4,rise),Vector2(12.2,rise)]
-            for i in range(offsets.size()-1):
-                var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
-                var slope: float=atan2(b.y-a.y,b.x-a.x)
-                var length: float=a.distance_to(b)
-                box(Vector3(0.30,0.76,length),Vector3(bx,FY+(a.y+b.y)*0.5+0.38,start+(a.x+b.x)*0.5),tan,Basis(Vector3.RIGHT,-slope))
-                rod(Vector3(bx,FY+a.y+0.82,start+a.x),Vector3(bx,FY+b.y+0.82,start+b.x),0.045,rubber)
-                rod(Vector3(bx-side*0.16,FY+a.y+0.70,start+a.x),Vector3(bx-side*0.16,FY+b.y+0.70,start+b.x),0.022,metal)
-            cylinder(0.085,0.57,Vector3(bx,FY+0.285,start+0.06),metal)
-            picture("escalator_warning.svg",Vector2(0.22,0.25),Vector3(bx,FY+0.31,start-0.05),PI)
-            box(Vector3(0.15,0.68,0.26),Vector3(bx,FY+0.34,start-0.10),metal)
-        box(Vector3(1.05,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
-        var indicator := _material(Color("#0f9d57") if lane==0 else Color("#bc274a"),0,0.4)
-        indicator.emission_enabled=true;indicator.emission=indicator.albedo_color
-        box(Vector3(0.08,0.10,0.02),Vector3(x-0.69,FY+0.58,start-0.245),indicator)
-    box(Vector3(width,0.22,4.2),Vector3(CX,FY+rise-0.11,start+12.5),floor_stone)
-    board("exit_escalators.jpg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
-    foot_grille(start-0.46,7.25)
+        var x: float=CX+(float(lane)-1.0)*2.0
+        for i in range(54):
+            var s: float=-0.20+float(i)*0.25
+            var y: float=_escalator_height(s)
+            box(Vector3(1.39,0.055,0.246),Vector3(x,FY+y+0.028,start+s),stepmat)
+            var h: float=maxf(0.005,y-_escalator_height(s-0.25))
+            box(Vector3(1.39,h,0.018),Vector3(x,FY+y-h*0.5,start+s-0.123),stepmat)
+            for groove in range(18):box(Vector3(0.005,0.005,0.242),Vector3(x-0.65+float(groove)*0.076,FY+y+0.058,start+s),black)
+        for j in range(70):box(Vector3(0.007,0.017,0.075),Vector3(x-0.67+float(j)*0.0193,FY+0.065,start-0.35),metal)
+    # Four SHARED balustrades, each with continuous curved transitions and a rounded return nose.
+    for boundary in range(4):
+        var x: float=CX-3.0+float(boundary)*2.0
+        var outline := PackedVector2Array()
+        var rail: Array[Vector3]=[]
+        for i in range(76):
+            var s: float=float(i)*0.18
+            var h: float=_escalator_height(s)
+            outline.append(Vector2(s,h+0.84));rail.append(Vector3(x,FY+h+0.86,start+s))
+        for i in range(75,-1,-1):
+            var s: float=float(i)*0.18
+            outline.append(Vector2(s,_escalator_height(s)+0.10))
+        for j in range(17):
+            var a: float=-PI/2.0-float(j)*PI/16.0
+            outline.append(Vector2(0.37*cos(a),0.47+0.37*sin(a)))
+        _side_panel(outline,x-0.26,x+0.26,start,casing)
+        for i in range(rail.size()-1):
+            rod(rail[i],rail[i+1],0.045,rubber)
+            for off in [-0.263,0.263]:rod(rail[i]+Vector3(float(off),-0.055,0),rail[i+1]+Vector3(float(off),-0.055,0),0.018,metal)
+        for j in range(24):
+            var a0: float=PI/2.0+float(j)*PI/24.0;var a1: float=PI/2.0+float(j+1)*PI/24.0
+            var a := Vector3(x,FY+0.47+0.39*sin(a0),start+0.39*cos(a0))
+            var b := Vector3(x,FY+0.47+0.39*sin(a1),start+0.39*cos(a1))
+            rod(a,b,0.045,rubber)
+            for off in [-0.263,0.263]:rod(a+Vector3(float(off),-0.035,0),b+Vector3(float(off),-0.035,0),0.019,metal)
+        box(Vector3(0.28,0.69,0.27),Vector3(x,FY+0.345,start-0.63),metal)
+        box(Vector3(0.29,0.055,0.28),Vector3(x,FY+0.03,start-0.63),black)
+        picture("escalator_warning.svg",Vector2(0.20,0.23),Vector3(x,FY+0.30,start-0.771),PI)
+        if boundary in [1,2]:
+            box(Vector3(0.075,1.63,0.075),Vector3(x,FY+0.815,start-0.63),black)
+            var status := _material(Color("#c02151") if boundary==1 else Color("#30a56c"),0,0.50)
+            status.emission_enabled=true;status.emission=status.albedo_color;status.emission_energy_multiplier=0.45
+            box(Vector3(0.071,0.12,0.008),Vector3(x,FY+1.52,start-0.673),status)
+    box(Vector3(width,0.16,3.1),Vector3(CX,FY+5.452-0.08,start+14.5),floor_stone)
+    board("exit_escalators.svg",Vector3(CX,4.66,start-0.88),Vector2(5.90,0.959))
+
+func _side_panel(points: PackedVector2Array,x0: float,x1: float,z0: float,mat: Material) -> void:
+    var caps := Geometry2D.triangulate_polygon(points)
+    for side in [0,1]:
+        var x: float=x0 if side==0 else x1
+        for j in range(0,caps.size(),3):
+            var a: Vector2=points[caps[j]];var b: Vector2=points[caps[j+1]];var c: Vector2=points[caps[j+2]]
+            triangle(Vector3(x,FY+a.y,z0+a.x),Vector3(x,FY+b.y,z0+b.x),Vector3(x,FY+c.y,z0+c.x),mat,Vector3(-1 if side==0 else 1,0,0))
+    for j in range(points.size()):
+        var a: Vector2=points[j];var b: Vector2=points[(j+1)%points.size()]
+        quad(Vector3(x0,FY+a.y,z0+a.x),Vector3(x1,FY+a.y,z0+a.x),Vector3(x1,FY+b.y,z0+b.x),Vector3(x0,FY+b.y,z0+b.x),mat)
+
+func _landing(z: float,width: float,length: float) -> void:
+    var plate := _photo("checker_plate.svg",Vector2(0.32,0.32),0.47)
+    box(Vector3(width,0.018,length),Vector3(CX,FY+0.025,z),plate)
+    for i in range(12):box(Vector3(width*0.82,0.004,0.012),Vector3(CX,FY+0.036,z-length*0.42+float(i)*length*0.075),black)
 
 func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
     for side in [-1.0,1.0]:
-        var x: float=CX+side*(width*0.5+0.14)
-        box(Vector3(0.28,7.9-FY,length),Vector3(x,(7.9+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
-        box(Vector3(0.29,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
-        picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.46),0.0 if direction<0 else PI)
-        picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.462),0.0 if direction<0 else PI)
+        var x: float=CX+side*(width*0.5+0.16)
+        box(Vector3(0.30,8.0-FY,length),Vector3(x,(8.0+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
+        box(Vector3(0.31,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
+        for y in [FY+0.6,FY+1.2,FY+1.8,FY+2.4,FY+3.0,FY+3.6,FY+4.2]:
+            box(Vector3(0.003,0.003,length),Vector3(x-side*0.152,float(y),start+direction*(length*0.5-0.30)),trim)
+        picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.47),0.0 if direction<0 else PI)
+        picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.472),0.0 if direction<0 else PI)
         _camera_box(Vector3(x-side*0.16,4.92,start-direction*0.5),0.0 if direction<0 else PI)
-    box(Vector3(width+0.55,0.20,length),Vector3(CX,7.95,start+direction*(length*0.5-0.3)),white)
-    box(Vector3(width+0.55,2.56,0.40),Vector3(CX,6.62,start-direction*0.36),white)
-    for i in range(10):
-        var z: float=start+direction*float(i)*1.4
-        box(Vector3(width+0.1,0.20,0.16),Vector3(CX,7.75,z),white)
-        if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,7.62,z),glow)
-    # Upper landing is deliberately limited to the photographed approach.
-    box(Vector3(width+0.55,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
+    box(Vector3(width+0.62,0.20,length),Vector3(CX,8.10,start+direction*(length*0.5-0.3)),white)
+    # The rectangular plaster recess above the exit board is also physical geometry.
+    var front: float=start-direction*0.36
+    box(Vector3(width+0.62,1.05,0.42),Vector3(CX,5.87,front),white)
+    box(Vector3(width+0.62,1.00,0.42),Vector3(CX,7.60,front),white)
+    for side in [-1.0,1.0]:box(Vector3((width+0.62-2.6)*0.5,0.73,0.42),Vector3(CX+side*(2.6+(width+0.62-2.6)*0.5)*0.5,6.755,front),white)
+    box(Vector3(2.6,0.73,0.06),Vector3(CX,6.755,front+direction*0.16),white)
+    for i in range(7):
+        var z: float=start+direction*float(i)*2.3
+        box(Vector3(width+0.2,0.14,0.28),Vector3(CX,7.95,z),white)
+        box(Vector3(5.6,0.045,0.045),Vector3(CX,7.84,z),glow)
+    for side in [-1.0,1.0]:
+        rod(Vector3(CX+side*3.35,5.22,start),Vector3(CX+side*3.35,5.22,start+direction*5.0),0.025,glow)
+    box(Vector3(width+0.60,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
 
 func _signs() -> void:
     # Clear opening = 4.80 - .84 = 3.96 m; framed signs = 3.48 m.
@@ -321,22 +391,30 @@ func _signs() -> void:
         var z: float=-1.2+(float(bay)+0.5)*PITCH
         for side in [-1.0,1.0]:
             var p := Vector3(CX+side*COL_X,4.63,z)
-            var size := Vector2(3.40,0.52)
+            var size := Vector2(3.40,0.5383)
             box(Vector3(0.075,0.60,3.48),p,metal)
-            for face in [-1.0,1.0]:picture("platform_track1.jpg" if side>0 else "platform_track2.jpg",size,p+Vector3(face*0.043,0,0),face*PI/2.0)
-            for dz in [-1.40,1.40]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,6.02,z+float(dz)),0.022,metal)
+            for face in [-1.0,1.0]:picture("platform_track1.svg" if side>0 else "platform_track2.svg",size,p+Vector3(face*0.043,0,0),face*PI/2.0)
+            for dz in [-0.95,0.95]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,6.02,z+float(dz)),0.022,metal)
 
 func _bench(p: Vector3) -> void:
-    var oak := _photo("bench_oak.jpg",Vector2(0.5,0.2),0.45)
-    # Five wide timber saddle modules, backless as photographed, on two solid dark supports.
+    var base := _material(Color("#4b3d29"),0.05,0.67)
+    box(Vector3(0.60,0.34,2.99),p+Vector3(0,0.21,0),base)
     for seat in range(5):
-        var z: float=-1.05+float(seat)*0.525
-        for strip in range(7):
-            var x: float=-0.30+float(strip)*0.10
-            var h: float=0.48+0.045*pow(abs(x)/0.30,2.0)
-            box(Vector3(0.095,0.055,0.50),p+Vector3(x,h,z),oak)
-        for edge in [-1.0,1.0]:box(Vector3(0.69,0.045,0.022),p+Vector3(0,0.49,z+edge*0.254),black)
-    for dz in [-0.90,0.90]:box(Vector3(0.62,0.42,0.15),p+Vector3(0,0.23,float(dz)),black)
+        var z: float=-1.20+float(seat)*0.60
+        # Contoured saddle with rounded front and rear noses; five distinct photographed modules.
+        for strip in range(15):
+            var x: float=-0.35+(float(strip)+0.5)*0.70/15.0
+            var y: float=0.475+0.028*pow(abs(x)/0.35,3.0)
+            box(Vector3(0.047,0.066,0.575),p+Vector3(x,y-0.033,z),oak)
+        for side in [-1.0,1.0]:
+            for j in range(8):
+                var a0: float=-PI/2.0+float(j)*PI/8.0;var a1: float=-PI/2.0+float(j+1)*PI/8.0
+                var x0: float=side*(0.327+0.028*cos(a0));var x1: float=side*(0.327+0.028*cos(a1))
+                quad(p+Vector3(x0,0.473+0.028*sin(a0),z-0.2875),p+Vector3(x0,0.473+0.028*sin(a0),z+0.2875),p+Vector3(x1,0.473+0.028*sin(a1),z+0.2875),p+Vector3(x1,0.473+0.028*sin(a1),z-0.2875),oak)
+        for edge in [-1.0,1.0]:
+            var joint_z: float=z+edge*0.293
+            box(Vector3(0.715,0.014,0.018),p+Vector3(0,0.504,joint_z),black)
+            for side in [-1.0,1.0]:box(Vector3(0.018,0.11,0.018),p+Vector3(side*0.35,0.455,joint_z),black)
 
 func _television(z: float,event: bool) -> void:
     var p := Vector3(CX,4.65,z)
