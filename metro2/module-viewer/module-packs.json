@@ -34,6 +34,9 @@
     ],
     "yakuba_kolasa": [
       "yakuba_kolasa"
+    ],
+    "ploshchad_pobedy": [
+      "ploshchad_pobedy"
     ]
   },
   "names": {
@@ -46,7 +49,8 @@
     "moskovskaya": "Московская",
     "park_chelyuskintsev": "Парк Челюскинцев",
     "akademiya_nauk": "Академия наук",
-    "yakuba_kolasa": "Площадь Якуба Коласа"
+    "yakuba_kolasa": "Площадь Якуба Коласа",
+    "ploshchad_pobedy": "Площадь Победы"
   },
   "packs": {
     "depot": {
@@ -202,6 +206,12 @@
       "file": "yakuba_kolasa-2ddcfa7b89cdd6ec5111.pck",
       "sha256": "2ddcfa7b89cdd6ec5111c6868d5d61601a233255743e41700931272983d2c77e",
       "bytes": 18205680,
+      "warmup": []
+    },
+    "ploshchad_pobedy": {
+      "file": "ploshchad_pobedy-549c888e196516dd1c88.pck",
+      "sha256": "549c888e196516dd1c88ee1e07b992d883cf7bf9a6dab149e518f0e142b56997",
+      "bytes": 9348304,
       "warmup": []
     }
   },

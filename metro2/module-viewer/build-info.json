@@ -166,6 +166,12 @@
       "sha256": "2ddcfa7b89cdd6ec5111c6868d5d61601a233255743e41700931272983d2c77e",
       "bytes": 18205680,
       "warmup": []
+    },
+    "ploshchad_pobedy": {
+      "file": "ploshchad_pobedy-549c888e196516dd1c88.pck",
+      "sha256": "549c888e196516dd1c88ee1e07b992d883cf7bf9a6dab149e518f0e142b56997",
+      "bytes": 9348304,
+      "warmup": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",
@@ -324,6 +330,17 @@
     "references": "40 owner photographs from Yakuba Kolasa archive; no videos in archive",
     "features": "13 distinct front compositions on 13 opposing column pairs; common wheat ornament; photo-derived geometric relief meshes with normal maps and physical octagonal rims; white chevron-plan ceiling ribs, side coffer braces and continuous girder lighting; pale marble walls, reddish granite plinth, longitudinal red/tan floor bands; photographed bilingual hanging signs, station 118 route panels, stairs, three escalators, mirrors, clocks and CCTV",
     "limitations": "Motif inventory represents distinct front compositions visible in the supplied archive; opposite columns are paired by owner instruction; unknown column faces repeat the documented front; relief depth and unsurveyed dimensions are estimated from photographs; hidden vestibules omitted",
+    "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
+  },
+  "pobedy_photo_v65": {
+    "source_commit": "a54389f12483983907673c6751390ca696789975",
+    "stations": {
+      "ploshchad_pobedy": "Площадь Победы"
+    },
+    "boot": "boot-6e450b617064f8a39b76.pck",
+    "references": "40 owner photographs and two complete owner videos (4 fps reference sequences) from the Ploshchad Pobedy archive",
+    "features": "Pale marble paired columns with four sculpted white branches and tapered brass/crystal fan lights; white coffered ceiling; red granite floor fields and grey/black framed bands; pale marble walls with red-brown plinth; photographed bilingual names and signs, station 117 route maps and transfers, stair exit, three escalators, benches, suspended televisions, driver mirrors and portal equipment",
+    "limitations": "Unsurveyed spacing and dimensions estimated from photographs within the Station Base footprint; 18 opposing column pairs; crystal prisms reconstructed as opaque faceted geometry; hidden upper vestibules omitted",
     "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
   }
 }
