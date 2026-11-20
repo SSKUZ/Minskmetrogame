@@ -25,3 +25,12 @@ Photo crops, coordinates and original hashes are recorded in art/owner_photo_ass
 Metric dimensions, rib/chandelier counts, bench/pylon placement and fixture counts are estimates from perspective images, not a survey. Repeated texture patches retain sampled lighting. No street environment or concealed underpass plan is invented. Ordinary staircases are visible at both ends; escalators are not shown or added.
 
 Validation scope: mandatory Godot 4.3 import and native Web PCK export. No game execution, browser, visual or performance tests. Publication updates only this station pack and associated entries in the permanent viewer manifests, preserving the other modules.
+
+
+## V61.1 — owner-reported black roof and photograph comparison
+
+Revisited the complete 7802–7829 reference set, especially 7813/7815/7818/7826/7827. Corrected a construction error: helper triangle winding followed the cross-product normal (counter-clockwise) while Godot front faces are clockwise. ShaderMaterial plaster retained default backface culling, so the intended interior could disappear against the dark viewer background. Interior winding is now clockwise, and plaster explicitly draws both sides. This is a code diagnosis, without a browser reproduction.
+
+The flat central box and fragmented quarter-cove are replaced by a closed continuous curved white crown, 4.56 m wide, with rounded shoulders and repeated shallow transverse rolls. Side fields are neutral light grey-white, with distinct white ribs. Modest material emission represents cove bounce in GLES without realtime GI; the same six existing lights are moved up and recoloured neutral white. Chandeliers join the crown instead of hanging below a gap. Bronze rods stay narrow; glass inserts terminate at the shoulder. Coping recesses now cut through the top stone course and marble stair corbels have full solid side/underside faces.
+
+No local import/export rerun and no game, scene, browser, screenshot, visual or performance tests. GitHub performs only the import/export required to publish the changed module. No extra assets or research were added. Appearance remains subject to the owner's viewer review.

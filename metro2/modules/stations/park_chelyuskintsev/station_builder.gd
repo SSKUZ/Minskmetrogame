@@ -258,7 +258,8 @@ func triangle(a: Vector3,b: Vector3,c: Vector3,mat: Material,hint: Vector3=Vecto
     var normal := (b-a).cross(c-a).normalized()
     var reverse: bool=hint!=Vector3.ZERO and normal.dot(hint)<0.0
     if reverse:normal=-normal
-    for p in [a,c if reverse else b,b if reverse else c]:
+    # Godot front faces use CLOCKWISE winding. Normals still point into the hall.
+    for p in [a,b if reverse else c,c if reverse else b]:
         st.set_normal(normal)
         st.set_uv(Vector2(p.x,p.z))
         st.add_vertex(p)

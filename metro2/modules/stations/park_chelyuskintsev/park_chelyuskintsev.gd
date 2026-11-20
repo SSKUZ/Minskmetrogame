@@ -1,5 +1,5 @@
 extends "res://modules/stations/park_chelyuskintsev/station_builder.gd"
-## V61: owner's 28 photographs and 7801.mp4, on the original Station Base.
+## V61.1: corrected inward faces, closed white vault and photo-matched cove transitions.
 const ART := "res://modules/stations/park_chelyuskintsev/art/"
 const NORTH := -2.8
 const SOUTH := 82.024
@@ -22,7 +22,8 @@ func _ready() -> void:
     dark_stone=_photo_stone("wall_dark_granite.jpg",Color(0.91,0.93,0.92),Vector2(0.83,0.43),0.36)
     stair_wall=_photo_stone("stair_side_marble.jpg",Color(1.0,0.98,0.91),Vector2(0.9,0.6),0.35)
     stair_stone=_photo_stone("stair_tread.jpg",Color(0.96,0.95,0.88),Vector2(1.4,0.6),0.51)
-    plaster=_plaster(Color(0.96,0.96,0.92));vault_field=_plaster(Color(0.83,0.84,0.82))
+    plaster=_plaster(Color(0.96,0.96,0.93));vault_field=_plaster(Color(0.88,0.89,0.87))
+    _hall_lighting()
     _floor();_edges();_walls();_build_chandelier();_vault()
     _stairs(-1.0,NORTH);_stairs(1.0,SOUTH)
     _end_arch(-1.0,NORTH);_end_arch(1.0,SOUTH)
@@ -33,12 +34,15 @@ func _ready() -> void:
 
 func _plaster(tint: Color) -> ShaderMaterial:
     var shader := Shader.new()
-    shader.code="""shader_type spatial;
+    shader.code="""shader_type spatial;render_mode cull_disabled;
 uniform sampler2D plaster_tex : source_color,filter_linear_mipmap_anisotropic,repeat_enable;
 uniform vec4 tint : source_color;
 varying vec3 p;void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
 void fragment(){float grain=texture(plaster_tex,p.xz*0.5+p.xy*0.2).r;
-ALBEDO=tint.rgb*(0.96+grain*0.06);ROUGHNESS=0.87;SPECULAR=0.23;}
+vec3 colour=tint.rgb*(0.975+grain*0.032);
+float cove=1.0-smoothstep(1.92,2.50,abs(p.x+5.37));
+// Low-cost indirect bounce from the white coves; visible even in the Web renderer.
+ALBEDO=colour;EMISSION=colour*mix(0.11,0.25,cove);ROUGHNESS=0.89;SPECULAR=0.19;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader
     mat.set_shader_parameter("plaster_tex",load(ART+"vault_plaster.jpg"));mat.set_shader_parameter("tint",tint)
@@ -81,12 +85,12 @@ func _edges() -> void:
 func _walls() -> void:
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
-        box(Vector3(0.28,2.20,105),Vector3(x,1.10,MID),dark_stone)
-        box(Vector3(0.22,1.08,105),Vector3(x,2.74,MID),plaster)
+        box(Vector3(0.28,1.97,105),Vector3(x,0.985,MID),dark_stone)
+        box(Vector3(0.22,1.32,105),Vector3(x,2.63,MID),plaster)
         for i in range(18):
             var z: float=ZA+float(i)*6.0;var end: float=minf(z+6.0,ZB)
-            box(Vector3(0.45,0.15,maxf(0.1,end-z-0.43)),Vector3(x-side*0.07,2.22,(z+end)*0.5+0.10),dark_stone)
-            box(Vector3(0.27,0.10,0.40),Vector3(x,2.02,z+0.10),dark_stone)
+            box(Vector3(0.45,0.30,maxf(0.1,end-z-0.43)),Vector3(x-side*0.07,2.12,(z+end)*0.5+0.10),dark_stone)
+            box(Vector3(0.45,0.12,0.43),Vector3(x-side*0.07,2.03,z+0.11),dark_stone)
             box(Vector3(0.09,0.94,maxf(0.1,end-z-0.52)),Vector3(x-side*0.15,2.83,(z+end)*0.5+0.10),plaster)
         for i in range(7):
             var z: float=1.6+float(i)*12.0
@@ -106,26 +110,51 @@ func _name(file: String,p: Vector3,yaw: float) -> void:
     box(Vector3(3.31,0.30,0.024),p+basis*Vector3(0.89,0,0),brass,basis)
     picture(file,Vector2(5.35,0.56),p+basis*Vector3(0,0,0.020),yaw,true)
 
+func _hall_lighting() -> void:
+    # Reuse the six existing lights; emission alone does not illuminate plaster in GLES.
+    for child in get_children():
+        if child is OmniLight3D:
+            child.position.y=6.15
+            child.light_color=Color(1.0,0.985,0.95)
+            child.light_energy=1.80
+            child.omni_range=20.0
+            child.omni_attenuation=0.60
+            child.shadow_enabled=false
+
+func _central_height(x: float) -> float:
+    var ax: float=absf(x)
+    if ax>1.98:
+        var t: float=clampf((ax-1.98)/0.30,0.0,1.0)
+        return 7.53+0.30*sqrt(maxf(0.0,1.0-t*t))
+    return 7.83+0.15*(1.0-pow(ax/1.98,2.0))
+
+func _central_vault(z0: float,z1: float) -> void:
+    # Continuous curved crown with rounded transverse ends; no flat central box.
+    var length: float=z1-z0
+    var strips := PackedFloat32Array([0.0,0.04,0.10,0.18,0.28,length-0.28,length-0.18,length-0.10,length-0.04,length])
+    for k in range(strips.size()-1):
+        var a: float=strips[k];var b: float=strips[k+1]
+        for j in range(64):
+            var xa: float=-2.28+float(j)*4.56/64.0
+            var xb: float=-2.28+float(j+1)*4.56/64.0
+            var da: float=0.18*(1.0-smoothstep(0.0,0.28,minf(a,length-a)))
+            var db: float=0.18*(1.0-smoothstep(0.0,0.28,minf(b,length-b)))
+            var ha: float=1.0-pow(absf(xa)/2.28,4.0)
+            var hb: float=1.0-pow(absf(xb)/2.28,4.0)
+            quad(Vector3(CX+xa,_central_height(xa)-da*ha,z0+a),Vector3(CX+xb,_central_height(xb)-da*hb,z0+a),Vector3(CX+xb,_central_height(xb)-db*hb,z0+b),Vector3(CX+xa,_central_height(xa)-db*ha,z0+b),plaster,Vector3.DOWN)
+
 func _vault() -> void:
     for i in range(18):
         var z: float=ZA+float(i)*6.0;var end: float=minf(ZB,z+6.0)
         for side in [-1.0,1.0]:
-            curved_band(float(side),0.0,1.355,z,end,3.20,4.48,0.0,vault_field)
-            curved_band(float(side),0.0,1.355,z,z+0.22,3.20,4.48,0.04,plaster)
-            for j in range(3):curved_band(float(side),0.08,1.11,z+0.058+float(j)*0.041,z+0.070+float(j)*0.041,3.20,4.48,0.061,brass)
-            var cove: Array[Vector2]=[]
-            for j in range(17):
-                var a: float=float(j)*PI/32.0
-                cove.append(Vector2(CX+side*(1.94-0.27*sin(a)),7.53+0.29*(1.0-cos(a))))
-            profile(cove,z+0.20,end,plaster)
-            box(Vector3(0.045,0.035,maxf(0.05,end-z-0.08)),Vector3(CX+side*1.69,7.78,(z+end)*0.5),glow)
+            # Arch joins the rounded central shoulder at x=+/-2.28, y=7.53.
+            curved_band(float(side),0.0,1.314,z,end,3.20,4.48,0.0,vault_field)
+            curved_band(float(side),0.0,1.314,z,z+0.22,3.20,4.48,0.045,plaster)
+            # Narrow bronze rods descend the WHITE rib; no dark ceiling channels.
+            for j in range(3):curved_band(float(side),0.08,1.095,z+0.058+float(j)*0.041,z+0.070+float(j)*0.041,3.20,4.48,0.061,brass)
+            box(Vector3(0.065,0.035,maxf(0.05,end-z-0.08)),Vector3(CX+side*2.23,7.535,(z+end)*0.5),glow)
             _side_lantern(float(side),z+0.11)
-        box(Vector3(3.35,0.11,maxf(0.05,end-z)),Vector3(CX,7.86,(z+end)*0.5),plaster)
-        for j in range(12):
-            var a: float=float(j)*PI/24.0;var b: float=float(j+1)*PI/24.0
-            var za: float=z+0.26*sin(a);var zb: float=z+0.26*sin(b)
-            var ya: float=7.54+0.27*(1.0-cos(a));var yb: float=7.54+0.27*(1.0-cos(b))
-            quad(Vector3(CX-1.70,ya,za),Vector3(CX+1.70,ya,za),Vector3(CX+1.70,yb,zb),Vector3(CX-1.70,yb,zb),plaster,Vector3.DOWN)
+        _central_vault(z,end)
         if z+3.0<ZB:_chandelier(z+3.0)
 
 func _side_lantern(side: float,z: float) -> void:
@@ -138,17 +167,17 @@ func _side_lantern(side: float,z: float) -> void:
             mat.emission_enabled=true;mat.emission=mat.albedo_color*0.24;mat.emission_texture=mat.albedo_texture
             _side_glass_materials.append(mat)
     for row in range(11):
-        var a: float=1.125+float(row)*0.019
+        var a: float=1.105+float(row)*0.0185
         var p := arc_point(side,a,3.20,4.48,0.12)
         var tangent := Vector3(-side*8.98*sin(a),4.48*cos(a),0).normalized()
         var basis := Basis(Vector3.BACK,atan2(tangent.y,tangent.x))
         for col in range(5):box(Vector3(0.14,0.06,0.094),Vector3(p.x,p.y,z+(float(col)-2.0)*0.105),_side_glass_materials[0 if col in [0,2,4] else 1],basis)
         rod(Vector3(p.x,p.y-0.012,z-0.29),Vector3(p.x,p.y-0.012,z+0.29),0.008,brass)
-    var tip := arc_point(side,1.335,3.20,4.48,0.09)
+    var tip := arc_point(side,1.297,3.20,4.48,0.09)
     box(Vector3(0.04,0.34,0.58),Vector3(tip.x,tip.y+0.08,z),brass)
     for col in range(5):box(Vector3(0.055,0.29,0.094),Vector3(tip.x-side*0.025,tip.y+0.10,z+(float(col)-2.0)*0.105),_side_glass_materials[2 if col in [1,2,3] else 0])
     for col in [-2.5,2.5]:
-        var a := arc_point(side,1.12,3.20,4.48,0.12);var b := arc_point(side,1.34,3.20,4.48,0.12)
+        var a := arc_point(side,1.10,3.20,4.48,0.12);var b := arc_point(side,1.30,3.20,4.48,0.12)
         rod(Vector3(a.x,a.y,z+float(col)*0.105),Vector3(b.x,b.y,z+float(col)*0.105),0.009,brass)
 
 func _end_arch(direction: float,start: float) -> void:
@@ -164,13 +193,17 @@ func _end_arch(direction: float,start: float) -> void:
         var b := Vector3(x-side*0.20,6.20,start-direction*0.38)
         var c := Vector3(x-side*0.20,6.20,start-direction*0.98)
         var d := Vector3(x-side*0.20,5.66,start-direction*0.98)
+        var offset := Vector3(side*0.40,0,0)
         quad(a,b,c,d,stair_wall,Vector3(-side,0,0))
+        quad(a+offset,d+offset,c+offset,b+offset,stair_wall,Vector3(side,0,0))
+        quad(a,d,d+offset,a+offset,stair_wall,Vector3(0,-1,0))
+        quad(d,c,c+offset,d+offset,stair_wall,Vector3(0,0,-direction))
         box(Vector3(0.45,0.68,0.12),Vector3(x,5.92,start-direction*0.98),stair_wall)
     box(Vector3(5.90,0.045,0.07),Vector3(CX,6.02,start-direction*0.55),glow)
     box(Vector3(0.62,0.035,0.35),Vector3(CX,4.89,start-direction*0.09),black)
 
 func _pylon(z: float,television: bool) -> void:
-    var body := _material(Color("#5f594b"),0.53,0.40)
+    var body := _material(Color("#70685c"),0.40,0.46)
     var dark := _material(Color("#211f1b"),0.36,0.45)
     var p := Vector3(CX,FY,z)
     _round_box(Vector3(0.54,1.02,0.49),p+Vector3(0,0.51,0),body,0.08)
@@ -428,7 +461,7 @@ NORMAL_MAP=normalize(vec3(cos(q.x*10.0+sin(q.y*6.0))*0.23,sin(q.y*10.0+cos(q.x*7
 
 
 func _chandelier(z: float) -> void:
-    var center := Vector3(CX,6.96,z)
+    var center := Vector3(CX,7.42,z)
     instance_mesh("RadialCastGlassChandeliers",_chandelier_meshes[0],center)
     cylinder(0.39,0.27,center+Vector3(0,0.50,0),white)
     annulus(center,0.05,0.14,-0.30,-0.28,brass)
