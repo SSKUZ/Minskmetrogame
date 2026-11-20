@@ -1,0 +1,56 @@
+name: Metro2 Uruchye route signage V63
+on:
+  push:
+    branches: [feature/metro2-route-signs-v63]
+    paths:
+      - '.github/workflows/metro2-route-signs-v63.yml'
+      - 'metro2/scripts/station/uruchye_architecture.gd'
+      - 'metro2/assets/signage_v63/**'
+      - 'metro2/tools/route_signs_v63/**'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Uruchye
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/uruchye-route-v63-pages-base"
+          python3 metro2/tools/route_signs_v63/publish.py prepare uruchye-route-v63 "$(cat "$RUNNER_TEMP/uruchye-route-v63-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/route_signs_v63/publish.py build uruchye-route-v63
+          python3 metro2/tools/route_signs_v63/publish.py finish uruchye-route-v63
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uruchye-route-v63-${{ github.sha }}
+          path: uruchye-route-v63/
+          retention-days: 7
+      - name: Publish updated Uruchye to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/uruchye-route-v63-pages" "$(cat "$RUNNER_TEMP/uruchye-route-v63-pages-base")"
+          cp -a uruchye-route-v63/web/. "$RUNNER_TEMP/uruchye-route-v63-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/uruchye-route-v63-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Correct Uruchye route signage; preserve every other station pack'
+          git push origin HEAD:gh-pages

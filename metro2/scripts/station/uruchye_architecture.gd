@@ -139,7 +139,7 @@ func _floor_and_walls() -> void:
         for z in [10.0,45.0,72.0]:
             _wall_title(side,face,z)
         for z in [25.5,59.0]:
-            var board := _picture(preload("res://assets/station/photo_reference/route.png"),Vector2(4.8,1.11),Vector3(face-side*0.07,2.97,z),-side*PI/2.0)
+            var board := _picture(preload("res://assets/signage_v63/uruchye_route.svg"),Vector2(4.8,0.932),Vector3(face-side*0.07,2.97,z),-side*PI/2.0)
             board.name="WallLineMap124Uruchye"
         for z in [2.0,33.0,63.0,84.0]:
             _ornament(side,face,z)
@@ -330,11 +330,11 @@ func _label(text: String,pos: Vector3,pixel: float,color: Color) -> Label3D:
     return label
 
 func _navigation() -> void:
-    var route := preload("res://assets/station/photo_reference/route.png")
+    var route := preload("res://assets/signage_v63/uruchye_route.svg")
     var no_boarding := preload("res://assets/station/photo_reference/no_boarding.png")
     for z in [5.0,28.0,51.0,73.0]:
         _hanging_board(no_boarding,Vector3(CX-2.45,4.47,z),Vector2(2.85,0.61))
-        _hanging_board(route,Vector3(CX+2.45,4.47,z),Vector2(3.35,0.78))
+        _hanging_board(route,Vector3(CX+2.45,4.47,z),Vector2(3.35,0.651))
     _hanging_board(preload("res://assets/station/photo_reference/exit_a.png"),Vector3(CX,4.55,10.0),Vector2(3.65,0.76))
     _hanging_board(preload("res://assets/station/photo_reference/exit_b.png"),Vector3(CX,4.55,76.5),Vector2(3.65,0.76))
 
