@@ -1,0 +1,57 @@
+name: Metro2 Oktyabrskaya owner-photo reconstruction V66
+on:
+  push:
+    branches: [feature/metro2-oktyabrskaya-photo-v66]
+    paths:
+      - '.github/workflows/metro2-oktyabrskaya-photo-v66.yml'
+      - 'metro2/modules/stations/oktyabrskaya/**'
+      - 'metro2/tools/oktyabrskaya_photo_v66/**'
+      - 'metro2/modules/core/module_catalog.gd'
+      - 'metro2/viewers/module_viewer.gd'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-permanent-viewer-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve current viewer and export only Oktyabrskaya
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin gh-pages
+          git rev-parse FETCH_HEAD > "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages-base"
+          python3 metro2/tools/oktyabrskaya_photo_v66/publish.py prepare oktyabrskaya-photo-v66 "$(cat "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages-base")"
+      - name: Mandatory Godot resource import and station Web packs export
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 metro2/tools/oktyabrskaya_photo_v66/publish.py build oktyabrskaya-photo-v66
+          python3 metro2/tools/oktyabrskaya_photo_v66/publish.py finish oktyabrskaya-photo-v66
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: oktyabrskaya-photo-v66-${{ github.sha }}
+          path: oktyabrskaya-photo-v66/
+          retention-days: 7
+      - name: Publish updated Oktyabrskaya to permanent viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages" "$(cat "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages-base")"
+          cp -a oktyabrskaya-photo-v66/web/. "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages/metro2/module-viewer/"
+          cd "$RUNNER_TEMP/oktyabrskaya-photo-v66-pages"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- metro2/module-viewer
+          git commit -m 'Add Oktyabrskaya with open central transfer bridge and photo architecture; preserve existing packs'
+          git push origin HEAD:gh-pages

@@ -1,0 +1,657 @@
+[
+  {
+    "source": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "asset": "column_marble.jpg",
+    "coordinates_at_width_800": [
+      480,
+      716,
+      526,
+      780
+    ]
+  },
+  {
+    "source": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "asset": "column_marble_alt.jpg",
+    "coordinates_at_width_800": [
+      365,
+      821,
+      401,
+      886
+    ]
+  },
+  {
+    "source": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "asset": "wall_marble.jpg",
+    "coordinates_at_width_800": [
+      54,
+      845,
+      116,
+      879
+    ]
+  },
+  {
+    "source": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "asset": "wall_marble_alt.jpg",
+    "coordinates_at_width_800": [
+      221,
+      839,
+      278,
+      875
+    ]
+  },
+  {
+    "source": "20261120_132200.jpg",
+    "sha256": "812ea085e60f63a1a3442ef932844b9ee3e55cd5c1cb461b96f0b8b294440c4a",
+    "asset": "plinth_granite.jpg",
+    "coordinates_at_width_800": [
+      640,
+      214,
+      718,
+      246
+    ]
+  },
+  {
+    "source": "20261120_132438.jpg",
+    "sha256": "458c3faa676b9d9434f29f5e612d19a99ba2faf927e662769c7740335aef87fd",
+    "asset": "floor_red.jpg",
+    "coordinates_at_width_800": [
+      260,
+      1080,
+      440,
+      1320
+    ]
+  },
+  {
+    "source": "20261120_132523.jpg",
+    "sha256": "f198656c6f15745207c835cb36deb4782b82f55dbcafc5fb2b2b41fba085caa2",
+    "asset": "floor_grey.jpg",
+    "coordinates_at_width_800": [
+      364,
+      291,
+      412,
+      317
+    ]
+  },
+  {
+    "source": "20261120_132523.jpg",
+    "sha256": "f198656c6f15745207c835cb36deb4782b82f55dbcafc5fb2b2b41fba085caa2",
+    "asset": "stair_granite.jpg",
+    "coordinates_at_width_800": [
+      364,
+      291,
+      412,
+      317
+    ]
+  },
+  {
+    "source": "20261120_132200.jpg",
+    "sha256": "812ea085e60f63a1a3442ef932844b9ee3e55cd5c1cb461b96f0b8b294440c4a",
+    "asset": "bench_oak.jpg",
+    "coordinates_at_width_800": [
+      374,
+      213,
+      399,
+      219
+    ]
+  },
+  {
+    "source": "20261120_132409.jpg",
+    "sha256": "9d52882d30d58b6b9b23fc4f50e6ddda7362b0d140ed366ce677d53b13bed27a",
+    "asset": "amber_glass.jpg",
+    "coordinates_at_width_800": [
+      331,
+      159,
+      346,
+      181
+    ]
+  },
+  {
+    "source": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "asset": "ceiling_paint.jpg",
+    "coordinates_at_width_800": [
+      60,
+      83,
+      142,
+      147
+    ]
+  },
+  {
+    "source": "20261120_132144.jpg",
+    "sha256": "8743167ea4fc81597644061cd8cd24585b282de1de332f4bcdc342e2570761b3",
+    "asset": "frieze_north_center.jpg",
+    "coordinates_at_width_800": [
+      [
+        111,
+        148
+      ],
+      [
+        677,
+        136
+      ],
+      [
+        694,
+        285
+      ],
+      [
+        106,
+        286
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132148.jpg",
+    "sha256": "b48f47d686ead561f93923aee9a4b56054660024aedf6d522b3abab8f1511f38",
+    "asset": "frieze_north_left.jpg",
+    "coordinates_at_width_800": [
+      [
+        175,
+        204
+      ],
+      [
+        295,
+        161
+      ],
+      [
+        299,
+        276
+      ],
+      [
+        173,
+        286
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132149.jpg",
+    "sha256": "c022c7ddf571036dcbe9a9126342286d3407672cbb0832122474927da3fd93a2",
+    "asset": "frieze_north_right.jpg",
+    "coordinates_at_width_800": [
+      [
+        462,
+        98
+      ],
+      [
+        598,
+        119
+      ],
+      [
+        633,
+        265
+      ],
+      [
+        464,
+        258
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132404.jpg",
+    "sha256": "3f3b207eaff4da3f34ff53a08d7d91ea3cb0360bde18958ada4bdf8f52d06c58",
+    "asset": "frieze_south_center.jpg",
+    "coordinates_at_width_800": [
+      [
+        4,
+        99
+      ],
+      [
+        795,
+        111
+      ],
+      [
+        795,
+        307
+      ],
+      [
+        4,
+        305
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132403.jpg",
+    "sha256": "1b4976274f4938aecb0d314fb9d1405c51e993dd9eff983d89d21f83220c6ad4",
+    "asset": "frieze_south_left.jpg",
+    "coordinates_at_width_800": [
+      [
+        188,
+        191
+      ],
+      [
+        337,
+        157
+      ],
+      [
+        341,
+        329
+      ],
+      [
+        180,
+        341
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132354.jpg",
+    "sha256": "bb4a17019698783f0c0893942fc6fccd1d889187747a3cbb42bf34eaa0b93f3d",
+    "asset": "frieze_south_right.jpg",
+    "coordinates_at_width_800": [
+      [
+        200,
+        430
+      ],
+      [
+        725,
+        330
+      ],
+      [
+        745,
+        640
+      ],
+      [
+        205,
+        655
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132315.jpg",
+    "sha256": "d2d2858965d79c8cd5b497eca975ac0c9635a38c59d671fbe59375cb0015cf05",
+    "asset": "name_ru_sample.jpg",
+    "coordinates_at_width_800": [
+      [
+        120,
+        157
+      ],
+      [
+        597,
+        185
+      ],
+      [
+        597,
+        224
+      ],
+      [
+        120,
+        205
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132336.jpg",
+    "sha256": "96ba88765133345fea6264db348c2e6afeaccc0836e3a8e0a57eafba49bf0452",
+    "asset": "name_be_sample.jpg",
+    "coordinates_at_width_800": [
+      [
+        152,
+        158
+      ],
+      [
+        641,
+        129
+      ],
+      [
+        642,
+        177
+      ],
+      [
+        152,
+        201
+      ]
+    ]
+  },
+  {
+    "source": "20261120_132149.jpg",
+    "sha256": "c022c7ddf571036dcbe9a9126342286d3407672cbb0832122474927da3fd93a2",
+    "asset": "platform_cctv.jpg",
+    "coordinates_at_width_800": [
+      [
+        445,
+        284
+      ],
+      [
+        482,
+        290
+      ],
+      [
+        480,
+        312
+      ],
+      [
+        444,
+        307
+      ]
+    ]
+  },
+  {
+    "reference": "20261120_132144.jpg",
+    "sha256": "8743167ea4fc81597644061cd8cd24585b282de1de332f4bcdc342e2570761b3",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132148.jpg",
+    "sha256": "b48f47d686ead561f93923aee9a4b56054660024aedf6d522b3abab8f1511f38",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132149.jpg",
+    "sha256": "c022c7ddf571036dcbe9a9126342286d3407672cbb0832122474927da3fd93a2",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132153.jpg",
+    "sha256": "4d1cca0e841eca70f94085b96b4aa1459256ac10c03e9e16faef5c238f453008",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132200.jpg",
+    "sha256": "812ea085e60f63a1a3442ef932844b9ee3e55cd5c1cb461b96f0b8b294440c4a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132201.jpg",
+    "sha256": "ad70d0f7621ac9c133e66707bf3e81bcfc1da1b16042c3775b8b7e4074fbfe09",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132203.jpg",
+    "sha256": "68cd3ea5bdb87b239d959e6b7b213143a5f898cfef8225fc09772c339ff254af",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132204.jpg",
+    "sha256": "649cdf8605084daa71d419e9d8b1831151572bf42a01923cda5580a5fa0e3d7e",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132209.jpg",
+    "sha256": "6b5f58036c03ac8de53c0d7809a5935b6d46eb62971d00ecae4f3dae95a5012f",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132223.jpg",
+    "sha256": "f21e7f4a1253190888d27f7605ec8cd92118df0d57f38a4190e8d8cc96599d89",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132225.jpg",
+    "sha256": "35edda5301b23d3f28cbe0a4224e49cc71eeb10712a63f177b87e43564f97b4c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132230.jpg",
+    "sha256": "d06745916bcb54ea40dc98d9865888937d11e3378d6350028b1ff1b96519fa70",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132232.jpg",
+    "sha256": "4ede57f86a2c6c8c271057a4f70ef0ab8380dfcabd3d7d014742029aecf47d00",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132233.jpg",
+    "sha256": "0b2a0602e47b8a432387f58b4656750d1e7b1bd27d82a5ac89a73eddc4b50b09",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132234(0).jpg",
+    "sha256": "3d2feedb4eb507e69d64a2bffaa686e5962f79413b0e74923478cff32a3f2d91",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132234.jpg",
+    "sha256": "6bc3a14733f10e8ccdd9c2d63cc07245d862a2e8460b38b2b852f32d218ce69c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132237.jpg",
+    "sha256": "43e0bb14151e61fd1ecf762489aa39246be0e57aa30c116b2b5bf06cf47e7c21",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132244(0).jpg",
+    "sha256": "5445ed9f68ca04db38b30a2622c6d7b759e451cd8efedd2f2849d63a91fa1a97",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132244.jpg",
+    "sha256": "ae9dd4cdd39493810a3f5aa3ecdb8eb4d5ab06f1837302a88a08b0966fefde39",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132245(0).jpg",
+    "sha256": "865e7e349c73dcbb1e4192442418c4432477f108dfa44f5efdd5016e64613e2a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132245.jpg",
+    "sha256": "cf0161559f2c82bc8552184fd663378cc6cc13e0346ffd4d5b8b0bae9493e027",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132253.jpg",
+    "sha256": "5168cdcf6c660eb7275fa5c8f53ac1ff00c5a42e00e18614ee5372572aade30d",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132254.jpg",
+    "sha256": "91b028bc62bd3bb2fb017f4114024d102536dcc31eed3e6bd1ac1ff06e3db8be",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132258.jpg",
+    "sha256": "9ac795c8cdc0fac476ece21ff4bdd0d7ca92406801698bd99d30c6e6cc9cafab",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132259(0).jpg",
+    "sha256": "fb6d4688f6b8b3f39fa2b547783acb8e5d0da088f0b27d364c20ba56f0ee7fc0",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132259(1).jpg",
+    "sha256": "20148036e20f087dca1c3d48cf50745b848a5e9dbaa7df2dcfe50451dfc9683a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132259.jpg",
+    "sha256": "1eff71a2fce14249cf5503616461eddad9fadea875d354cd3444cf6d902201d2",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132300(0).jpg",
+    "sha256": "d7c7a687a2b627a8e9dc357455952b34cef1b3acc4cfa8b141a3263531d30277",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132300.jpg",
+    "sha256": "acfa3f55c98b7eec441d6c4d3383829d73c46c9fbfa7e20abcea6223ee1503c4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132307.jpg",
+    "sha256": "602a1ee8ba9638c699e7df7a4c784db7cbdc089a08fdbfe594ade6f21c29883d",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132315.jpg",
+    "sha256": "d2d2858965d79c8cd5b497eca975ac0c9635a38c59d671fbe59375cb0015cf05",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132336.jpg",
+    "sha256": "96ba88765133345fea6264db348c2e6afeaccc0836e3a8e0a57eafba49bf0452",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132347.jpg",
+    "sha256": "d374a92f716ae04143fab6a21a9cafa9ca0f83ade14ace1c842f6a2300b5fc92",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132353.jpg",
+    "sha256": "6ac08c139f48ad95ca6a76516326b6b3592ac757caee00e362f7725a0087645d",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132354(0).jpg",
+    "sha256": "af20f69cf7e9033e828dc31709f9d99419bf02fb9c20fa9ded5708e1bbe3bbd4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132354(1).jpg",
+    "sha256": "462a6b7a7a88732d1a5dc8009a4f40b38649272bcf4aa03c9526a31f6e055203",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132354(2).jpg",
+    "sha256": "d841a73e0927296624ef9f5a68be1a47de4e470cb76263f691b979365f0c1c2b",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132354.jpg",
+    "sha256": "bb4a17019698783f0c0893942fc6fccd1d889187747a3cbb42bf34eaa0b93f3d",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132355(0).jpg",
+    "sha256": "e61df2a466fc4d25680ccbc99fafe9debc00a5f6077cfd99d8b8077a65a872da",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132355(1).jpg",
+    "sha256": "1e761a34eabb66b41a65b3229da718238431a0c9d25c70033c28e4d4a46db3aa",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132355.jpg",
+    "sha256": "242e516b400bafc9801ad2d8f772c02d562e45a0ec6260fdb374236b8415813b",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132356(0).jpg",
+    "sha256": "f7e269101bf6b6ec38684cd298232f311f0db4742dd99a99d1a2e8051777d778",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132356(1).jpg",
+    "sha256": "15861b845cc7b2c65624434bf5d69c9949219dd5c5f2ce57947f3be0798207d8",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132356.jpg",
+    "sha256": "0252653c4a430a83227a2125f886972fa702150b67ea798ddd16e283b50ce8ed",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132359.jpg",
+    "sha256": "3ea71f106e130b5eedc0ff3e01e7be07c40f7816db63e3ba49053f9c1ca32d53",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132403.jpg",
+    "sha256": "1b4976274f4938aecb0d314fb9d1405c51e993dd9eff983d89d21f83220c6ad4",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132404(0).jpg",
+    "sha256": "28aae2d2d904ac824f2aa19bf5d338126df8afe2d452a9d3126012cfaf6b309e",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132404.jpg",
+    "sha256": "3f3b207eaff4da3f34ff53a08d7d91ea3cb0360bde18958ada4bdf8f52d06c58",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132409.jpg",
+    "sha256": "9d52882d30d58b6b9b23fc4f50e6ddda7362b0d140ed366ce677d53b13bed27a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132432.jpg",
+    "sha256": "beeb4ddde7ae769ac6512beec82f17ea68974e682e48e8d794f1db3784162b20",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132438.jpg",
+    "sha256": "458c3faa676b9d9434f29f5e612d19a99ba2faf927e662769c7740335aef87fd",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132439.jpg",
+    "sha256": "3cdc73135dfd2370e1e971a085a7cd05e7da621ac3e4cda9bb2df34b43110c31",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132440.jpg",
+    "sha256": "494d26a8806d233f6a42dc727839a4b2dffd4b3e4b14987ef29580fa58b6b45c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132441.jpg",
+    "sha256": "5936f7429bee17ed52f53462d3a4f2f1ad0513adde6ad0036d5897fce3fd21a1",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132442.jpg",
+    "sha256": "cb43ba285c677ba05b41b35514498e117ae5c7625819658924100de4f2a78c3e",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132443.jpg",
+    "sha256": "10b305d9a5f426328a056f24a0a346315e2ef703dee9620d6d7adb1e8be5bb12",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132444.jpg",
+    "sha256": "07413b2d3ede74301935b63121b31fb99e8e64a412d05c944848b700ceae731a",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132445.jpg",
+    "sha256": "c9666be26c7efdb86afaa2efb46367446ba2e90407234f3eda3ec0f52c45556b",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132501.jpg",
+    "sha256": "c3accd52dca09c13116e44fa808a8109c066c162911a584c1d65e4cb5e895011",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132504.jpg",
+    "sha256": "04775e7ca4b0ea6f9d3411c1c46d4b446170df9f795ab4b934bb313d996824c2",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132523.jpg",
+    "sha256": "f198656c6f15745207c835cb36deb4782b82f55dbcafc5fb2b2b41fba085caa2",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132623.jpg",
+    "sha256": "9d2ac268a30646d6a519ba94c3bc998ba15fc5683be7f8e480c775e8d9677e54",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132707.jpg",
+    "sha256": "3072333b4e9d6627d286886afc5f04d3000eb8beafb6fc87b8c4adf32812a20c",
+    "reviewed": true
+  },
+  {
+    "reference": "20261120_132212.mp4",
+    "sha256": "dea76dc31436696ca5532ff0dd55815ed6a2f6b0cbdb30b7a96a30a8b99b102e",
+    "duration_seconds": 6.7984,
+    "review": "Whole video decoded and 0.25-second reference sequence reviewed"
+  },
+  {
+    "reference": "20261120_132415.mp4",
+    "sha256": "936fc370ab9eb36d23ccdaf61a71ade91fe26882051c61779397b72666d5b671",
+    "duration_seconds": 6.323167,
+    "review": "Whole video decoded and 0.25-second reference sequence reviewed"
+  }
+]

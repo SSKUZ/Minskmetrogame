@@ -101,7 +101,7 @@ func _build_ui() -> void:
     _menu_scroll.add_child(list)
     for group in [
         ["ПОЕЗДА",[["Состав V106 · 4 вагона","v106"],["Вагон №1","car1"],["Вагон №2","car2"],["Вагон №3","car3"],["Вагон №4","car4"]]],
-        ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"],["Восток","vostok"],["Московская","moskovskaya"],["Парк Челюскинцев","park_chelyuskintsev"],["Академия наук","akademiya_nauk"],["Площадь Якуба Коласа","yakuba_kolasa"],["Площадь Победы","ploshchad_pobedy"]]],
+        ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"],["Восток","vostok"],["Московская","moskovskaya"],["Парк Челюскинцев","park_chelyuskintsev"],["Академия наук","akademiya_nauk"],["Площадь Якуба Коласа","yakuba_kolasa"],["Площадь Победы","ploshchad_pobedy"],["Октябрьская","oktyabrskaya"]]],
         ["ТОННЕЛИ",[["Стандартный участок · 16 м","tunnel_16m"]]],
         ["ДЕПО",[["Электродепо","depot"]]]]:
         var heading := Label.new()
@@ -207,6 +207,9 @@ func open_module(key: String) -> void:
             "vostok", "moskovskaya", "park_chelyuskintsev", "akademiya_nauk", "yakuba_kolasa", "ploshchad_pobedy":
                 _home_point = Vector3(-4.0,2.7,48.0)
                 _home_radius = 3.0
+            "oktyabrskaya":
+                _home_point = Vector3(-4.1,2.8,24.0)
+                _home_radius = 3.0
             "borisovsky_trakt":
                 _home_point = Vector3(-4.3,2.6,48.0)
                 _home_radius = 3.0
@@ -241,8 +244,8 @@ func unload_module() -> void:
     await get_tree().process_frame
 
 func _configure_light(key: String) -> void:
-    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy"] else 0.65
-    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy"] else 1.05
+    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya"] else 0.65
+    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya"] else 1.05
     _environment.background_color = Color(0.006,0.008,0.012) if key == "tunnel_16m" else Color(0.08,0.10,0.13)
 
 func _set_car_visibility() -> void:
