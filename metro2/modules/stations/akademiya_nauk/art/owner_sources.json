@@ -1,0 +1,399 @@
+[
+  {
+    "source": "02-7749.jpg",
+    "sha256": "d9d0fad5284574cb41765827b799e59f6a417eda19ef7ec629f6db556e414a4f",
+    "asset": "platform_track2.jpg",
+    "region_pixels": [
+      [
+        87,
+        574
+      ],
+      [
+        775,
+        578
+      ],
+      [
+        779,
+        669
+      ],
+      [
+        85,
+        671
+      ]
+    ]
+  },
+  {
+    "source": "03-7748.jpg",
+    "sha256": "030ec6036bb367b5942ca7cbf88a8f775961901b1358dc1b58aee1a446529a37",
+    "asset": "platform_track1.jpg",
+    "region_pixels": [
+      [
+        123,
+        625
+      ],
+      [
+        822,
+        599
+      ],
+      [
+        829,
+        708
+      ],
+      [
+        123,
+        732
+      ]
+    ]
+  },
+  {
+    "source": "09-7762.jpg",
+    "sha256": "d25400524fa8eaebe056714170eb8d656e99e4791cd0228d37c1428c94ac197e",
+    "asset": "exit_stairs.jpg",
+    "region_pixels": [
+      [
+        505,
+        208
+      ],
+      [
+        1122,
+        198
+      ],
+      [
+        1125,
+        283
+      ],
+      [
+        505,
+        296
+      ]
+    ]
+  },
+  {
+    "source": "07-7744.jpg",
+    "sha256": "f56976950ac0ff4c201a5a519c4e46137f89a551bff0e801f6cc75dc6190ed37",
+    "asset": "exit_escalators.jpg",
+    "region_pixels": [
+      [
+        246,
+        520
+      ],
+      [
+        663,
+        520
+      ],
+      [
+        665,
+        578
+      ],
+      [
+        247,
+        581
+      ]
+    ]
+  },
+  {
+    "source": "01-7750.jpg",
+    "sha256": "baa811f9011bbd5622829104a29931a3004bc561c6d50569874e187c325f6e70",
+    "asset": "wall_marble.jpg",
+    "region_pixels": [
+      390,
+      185,
+      600,
+      260
+    ]
+  },
+  {
+    "source": "04-7757.jpg",
+    "sha256": "0146721c959171ef93b221de2c3e9f3277929c17130dcef2635eabedfc5ba204",
+    "asset": "wall_marble_alt.jpg",
+    "region_pixels": [
+      920,
+      556,
+      1160,
+      605
+    ]
+  },
+  {
+    "source": "01-7750.jpg",
+    "sha256": "baa811f9011bbd5622829104a29931a3004bc561c6d50569874e187c325f6e70",
+    "asset": "plinth_granite.jpg",
+    "region_pixels": [
+      450,
+      696,
+      820,
+      794
+    ]
+  },
+  {
+    "source": "05-7766.jpg",
+    "sha256": "2ad8b48ff53cc7f737e990d5702ce5a08563d17c00fa50311b7f63e2ae8efc03",
+    "asset": "column_marble.jpg",
+    "region_pixels": [
+      [
+        185,
+        642
+      ],
+      [
+        322,
+        650
+      ],
+      [
+        320,
+        1430
+      ],
+      [
+        166,
+        1450
+      ]
+    ]
+  },
+  {
+    "source": "05-7766.jpg",
+    "sha256": "2ad8b48ff53cc7f737e990d5702ce5a08563d17c00fa50311b7f63e2ae8efc03",
+    "asset": "column_marble_alt.jpg",
+    "region_pixels": [
+      [
+        360,
+        634
+      ],
+      [
+        542,
+        615
+      ],
+      [
+        568,
+        1399
+      ],
+      [
+        363,
+        1431
+      ]
+    ]
+  },
+  {
+    "source": "02-7749.jpg",
+    "sha256": "d9d0fad5284574cb41765827b799e59f6a417eda19ef7ec629f6db556e414a4f",
+    "asset": "floor_grey.jpg",
+    "region_pixels": [
+      410,
+      1370,
+      545,
+      1510
+    ]
+  },
+  {
+    "source": "05-7746.jpg",
+    "sha256": "d12dafd39d6515d2eb35c4633046a887a52f31a8277b7777187408041297a2c3",
+    "asset": "floor_dark.jpg",
+    "region_pixels": [
+      557,
+      1225,
+      662,
+      1245
+    ]
+  },
+  {
+    "source": "09-7762.jpg",
+    "sha256": "d25400524fa8eaebe056714170eb8d656e99e4791cd0228d37c1428c94ac197e",
+    "asset": "stair_granite.jpg",
+    "region_pixels": [
+      1100,
+      722,
+      1250,
+      735
+    ]
+  },
+  {
+    "source": "02-7769.jpg",
+    "sha256": "fdeb81fa3e527464f1556b229c73318ab511036d2be7001f92201e61a61bf7c9",
+    "asset": "platform_cctv.jpg",
+    "region_pixels": [
+      [
+        371,
+        371
+      ],
+      [
+        456,
+        378
+      ],
+      [
+        451,
+        437
+      ],
+      [
+        370,
+        434
+      ]
+    ]
+  },
+  {
+    "source": "05-7756.jpg",
+    "sha256": "4cfc2f68316f0ce89ea53a4a2030abb02d7de887a94214041fbd6384ee5e0005",
+    "asset": "student_event.jpg",
+    "region_pixels": [
+      [
+        584,
+        318
+      ],
+      [
+        783,
+        264
+      ],
+      [
+        815,
+        409
+      ],
+      [
+        607,
+        450
+      ]
+    ]
+  },
+  {
+    "source": "04-7767.jpg",
+    "sha256": "f67ec4f607c076aaeccad7bd9f6a369ae43d2f014c089931f14f9fef5ad7f713",
+    "asset": "ceiling_paint.jpg / ceiling_normal.png",
+    "region_pixels": [
+      400,
+      210,
+      565,
+      280
+    ]
+  },
+  {
+    "reference": "01-7750.jpg",
+    "sha256": "baa811f9011bbd5622829104a29931a3004bc561c6d50569874e187c325f6e70",
+    "reviewed": true
+  },
+  {
+    "reference": "01-7760.jpg",
+    "sha256": "688749ed673b9ae869b3e04b6c1c3cb4656a55790180050e72390fd6bb789abd",
+    "reviewed": true
+  },
+  {
+    "reference": "01-7770.jpg",
+    "sha256": "b37e4718721e564a480a1d06805ae15b60fccf78b73dad310e7a621916c01dbb",
+    "reviewed": true
+  },
+  {
+    "reference": "02-7749.jpg",
+    "sha256": "d9d0fad5284574cb41765827b799e59f6a417eda19ef7ec629f6db556e414a4f",
+    "reviewed": true
+  },
+  {
+    "reference": "02-7759.jpg",
+    "sha256": "d18abcaa1044817fc9bbd4cc4c5dc5a2d19f0fa340f8b00920c0a7cdb553f7b1",
+    "reviewed": true
+  },
+  {
+    "reference": "02-7769.jpg",
+    "sha256": "fdeb81fa3e527464f1556b229c73318ab511036d2be7001f92201e61a61bf7c9",
+    "reviewed": true
+  },
+  {
+    "reference": "03-7748.jpg",
+    "sha256": "030ec6036bb367b5942ca7cbf88a8f775961901b1358dc1b58aee1a446529a37",
+    "reviewed": true
+  },
+  {
+    "reference": "03-7758.jpg",
+    "sha256": "8ab89931c0abd264f3bdf72ed51aca774a12ce6d22d990f7126f6029d515a01e",
+    "reviewed": true
+  },
+  {
+    "reference": "03-7768.jpg",
+    "sha256": "7ca35beee094515dc42b8c4e4ce8340f8e13919f5860c4603172f9ba6c7a7fd1",
+    "reviewed": true
+  },
+  {
+    "reference": "04-7747.jpg",
+    "sha256": "bd4ecbc4eca85689705d1e41c8c1d77ae44338092b31a1c529da2e7e26fc9d67",
+    "reviewed": true
+  },
+  {
+    "reference": "04-7757.jpg",
+    "sha256": "0146721c959171ef93b221de2c3e9f3277929c17130dcef2635eabedfc5ba204",
+    "reviewed": true
+  },
+  {
+    "reference": "04-7767.jpg",
+    "sha256": "f67ec4f607c076aaeccad7bd9f6a369ae43d2f014c089931f14f9fef5ad7f713",
+    "reviewed": true
+  },
+  {
+    "reference": "05-7746.jpg",
+    "sha256": "d12dafd39d6515d2eb35c4633046a887a52f31a8277b7777187408041297a2c3",
+    "reviewed": true
+  },
+  {
+    "reference": "05-7756.jpg",
+    "sha256": "4cfc2f68316f0ce89ea53a4a2030abb02d7de887a94214041fbd6384ee5e0005",
+    "reviewed": true
+  },
+  {
+    "reference": "05-7766.jpg",
+    "sha256": "2ad8b48ff53cc7f737e990d5702ce5a08563d17c00fa50311b7f63e2ae8efc03",
+    "reviewed": true
+  },
+  {
+    "reference": "06-7745.jpg",
+    "sha256": "2bdfea7ecf0d8f89f6851be961edce98e9bfbbd06a9c0e346ba17bd0ea096dee",
+    "reviewed": true
+  },
+  {
+    "reference": "06-7755.jpg",
+    "sha256": "42ac478fa17405d69fb6c9411735fb499eaa9c5644063a80a99ffed8a1f6fdfe",
+    "reviewed": true
+  },
+  {
+    "reference": "06-7765.jpg",
+    "sha256": "6dac2e2b0de1caa2bef26ee82b57635b5b891cabfba5c83cb72ced2fe7281f5d",
+    "reviewed": true
+  },
+  {
+    "reference": "07-7744.jpg",
+    "sha256": "f56976950ac0ff4c201a5a519c4e46137f89a551bff0e801f6cc75dc6190ed37",
+    "reviewed": true
+  },
+  {
+    "reference": "07-7754.jpg",
+    "sha256": "52bd665c344ec82833d90cfc0a6604c5142e1ca8710957eb9a15279387fe788c",
+    "reviewed": true
+  },
+  {
+    "reference": "07-7764.jpg",
+    "sha256": "c70a01988f582b911834d18fdbd789ed651b345f58ff39da1af90f40204bba80",
+    "reviewed": true
+  },
+  {
+    "reference": "08-7753.jpg",
+    "sha256": "097b073580eb5291420d475fe7bf1eaf41382bd77704d554a8daac648e1cd258",
+    "reviewed": true
+  },
+  {
+    "reference": "08-7763.jpg",
+    "sha256": "8f21b132eee2cc8f796675f5da95edf59a0801c42620705bb8078864a5b5a45a",
+    "reviewed": true
+  },
+  {
+    "reference": "09-7752.jpg",
+    "sha256": "194ff38e179385deaefb10551af8f923e32dde7bc9c64b30c900c259a9fa3310",
+    "reviewed": true
+  },
+  {
+    "reference": "09-7762.jpg",
+    "sha256": "d25400524fa8eaebe056714170eb8d656e99e4791cd0228d37c1428c94ac197e",
+    "reviewed": true
+  },
+  {
+    "reference": "10-7751.jpg",
+    "sha256": "e2128b8e14d166f800e861e39c8958ed0579ddb4dd3b87793d6fdd272e1d8400",
+    "reviewed": true
+  },
+  {
+    "reference": "7761.mp4",
+    "sha256": "715c8c459f8eda4ee990a87f4d8775200c883e259a116fde43f2f9a815171bfe",
+    "duration_seconds": 2.715989,
+    "review": "Full duration decoded; contact sequence at 0.25-second intervals"
+  }
+]
