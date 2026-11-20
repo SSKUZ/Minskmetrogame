@@ -150,9 +150,9 @@
       "warmup": []
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-a992d98a0cbda8480fd0.pck",
-      "sha256": "a992d98a0cbda8480fd05723ec9fd002eb55d649eeb12d32b1370317f9df3acd",
-      "bytes": 315984,
+      "file": "park_chelyuskintsev-5ef6fb879ecec2950cf6.pck",
+      "sha256": "5ef6fb879ecec2950cf661083abae7d22b5c023a0e74127db51be979c63a1de5",
+      "bytes": 4638208,
       "warmup": []
     }
   },
@@ -261,5 +261,14 @@
     "changes": "Owner photographs and both videos: fluted marble columns, white rounded transverse ceiling ribs, girder-edge lighting, red/grey granite floor grid, real marble-inlay imagery, raised bronze lettering, accurate bilingual signs, five-seat backless benches, animated advertising screens, portal mirrors and CCTV monitors",
     "validation": "Godot 4.3 resource import and native Web pack export only; no gameplay/browser/performance tests",
     "limitations": "Dimensions, fixture counts and concealed rooms remain estimates; mosaic sections are rectified photo/video samples, not a surveyed panorama; advertising is an original animated vector loop; nearest visible mirror updates at 6 Hz"
+  },
+  "park_chelyuskintsev_photo_v61": {
+    "source_commit": "866804705125d27f888146fccf0ff3ea562c6f69",
+    "stations": {
+      "park_chelyuskintsev": "Парк Челюскинцев"
+    },
+    "changes": "28 owner photographs and 7801.mp4: column-free segmented vault, central cove light, embossed glass chandeliers and side lanterns, dark granite walls, actual sculpted bronze names, stepped rose and aggregate floor, four-sided route/exit pylons, central backless benches, animated TVs, stairs with curved lintels, mirrors and red portal clocks",
+    "validation": "Godot 4.3 resource import and native Web pack export only; no gameplay/browser/performance tests",
+    "limitations": "Dimensions, bay counts and inferred pylon/bench positions are estimates from perspective photographs; no measured plan or photometry; concealed underpasses are not reconstructed; original vector advertisement loop; nearest visible mirror refreshes at 6 Hz"
   }
 }

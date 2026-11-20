@@ -179,9 +179,9 @@
       "warmup": []
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-a992d98a0cbda8480fd0.pck",
-      "sha256": "a992d98a0cbda8480fd05723ec9fd002eb55d649eeb12d32b1370317f9df3acd",
-      "bytes": 315984,
+      "file": "park_chelyuskintsev-5ef6fb879ecec2950cf6.pck",
+      "sha256": "5ef6fb879ecec2950cf661083abae7d22b5c023a0e74127db51be979c63a1de5",
+      "bytes": 4638208,
       "warmup": []
     }
   },
