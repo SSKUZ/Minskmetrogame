@@ -209,9 +209,9 @@
       "warmup": []
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-549c888e196516dd1c88.pck",
-      "sha256": "549c888e196516dd1c88ee1e07b992d883cf7bf9a6dab149e518f0e142b56997",
-      "bytes": 9348304,
+      "file": "ploshchad_pobedy-0acbcaef40ba8c284906.pck",
+      "sha256": "0acbcaef40ba8c2849068605fe8251816a70a292e003c43921caf0db4932bb54",
+      "bytes": 5073824,
       "warmup": []
     }
   },

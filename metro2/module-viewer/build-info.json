@@ -168,9 +168,9 @@
       "warmup": []
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-549c888e196516dd1c88.pck",
-      "sha256": "549c888e196516dd1c88ee1e07b992d883cf7bf9a6dab149e518f0e142b56997",
-      "bytes": 9348304,
+      "file": "ploshchad_pobedy-0acbcaef40ba8c284906.pck",
+      "sha256": "0acbcaef40ba8c2849068605fe8251816a70a292e003c43921caf0db4932bb54",
+      "bytes": 5073824,
       "warmup": []
     }
   },
@@ -341,6 +341,17 @@
     "references": "40 owner photographs and two complete owner videos (4 fps reference sequences) from the Ploshchad Pobedy archive",
     "features": "Pale marble paired columns with four sculpted white branches and tapered brass/crystal fan lights; white coffered ceiling; red granite floor fields and grey/black framed bands; pale marble walls with red-brown plinth; photographed bilingual names and signs, station 117 route maps and transfers, stair exit, three escalators, benches, suspended televisions, driver mirrors and portal equipment",
     "limitations": "Unsurveyed spacing and dimensions estimated from photographs within the Station Base footprint; 18 opposing column pairs; crystal prisms reconstructed as opaque faceted geometry; hidden upper vestibules omitted",
+    "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
+  },
+  "pobedy_photo_v65_1": {
+    "source_commit": "f586183d58bc6a5c0499c685877761b451ebb89c",
+    "stations": {
+      "ploshchad_pobedy": "Площадь Победы"
+    },
+    "boot": "boot-6e450b617064f8a39b76.pck",
+    "references": "40 owner photographs and two complete owner videos (4 fps reference sequences) from the Ploshchad Pobedy archive",
+    "features": "V65.1: corrected clean, periodically blended stone samples; continuous closed square flared capitals with corner-wrapping brown bronze lamps and restrained amber tubes; genuine recessed photographed bilingual name plaques; non-overlapping single-height floor fields; completely re-outlined uncropped bilingual information panels; reprofiled stair flights and curved shared escalator balustrades with wood faces, comb landings and rounded handrail returns; contoured modular seating; white coffered ceiling, line 117 route maps and transfers, mirrors, clocks and CCTV",
+    "limitations": "Unsurveyed spacing and dimensions estimated from photographs within the Station Base footprint; 18 opposing column pairs; lamp ornament reconstructed as muted bronze cups and glass beads; hidden upper vestibules omitted",
     "validation": "Mandatory Godot resource import, mipmaps and native Web pack export only; no scene, game, visual, browser or performance tests"
   }
 }
