@@ -16,3 +16,5 @@ The supplied archive does not document a measured upper vestibule layout. The up
 Publication unpacks the current live Uruchye PCK to retain all existing scene/texture dependencies, imports new support resources with Godot 4.3, replaces only the architecture/track component and new art resources, and publishes a new hashed Uruchye PCK. Other station packs and the viewer boot are retained. Mandatory import/packaging only: no game, scene, visual, browser or performance tests.
 
 Rebuild outlined art with `python3 metro2/tools/uruchye_six_v68/build_art.py` (fontTools). The workflow `metro2-uruchye-six-v68.yml` performs the publication.
+
+V68.1 loading repair: the viewer casts every warmup resource to `Texture2D`. The bundled `station_letters.ttf` must stay in the PCK for the physical name meshes, but must not appear in the texture warmup list. Publication now includes only image resource suffixes in warmup; an existing live manifest can be repaired without rebuilding or replacing the station PCK.
