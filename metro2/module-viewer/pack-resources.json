@@ -11,7 +11,8 @@
     "yakuba_kolasa": "modules/stations/yakuba_kolasa/yakuba_kolasa.tscn",
     "ploshchad_pobedy": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
     "oktyabrskaya": "modules/stations/oktyabrskaya/oktyabrskaya.tscn",
-    "ploshchad_lenina": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn"
+    "ploshchad_lenina": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn",
+    "borisovsky_trakt": "modules/stations/borisovsky_trakt/borisovsky_trakt.tscn"
   },
   "resources": {
     "depot": [
@@ -348,9 +349,36 @@
       "res://viewers/v106_inspection.tscn"
     ],
     "borisovsky_trakt": [
-      "res://assets/signage_v54/borisovsky_name.svg.remap",
+      "res://modules/stations/borisovsky_trakt/REFERENCES.md",
+      "res://modules/stations/borisovsky_trakt/REFINEMENT_V69.md",
+      "res://modules/stations/borisovsky_trakt/art_v69/column_marble.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/direction_1.svg",
+      "res://modules/stations/borisovsky_trakt/art_v69/direction_2.svg",
+      "res://modules/stations/borisovsky_trakt/art_v69/exit.svg",
+      "res://modules/stations/borisovsky_trakt/art_v69/floor_dark.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/floor_pale.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/red_granite.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/reference_sources.json",
+      "res://modules/stations/borisovsky_trakt/art_v69/seat_oak.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/stair_granite.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/station_name.ttf",
+      "res://modules/stations/borisovsky_trakt/art_v69/wall_marble.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/wall_marble_alt.jpg",
+      "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_malinovka.svg",
+      "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_uruchye.svg",
       "res://modules/stations/borisovsky_trakt/borisovsky_trakt.gd",
+      "res://modules/stations/borisovsky_trakt/borisovsky_trakt.tscn",
+      "res://modules/stations/borisovsky_trakt/driver_mirrors.gd",
       "res://modules/stations/borisovsky_trakt/station_base.gd",
+      "res://modules/stations/borisovsky_trakt/textures/direction_1.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/direction_2.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/exit.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/floor.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/granite.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/marble.jpg",
+      "res://modules/stations/borisovsky_trakt/textures/name.png",
+      "res://modules/stations/borisovsky_trakt/textures/wall_map.jpg",
+      "res://scripts/playable_track_path.gd",
       "res://scripts/infrastructure/station_infrastructure.gd"
     ],
     "vostok": [

@@ -182,11 +182,23 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-4bf7eae1b1b698c28067.pck",
-      "bytes": 696896,
-      "sha256": "4bf7eae1b1b698c280675a9d2a64b5ea15360d698d39476e3c016e5cf37180de",
+      "file": "borisovsky_trakt-f3bc1e128755991135dd.pck",
+      "sha256": "f3bc1e128755991135dd5d24203808c3f604af4604a8d2a3106e71dcc0ddf2c8",
+      "bytes": 2750512,
       "warmup": [
-        "res://assets/signage_v54/borisovsky_name.svg"
+        "res://modules/stations/borisovsky_trakt/art_v69/column_marble.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/direction_1.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/direction_2.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/exit.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/floor_dark.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/floor_pale.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/red_granite.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/seat_oak.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/stair_granite.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/wall_marble.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/wall_marble_alt.jpg",
+        "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_malinovka.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_uruchye.svg"
       ]
     },
     "vostok": {
