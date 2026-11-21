@@ -75,6 +75,13 @@ def diagram(filename, toward_uruchye, wall=False):
     bottom = top + BAND_HEIGHT
     axis = bottom + 25
     indices = list(range(14, -1, -1)) if toward_uruchye else list(range(15))
+    if wall:
+        # Read from the island platform, the wall scheme runs opposite to the
+        # overhead board. Centre-bound: Malinovka ... Borisovsky (yellow),
+        # Uruchye (grey), left to right. Uruchye-bound: reverse that order.
+        # Reverse station slots only; lettering stays readable and colours
+        # remain attached to each station's travel state.
+        indices.reverse()
     body = []
     if not wall:
         body.append(f'<rect width="{W}" height="{H}" fill="{CREAM}"/>')
@@ -135,12 +142,16 @@ def diagram(filename, toward_uruchye, wall=False):
         f'viewBox="0 0 {W} {height}">' + ''.join(body) + '</svg>\n')
 
 
-def build_signage():
-    diagram('direction_1.svg', True)
-    diagram('direction_2.svg', False)
+def build_signage(wall_only=False):
+    if not wall_only:
+        diagram('direction_1.svg', True)
+        diagram('direction_2.svg', False)
     diagram('wall_toward_uruchye.svg', True, wall=True)
     diagram('wall_toward_malinovka.svg', False, wall=True)
 
 
 if __name__ == '__main__':
-    build_signage()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--wall-only', action='store_true')
+    build_signage(wall_only=parser.parse_args().wall_only)
