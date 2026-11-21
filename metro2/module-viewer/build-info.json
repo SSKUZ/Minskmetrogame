@@ -180,9 +180,9 @@
       "warmup": []
     },
     "ploshchad_lenina": {
-      "file": "ploshchad_lenina-0215fda750a63620768b.pck",
-      "sha256": "0215fda750a63620768bd027b2332b0dbd37ff4195d4d316835991f7f1bc7358",
-      "bytes": 4404048,
+      "file": "ploshchad_lenina-8379d3e9c0440df60a38.pck",
+      "sha256": "8379d3e9c0440df60a3853c7ebb42553a421fd7ba0a95091ae320fe47b68f9f8",
+      "bytes": 4408400,
       "warmup": []
     }
   },
@@ -378,7 +378,7 @@
     "validation": "Mandatory Godot resource import, mipmaps and Web PCK export only; no game, scene, browser, visual or performance tests"
   },
   "lenina_photo_v67": {
-    "source_commit": "cac29d9d27a951a8f4d101f47e00050b64b81422",
+    "source_commit": "b8c9ddbd7dcaebd4e08a2a175cf4c64b57973e20",
     "stations": {
       "ploshchad_lenina": "Площадь Ленина"
     },
@@ -387,5 +387,10 @@
     "features": "Independent Station Base module: column-free elliptical vault and concealed cove light bays; warm brecciated stone walls and outlined bronze names on pale inset panels; grey double rectangular floor inlays; faceted order monument with isolated photo hammer-and-sickle relief, native metal laurel leaves, stone pedestal and timber seats; genuine central platform opening, glazed balustrades, chrome lamp pole, two descending stair flights and lower Vakzalnaya approach; two ascending end stairs, photo-based Lenin sculptural portrait, bilingual exit and line 115/314 interchange signs, contact rails, clocks and mirrors",
     "limitations": "Reference-based proportions without a measured survey. Sculpture relief depths are inferred from photographs. Both pictured ends use stairs, so no unreferenced escalators were inserted. Lower interchange ends at a connection marker; Vakzalnaya station itself and unseen vestibules are not reconstructed. Advertising screens remain neutral.",
     "validation": "Mandatory Godot resource import, mipmaps and Web PCK export only; no game, scene, browser, visual or performance tests"
+  },
+  "lenina_photo_v67_1": {
+    "source_commit": "b8c9ddbd7dcaebd4e08a2a175cf4c64b57973e20",
+    "changes": "Photo-based projecting cornice bays with bevelled cheeks and framed signs; full-width closed elliptical end walls matching the roof mesh at both stair exits, closed roof thickness and sealed upper stair vestibule walls including the Lenin portrait end; closed two-sided monument shell with all edge vertices relative to the monument centre, eliminating faces stretched toward world z=0",
+    "validation": "Mandatory Godot resource import/export and publication only; no scene/game/browser tests"
   }
 }
