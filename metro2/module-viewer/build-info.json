@@ -32,9 +32,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-0e1a7c79fb280c5268d0.pck",
-      "bytes": 1746432,
-      "sha256": "0e1a7c79fb280c5268d039c6049bdfa5d794aa9c10b54f9b5c2c921f4ef965cc",
+      "file": "uruchye-805478cbdb8e35711513.pck",
+      "bytes": 1747936,
+      "sha256": "805478cbdb8e357115133387be3f843317673a955edfdc00f524c80a2b5e1f53",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/signage_v63/uruchye_route.svg",
@@ -397,7 +397,7 @@
     "validation": "Mandatory Godot resource import/export and publication only; no scene/game/browser tests"
   },
   "uruchye_six_v68": {
-    "source_commit": "173d4c924bac4c3a3cc1a3c457fe6228752d8f61",
+    "source_commit": "7d5ffa8f3761a3d77300574897eb362cd43415e8",
     "changes": {
       "1_route": "No-boarding wall side: station 124 Uruchye leftmost in yellow, 123 to 110 in grey to the right; departure side and hanging boards retained",
       "2_exits": "Both paired stairways open into visible upper landings and enclosed lit concourses, gate rows, wide gates, security booths and upper exit doors",
@@ -419,8 +419,13 @@
     "validation": "Read current viewer loader and published manifest; changed only warmup metadata, kept original station PCK and all six visual changes. No game/browser tests."
   },
   "uruchye_stair_walls_v68_2": {
-    "source_commit": "173d4c924bac4c3a3cc1a3c457fe6228752d8f61",
+    "source_commit": "7d5ffa8f3761a3d77300574897eb362cd43415e8",
     "changes": "Four outer stair walls cut down to closed stepped cheeks; full-height concourse walls start at upper landings. Continuous metal guards and infill retained on all flights and landing extensions; upper turnstiles/security booths retained. Existing driver mirror freed and set ahead of north stairs; second live mirror added at opposite end for the other track.",
     "validation": "Mandatory Godot resource import and pack publication only; no game, scene, browser, visual or performance tests"
+  },
+  "uruchye_signature_v68_3": {
+    "source_commit": "7d5ffa8f3761a3d77300574897eb362cd43415e8",
+    "text": "Разраб. Захарка",
+    "placement": "Small green inscription on the outer side face of the first У in the central Russian wall title on the no-boarding side; visible within 2 metres only."
   }
 }
