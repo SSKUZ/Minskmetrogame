@@ -21,3 +21,10 @@ Two 18-step flights descend an inferred 5.40 m via a 1.20 m intermediate landing
 Dimensions and spacing are photo-scaled estimates rather than a measured survey. Sculpture depth is inferred from tones; the award and portrait are photo-derived shallow reliefs, not full sculpture scans. Advertising screens use neutral faces. No unphotographed murals are added.
 
 Publication imports/exports a single Godot 4.3 Web station pack and updates menu/catalog support. Existing station and train packs are retained. No scene, game, browser, visual or performance tests.
+
+
+## V67.1 — owner corrections
+
+- 131444 / 131507 / 131535 / 131710: upper signs are mounted on solid projecting cornice bays. Splayed white end cheeks and bevelled top/bottom returns connect to one continuous stepped cornice, with frames and sign faces in front of the lip.
+- 131415–131423 / 131557–131618: both end walls now cover the entire barrel cross-section above the stair opening and two tunnel mouths. Their upper edges use the exact same 72-segment profile as the roof mesh; the three intended openings have closed lintels/jamb returns. The roof has an outer shell, and upper stair-side walls and the portrait-end back wall meet the ceiling.
+- The monument side surfaces previously mixed centre-relative vertices with literal world z=+/-0.12, producing faces stretched approximately 24 m toward the station origin. Front and back rings now share the same centre and close with one short side surface per edge. Both outward relief faces retain the reference hammer and sickle.

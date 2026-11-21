@@ -7,6 +7,9 @@ const WELL_BACK := 41.0
 const WELL_TOP := 53.0
 const WELL_HALF := 2.0
 const LOWER := FY-5.40
+const VAULT_RADIUS := 8.96
+const VAULT_SPRING := 3.94
+const VAULT_RISE := 3.88
 var wall_stone: StandardMaterial3D
 var pale: StandardMaterial3D
 var stair_stone: StandardMaterial3D
@@ -111,7 +114,30 @@ func _walls() -> void:
             picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.70,0.745),Vector3(x-side*0.18,2.72,z+7.5),-side*PI/2.0,true)
         for i in range(7):
             var z: float=ZA+8.3+float(i)*14.0
-            picture("platform_track1.svg" if side>0 else "platform_track2.svg",Vector2(4.4,0.712),Vector3(CX+side*8.42,4.28,z),-side*PI/2.0)
+            _raised_sign_bay(side,z,"platform_track1.svg" if side>0 else "platform_track2.svg")
+
+func _raised_sign_bay(side: float,z: float,file: String) -> void:
+    # 131444 / 131507 / 131535: the board sits on a raised white cornice bay, with splayed end cheeks.
+    var front: float=CX+side*7.80
+    var back: float=CX+side*8.42
+    var outward := Vector3(-side,0,0)
+    var a := Vector3(front,3.87,z-2.46)
+    var b := Vector3(front,3.87,z+2.46)
+    var c := Vector3(front,4.80,z+2.46)
+    var d := Vector3(front,4.80,z-2.46)
+    var e := Vector3(back,3.96,z-2.91)
+    var f := Vector3(back,3.96,z+2.91)
+    var g := Vector3(back,4.58,z+2.91)
+    var h := Vector3(back,4.58,z-2.91)
+    quad(a,b,c,d,white,outward)
+    quad(a,d,h,e,white,Vector3(0,0,-1))
+    quad(b,f,g,c,white,Vector3(0,0,1))
+    quad(d,c,g,h,white,Vector3.UP)
+    quad(a,e,f,b,white,Vector3.DOWN)
+    quad(e,h,g,f,white,-outward)
+    # The frame and printed face are entirely in front of the projecting bay, clear of the cove lip.
+    box(Vector3(0.056,0.786,4.49),Vector3(front-side*0.032,4.335,z),metal)
+    picture(file,Vector2(4.40,0.712),Vector3(front-side*0.065,4.335,z),-side*PI/2.0)
 
 func _name_be(p: Vector3,yaw: float) -> void:
     var root := Node3D.new();root.name="BronzeBelarusianStationLetters";root.position=p;root.rotation.y=yaw;add_child(root)
@@ -125,32 +151,73 @@ func _name_be(p: Vector3,yaw: float) -> void:
 
 func _vault() -> void:
     # Continuous low ellipse, with shallow construction joints; cove light bays form the visible scalloped wash.
-    var spring := 3.94;var height := 3.88
     var length: float=SOUTH-NORTH
     for bay in range(26):
         var z0: float=NORTH+float(bay)*length/26.0;var z1: float=NORTH+float(bay+1)*length/26.0
         var mat: Material=white.duplicate()
         for j in range(72):
             var a0: float=float(j)*PI/72.0;var a1: float=float(j+1)*PI/72.0
-            var a := Vector3(CX+8.96*cos(a0),spring+height*sin(a0),z0)
-            var b := Vector3(CX+8.96*cos(a1),spring+height*sin(a1),z0)
+            var a := Vector3(CX+VAULT_RADIUS*cos(a0),VAULT_SPRING+VAULT_RISE*sin(a0),z0)
+            var b := Vector3(CX+VAULT_RADIUS*cos(a1),VAULT_SPRING+VAULT_RISE*sin(a1),z0)
             quad(a,b,Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
+            # Closed outer plaster shell; the end walls below use this same inner arch profile.
+            var outer_a: Vector3=a+Vector3(cos(a0),sin(a0),0)*0.16
+            var outer_b: Vector3=b+Vector3(cos(a1),sin(a1),0)*0.16
+            quad(outer_a,Vector3(outer_a.x,outer_a.y,z1),Vector3(outer_b.x,outer_b.y,z1),outer_b,white,Vector3((a.x+b.x)*0.5-CX,1,0))
         if bay%2==0:
             for side in [-1.0,1.0]:
                 var light := OmniLight3D.new();light.position=Vector3(CX+side*7.92,4.60,(z0+z1)*0.5);light.light_color=Color(0.94,0.98,1.0);light.light_energy=1.10;light.omni_range=7.3;light.omni_attenuation=1.10;light.shadow_enabled=false;add_child(light)
-    var fascia := _material(Color("#c8c8ba"),0.0,0.82)
     for side in [-1.0,1.0]:
-        box(Vector3(0.85,0.23,length),Vector3(CX+side*8.48,3.90,MID),fascia)
-        box(Vector3(0.65,0.12,length),Vector3(CX+side*8.38,4.06,MID),white)
-        box(Vector3(0.16,0.36,length),Vector3(CX+side*8.13,4.24,MID),white)
+        # One closed stepped section replaces the disconnected triangular strips of the first version.
+        var section := PackedVector2Array()
+        for p in [Vector2(8.92,3.82),Vector2(8.04,3.82),Vector2(8.04,3.98),Vector2(8.21,4.12),Vector2(8.21,4.42),Vector2(8.80,4.42),Vector2(8.80,4.57),Vector2(8.92,4.57)]:
+            section.append(Vector2(CX+side*p.x,p.y))
+        extrusion(section,NORTH-0.05,SOUTH+0.05,white)
         box(Vector3(0.15,0.04,length),Vector3(CX+side*8.48,4.29,MID),glow)
-        for i in range(26):
-            var z: float=NORTH+(float(i)+0.5)*length/26.0
-            # Opaque triangular back of the cornice; light source is behind its upper lip.
-            var x: float=CX+side*8.07
-            quad(Vector3(x,4.12,z-1.35),Vector3(x,3.97,z+1.35),Vector3(x,3.88,z+1.35),Vector3(x,3.88,z-1.35),fascia,Vector3(-side,0,0))
     for z in [8.0,27.0,63.0,77.0]:
         var light := OmniLight3D.new();light.position=Vector3(CX,5.5,float(z));light.omni_range=17;light.light_energy=0.40;light.light_color=Color(0.96,0.96,0.87);add_child(light)
+
+func _vault_height_at(x: float) -> float:
+    # Use the same 72 straight mesh segments as the barrel roof, including at inserted portal edges.
+    var angle: float=acos(clampf(x/VAULT_RADIUS,-1.0,1.0))
+    var j: int=mini(71,int(floor(angle*72.0/PI)))
+    var a0: float=float(j)*PI/72.0;var a1: float=float(j+1)*PI/72.0
+    var x0: float=VAULT_RADIUS*cos(a0);var x1: float=VAULT_RADIUS*cos(a1)
+    return lerpf(VAULT_SPRING+VAULT_RISE*sin(a0),VAULT_SPRING+VAULT_RISE*sin(a1),clampf((x0-x)/(x0-x1),0.0,1.0))
+
+func _vault_end(direction: float,start: float) -> void:
+    # Close the full elliptical tympanum, not only the narrow stair lintel. Keep exactly three openings.
+    var xs: Array[float]=[-VAULT_RADIUS,-8.252,-4.472,-3.60,3.60,4.472,8.252,VAULT_RADIUS]
+    for i in range(1,72):xs.append(VAULT_RADIUS*cos(float(i)*PI/72.0))
+    xs.sort()
+    var front: float=start-direction*0.045
+    var back: float=start+direction*0.27
+    for i in range(xs.size()-1):
+        var x0: float=xs[i];var x1: float=xs[i+1]
+        if x1-x0<0.0001:continue
+        var centre_x: float=(x0+x1)*0.5
+        var stair: bool=absf(centre_x)<3.60
+        var track: bool=absf(centre_x)>4.472 and absf(centre_x)<8.252
+        var bottom: float=4.96 if stair else 4.80 if track else -0.35
+        var y0: float=_vault_height_at(x0)
+        var y1: float=_vault_height_at(x1)
+        var low: float=minf(4.10,minf(y0,y1)) if bottom<4.10 else bottom
+        for z in [front,back]:
+            quad(Vector3(CX+x0,low,z),Vector3(CX+x1,low,z),Vector3(CX+x1,y1,z),Vector3(CX+x0,y0,z),white,Vector3(0,0,-direction if z==front else direction))
+            if bottom<low:
+                quad(Vector3(CX+x0,bottom,z),Vector3(CX+x1,bottom,z),Vector3(CX+x1,low,z),Vector3(CX+x0,low,z),pale,Vector3(0,0,-direction if z==front else direction))
+        quad(Vector3(CX+x0,y0,front),Vector3(CX+x1,y1,front),Vector3(CX+x1,y1,back),Vector3(CX+x0,y0,back),white,Vector3.UP)
+        quad(Vector3(CX+x0,bottom,front),Vector3(CX+x0,bottom,back),Vector3(CX+x1,bottom,back),Vector3(CX+x1,bottom,front),white,Vector3.DOWN)
+        # Close the thickness of the roof on the exposed arch perimeter as well.
+        var outer0 := Vector3(CX+x0+x0/VAULT_RADIUS*0.16,y0+(y0-VAULT_SPRING)/VAULT_RISE*0.16,front)
+        var outer1 := Vector3(CX+x1+x1/VAULT_RADIUS*0.16,y1+(y1-VAULT_SPRING)/VAULT_RISE*0.16,front)
+        quad(Vector3(CX+x0,y0,front),Vector3(CX+x1,y1,front),outer1,outer0,white,Vector3(0,0,-direction))
+    for side in [-1.0,1.0]:
+        # Solid jambs meet the stair cheek walls and the two tunnel mouths without a diagonal opening.
+        box(Vector3(0.22,3.82,0.42),Vector3(CX+side*3.71,3.05,start+direction*0.10),pale)
+        for dx in [4.472,8.252]:
+            var x: float=CX+side*float(dx)
+            quad(Vector3(x,-0.35,front),Vector3(x,-0.35,back),Vector3(x,4.80,back),Vector3(x,4.80,front),pale,Vector3(side,0,0))
 
 func _lower_interchange() -> void:
     var length: float=WELL_TOP-WELL_BACK
@@ -236,17 +303,23 @@ func _order_pylon() -> void:
     for x in [-0.18,0.18]:box(Vector3(0.035,3.75,0.29),Vector3(CX+float(x),FY+1.95,z),gold)
     var centre := Vector3(CX,FY+4.35,z)
     var copper := _material(Color("#80513a"),0.64,0.42)
-    # Faceted solid order body, native metal rims and separately curved laurel leaves.
+    # Every vertex of this closed shell is relative to the same monument centre.
+    # The initial side faces incorrectly used world z=+/-0.12 and stretched all the way toward the station origin.
+    var front_ring: Array[Vector3]=[]
+    var back_ring: Array[Vector3]=[]
+    for j in range(12):
+        var a: float=float(j)*TAU/12.0
+        var radial := Vector3(sin(a)*0.87,cos(a)*0.87,0)
+        front_ring.append(centre+radial+Vector3(0,0,0.12))
+        back_ring.append(centre+radial-Vector3(0,0,0.12))
+    for j in range(12):
+        var next: int=(j+1)%12
+        triangle(centre+Vector3(0,0,0.12),front_ring[j],front_ring[next],copper,Vector3.BACK)
+        triangle(centre-Vector3(0,0,0.12),back_ring[next],back_ring[j],copper,Vector3.FORWARD)
+        quad(front_ring[j],back_ring[j],back_ring[next],front_ring[next],copper,Vector3(front_ring[j].x-CX,front_ring[j].y-centre.y,0))
+        rod(front_ring[j],front_ring[next],0.025,gold)
+        rod(back_ring[j],back_ring[next],0.025,gold)
     for face in [-1.0,1.0]:
-        var outline: Array[Vector3]=[]
-        for j in range(12):
-            var a: float=float(j)*TAU/12.0
-            outline.append(centre+Vector3(sin(a)*0.87,cos(a)*0.87,face*0.12))
-        for j in range(12):
-            var a: Vector3=outline[j];var b: Vector3=outline[(j+1)%12]
-            triangle(centre+Vector3(0,0,face*0.14),a,b,copper,Vector3(0,0,face))
-            rod(a,b,0.025,gold)
-            quad(a,b,Vector3(b.x,b.y,-face*0.12),Vector3(a.x,a.y,-face*0.12),copper)
         _photo_relief("order_face",centre+Vector3(0,0,face*0.16),Vector2(1.66,1.66),0.0 if face>0 else PI,0.07)
     for side in [-1.0,1.0]:
         var branch: Array[Vector3]=[]
@@ -280,6 +353,7 @@ func _leaf(base: Vector3,tip: Vector3,w: float,mat: Material) -> void:
 func _photo_relief(file: String,p: Vector3,size: Vector2,yaw: float,depth: float) -> void:
     var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+file+".json"));var nx: int=int(data["width"]);var ny: int=int(data["height"]);var heights: Array=data["values"]
     var m := StandardMaterial3D.new();m.albedo_texture=load(ART+file+".png");m.roughness=0.46;m.metallic=0.50;m.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;m.alpha_scissor_threshold=0.4;m.cull_mode=BaseMaterial3D.CULL_DISABLED
+    m.texture_repeat=false
     var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
     for y in range(ny-1):
         for x in range(nx-1):
@@ -308,17 +382,17 @@ func _exit(direction: float,start: float,portrait: bool) -> void:
                 if flight==0:rod(b,b+Vector3(0,0,direction*1.2),0.026,metal)
     _solid_box(Vector3(width,0.20,4.5),Vector3(CX,FY+4.10,start+direction*11.85),grey)
     for side in [-1.0,1.0]:
-        box(Vector3(0.28,7.25,14.2),Vector3(CX+side*3.74,FY+3.625,start+direction*7.0),pale)
+        box(Vector3(0.28,8.70-FY,14.6),Vector3(CX+side*3.74,(FY+8.70)*0.5,start+direction*7.0),pale)
         for i in range(8):box(Vector3(0.02,0.003,14.1),Vector3(CX+side*3.585,FY+float(i)*0.6,start+direction*7.0),dark)
-    box(Vector3(width+0.6,0.18,14.3),Vector3(CX,8.65,start+direction*7.0),white)
+    box(Vector3(width+0.64,0.22,14.6),Vector3(CX,8.65,start+direction*7.0),white)
     for i in range(9):
         var z: float=start+direction*float(i)*1.55
         box(Vector3(width+0.4,0.18,0.22),Vector3(CX,8.45,z),white)
         box(Vector3(5.6,0.035,0.055),Vector3(CX,8.34,z),glow)
-    for side in [-1.0,1.0]:box(Vector3(1.08,2.8,0.35),Vector3(CX+side*3.2,6.40,start),pale)
-    box(Vector3(width+0.5,1.5,0.35),Vector3(CX,7.72,start),white)
+    _vault_end(direction,start)
     board("exit_south.svg" if portrait else "exit_north.svg",Vector3(CX,4.66,start-direction*0.4),Vector2(5.8,0.918))
-    box(Vector3(width+0.3,3.0,0.18),Vector3(CX,FY+5.70,start+direction*14.1),pale)
+    var landing_top: float=FY+4.20
+    box(Vector3(width+0.60,8.70-landing_top,0.24),Vector3(CX,(landing_top+8.70)*0.5,start+direction*14.1),pale)
     if portrait:
         var z: float=start+direction*13.9
         box(Vector3(3.1,1.8,0.12),Vector3(CX,FY+5.15,z),wall_stone)
