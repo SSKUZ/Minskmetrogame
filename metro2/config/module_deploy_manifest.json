@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "godot": "4.3",
+  "integration_base_commit": "d3e9f93b972ceb852b47ee2f71decdd9e7a8d629",
+  "source_branch": "feature/metro2-automated-module-deploy",
+  "branch_prefix": "feature/metro2-auto/",
+  "pages_branch": "gh-pages",
+  "publication_prefix": "metro2/module-viewer/",
+  "viewer_url": "https://sskuz.github.io/Minskmetrogame/metro2/module-viewer/",
+  "catalog": "modules/core/module_catalog.gd",
+  "registry_files": [
+    "module-packs.json",
+    "pack-resources.json"
+  ],
+  "state_file": "module-deploy-state.json",
+  "initial_pack_versions": {
+    "depot": "047f3693453b81589c6f6f36489d8575fbcb5c823fd15b383a00972e57d67e1c",
+    "shared": "c6e4dad422e12ab7e8c39b043fecd1a77cc8f79d2e0d11712d120d0d538e5adc",
+    "tunnel_16m": "862369bc64f2331b401c30a8376ebdde8651f51f4f0876250ec29d8cad010843",
+    "uruchye": "805478cbdb8e357115133387be3f843317673a955edfdc00f524c80a2b5e1f53",
+    "v106": "ce35202d071e2f465949f1156c617a44b7b8d0eaf1930c9d0369fe01bc582bed",
+    "borisovsky_trakt": "f3bc1e128755991135dd5d24203808c3f604af4604a8d2a3106e71dcc0ddf2c8",
+    "vostok": "f8d26092e08fb22eb770d0d75e630047c677cc9c13b90234661f61795c7f06ee",
+    "moskovskaya": "9c0f7278ece57130c2d8f41719a2c49b39c59ab49e646097c1f4ba88fd5cf150",
+    "park_chelyuskintsev": "75b332b9446593a2b92d90b9c48c1db253b016cc6506df94f44b76b26f298e1e",
+    "akademiya_nauk": "895cf66123821fb9bfe9bf05f60f6c8899825c9e92b36003834c5be61a53e516",
+    "yakuba_kolasa": "2ddcfa7b89cdd6ec5111c6868d5d61601a233255743e41700931272983d2c77e",
+    "ploshchad_pobedy": "ed68978e78780d155e4f5fd6e386cdb68c9c8ea30a02c02a02c142679ca298f5",
+    "oktyabrskaya": "e6598c17b92dab116aee5ccb0792d68a339ec3146cc0d140c00a81cb8e28f0d3",
+    "ploshchad_lenina": "8379d3e9c0440df60a3853c7ebb42553a421fd7ba0a95091ae320fe47b68f9f8"
+  },
+  "initial_boot_file": "boot-e7fa53d812d075d7e562.pck",
+  "boot_sources": [
+    "modules/core/module_catalog.gd",
+    "viewers/module_viewer.gd",
+    "viewers/module_viewer.tscn",
+    "viewers/inspection_camera.gd",
+    "viewers/flight_joystick.gd",
+    "viewers/module_pack_loader.gd"
+  ],
+  "category_hints": {
+    "assets/v106": "v106",
+    "assets/cab": "v106",
+    "assets/saloon_": "v106",
+    "scripts/passengers/": "integration",
+    "scripts/depot/": "depot",
+    "scripts/tunnel": "tunnel_16m"
+  },
+  "excluded_segments": [
+    "tests",
+    "references",
+    "reference",
+    "references_v69",
+    "parts",
+    ".git",
+    ".godot"
+  ],
+  "excluded_suffixes": [
+    ".md",
+    ".txt",
+    ".mp4",
+    ".mov",
+    ".zip",
+    ".patch",
+    ".uid",
+    ".import"
+  ],
+  "chunk_bytes": 8388608
+}

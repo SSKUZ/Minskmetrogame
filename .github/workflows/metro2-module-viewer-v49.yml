@@ -1,18 +1,146 @@
-name: Metro2 V49 standalone viewer build
+name: Metro2 automatic changed-module Web deployment
 on:
   push:
-    branches: [feature/metro2-v106-realism-v49]
+    branches:
+      - feature/metro2-automated-module-deploy
+      - 'feature/metro2-auto/**'
     paths:
       - '.github/workflows/metro2-module-viewer-v49.yml'
+      - 'metro2/config/module_deploy_manifest.json'
+      - 'metro2/tools/automated_deploy/**'
+      - 'metro2/modules/**'
+      - 'metro2/scripts/**'
+      - 'metro2/assets/**'
+      - 'metro2/viewers/**'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.mp4'
+      - '!**/*.mov'
+      - '!**/*.zip'
+      - '!**/*.uid'
+      - '!**/references*/**'
+      - '!**/tests/**'
   workflow_dispatch:
+    inputs:
+      legacy_export:
+        description: 'Explicit rollback to historical V49 exporter on its original branch only'
+        type: boolean
+        default: false
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: metro2-viewer-v49-artifact
-  cancel-in-progress: false
+  group: metro2-auto-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  viewer:
-    if: github.ref == 'refs/heads/feature/metro2-v106-realism-v49'
+  plan:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      active: ${{ steps.select.outputs.active }}
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 64
+      - name: Determine changed modules from the existing registry
+        id: select
+        run: python3 metro2/tools/automated_deploy/deploy.py plan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-deploy-plan-${{ github.sha }}
+          path: .metro2-ci/plan.json
+          retention-days: 7
+  build:
+    needs: plan
+    if: needs.plan.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: barichello/godot-ci:4.3
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+      max-parallel: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: metro2-deploy-plan-${{ github.sha }}
+          path: .metro2-ci
+      - name: Prepare native packaging tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config remote.origin.promisor true
+          git config remote.origin.partialclonefilter blob:none
+          git fetch --filter=blob:none --depth=1 origin gh-pages:refs/remotes/origin/gh-pages
+      - uses: actions/cache@v4
+        with:
+          path: .metro2-ci/stage/${{ matrix.module }}/.godot/imported
+          key: metro2-import-godot43-web-${{ runner.os }}-${{ matrix.module }}-${{ hashFiles('metro2/config/module_deploy_manifest.json') }}-${{ hashFiles('.metro2-ci/plan.json') }}
+          restore-keys: |
+            metro2-import-godot43-web-${{ runner.os }}-${{ matrix.module }}-${{ hashFiles('metro2/config/module_deploy_manifest.json') }}-
+      - name: Mandatory resource import and one native Web pack export
+        shell: bash
+        env:
+          MODULE_ID: ${{ matrix.module }}
+        run: python3 metro2/tools/automated_deploy/deploy.py build --module "$MODULE_ID"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: metro2-module-${{ matrix.module }}-${{ github.sha }}
+          path: .metro2-ci/bundles/${{ matrix.module }}
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: metro2-export-error-${{ matrix.module }}-${{ github.sha }}
+          path: .metro2-ci/logs
+          retention-days: 7
+  publish:
+    needs: [plan, build]
+    if: needs.plan.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: metro2-permanent-viewer-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: metro2-deploy-plan-${{ github.sha }}
+          path: .metro2-ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: metro2-module-*-${{ github.sha }}
+          path: .metro2-ci/downloads
+      - name: Collect only this run's module deltas
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, shutil
+          root=pathlib.Path('.metro2-ci')
+          plan=json.loads((root/'plan.json').read_text())
+          for key in plan['modules']:
+              source=root/'downloads'/('metro2-module-'+key+'-${{ github.sha }}')
+              target=root/'bundles'/key
+              target.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copytree(source,target)
+          PY
+      - name: Merge selected metadata into latest publication and push atomically
+        run: python3 metro2/tools/automated_deploy/deploy.py publish
+  legacy_viewer:
+    permissions:
+      contents: write
+    if: github.event_name == 'workflow_dispatch' && inputs.legacy_export && github.ref == 'refs/heads/feature/metro2-v106-realism-v49'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
