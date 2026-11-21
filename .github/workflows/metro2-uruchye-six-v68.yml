@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/metro2-uruchye-six-v68.yml'
       - 'metro2/scripts/station/uruchye_architecture.gd'
+      - 'metro2/scripts/station/uruchye_platform_equipment.gd'
       - 'metro2/assets/station/uruchye_v68/**'
       - 'metro2/scripts/station/uruchye_tracks_v68.gd'
       - 'metro2/tools/uruchye_six_v68/**'
@@ -53,5 +54,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- metro2/module-viewer
-          git commit -m 'Update Uruchye arrival map, upper exits, enclosed stairs, detailed rails, clear service door and raised bilingual names'
+          git commit -m 'Update Uruchye station pack: open stair sides, safe guards and opposite driver mirrors'
           git push origin HEAD:gh-pages

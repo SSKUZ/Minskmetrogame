@@ -10,9 +10,7 @@ var _armed := false
 var _departed_this_visit := false
 var _game: Node3D
 var _train: Node3D
-var _mirror_view: SubViewport
-var _mirror_camera: Camera3D
-var _mirror: Node3D
+var _mirrors: Array[Dictionary]=[]
 var _mirror_tick := 0.0
 var _amber := Color(1.0,0.57,0.045)
 const DIGITS := [0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f]
@@ -24,7 +22,9 @@ func _ready() -> void:
         _last_departure = int(saved.get_value("interval","departure_unix",0))
     if _last_departure > int(Time.get_unix_time_from_system()): _last_departure=0
     _stop_marks()
-    _platform_mirror()
+    # Opposite tracks have mirrors at opposite platform ends, clear of the stair cheeks.
+    _platform_mirror("DriverPlatformMirror",Vector3(-0.78,FLOOR+1.55,-0.55),deg_to_rad(8.0),27.0)
+    _platform_mirror("DriverPlatformMirrorOpposite",Vector3(PLATFORM_X-4.59,FLOOR+1.55,79.77),PI+deg_to_rad(8.0),52.0)
 
 
 func _find_game() -> void:
@@ -66,12 +66,12 @@ func _stop_marks() -> void:
     for i in range(8):
         _box(self,"WallStopStripe%02d" % i,Vector3(0.055,0.14,0.15),Vector3(3.285,1.26+float(i)*0.14,-1.25),white if i%2 == 0 else black)
 
-func _platform_mirror() -> void:
+func _platform_mirror(label: String,pos: Vector3,yaw: float,target_z: float) -> void:
     var steel := _material(Color("#c4c7c4"),0.80)
-    _mirror=Node3D.new()
-    _mirror.name="DriverPlatformMirror"
-    _mirror.position=Vector3(-0.78,FLOOR+1.55,-2.80)
-    _mirror.rotation.y=deg_to_rad(8.0)
+    var _mirror := Node3D.new()
+    _mirror.name=label
+    _mirror.position=pos
+    _mirror.rotation.y=yaw
     add_child(_mirror)
     _box(_mirror,"MirrorBack",Vector3(0.72,2.05,0.065),Vector3.ZERO,steel)
     var post := MeshInstance3D.new()
@@ -82,13 +82,13 @@ func _platform_mirror() -> void:
     post.position=Vector3(0,-1.285,0)
     _mirror.add_child(post)
     _box(_mirror,"MirrorFoot",Vector3(0.29,0.035,0.26),Vector3(0,-1.535,0),steel)
-    _mirror_view=SubViewport.new()
-    _mirror_view.name="PlatformReflection"
+    var _mirror_view := SubViewport.new()
+    _mirror_view.name=label+"Reflection"
     _mirror_view.size=Vector2i(384,640)
     _mirror_view.world_3d=get_world_3d()
     _mirror_view.render_target_update_mode=SubViewport.UPDATE_DISABLED
     add_child(_mirror_view)
-    _mirror_camera=Camera3D.new()
+    var _mirror_camera := Camera3D.new()
     _mirror_camera.cull_mask=1 # Exclude every mirror face to avoid feedback.
     _mirror_camera.near=0.08
     _mirror_camera.far=145.0
@@ -110,6 +110,7 @@ func _platform_mirror() -> void:
     face.layers=64
     face.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     _mirror.add_child(face)
+    _mirrors.append({"mirror":_mirror,"view":_mirror_view,"camera":_mirror_camera,"target_z":target_z})
 
 func _clock() -> void:
     var panel := Node3D.new()
@@ -185,8 +186,15 @@ func _process(delta: float) -> void:
     if _mirror_tick < 0.2: return
     _mirror_tick=0.0
     var viewer := get_viewport().get_camera_3d()
-    if viewer == null or viewer.global_position.distance_to(_mirror.global_position) > 140.0: return
-    if not viewer.is_position_in_frustum(_mirror.global_position): return
-    _mirror_camera.global_position=_mirror.to_global(Vector3(0,0,0.10))
-    _mirror_camera.look_at(to_global(Vector3(PLATFORM_X,2.10,27.0)),global_basis.y)
-    _mirror_view.render_target_update_mode=SubViewport.UPDATE_ONCE
+    if viewer == null: return
+    for equipment in _mirrors:
+        var mirror: Node3D=equipment["mirror"]
+        if viewer.global_position.distance_to(mirror.global_position)>140.0: continue
+        if not viewer.is_position_in_frustum(mirror.global_position): continue
+        # Only refresh the visible front face; mirror faces stay out of reflection cameras.
+        if mirror.global_basis.z.dot(viewer.global_position-mirror.global_position)<=0.0: continue
+        var camera: Camera3D=equipment["camera"]
+        var reflection: SubViewport=equipment["view"]
+        camera.global_position=mirror.to_global(Vector3(0,0,0.10))
+        camera.look_at(to_global(Vector3(PLATFORM_X,2.10,float(equipment["target_z"]))),global_basis.y)
+        reflection.render_target_update_mode=SubViewport.UPDATE_ONCE

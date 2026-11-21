@@ -326,10 +326,12 @@ func _stairs(direction: float,start_z: float) -> void:
             _box(Vector3(3.35,0.012,0.05),Vector3(x,FLOOR+height+0.008,z-direction*run*0.42),yellow if i in [0,9,19] else steel)
         for rail_side in [-1.0,1.0]:
             var rx: float=x+rail_side*1.58
-            _bar(Vector3(rx,FLOOR+0.92,start_z),Vector3(rx,FLOOR+4.32,start_z+direction*6.4),0.028,steel)
-            for i in range(6):
-                var u := float(i)/5.0
-                _cylinder(0.021,0.92,Vector3(rx,FLOOR+3.4*u+0.46,start_z+direction*6.4*u),steel)
+            # Open sides retain a continuous guard, including infill between the posts.
+            for height in [0.60,1.12]:
+                _bar(Vector3(rx,FLOOR+height,start_z),Vector3(rx,FLOOR+3.40+height,start_z+direction*6.4),0.028 if height>1.0 else 0.018,steel)
+            for i in range(41):
+                var u := float(i)/40.0
+                _cylinder(0.021 if i%8==0 else 0.009,1.12,Vector3(rx,FLOOR+3.4*u+0.56,start_z+direction*6.4*u),steel)
     var end_z := start_z+direction*6.4
     _box(Vector3(1.70,3.4,6.5),Vector3(CX,FLOOR+1.7,start_z+direction*3.3),_marble_material())
     _box(Vector3(1.05,2.15,0.05),Vector3(CX,FLOOR+1.075,start_z-direction*0.025),white)
@@ -350,8 +352,15 @@ func _upper_hall(direction: float,start_z: float) -> void:
     _box(Vector3(9.30,3.40,12.30),Vector3(CX,FLOOR+1.70,landing+direction*6.15),marble)
     _box(Vector3(9.30,0.025,12.30),Vector3(CX,top+0.013,landing+direction*6.15),stone)
     for side in [-1.0,1.0]:
-        _box(Vector3(0.28,7.70-FLOOR,18.9),Vector3(CX+side*4.66,(7.70+FLOOR)*0.5,start_z+direction*9.30),marble)
-        _box(Vector3(0.31,0.32,18.9),Vector3(CX+side*4.65,FLOOR+0.16,start_z+direction*9.30),dark)
+        # Full-height walls start at the upper landing, not at the platform.
+        # Below each open flight a stepped marble cheek closes its underside.
+        _box(Vector3(0.28,7.70-FLOOR,12.30),Vector3(CX+side*4.66,(7.70+FLOOR)*0.5,landing+direction*6.15),marble)
+        _box(Vector3(0.31,0.32,12.30),Vector3(CX+side*4.65,FLOOR+0.16,landing+direction*6.15),dark)
+        for i in range(20):
+            var height: float=float(i+1)*0.17
+            var zz: float=start_z+direction*(float(i)+0.5)*0.32
+            _box(Vector3(0.28,height,0.32),Vector3(CX+side*4.66,FLOOR+height*0.5,zz),marble)
+            _box(Vector3(0.31,0.035,0.32),Vector3(CX+side*4.66,FLOOR+height+0.0175,zz),steel)
         _box(Vector3(0.035,0.18,12.3),Vector3(CX+side*4.50,top+0.09,landing+direction*6.15),dark)
         for x in [-1.0,1.0]:
             _box(Vector3(0.10,7.70-top,0.20),Vector3(CX+side*4.48,(top+7.70)*0.5,landing+direction*(3.0+float(x))),steel)
@@ -370,7 +379,10 @@ func _upper_hall(direction: float,start_z: float) -> void:
     for side in [-1.0,1.0]:
         for rail in [-1.0,1.0]:
             var x: float=CX+side*2.65+rail*1.58
-            _bar(Vector3(x,top+0.92,landing),Vector3(x,top+0.92,landing+direction*1.35),0.028,steel)
+            for height in [0.60,1.12]:
+                _bar(Vector3(x,top+height,landing),Vector3(x,top+height,landing+direction*1.35),0.028 if height>1.0 else 0.018,steel)
+            for i in range(9):
+                _cylinder(0.021 if i==8 else 0.009,1.12,Vector3(x,top+0.56,landing+direction*float(i)*1.35/8.0),steel)
     _hanging_board(preload("res://assets/station/uruchye_v68/upper_exit.svg"),Vector3(CX,6.83,landing+direction*2.70),Vector2(2.90,0.535))
     var gate_z: float=landing+direction*4.70
     var scanner := _mat(Color("#101c25"),0.30,0.25)
