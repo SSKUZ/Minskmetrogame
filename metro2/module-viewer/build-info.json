@@ -47,7 +47,6 @@
         "res://assets/station/uruchye_granite.png",
         "res://assets/station/uruchye_v68/route_arrived.svg",
         "res://assets/station/uruchye_v68/security.svg",
-        "res://assets/station/uruchye_v68/station_letters.ttf",
         "res://assets/station/uruchye_v68/upper_exit.svg"
       ]
     },
@@ -410,5 +409,13 @@
     "references": "Owner photographs 6695-6709; Borisovsky Trakt 6714-6720 used only as comparative navigation/stair references",
     "limitations": "Upper gate/security areas are inferred visual extensions requested by the owner; no measured vestibule survey or detailed upper-room photos. Physical Cyrillic letters use a bundled font, so the stylised original letter contours are approximated. No gameplay gate or security simulation.",
     "validation": "Mandatory native Godot 4.3 resource import/mipmaps/PCK packaging and publication only; no scene, game, browser, visual or performance tests"
+  },
+  "uruchye_six_v68_loading_fix": {
+    "source_commit": "af2bf57a6c3abde025d02014dc2a82a9877e746c",
+    "cause": "A FontFile was placed in the viewer's Texture2D-only warmup queue, causing ensure_module to reject Uruchye before scene loading.",
+    "fix": "Removed station_letters.ttf from texture warmup; bundled font and station PCK unchanged. Future publication filters warmup entries to texture formats.",
+    "station_pack": "uruchye-dde9e6dae1f52232b462.pck",
+    "station_pack_sha256": "dde9e6dae1f52232b4624bc08a6763c3187372562e060239347efabe59dc2f1a",
+    "validation": "Read current viewer loader and published manifest; changed only warmup metadata, kept original station PCK and all six visual changes. No game/browser tests."
   }
 }
