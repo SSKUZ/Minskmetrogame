@@ -5,6 +5,8 @@ const CX := -5.37
 const FLOOR := 1.1805
 const Z0 := -12.888
 const Z1 := 92.112
+const NORTH_STAIRS := Z0+11.0
+const SOUTH_STAIRS := Z1-11.0
 var batches: Dictionary = {}
 var white: Material
 var blue: Material
@@ -31,6 +33,9 @@ func _ready() -> void:
     _advertising()
     _station_ends()
     _finish_details()
+    var tracks := preload("res://scripts/station/uruchye_tracks_v68.gd").new()
+    tracks.name="DetailedUruchyeTrackwork"
+    add_child(tracks)
     _flush()
     var equipment := preload("res://scripts/station/uruchye_platform_equipment.gd").new()
     equipment.name="UruchyePlatformEquipment"
@@ -139,15 +144,38 @@ func _floor_and_walls() -> void:
         for z in [10.0,45.0,72.0]:
             _wall_title(side,face,z)
         for z in [25.5,59.0]:
-            var board := _picture(preload("res://assets/signage_v63/uruchye_route.svg"),Vector2(4.8,0.932),Vector3(face-side*0.07,2.97,z),-side*PI/2.0)
-            board.name="WallLineMap124Uruchye"
+            var route: Texture2D=preload("res://assets/station/uruchye_v68/route_arrived.svg") if side<0.0 else preload("res://assets/signage_v63/uruchye_route.svg")
+            var board := _picture(route,Vector2(4.8,0.932),Vector3(face-side*0.07,2.97,z),-side*PI/2.0)
+            board.name="WallLineMap124ArrivedGrey" if side<0.0 else "WallLineMap124DepartureBlue"
         for z in [2.0,33.0,63.0,84.0]:
             _ornament(side,face,z)
 
 func _wall_title(side: float,face: float,z: float) -> void:
-    # Owner original 6702.jpg: rounded silver plates, blue crest and water loops.
-    var title := _picture(preload("res://assets/signage_v54/uruchye_name.svg"),Vector2(7.0,1.69),Vector3(face-side*0.09,2.92,z),-side*PI/2.0)
-    (title.mesh.material as StandardMaterial3D).transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+    # Native metal letters with actual side faces and depth, over the photographed blue water emblem.
+    var root := Node3D.new();root.name="RaisedStationNameRU" if side<0 else "RaisedStationNameBE"
+    root.position=Vector3(face-side*0.12,2.92,z);root.rotation.y=-side*PI/2.0;add_child(root)
+    var font: Font=preload("res://assets/station/uruchye_v68/station_letters.ttf")
+    var value: String="УРУЧЬЕ" if side<0.0 else "УРУЧЧА"
+    var nominal: float=font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,96).x*0.008
+    for layer in range(2):
+        var mesh := TextMesh.new();mesh.font=font;mesh.text=value;mesh.font_size=96;mesh.pixel_size=0.008
+        mesh.depth=0.09 if layer==0 else 0.075;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+        mesh.material=dark if layer==0 else steel
+        var node := MeshInstance3D.new();node.mesh=mesh;node.position.z=0.015 if layer==0 else 0.042
+        node.scale=Vector3(4.8/maxf(nominal,0.01)*(1.012 if layer==0 else 1.0),1.012 if layer==0 else 1.0,1.0);root.add_child(node)
+    var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var crest := _mat(Color("#185790"),0.34,0.36)
+    # Upper arch and lower wave of the blue emblem remain visible around the silver name.
+    for i in range(64):
+        var x0: float=-3.0+float(i)*6.0/64.0;var x1: float=-3.0+float(i+1)*6.0/64.0
+        var y0: float=0.28*exp(-pow(x0/1.70,2.0))-0.10
+        var y1: float=0.28*exp(-pow(x1/1.70,2.0))-0.10
+        for upper in [false,true]:
+            var a := Vector3(x0,y0+(0.22 if upper else -0.15),-0.058)
+            var b := Vector3(x1,y1+(0.22 if upper else -0.15),-0.058)
+            var c: Vector3=b+Vector3(0,0.11,0);var d: Vector3=a+Vector3(0,0.11,0)
+            for p in [a,c,b,a,d,c]:st.set_normal(Vector3.BACK);st.add_vertex(p)
+    var emblem := MeshInstance3D.new();emblem.mesh=st.commit();emblem.material_override=crest;root.add_child(emblem)
 
 func _ornament(side: float,face: float,z: float) -> void:
     var x: float=face-side*0.07
@@ -188,13 +216,13 @@ func _columns_and_ceiling() -> void:
         var x := CX-2.4+float(i)*0.08
         _box(Vector3(0.008,0.012,81),Vector3(x,5.522,39.6),seam)
     for side in [-1.0,1.0]:
-        _box(Vector3(6.45,0.12,112),Vector3(CX+side*5.62,6.02,36.112),ceiling_blue)
+        _box(Vector3(6.45,0.12,SOUTH_STAIRS-NORTH_STAIRS-0.30),Vector3(CX+side*5.62,6.02,(NORTH_STAIRS+SOUTH_STAIRS)*0.5),ceiling_blue)
         for j in range(61):
-            _box(Vector3(0.008,0.014,112),Vector3(CX+side*(2.45+float(j)*0.105),5.952,36.112),seam)
-        _box(Vector3(0.24,0.14,105),Vector3(CX+side*5.55,5.34,39.612),white)
+            _box(Vector3(0.008,0.014,SOUTH_STAIRS-NORTH_STAIRS-0.30),Vector3(CX+side*(2.45+float(j)*0.105),5.952,(NORTH_STAIRS+SOUTH_STAIRS)*0.5),seam)
+        _box(Vector3(0.24,0.14,SOUTH_STAIRS-NORTH_STAIRS-0.30),Vector3(CX+side*5.55,5.34,(NORTH_STAIRS+SOUTH_STAIRS)*0.5),white)
     for i in range(19):
         var z := -1.0+float(i)*4.5
-        if absf(z-17.0)<3.0 or absf(z-39.5)<3.0 or absf(z-62.0)<3.0 or z>74.0: continue
+        if absf(z-17.0)<3.0 or absf(z-39.5)<3.0 or absf(z-62.0)<3.0 or z>74.0 or absf(z-NORTH_STAIRS)<2.6: continue
         _cylinder(0.43,3.64,Vector3(CX,FLOOR+1.99,z),blue)
         _cylinder(0.43,0.17,Vector3(CX,FLOOR+0.085,z),steel)
         _cylinder(0.44,0.48,Vector3(CX,5.22,z),steel)
@@ -211,6 +239,7 @@ func _columns_and_ceiling() -> void:
     # White tapered ceiling ribs carry the strip lights; globes line the track cornice.
     for i in range(53):
         var z := Z0+1.0+float(i)*1.98
+        if z<NORTH_STAIRS+0.35 or z>SOUTH_STAIRS-0.35:continue
         for side in [-1.0,1.0]:
             _rib(side,z)
             _box(Vector3(2.25,0.09,0.15),Vector3(CX+side*3.60,5.47,z),steel)
@@ -302,13 +331,90 @@ func _stairs(direction: float,start_z: float) -> void:
                 var u := float(i)/5.0
                 _cylinder(0.021,0.92,Vector3(rx,FLOOR+3.4*u+0.46,start_z+direction*6.4*u),steel)
     var end_z := start_z+direction*6.4
-    _box(Vector3(9.65,0.20,4.0),Vector3(CX,FLOOR+3.30,end_z+direction*2.0),stone)
     _box(Vector3(1.70,3.4,6.5),Vector3(CX,FLOOR+1.7,start_z+direction*3.3),_marble_material())
     _box(Vector3(1.05,2.15,0.05),Vector3(CX,FLOOR+1.075,start_z-direction*0.025),white)
     _box(Vector3(0.045,0.20,0.06),Vector3(CX+0.36,FLOOR+1.03,start_z-direction*0.065),dark)
-    _cylinder(0.21,4.25,Vector3(CX,FLOOR+2.125,start_z-direction*1.25),steel)
+    # User-requested clear service doorway: no detached metal pole or central column in its approach.
+    _upper_hall(direction,start_z)
     for side in [-1.0,1.0]:
         _box(Vector3(3.4,0.03,0.30),Vector3(CX+side*2.65,FLOOR+0.018,start_z-direction*0.26),yellow)
+
+func _upper_hall(direction: float,start_z: float) -> void:
+    var top: float=FLOOR+3.40
+    var landing: float=start_z+direction*6.40
+    var marble := _marble_material()
+    var ceiling_blue := _mat(Color("#536b83"),0.30,0.48)
+    var glass := _mat(Color(0.41,0.63,0.68,0.30),0.12,0.16)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
+    # A complete upper floor on a closed structural block. Its sides and back seal the space behind the stairs.
+    _box(Vector3(9.30,3.40,12.30),Vector3(CX,FLOOR+1.70,landing+direction*6.15),marble)
+    _box(Vector3(9.30,0.025,12.30),Vector3(CX,top+0.013,landing+direction*6.15),stone)
+    for side in [-1.0,1.0]:
+        _box(Vector3(0.28,7.70-FLOOR,18.9),Vector3(CX+side*4.66,(7.70+FLOOR)*0.5,start_z+direction*9.30),marble)
+        _box(Vector3(0.31,0.32,18.9),Vector3(CX+side*4.65,FLOOR+0.16,start_z+direction*9.30),dark)
+        _box(Vector3(0.035,0.18,12.3),Vector3(CX+side*4.50,top+0.09,landing+direction*6.15),dark)
+        for x in [-1.0,1.0]:
+            _box(Vector3(0.10,7.70-top,0.20),Vector3(CX+side*4.48,(top+7.70)*0.5,landing+direction*(3.0+float(x))),steel)
+    _box(Vector3(9.60,0.20,18.9),Vector3(CX,7.65,start_z+direction*9.30),white)
+    _box(Vector3(9.58,7.70-FLOOR,0.28),Vector3(CX,(FLOOR+7.70)*0.5,start_z+direction*18.60),marble)
+    # Ceiling beams end at the stair mouth; the lower blue ceiling never crosses the ascending flights.
+    for s in [0.05,6.45]:
+        _box(Vector3(9.30,0.20,0.24),Vector3(CX,7.42,start_z+direction*float(s)),steel)
+    for i in range(9):
+        var zz: float=landing+direction*(float(i)+0.5)*1.35
+        _box(Vector3(9.25,0.12,0.10),Vector3(CX,7.47,zz),ceiling_blue)
+        for side in [-1.0,1.0]:
+            _box(Vector3(1.8,0.055,0.09),Vector3(CX+side*2.5,7.05,zz),steel)
+            _box(Vector3(1.64,0.023,0.06),Vector3(CX+side*2.5,7.009,zz),glow)
+    # The last stair tread now leads onto a visible, lit concourse before the gate row.
+    for side in [-1.0,1.0]:
+        for rail in [-1.0,1.0]:
+            var x: float=CX+side*2.65+rail*1.58
+            _bar(Vector3(x,top+0.92,landing),Vector3(x,top+0.92,landing+direction*1.35),0.028,steel)
+    _hanging_board(preload("res://assets/station/uruchye_v68/upper_exit.svg"),Vector3(CX,6.83,landing+direction*2.70),Vector2(2.90,0.535))
+    var gate_z: float=landing+direction*4.70
+    var scanner := _mat(Color("#101c25"),0.30,0.25)
+    var green := _mat(Color("#2eaa72"),0.0,0.38,Color(0.06,0.35,0.14))
+    for i in range(5):
+        var x: float=CX-2.64+float(i)*1.32
+        _box(Vector3(0.31,1.05,0.84),Vector3(x,top+0.525,gate_z),steel)
+        _box(Vector3(0.28,0.065,0.79),Vector3(x,top+1.082,gate_z),dark)
+        _box(Vector3(0.22,0.028,0.23),Vector3(x,top+1.126,gate_z-direction*0.16),scanner)
+        _box(Vector3(0.07,0.07,0.012),Vector3(x,top+0.91,gate_z-direction*0.429),green)
+        if i<4:
+            var pivot := Vector3(x+0.17,top+0.83,gate_z)
+            _cylinder(0.08,0.14,pivot,steel)
+            _bar(pivot,pivot+Vector3(0.76,-0.05,0),0.025,steel)
+            _bar(pivot,pivot+Vector3(0.52,-0.45,direction*0.33),0.025,steel)
+            _bar(pivot,pivot+Vector3(0.52,-0.45,-direction*0.33),0.025,steel)
+    # Wide side gate and a glazed control booth, as requested; layout above the landing is inferred.
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*3.85
+        _box(Vector3(0.10,1.10,0.10),Vector3(x,top+0.55,gate_z),steel)
+        _box(Vector3(1.15,0.70,0.018),Vector3(x-side*0.52,top+0.72,gate_z),glass)
+    var booth_x: float=CX+3.60;var booth_z: float=landing+direction*7.30
+    _box(Vector3(1.55,0.085,2.40),Vector3(booth_x,top+0.043,booth_z),steel)
+    _box(Vector3(1.55,0.08,2.40),Vector3(booth_x,top+2.38,booth_z),steel)
+    for side in [-1.0,1.0]:
+        for face in [-1.0,1.0]:
+            _box(Vector3(0.065,2.30,0.065),Vector3(booth_x+side*0.74,top+1.23,booth_z+face*1.16),steel)
+        _box(Vector3(0.025,1.10,2.27),Vector3(booth_x+side*0.74,top+1.62,booth_z),glass)
+        _box(Vector3(0.06,0.84,2.32),Vector3(booth_x+side*0.74,top+0.51,booth_z),blue)
+    for face in [-1.0,1.0]:
+        _box(Vector3(1.44,1.10,0.025),Vector3(booth_x,top+1.62,booth_z+face*1.16),glass)
+        _box(Vector3(1.48,0.84,0.06),Vector3(booth_x,top+0.51,booth_z+face*1.16),blue)
+    _box(Vector3(1.20,0.08,0.55),Vector3(booth_x,top+0.80,booth_z-direction*0.55),wood)
+    _box(Vector3(0.43,0.30,0.035),Vector3(booth_x,top+1.06,booth_z-direction*0.57),scanner)
+    var booth_sign := _picture(preload("res://assets/station/uruchye_v68/security.svg"),Vector2(1.4,0.305),Vector3(booth_x,top+2.15,booth_z-direction*1.205),0.0 if direction<0 else PI)
+    booth_sign.name="SecurityControlBooth"
+    for i in range(4):
+        var x: float=CX-3.3+float(i)*2.2
+        _box(Vector3(1.90,2.48,0.08),Vector3(x,top+1.24,start_z+direction*18.42),steel)
+        _box(Vector3(1.74,2.30,0.035),Vector3(x,top+1.24,start_z+direction*18.35),scanner)
+        for dx in [-0.16,0.16]:
+            _bar(Vector3(x+float(dx),top+0.92,start_z+direction*18.29),Vector3(x+float(dx),top+1.44,start_z+direction*18.29),0.023,steel)
+    for side in [-1.0,1.0]:
+        var light := OmniLight3D.new();light.position=Vector3(CX+side*2.8,6.9,landing+direction*5.7);light.light_color=Color(0.95,0.98,1.0);light.light_energy=1.20;light.omni_range=9.0;light.shadow_enabled=false;add_child(light)
 
 
 func _bar(a: Vector3,b: Vector3,radius: float,material: Material) -> void:
@@ -497,7 +603,10 @@ func _station_ends() -> void:
     for direction in [-1.0,1.0]:
         var end_z: float = -19.888 if direction < 0.0 else Z1
         var face_z: float = end_z+direction*0.25
-        _box(Vector3(right-left,7.75-portal_top,0.50),Vector3(CX,(7.75+portal_top)*0.5,face_z),white)
+        # A central opening above the platform datum connects the stair landing to the upper concourse.
+        for span in [Vector2(left,CX-4.53),Vector2(CX+4.53,right)]:
+            _box(Vector3(span.y-span.x,7.75-portal_top,0.50),Vector3((span.x+span.y)*0.5,(7.75+portal_top)*0.5,face_z),white)
+        _box(Vector3(9.06,0.30,0.50),Vector3(CX,7.60,face_z),white)
         var segments := [
             Vector2(left,track_centers[0]-half_width),
             Vector2(track_centers[0]+half_width,track_centers[1]-half_width),
@@ -519,14 +628,8 @@ func _station_ends() -> void:
                 var x: float = track_x+side*(half_width+0.09)
                 _box(Vector3(0.18,portal_top+0.30,6.40),Vector3(x,(portal_top-0.30)*0.5,throat_z),lining)
             _box(Vector3(half_width*2.0+0.36,0.18,6.40),Vector3(track_x,portal_top+0.09,throat_z),lining)
-            # Only the secondary non-playable track needs rails past its Base endpoint.
+            # Detailed trackwork is built in one continuous pass by uruchye_tracks_v68.gd.
             if track_x < -5.0:
-                for rail_side in [-1.0,1.0]:
-                    var rail_x: float = track_x+rail_side*0.8075
-                    _box(Vector3(0.095,0.16,6.40),Vector3(rail_x,-0.08,throat_z),steel)
-                for i in range(11):
-                    var tie_z: float = end_z+direction*(float(i)+0.5)*0.58
-                    _box(Vector3(2.65,0.12,0.24),Vector3(track_x,-0.22,tie_z),dark)
                 _box(Vector3(half_width*2.0,portal_top+0.30,0.12),Vector3(track_x,(portal_top-0.30)*0.5,end_z+direction*6.45),black)
 
 func _finish_details() -> void:
@@ -537,9 +640,10 @@ func _finish_details() -> void:
         var face: float=CX+side*(8.85-0.19)
         _box(Vector3(0.014,0.025,112),Vector3(face-side*0.045,1.79,36.112),steel)
         _box(Vector3(0.014,0.022,112),Vector3(face-side*0.045,4.34,36.112),steel)
-        _box(Vector3(0.035,0.08,105),Vector3(CX+side*2.40,5.54,39.612),steel)
+        _box(Vector3(0.035,0.08,SOUTH_STAIRS-NORTH_STAIRS-0.30),Vector3(CX+side*2.40,5.54,(NORTH_STAIRS+SOUTH_STAIRS)*0.5),steel)
         for i in range(53):
             var z := Z0+1.0+float(i)*1.98
+            if z<NORTH_STAIRS+0.35 or z>SOUTH_STAIRS-0.35:continue
             var x: float=CX+side*5.55
             _cylinder(0.09,0.025,Vector3(x,5.325,z),fastener)
             # Reflector housing and lens frame around the existing linear lamp.
