@@ -182,10 +182,13 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-f3bc1e128755991135dd.pck",
-      "sha256": "f3bc1e128755991135dd5d24203808c3f604af4604a8d2a3106e71dcc0ddf2c8",
-      "bytes": 2750512,
+      "file": "borisovsky_trakt-52f26920f6b059f7ed1a.pck",
+      "sha256": "52f26920f6b059f7ed1a96e8f5269af373bec1738cf4223d8c5714792fde77a3",
+      "bytes": 1947552,
       "warmup": [
+        "res://modules/stations/borisovsky_trakt/art_v69/ad_0.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/ad_1.svg",
+        "res://modules/stations/borisovsky_trakt/art_v69/ad_2.svg",
         "res://modules/stations/borisovsky_trakt/art_v69/column_marble.jpg",
         "res://modules/stations/borisovsky_trakt/art_v69/direction_1.svg",
         "res://modules/stations/borisovsky_trakt/art_v69/direction_2.svg",
@@ -198,7 +201,15 @@
         "res://modules/stations/borisovsky_trakt/art_v69/wall_marble.jpg",
         "res://modules/stations/borisovsky_trakt/art_v69/wall_marble_alt.jpg",
         "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_malinovka.svg",
-        "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_uruchye.svg"
+        "res://modules/stations/borisovsky_trakt/art_v69/wall_toward_uruchye.svg",
+        "res://modules/stations/borisovsky_trakt/textures/direction_1.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/direction_2.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/exit.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/floor.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/granite.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/marble.jpg",
+        "res://modules/stations/borisovsky_trakt/textures/name.png",
+        "res://modules/stations/borisovsky_trakt/textures/wall_map.jpg"
       ]
     },
     "vostok": {
