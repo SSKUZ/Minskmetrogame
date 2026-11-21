@@ -164,10 +164,31 @@
       ]
     },
     "vostok": {
-      "file": "vostok-f8d26092e08fb22eb770.pck",
-      "sha256": "f8d26092e08fb22eb770d0d75e630047c677cc9c13b90234661f61795c7f06ee",
-      "bytes": 2256352,
-      "warmup": []
+      "file": "vostok-7be8200c3cfff74a68b7.pck",
+      "sha256": "7be8200c3cfff74a68b7e6e7682ad8885d95132dba8ca9b4b2f8e82b0b8b3855",
+      "bytes": 2296768,
+      "warmup": [
+        "res://modules/stations/vostok/art/direction_north.svg",
+        "res://modules/stations/vostok/art/direction_south.svg",
+        "res://modules/stations/vostok/art/exit.svg",
+        "res://modules/stations/vostok/art/exit_north.svg",
+        "res://modules/stations/vostok/art/exit_south.svg",
+        "res://modules/stations/vostok/art/grey_granite.jpg",
+        "res://modules/stations/vostok/art/line.svg",
+        "res://modules/stations/vostok/art/line_to_malinovka.svg",
+        "res://modules/stations/vostok/art/line_to_uruchye.svg",
+        "res://modules/stations/vostok/art/name_be.svg",
+        "res://modules/stations/vostok/art/name_ru.svg",
+        "res://modules/stations/vostok/art/network.svg",
+        "res://modules/stations/vostok/art/pylon_exit_a.svg",
+        "res://modules/stations/vostok/art/pylon_exit_b.svg",
+        "res://modules/stations/vostok/art/pylon_track1.svg",
+        "res://modules/stations/vostok/art/pylon_track2.svg",
+        "res://modules/stations/vostok/art/red_granite.jpg",
+        "res://modules/stations/vostok/art/screen_year_2026.jpg",
+        "res://modules/stations/vostok/art/stair_caution.svg",
+        "res://modules/stations/vostok/art/stair_marble.jpg"
+      ]
     },
     "moskovskaya": {
       "file": "moskovskaya-9c0f7278ece57130c2d8.pck",
