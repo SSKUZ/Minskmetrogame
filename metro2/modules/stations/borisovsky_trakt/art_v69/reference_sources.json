@@ -1,0 +1,113 @@
+[
+  {
+    "source": "6726.jpg",
+    "sha256": "cc004a54481d763763532028da6d9e20546668da121a6b8df9d3bcc8d9a58b59",
+    "asset": "wall_marble.jpg",
+    "crop_pixels": [
+      635,
+      557,
+      803,
+      619
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6726.jpg",
+    "sha256": "cc004a54481d763763532028da6d9e20546668da121a6b8df9d3bcc8d9a58b59",
+    "asset": "wall_marble_alt.jpg",
+    "crop_pixels": [
+      1110,
+      594,
+      1290,
+      681
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6726.jpg",
+    "sha256": "cc004a54481d763763532028da6d9e20546668da121a6b8df9d3bcc8d9a58b59",
+    "asset": "red_granite.jpg",
+    "crop_pixels": [
+      650,
+      708,
+      970,
+      774
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6720.jpg",
+    "sha256": "6112cf28139e409d80cb471dd5af80b85e0e3104a1e7b6a58f347cb42a2cfa01",
+    "asset": "column_marble.jpg",
+    "crop_pixels": [
+      80,
+      670,
+      133,
+      790
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6720.jpg",
+    "sha256": "6112cf28139e409d80cb471dd5af80b85e0e3104a1e7b6a58f347cb42a2cfa01",
+    "asset": "seat_oak.jpg",
+    "crop_pixels": [
+      290,
+      1160,
+      340,
+      1224
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "frame_0331.jpg",
+    "sha256": "8f8961341544b58e64636bee05c2aa82db7a273984c06ea1d7eae7d18341402d",
+    "asset": "floor_pale.jpg",
+    "crop_pixels": [
+      479,
+      1030,
+      576,
+      1100
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "frame_0181.jpg",
+    "sha256": "86b7bd00ab61d3a6c1d9d8ecaa3137d6d0d9a6bc101d5b73f9a12062013137ce",
+    "asset": "floor_dark.jpg",
+    "crop_pixels": [
+      60,
+      940,
+      172,
+      1065
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6731.jpg",
+    "sha256": "b5c0d45a07a78fae3054b856d2a35527ccb497655c60c61000600920e1212632",
+    "asset": "stair_granite.jpg",
+    "crop_pixels": [
+      750,
+      691,
+      893,
+      701
+    ],
+    "processing": "Broad illumination removed; periodic boundary correction; no lettering, people or complete photographs"
+  },
+  {
+    "source": "6723.mp4",
+    "sha256": "15e5312c47cbb34420e6293e47a4d833db6c0d1bdecc2484849965a1cb0412bc",
+    "seconds": 13.4299,
+    "frames": 806,
+    "fps": 60,
+    "decoded": "All 806 frames at native temporal resolution, contact sheets 01–13 reviewed; selected frames 1,181,331,481,700,806 used for structural comparison",
+    "observations": [
+      "Wide dark central floor field, pale side lanes, circular access covers and drains",
+      "Alternating cylindrical columns with double-ring steel belts and broad rounded piers with wood seats",
+      "Flat ribbed maroon central soffit, rounded side fascias and longitudinal fluorescent tubes",
+      "White transverse ceiling ribs and two rows of opal globes",
+      "Raised bronze outlined Belarusian letters and interrupted triple metal strips"
+    ]
+  }
+]
