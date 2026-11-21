@@ -63,6 +63,11 @@
       "res://assets/station/photo_reference/route.png.remap",
       "res://assets/station/uruchye_granite.png.import",
       "res://assets/station/uruchye_granite.png.remap",
+      "res://assets/station/uruchye_v68/FONT_LICENSE.txt",
+      "res://assets/station/uruchye_v68/route_arrived.svg.remap",
+      "res://assets/station/uruchye_v68/security.svg.remap",
+      "res://assets/station/uruchye_v68/station_letters.ttf.remap",
+      "res://assets/station/uruchye_v68/upper_exit.svg.remap",
       "res://modules/stations/uruchye/uruchye.tscn",
       "res://scenes/StationBaseStatic.tscn",
       "res://scenes/depot/route_station_v41.tscn",
@@ -70,6 +75,7 @@
       "res://scripts/playable_track_path.gd",
       "res://scripts/station/uruchye_architecture.gd",
       "res://scripts/station/uruchye_platform_equipment.gd",
+      "res://scripts/station/uruchye_tracks_v68.gd",
       "res://scripts/station_base_static.gd"
     ],
     "v106": [

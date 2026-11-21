@@ -80,9 +80,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-bc77e9520cf6fbfa3c0e.pck",
-      "bytes": 563680,
-      "sha256": "bc77e9520cf6fbfa3c0eed50c9785b6b842440c141aa4dd8e5468dbdbf988ade",
+      "file": "uruchye-dde9e6dae1f52232b462.pck",
+      "bytes": 1163616,
+      "sha256": "dde9e6dae1f52232b4624bc08a6763c3187372562e060239347efabe59dc2f1a",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/signage_v63/uruchye_route.svg",
@@ -92,7 +92,11 @@
         "res://assets/station/photo_reference/exit_a.png",
         "res://assets/station/photo_reference/exit_b.png",
         "res://assets/station/photo_reference/no_boarding.png",
-        "res://assets/station/uruchye_granite.png"
+        "res://assets/station/uruchye_granite.png",
+        "res://assets/station/uruchye_v68/route_arrived.svg",
+        "res://assets/station/uruchye_v68/security.svg",
+        "res://assets/station/uruchye_v68/station_letters.ttf",
+        "res://assets/station/uruchye_v68/upper_exit.svg"
       ]
     },
     "v106": {

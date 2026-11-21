@@ -32,9 +32,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-bc77e9520cf6fbfa3c0e.pck",
-      "bytes": 563680,
-      "sha256": "bc77e9520cf6fbfa3c0eed50c9785b6b842440c141aa4dd8e5468dbdbf988ade",
+      "file": "uruchye-dde9e6dae1f52232b462.pck",
+      "bytes": 1163616,
+      "sha256": "dde9e6dae1f52232b4624bc08a6763c3187372562e060239347efabe59dc2f1a",
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/signage_v63/uruchye_route.svg",
@@ -44,7 +44,11 @@
         "res://assets/station/photo_reference/exit_a.png",
         "res://assets/station/photo_reference/exit_b.png",
         "res://assets/station/photo_reference/no_boarding.png",
-        "res://assets/station/uruchye_granite.png"
+        "res://assets/station/uruchye_granite.png",
+        "res://assets/station/uruchye_v68/route_arrived.svg",
+        "res://assets/station/uruchye_v68/security.svg",
+        "res://assets/station/uruchye_v68/station_letters.ttf",
+        "res://assets/station/uruchye_v68/upper_exit.svg"
       ]
     },
     "v106": {
@@ -392,5 +396,19 @@
     "source_commit": "b8c9ddbd7dcaebd4e08a2a175cf4c64b57973e20",
     "changes": "Photo-based projecting cornice bays with bevelled cheeks and framed signs; full-width closed elliptical end walls matching the roof mesh at both stair exits, closed roof thickness and sealed upper stair vestibule walls including the Lenin portrait end; closed two-sided monument shell with all edge vertices relative to the monument centre, eliminating faces stretched toward world z=0",
     "validation": "Mandatory Godot resource import/export and publication only; no scene/game/browser tests"
+  },
+  "uruchye_six_v68": {
+    "source_commit": "a52f1e86345285106d15c1a4923c7a4a8d051bf2",
+    "changes": {
+      "1_route": "No-boarding wall side: station 124 Uruchye leftmost in yellow, 123 to 110 in grey to the right; departure side and hanging boards retained",
+      "2_exits": "Both paired stairways open into visible upper landings and enclosed lit concourses, gate rows, wide gates, security booths and upper exit doors",
+      "3_enclosure": "Solid stair construction, complete concourse plinths, side and back walls; low ceilings and lamp pieces stop before the ascending flights, end-facade openings connect upper floors",
+      "4_tracks": "Native rail foot/web/head profiles at unchanged y=0 rail datum and 1.615m gauge, dark raised grainy sleepers, bearing plates, clips, bolts, ballast and covered contact rails on ceramic insulators on both tracks; original simple running geometry hidden, original plain contact pieces replaced without touching clocks",
+      "5_door": "Detached metal poles before both service doors removed; central round column nearest north service door omitted entirely",
+      "6_names": "Native extruded silver metal station letters with real side faces and raised blue water emblem: Uruchye in Russian on one wall and Uruchcha in Belarusian on the other"
+    },
+    "references": "Owner photographs 6695-6709; Borisovsky Trakt 6714-6720 used only as comparative navigation/stair references",
+    "limitations": "Upper gate/security areas are inferred visual extensions requested by the owner; no measured vestibule survey or detailed upper-room photos. Physical Cyrillic letters use a bundled font, so the stylised original letter contours are approximated. No gameplay gate or security simulation.",
+    "validation": "Mandatory native Godot 4.3 resource import/mipmaps/PCK packaging and publication only; no scene, game, browser, visual or performance tests"
   }
 }
