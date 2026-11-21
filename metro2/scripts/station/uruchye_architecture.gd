@@ -163,6 +163,8 @@ func _wall_title(side: float,face: float,z: float) -> void:
         mesh.material=dark if layer==0 else steel
         var node := MeshInstance3D.new();node.mesh=mesh;node.position.z=0.015 if layer==0 else 0.042
         node.scale=Vector3(4.8/maxf(nominal,0.01)*(1.012 if layer==0 else 1.0),1.012 if layer==0 else 1.0,1.0);root.add_child(node)
+    if side<0.0 and is_equal_approx(z,45.0):
+        _developer_signature(root,font,nominal)
     var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
     var crest := _mat(Color("#185790"),0.34,0.36)
     # Upper arch and lower wave of the blue emblem remain visible around the silver name.
@@ -176,6 +178,27 @@ func _wall_title(side: float,face: float,z: float) -> void:
             var c: Vector3=b+Vector3(0,0.11,0);var d: Vector3=a+Vector3(0,0.11,0)
             for p in [a,c,b,a,d,c]:st.set_normal(Vector3.BACK);st.add_vertex(p)
     var emblem := MeshInstance3D.new();emblem.mesh=st.commit();emblem.material_override=crest;root.add_child(emblem)
+
+func _developer_signature(root: Node3D,font: Font,nominal: float) -> void:
+    # Tiny inscription along the outer sloping side of the first У, not its front.
+    var glyph := TextMesh.new();glyph.font=font;glyph.text="У";glyph.font_size=96;glyph.pixel_size=0.008
+    glyph.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+    var bounds := glyph.get_aabb()
+    var sx: float=4.8/maxf(nominal,0.01)
+    var tangent := Vector3(502.0*96.0*0.008/2048.0*sx,1312.0*96.0*0.008/2048.0,0).normalized()
+    var normal := Vector3(tangent.y,-tangent.x,0)
+    var ink := StandardMaterial3D.new();ink.albedo_color=Color("#32b95b")
+    ink.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+    var text := TextMesh.new();text.font=font;text.text="Разраб. Захарка"
+    text.font_size=64;text.pixel_size=0.00022;text.depth=0.00015
+    text.vertical_alignment=VERTICAL_ALIGNMENT_CENTER;text.material=ink
+    var mark := MeshInstance3D.new();mark.name="HiddenDeveloperZakharka";mark.mesh=text
+    # Bundled У outline: midpoint of its outer edge, between (590,181) and (1092,1493).
+    mark.position=Vector3((841.0*96.0*0.008/2048.0-nominal*0.5)*sx,bounds.position.y+bounds.size.y*837.0/1493.0,0.070)+normal*0.001
+    mark.basis=Basis(tangent,Vector3.BACK,normal)
+    mark.visibility_range_end=2.0
+    mark.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    root.add_child(mark)
 
 func _ornament(side: float,face: float,z: float) -> void:
     var x: float=face-side*0.07
