@@ -8,6 +8,12 @@ const FY := 1.1805
 const Z0 := -12.888
 const Z1 := 92.112
 const MID := 39.612
+# +X edge: +Z west/Vostok/centre (route 2). -X edge: -Z east/Uruchye (route 1).
+# One binding supplies both wall maps and every face of the hanging boards.
+const PLATFORM_ROUTES := {
+    -1: {"wall": "wall_toward_uruchye.svg", "board": "direction_1.svg"},
+    1: {"wall": "wall_toward_malinovka.svg", "board": "direction_2.svg"}
+}
 var floor_dark: StandardMaterial3D
 var stairs: StandardMaterial3D
 var bronze: StandardMaterial3D
@@ -193,10 +199,12 @@ func _walls() -> void:
         for z in [12.0,66.0]:
             _wall_name(side,x,float(z))
         for z in [35.0,82.0]:
-            var asset := "wall_toward_uruchye.svg" if side>0.0 else "wall_toward_malinovka.svg"
-            _picture("MoscowLineWallDiagram",asset,Vector2(5.35,1.12),Vector3(x-side*0.145,2.73,float(z)),-side*PI/2.0)
-        for z in [-7.5,39.0,87.0]:
+            var asset: String = PLATFORM_ROUTES[int(side)]["wall"]
+            _picture("MoscowLineWallDiagram",asset,Vector2(5.35,0.973),Vector3(x-side*0.145,2.73,float(z)),-side*PI/2.0,true)
+        # Leave clear breaks around the two wall diagrams.
+        for z in [-7.5,44.0]:
             _wall_ornament(side,x,float(z),8.3)
+        _wall_ornament(side,x,88.7,6.5)
 
 func _wall_name(side: float,x: float,z: float) -> void:
     var root := Node3D.new();root.name="RaisedBelarusianStationName"
@@ -214,14 +222,13 @@ func _wall_name(side: float,x: float,z: float) -> void:
     _wall_ornament(side,x,z,9.7)
 
 func _wall_ornament(side: float,x: float,z: float,length: float) -> void:
-    # Three projecting blades, staggered ends and an inclined rising return.
+    # Photo 6726: straight, parallel polished strips; no stagger or bent-up tips.
     var face := x-side*0.15
     for j in range(3):
         var y := 2.43+float(j)*0.047
-        var a := Vector3(face-side*float(j)*0.016,y,z-length*0.5+float(j)*0.14)
-        var b := Vector3(a.x,y,z+length*0.5-float(j)*0.12)
+        var a := Vector3(face,y,z-length*0.5)
+        var b := Vector3(face,y,z+length*0.5)
         _beam("InterruptedMetalWallBlade",a,b,0.028,0.023,steel)
-        _beam("InclinedBladeEnd",b,b+Vector3(0,0.19,0.95),0.028,0.023,steel)
 
 func _profile(label: String, profile: Array[Vector2], z0: float,z1: float,mat: Material) -> void:
     var key := label+str(mat.get_instance_id())
@@ -335,9 +342,8 @@ func _supports() -> void:
     for z in [4.0,34.0,64.0]:
         for side in [-1.0,1.0]:
             var x: float = CX+side*2.55
-            var file := "direction_1.svg" if side>0.0 else "direction_2.svg"
-            var ratio := 5.0 if side>0.0 else 4.15
-            var size := Vector2(3.45,3.45/ratio)
+            var file: String = PLATFORM_ROUTES[int(side)]["board"]
+            var size := Vector2(3.45,0.712)
             _b("DirectionBoardSteelCase",Vector3(size.x+0.08,size.y+0.08,0.075),Vector3(x,4.30,float(z)),steel)
             for face in [-1.0,1.0]:
                 _picture("BilingualDirectionBoard",file,size,Vector3(x,4.30,float(z)+face*0.043),0.0 if face>0.0 else PI)
@@ -365,9 +371,8 @@ func _picture(label: String,file: String,size: Vector2,p: Vector3,yaw: float,tra
     var mat := _material(Color.WHITE,0.0,0.8)
     mat.albedo_texture = load((ART if file.ends_with(".svg") else DIR)+file)
     mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     if transparent: mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-    else:
-        mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     var quad := QuadMesh.new()
     quad.size = size
     var node := _mesh(label,quad,p,mat)
