@@ -1,0 +1,25 @@
+{
+  "source_archive": "metro_audio_review_sorted.zip",
+  "source_wav_count": 147,
+  "source_groups": {
+    "sharedassets0": 7,
+    "sharedassets1": 101,
+    "sharedassets2": 30,
+    "sharedassets3": 9
+  },
+  "preliminary_groups_unverified": {
+    "Длинные эффекты / возможная речь": 59,
+    "Средние эффекты / возможная речь": 41,
+    "Короткие эффекты / сигналы": 35,
+    "Длительные записи / фон / объявления": 12
+  },
+  "total_duration_seconds_approx": 1014,
+  "unique_source_sha256_count": 147,
+  "previous_tz54_report_only": {
+    "identified": 114,
+    "unidentified": 33,
+    "encoded_assets": 114
+  },
+  "recovery_status": "Individual semantic mappings, transcripts and Ogg assets are not recovered. Preliminary groups are not sound identities.",
+  "next_step": "Re-identify per source WAV; commit per-file mapping before any bulk encoding."
+}
