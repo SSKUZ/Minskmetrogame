@@ -18,6 +18,7 @@ var niche_plaster: ShaderMaterial
 var soffit_plaster: ShaderMaterial
 var tunnel_concrete: ShaderMaterial
 var cage_metal: Material
+var _mineral_profiles: Dictionary={}
 
 func _ready() -> void:
     super._ready()
@@ -29,10 +30,10 @@ func _ready() -> void:
     glow.albedo_color=Color("#fffdf7");glow.emission=Color(1.0,0.99,0.95)
     glow.emission_energy_multiplier=2.25
     yellow=_material(Color("#d9b24b"),0.0,0.64)
-    dark_stone=_photo_stone("wall_dark_granite.jpg",Color(0.79,0.81,0.79),Vector2(0.83,0.43),0.39)
+    dark_stone=_mineral_finish("wall_lower")
     dark_stone.set_shader_parameter("staggered",true)
-    stair_wall=_photo_stone("stair_side_marble.jpg",Color(0.97,0.97,0.92),Vector2(0.9,0.6),0.35)
-    stair_stone=_photo_stone("stair_tread.jpg",Color(0.96,0.95,0.88),Vector2(1.4,0.6),0.51)
+    stair_wall=_mineral_finish("stair_wall")
+    stair_stone=_mineral_finish("stair_tread")
     plaster=_plaster(Color(0.96,0.96,0.93))
     vault_field=_plaster(Color(0.87,0.88,0.86))
     niche_plaster=_plaster(Color(0.77,0.78,0.75))
@@ -88,7 +89,7 @@ ALBEDO=c*(0.95+v*0.10)-vec3(joint*0.027);ROUGHNESS=0.35+v*0.09;SPECULAR=0.63;}
     (get_node("IslandPlatform") as MeshInstance3D).material_override=mat
 
 func _edges() -> void:
-    var edge := _photo_stone("stair_tread.jpg",Color(0.89,0.89,0.85),Vector2(0.60,1.20),0.48)
+    var edge := _mineral_finish("platform_edge")
     var faded := _material(Color("#c7b49b"),0.0,0.76)
     for side in [-1.0,1.0]:
         box(Vector3(0.43,0.014,105),Vector3(CX+side*4.785,FY+0.009,MID),edge)
@@ -475,6 +476,7 @@ func _stairs(direction: float,start: float) -> void:
     var back: float=finish+direction*3.7
     box(Vector3(width+0.4,2.55,0.20),Vector3(CX,top_y+1.275,back),stair_wall)
     _landing_equipment(direction,finish,top_y)
+    _stair_lighting(direction,start)
 
 
 func _build_chandelier() -> void:
@@ -785,3 +787,36 @@ func _lamp_quad(st: SurfaceTool,a: Vector3,b: Vector3,c: Vector3,d: Vector3,radi
         st.set_uv([Vector2.ZERO,Vector2.RIGHT,Vector2.ONE,Vector2.DOWN][index])
         st.set_uv2(Vector2(point.x/2.50+0.5,point.z/2.50+0.5) if radial else Vector2(point.x/0.14+0.5,point.z/0.094+0.5))
         st.add_vertex(point)
+
+
+func _mineral_finish(finish_id: String) -> ShaderMaterial:
+    # Colours and microtexture are explicit portable data; the narrow tread crop is unused.
+    if _mineral_profiles.is_empty():
+        _mineral_profiles=JSON.parse_string(FileAccess.get_file_as_string("res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json"))
+    var profile: Dictionary=_mineral_profiles[finish_id]
+    var mat := ShaderMaterial.new()
+    mat.shader=preload("res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader")
+    mat.resource_name=finish_id
+    mat.set_shader_parameter("base_colour",Color(profile["base_colour"]))
+    for key in ["photo_detail_amount","grain_contrast","veining_amount","surface_roughness","joints","staggered"]:
+        mat.set_shader_parameter(key,profile[key])
+    mat.set_shader_parameter("slab",Vector2(profile["slab_m"][0],profile["slab_m"][1]))
+    mat.set_shader_parameter("detail_tex",load(ART+profile["detail_texture"]))
+    return mat
+
+func _stair_lighting(direction: float,start: float) -> void:
+    var label: String="North" if direction<0.0 else "South"
+    # Broad local fill keeps the neutral treads legible below the entrance soffit.
+    var fill := OmniLight3D.new();fill.name=label+"StairFill"
+    fill.position=Vector3(CX,5.40,start+direction*3.20)
+    fill.light_color=Color(1.0,0.985,0.96);fill.light_energy=0.80
+    fill.omni_range=7.8;fill.omni_attenuation=0.80;fill.shadow_enabled=false
+    add_child(fill)
+    # A ceiling source casts the actual handrail and pier shadows onto the pale marble.
+    var key := SpotLight3D.new();key.name=label+"StairShadowLight"
+    key.position=Vector3(CX,7.34,start+direction*4.0)
+    key.rotation_degrees.x=-90.0
+    key.light_color=Color(1.0,0.985,0.96);key.light_energy=0.95
+    key.spot_range=11.0;key.spot_angle=72.0;key.spot_attenuation=0.70
+    key.shadow_enabled=true;key.shadow_bias=0.025;key.shadow_normal_bias=0.12
+    add_child(key)

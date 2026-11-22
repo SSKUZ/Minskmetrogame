@@ -78,31 +78,15 @@
       "source_class": "ShaderMaterial",
       "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
       "alpha_mode": "opaque",
-      "texture_bindings": {
-        "albedo": "wall_dark_granite"
-      },
       "shader": {
-        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
-        "parameters": {
-          "tint": [
-            0.79,
-            0.81,
-            0.79,
-            1
-          ],
-          "slab": [
-            0.83,
-            0.43
-          ],
-          "roughness": 0.39,
-          "staggered": true,
-          "joints": true
-        },
+        "path": "res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader",
         "adaptation": "required"
       },
       "extensions": {
-        "projection": "world planar by dominant normal",
-        "source_constructor": "_photo_stone"
+        "source_constructor": "_mineral_finish",
+        "profile_id": "wall_lower",
+        "parameter_source": "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
+        "projection": "Dominant normalized world normal; metre-based planar coordinates. Explicit base colour; photo contributes only bounded microdetail."
       }
     },
     {
@@ -110,30 +94,15 @@
       "source_class": "ShaderMaterial",
       "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
       "alpha_mode": "opaque",
-      "texture_bindings": {
-        "albedo": "stair_side_marble"
-      },
       "shader": {
-        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
-        "parameters": {
-          "tint": [
-            0.97,
-            0.97,
-            0.92,
-            1
-          ],
-          "slab": [
-            0.9,
-            0.6
-          ],
-          "roughness": 0.35,
-          "joints": true
-        },
+        "path": "res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader",
         "adaptation": "required"
       },
       "extensions": {
-        "projection": "world planar by dominant normal",
-        "source_constructor": "_photo_stone"
+        "source_constructor": "_mineral_finish",
+        "profile_id": "stair_wall",
+        "parameter_source": "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
+        "projection": "Dominant normalized world normal; metre-based planar coordinates. Explicit base colour; photo contributes only bounded microdetail."
       }
     },
     {
@@ -141,30 +110,15 @@
       "source_class": "ShaderMaterial",
       "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
       "alpha_mode": "opaque",
-      "texture_bindings": {
-        "albedo": "stair_tread"
-      },
       "shader": {
-        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
-        "parameters": {
-          "tint": [
-            0.96,
-            0.95,
-            0.88,
-            1
-          ],
-          "slab": [
-            1.4,
-            0.6
-          ],
-          "roughness": 0.51,
-          "joints": true
-        },
+        "path": "res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader",
         "adaptation": "required"
       },
       "extensions": {
-        "projection": "world planar by dominant normal",
-        "source_constructor": "_photo_stone"
+        "source_constructor": "_mineral_finish",
+        "profile_id": "stair_tread",
+        "parameter_source": "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
+        "projection": "Dominant normalized world normal; metre-based planar coordinates. Explicit base colour; photo contributes only bounded microdetail."
       }
     },
     {
@@ -493,6 +447,22 @@
       "alpha_mode": "opaque",
       "extensions": {
         "source_constructor": "_ready, glow material"
+      }
+    },
+    {
+      "id": "platform_coping",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader",
+        "adaptation": "required"
+      },
+      "extensions": {
+        "source_constructor": "_mineral_finish",
+        "profile_id": "platform_edge",
+        "parameter_source": "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
+        "projection": "Dominant normalized world normal; metre-based planar coordinates."
       }
     }
   ],
@@ -1635,6 +1605,13 @@
         "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
         "format": "GDScript",
         "notes": "_hall_lighting, _landing_equipment, _controller_booth. Light settings remain available in source."
+      },
+      {
+        "id": "neutral_mineral_finishes",
+        "purpose": "other",
+        "path": "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
+        "format": "JSON",
+        "notes": "Authoritative palette, roughness, fine grain, subtle veining and physical slab sizes for stairs, marble sides, brown lower wall and light platform coping. Old photo files remain available, but narrow tread crop is no longer used by these surfaces."
       }
     ]
   },
@@ -1675,6 +1652,10 @@
       "infrastructure_base": "61c208bfa826e310d7f4b73764752f5e48788f28",
       "inherited_owner_photo_module": "b7a38f1a0ab71c2ceb12c3fa2b3ccb38c8044dfa"
     },
-    "surface_bindings": "Resolve actual surface materials and MultiMesh transforms using the scene adapter; do not flatten or remesh here."
+    "surface_bindings": "Resolve actual surface materials and MultiMesh transforms using the scene adapter; do not flatten or remesh here.",
+    "material_revision": {
+      "source_commit": "b03ff71a24ca271aa58b52ed477d06453efbd2fe",
+      "request": "Owner screenshots 8602/8604/8606: lighter grey stairs, pale marble sides, brown lower walls, light coping; preserve geometry and Station Base datums."
+    }
   }
 }
