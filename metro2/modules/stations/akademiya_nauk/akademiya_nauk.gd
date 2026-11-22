@@ -1,6 +1,5 @@
 extends "res://modules/stations/akademiya_nauk/station_builder.gd"
 ## Academy of Sciences V62: owner photos 7744–7770 and full video 7761.
-const LAYOUT := preload("res://modules/stations/akademiya_nauk/station_layout.gd")
 const ART := "res://modules/stations/akademiya_nauk/art/"
 const NORTH := -2.80
 const SOUTH := 82.024
@@ -19,8 +18,7 @@ func _ready() -> void:
     super._ready()
     begin_station()
     white=_photo("ceiling_paint.jpg",Vector2(1.0,1.0),0.90)
-    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.62
-    white.albedo_color=Color(0.93,0.925,0.90)
+    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.16
     wall_stone=_photo("wall_marble.jpg",Vector2(1.20,0.48),0.53)
     granite=_photo("plinth_granite.jpg",Vector2(1.20,0.40),0.50)
     stair_stone=_photo("floor_grey.jpg",Vector2(0.60,0.60),0.72)
@@ -67,8 +65,7 @@ func _floor() -> void:
     (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_stone
     # Native stone slabs: grey field, black transverse bands, narrow cream inlay.
     var coping := _photo("floor_grey.jpg",Vector2(0.60,0.60),0.70)
-    coping.albedo_color=Color(0.99,0.98,0.94)
-    coping.normal_enabled=true;coping.normal_texture=load(ART+"ceiling_normal.png");coping.normal_scale=0.28
+    coping.albedo_color=Color(0.94,0.94,0.90)
     var pale := _material(Color("#d6d3c2"),0.0,0.51)
     var variants: Array[StandardMaterial3D]=[]
     for i in range(5):
@@ -87,12 +84,7 @@ func _floor() -> void:
     for side in [-1.0,1.0]:
         box(Vector3(0.16,0.012,105),Vector3(CX+side*3.03,FY+0.014,MID),floor_dark)
         box(Vector3(0.026,0.014,105),Vector3(CX+side*3.16,FY+0.015,MID),pale)
-        for i in range(88):
-            var a: float=ZA+float(i)*1.20
-            var b: float=minf(ZB,a+1.20)
-            var x: float=CX+side*4.77
-            var y: float=FY+0.004
-            extrusion(PackedVector2Array([Vector2(x-0.23,y),Vector2(x+0.23,y),Vector2(x+0.23,y+0.014),Vector2(x+0.216,y+0.028),Vector2(x-0.216,y+0.028),Vector2(x-0.23,y+0.014)]),a+0.002,b-0.002,coping)
+        box(Vector3(0.46,0.014,105),Vector3(CX+side*4.77,FY+0.010,MID),coping)
         box(Vector3(0.19,0.014,105),Vector3(CX+side*4.42,FY+0.018,MID),yellow)
         for i in range(1312):
             var z: float=ZA+0.04+float(i)*0.08
@@ -130,9 +122,7 @@ func _walls() -> void:
             if j%2==0:picture("route_track1.svg" if side>0.0 else "route_track2.svg",Vector2(4.6,0.92),Vector3(x-side*0.20,2.55,z),-side*PI/2.0,true)
 
 func _name(value: String,p: Vector3,yaw: float) -> void:
-    var font := FontVariation.new()
-    font.base_font=load(ART+"station_letters.ttf")
-    font.variation_embolden=0.7
+    var font: Font=load(ART+"station_letters.ttf")
     var frame := Node3D.new();frame.name="OutlinedMetalStationLetters";frame.position=p;frame.rotation.y=yaw;add_child(frame)
     var size := 0.0048
     var total: float=float(maxi(value.length()-1,0))*0.035
@@ -144,7 +134,7 @@ func _name(value: String,p: Vector3,yaw: float) -> void:
             var mesh := TextMesh.new();mesh.font=font;mesh.text=letter;mesh.font_size=72;mesh.pixel_size=size;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
             mesh.depth=0.033 if face==0 else 0.004;mesh.material=black if face==0 else lettering
             var node := MeshInstance3D.new();node.mesh=mesh;node.position=Vector3(cursor+advance*0.5,0,0.0 if face==0 else 0.019)
-            if face==1:node.scale=Vector3(0.97,0.97,1.0)
+            if face==1:node.scale=Vector3(0.84,0.84,1.0)
             frame.add_child(node)
         cursor+=advance+0.035
 
@@ -153,10 +143,8 @@ func _columns_and_girders() -> void:
     var capital := FY+2.70
     for side in [-1.0,1.0]:
         var x: float=CX+side*COL_X
-        var first: float=-1.50+float(LAYOUT.FIRST_COLUMN)*PITCH-0.43
-        var last: float=-1.50+float(LAYOUT.LAST_COLUMN)*PITCH+0.43
-        box(Vector3(0.86,0.53,last-first),Vector3(x,5.385,(first+last)*0.5),white)
-        for i in range(LAYOUT.FIRST_COLUMN,LAYOUT.LAST_COLUMN+1):
+        box(Vector3(0.86,0.53,86.6),Vector3(x,5.385,39.7),white)
+        for i in range(1,19):
             var z: float=-1.50+float(i)*PITCH
             # Solid opaque core; four closed stone faces, no transparent column shader.
             box(Vector3(0.84,capital-bottom,0.84),Vector3(x,(capital+bottom)*0.5,z),column_stones[i%4])
@@ -175,7 +163,7 @@ func _columns_and_girders() -> void:
                     box(Vector3(0.027,3.84,0.018),Vector3(x+float(dx),FY+1.98,z+face*0.43),metal)
                     box(Vector3(0.018,3.84,0.027),Vector3(x+face*0.43,FY+1.98,z+float(dx)),metal)
             for h in [FY+0.91,FY+1.78]:box(Vector3(0.842,0.002,0.842),Vector3(x,float(h),z),_material(Color("#656962"),0.0,0.6))
-            if i<LAYOUT.LAST_COLUMN:
+            if i<18:
                 _haunch(x,z+0.42,1.0)
                 _haunch(x,z+PITCH-0.42,-1.0)
                 var center: float=z+PITCH*0.5
@@ -198,29 +186,24 @@ func _haunch(x: float,z: float,direction: float) -> void:
         quad(Vector3(x-0.43,a.y,a.x),Vector3(x+0.43,a.y,a.x),Vector3(x+0.43,b.y,b.x),Vector3(x-0.43,b.y,b.x),white)
 
 func _ceilings() -> void:
-    box(Vector3(5.12,0.12,SOUTH-NORTH-0.40),Vector3(CX,6.04,MID),white)
+    box(Vector3(5.12,0.12,86.8),Vector3(CX,6.04,39.7),white)
     for side in [-1.0,1.0]:box(Vector3(6.43,0.12,105),Vector3(CX+side*5.73,5.73,MID),white)
     # Closed upstands join the raised centre roof to both longitudinal girders.
     for side in [-1.0,1.0]:
-        box(Vector3(0.22,0.58,SOUTH-NORTH-0.40),Vector3(CX+side*2.55,5.83,MID),white)
+        box(Vector3(0.22,0.58,86.8),Vector3(CX+side*2.55,5.83,39.7),white)
     for i in range(73):
         var z: float=ZA+0.35+float(i)*(PITCH/3.0)
-        if z>NORTH+0.25 and z<SOUTH-0.25:
-            box(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),white)
-            # Real projecting lips cast shadows onto the plaster; no baked dark stripes.
-            box(Vector3(4.39,0.026,0.21),Vector3(CX,5.64,z),white)
+        if z>NORTH and z<SOUTH:box(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),white)
         for side in [-1.0,1.0]:box(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),white)
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.45;child.light_energy=1.05;child.light_color=Color(1.0,0.98,0.94)
+            child.position.y=5.45;child.light_energy=1.65;child.light_color=Color(1.0,0.98,0.94)
     for z in [7.0,33.0,61.0,77.0]:
-        var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.46;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
-    for z in [14.0,40.0,66.0]:
-        var light := SpotLight3D.new()
-        light.name="CeilingReliefLight"
-        light.position=Vector3(CX,5.30,float(z));light.rotation.x=PI/2.0
-        light.light_energy=0.85;light.spot_range=8.5;light.spot_angle=76.0
-        light.light_color=Color(1.0,0.98,0.93);light.shadow_enabled=true;add_child(light)
+        var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.70;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
+    for z in [15.0,60.0]:
+        var light := OmniLight3D.new()
+        light.position=Vector3(CX,5.45,float(z));light.light_energy=0.50;light.omni_range=11.0
+        light.light_color=Color(1.0,0.98,0.94);light.shadow_enabled=true;add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
     var width := 7.1
@@ -236,7 +219,7 @@ func _stairs(direction: float,start: float) -> void:
     box(Vector3(width,0.18,landing),Vector3(CX,FY+20*rise-0.09,start+direction*6.30),stair_stone)
     var finish: float=start+direction*(35*run+landing+run*0.5)
     box(Vector3(width,0.20,3.8),Vector3(CX,top-0.10,finish+direction*1.8),floor_stone)
-    _exit_hall(direction,start,width,top,LAYOUT.HALL_LENGTH)
+    _exit_hall(direction,start,width,top,14.8)
     for side in [-1.0,1.0]:
         var x: float=CX+side*(width*0.5-0.045)
         var points := [Vector2(-0.30,0),Vector2(5.85,20*rise),Vector2(6.75,20*rise),Vector2(11.55,36*rise)]
@@ -244,7 +227,7 @@ func _stairs(direction: float,start: float) -> void:
             var a: Vector2=points[i];var b: Vector2=points[i+1]
             rod(Vector3(x,FY+0.88+a.y,start+direction*a.x),Vector3(x,FY+0.88+b.y,start+direction*b.x),0.027,metal)
         rod(Vector3(x,FY+0.88,start),Vector3(x,FY+0.67,start-direction*0.20),0.027,metal)
-    board("exit_stairs_clear.svg",Vector3(CX,4.72,start-direction*0.45),Vector2(5.75,0.84))
+    board("exit_stairs.jpg",Vector3(CX,4.72,start-direction*0.45),Vector2(5.75,0.84))
     foot_grille(start-direction*0.7,7.35)
 
 func _escalators(start: float) -> void:
@@ -255,10 +238,7 @@ func _escalators(start: float) -> void:
     var tan := _material(Color("#9a8060"),0.25,0.38)
     var rubber := _material(Color("#20241f"),0.05,0.60)
     var stepmat := _material(Color("#5d625b"),0.45,0.50)
-    _exit_hall(1.0,start,width,FY+rise,LAYOUT.HALL_LENGTH)
-    # Solid full-depth aprons fill both inter-escalator spaces and both wall gaps.
-    for gap in [Vector2(-3.56,-2.57),Vector2(-1.53,-0.52),Vector2(0.52,1.53),Vector2(2.57,3.56)]:
-        _ramp_apron(CX+gap.x,CX+gap.y,start,tan)
+    _exit_hall(1.0,start,width,FY+rise,14.7)
     for lane in range(3):
         var x: float=CX+(float(lane)-1.0)*2.05
         for i in range(49):
@@ -285,7 +265,7 @@ func _escalators(start: float) -> void:
         indicator.emission_enabled=true;indicator.emission=indicator.albedo_color
         box(Vector3(0.08,0.10,0.02),Vector3(x-0.69,FY+0.58,start-0.245),indicator)
     box(Vector3(width,0.22,4.2),Vector3(CX,FY+rise-0.11,start+12.5),floor_stone)
-    board("exit_escalators_clear.svg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
+    board("exit_escalators.jpg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
     foot_grille(start-0.46,7.25)
 
 func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
@@ -302,7 +282,8 @@ func _exit_hall(direction: float,start: float,width: float,top: float,length: fl
         var z: float=start+direction*float(i)*1.4
         box(Vector3(width+0.1,0.20,0.16),Vector3(CX,7.75,z),white)
         if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,7.62,z),glow)
-    _upper_landing(direction,start,width,top,length)
+    # Upper landing is deliberately limited to the photographed approach.
+    box(Vector3(width+0.55,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
 
 func _signs() -> void:
     # Clear opening = 4.35 - .84 = 3.51 m; framed signs = 3.23 m.
@@ -316,20 +297,9 @@ func _signs() -> void:
             for dz in [-1.40,1.40]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,5.12,z+float(dz)),0.022,metal)
 
 func _bench(p: Vector3) -> void:
-    # Backless timber seat with eased ends and rounded front/back slats, as in 7752.
-    var oak := wood_material()
-    for i in range(6):
-        var x: float=-0.255+float(i)*0.102
-        var h: float=0.485-0.045*pow(absf(x)/0.255,3.0)
-        box(Vector3(0.094,0.052,2.04),p+Vector3(x,h,0),oak)
-        for end in [-1.0,1.0]:
-            sphere(Vector3(0.094,0.052,0.12),p+Vector3(x,h,end*1.02),oak)
-    for z in [-0.74,0.74]:
-        box(Vector3(0.49,0.045,0.09),p+Vector3(0,0.409,float(z)),metal)
-        for x in [-0.19,0.19]:
-            rod(p+Vector3(float(x)*1.25,0.035,float(z)),p+Vector3(float(x),0.409,float(z)),0.025,metal)
-            box(Vector3(0.11,0.022,0.16),p+Vector3(float(x)*1.25,0.018,float(z)),black)
-    rod(p+Vector3(0,0.20,-0.74),p+Vector3(0,0.20,0.74),0.020,metal)
+    var timbermat := _material(Color("#aa8956"),0.0,0.47)
+    for i in range(5):box(Vector3(0.10,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
+    for dz in [-0.78,0.78]:box(Vector3(0.45,0.43,0.10),p+Vector3(0,0.23,float(dz)),black)
 
 func _television(z: float,event: bool) -> void:
     var p := Vector3(CX,4.65,z)
@@ -352,7 +322,7 @@ func _track_details() -> void:
     var lining := _photo("ceiling_paint.jpg",Vector2(1.4,1.0),0.95)
     lining.albedo_color=Color(0.82,0.81,0.77)
     for direction in [-1.0,1.0]:
-        var end: float=_portal_z(direction)
+        var end: float=NORTH if direction<0.0 else SOUTH
         # Solid end masonry above the track openings; no floating roof edge.
         for side in [-1.0,1.0]:
             var x: float=CX+side*6.362
@@ -374,18 +344,15 @@ func _portal_equipment() -> void:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
         if node is Node3D and "Portal" in str(node.name):
-            var leading: bool=str(node.name)=="Track1Portal1Clock" or str(node.name)=="Track2Portal2Clock"
-            node.visible=leading
             node.position.y=4.68
-            node.position.z=_portal_z(-1.0)+0.30 if "Portal1Clock" in str(node.name) else _portal_z(1.0)-0.30
+            node.position.z=NORTH+0.30 if "Portal1Clock" in str(node.name) else SOUTH-0.30
     for direction in [-1.0,1.0]:
-        var end: float=_portal_z(direction)
+        var end: float=NORTH if direction<0.0 else SOUTH
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
-            if side!=-direction:continue
-            if side==-direction:
-                var root := Node3D.new();root.name="Track1DriverMirror" if side>0.0 else "Track2DriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*0.85);root.rotation.y=yaw-side*0.12;add_child(root)
+            if side==direction:
+                var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
                 var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
                 var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
                 var pts: Array[Vector3]=[]
@@ -414,59 +381,3 @@ func _camera_box(p: Vector3,yaw: float) -> void:
     sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
     rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
 
-
-func _portal_z(direction: float) -> float:
-    return NORTH+LAYOUT.PORTAL_INSET if direction<0.0 else SOUTH-LAYOUT.PORTAL_INSET
-
-func _ramp_apron(x0: float,x1: float,start: float,mat: Material) -> void:
-    var points := [Vector2(-0.12,0.0),Vector2(1.20,0.0),Vector2(10.40,4.65),Vector2(12.24,4.65)]
-    for i in range(points.size()-1):
-        var a: Vector2=points[i];var b: Vector2=points[i+1]
-        var z0: float=start+a.x;var z1: float=start+b.x
-        var y0: float=FY+a.y+0.70;var y1: float=FY+b.y+0.70
-        quad(Vector3(x0,FY-0.05,z0),Vector3(x1,FY-0.05,z0),Vector3(x1,FY-0.05,z1),Vector3(x0,FY-0.05,z1),mat,Vector3.DOWN)
-        quad(Vector3(x0,y0,z0),Vector3(x0,y1,z1),Vector3(x1,y1,z1),Vector3(x1,y0,z0),mat,Vector3.UP)
-        for x in [x0,x1]:
-            quad(Vector3(float(x),FY-0.05,z0),Vector3(float(x),FY-0.05,z1),Vector3(float(x),y1,z1),Vector3(float(x),y0,z0),mat)
-        quad(Vector3(x0,FY-0.05,z0),Vector3(x0,y0,z0),Vector3(x1,y0,z0),Vector3(x1,FY-0.05,z0),mat,Vector3.FORWARD)
-        quad(Vector3(x0,FY-0.05,z1),Vector3(x1,FY-0.05,z1),Vector3(x1,y1,z1),Vector3(x0,y1,z1),mat,Vector3.BACK)
-
-func _upper_landing(direction: float,start: float,width: float,top: float,length: float) -> void:
-    var root := Node3D.new();root.name="NorthVestibule" if direction<0.0 else "SouthVestibule"
-    root.position=Vector3(CX,top,start);root.rotation.y=0.0 if direction>0.0 else PI;add_child(root)
-    # The landings join the existing upper stair/escalator treads; closed floor, walls and end wall.
-    var a := 10.40 if direction>0.0 else 11.40
-    box(Vector3(width,top-FY+0.05,length-a),Vector3(CX,(top+FY)*0.5-0.025,start+direction*(a+length)*0.5),floor_stone)
-    box(Vector3(width+0.55,8.05-top,0.24),Vector3(CX,(8.05+top)*0.5,start+direction*(length-0.12)),wall_stone)
-    var stainless := _material(Color("#9fa5a3"),0.80,0.32)
-    var darkglass := _material(Color("#344b50"),0.25,0.20)
-    for i in range(4):
-        var gate := Node3D.new();gate.name="Turnstile%02d" % (i+1);gate.position=Vector3(-2.65+float(i)*1.10,0,LAYOUT.GATE_DISTANCE);root.add_child(gate)
-        _local_box(gate,Vector3(0.23,0.94,1.05),Vector3(0,0.47,0),stainless)
-        _local_box(gate,Vector3(0.25,0.055,1.08),Vector3(0,0.965,0),metal)
-        _local_box(gate,Vector3(0.16,0.025,0.22),Vector3(0,1.005,-0.30),darkglass)
-        _local_box(gate,Vector3(0.15,0.35,0.012),Vector3(0,0.67,-0.532),black)
-        for angle in [0.0,TAU/3.0,2.0*TAU/3.0]:
-            _local_rod(gate,Vector3(0.14,0.65,0),Vector3(0.75,0.65+0.27*sin(float(angle)),0.27*cos(float(angle))),0.018,stainless)
-        _local_box(gate,Vector3(0.055,0.06,0.015),Vector3(0,0.83,-0.548),_material(Color("#33975e"),0.0,0.55))
-    var booth := Node3D.new();booth.name="ControllerBooth";booth.position=Vector3(2.55,0,LAYOUT.GATE_DISTANCE+0.45);root.add_child(booth)
-    _local_box(booth,Vector3(1.42,0.77,1.60),Vector3(0,0.385,0),wall_stone)
-    _local_box(booth,Vector3(1.48,0.10,1.66),Vector3(0,1.86,0),stainless)
-    var glass := _material(Color(0.64,0.76,0.78,0.30),0.05,0.16)
-    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
-    glass.cull_mode=BaseMaterial3D.CULL_DISABLED
-    for x in [-0.69,0.69]:
-        for z in [-0.77,0.77]:_local_box(booth,Vector3(0.045,1.13,0.045),Vector3(float(x),1.315,float(z)),stainless)
-        _local_box(booth,Vector3(0.018,0.99,1.48),Vector3(float(x),1.30,0),glass)
-    for z in [-0.78,0.78]:
-        _local_box(booth,Vector3(1.34,0.99,0.018),Vector3(0,1.30,float(z)),glass)
-        _local_box(booth,Vector3(1.42,0.045,0.04),Vector3(0,0.81,float(z)),stainless)
-    _local_box(booth,Vector3(1.20,0.06,0.55),Vector3(0,0.80,-0.25),trim)
-    _local_box(booth,Vector3(0.36,0.27,0.04),Vector3(0,1.00,-0.28),darkglass)
-    _local_rod(booth,Vector3(-0.45,0.92,0.80),Vector3(-0.45,1.12,0.80),0.012,metal)
-    var light := OmniLight3D.new();light.name="LandingLight";light.position=Vector3(0,1.65,LAYOUT.GATE_DISTANCE-1.2)
-    light.light_color=Color(1.0,0.97,0.90);light.light_energy=0.72;light.omni_range=7.0;root.add_child(light)
-
-func _local_box(parent: Node3D,size: Vector3,p: Vector3,mat: Material) -> void:
-    var mesh := BoxMesh.new();mesh.size=size;mesh.material=mat
-    var node := MeshInstance3D.new();node.mesh=mesh;node.position=p;parent.add_child(node)
