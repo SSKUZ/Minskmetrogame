@@ -1,0 +1,200 @@
+{
+  "model": "Xenova/clap-htsat-unfused",
+  "revision": "c28f2883575e590e04d3146ff0713c2448d691ba",
+  "precision": "ONNX int8",
+  "note": "Cosine similarities are not probabilities; relative rankings depend on this prompt set. No equipment identity is confirmed by CLAP alone.",
+  "prompts": [
+    [
+      "speech.announcement",
+      "A clear recorded public address announcement spoken by a male announcer in a subway train."
+    ],
+    [
+      "speech.noisy",
+      "A subway station announcement spoken over loud train rumble and machinery noise."
+    ],
+    [
+      "speech.conversation",
+      "People talking and chatting in a crowd."
+    ],
+    [
+      "speech.radio",
+      "A person talking over a crackly walkie talkie radio."
+    ],
+    [
+      "speech.warning",
+      "A loudspeaker voice giving a safety warning to passengers."
+    ],
+    [
+      "train.motor",
+      "Electric train motors whining, changing pitch during acceleration."
+    ],
+    [
+      "train.running",
+      "A train rolling with rumbling wheels, rattling, and metallic rail noise."
+    ],
+    [
+      "train.coasting",
+      "A subway train coasting with steady wheel rumble and rattling."
+    ],
+    [
+      "train.brake_electric",
+      "Electric train motors winding down while a train decelerates."
+    ],
+    [
+      "train.brake_squeal",
+      "High pitched metallic squealing of train wheels and brakes."
+    ],
+    [
+      "train.rail_joints",
+      "Rhythmic clacking and thumping as train wheels cross rail joints."
+    ],
+    [
+      "train.switch",
+      "Multiple irregular clunks as a train rolls over a railway switch."
+    ],
+    [
+      "train.passby",
+      "A loud rushing and rumbling subway train passing by the microphone."
+    ],
+    [
+      "train.compressor",
+      "An air compressor motor starts, runs with a steady mechanical buzz, and stops."
+    ],
+    [
+      "train.ventilation",
+      "A steady mechanical hum of ventilation fans and electric equipment."
+    ],
+    [
+      "pneumatic.release",
+      "A short loud hiss of pressurized air escaping from a pneumatic mechanism."
+    ],
+    [
+      "pneumatic.continuous",
+      "A prolonged continuous hissing of compressed air."
+    ],
+    [
+      "doors.sliding_open",
+      "A pair of pneumatic sliding train doors opening with a hiss and metal mechanism noise."
+    ],
+    [
+      "doors.sliding_close",
+      "A pair of pneumatic sliding train doors closing with a hiss and a final clunk."
+    ],
+    [
+      "doors.pneumatic",
+      "A pneumatic mechanical door moves with a hiss, scrape and clunk."
+    ],
+    [
+      "doors.hinged",
+      "A heavy hinged metal door creaks and slams shut."
+    ],
+    [
+      "doors.latch",
+      "A short metallic door latch clack and handle click."
+    ],
+    [
+      "cab.controller",
+      "A mechanical lever or controller clicking through several notches."
+    ],
+    [
+      "cab.switch",
+      "A single small electrical toggle switch clicks."
+    ],
+    [
+      "cab.button",
+      "A short button click sound."
+    ],
+    [
+      "cab.relay",
+      "Electrical relays repeatedly clicking and clacking."
+    ],
+    [
+      "cab.horn",
+      "A loud train horn or whistle blowing."
+    ],
+    [
+      "cab.bell",
+      "A clear metallic bell ringing."
+    ],
+    [
+      "cab.alarm",
+      "An electronic alarm beeping repeatedly."
+    ],
+    [
+      "cab.buzzer",
+      "A sustained electrical buzzer tone."
+    ],
+    [
+      "cab.motor",
+      "A small electrical motor or servo whirring."
+    ],
+    [
+      "environment.station",
+      "An underground railway station ambience with distant people and reverberating sounds."
+    ],
+    [
+      "environment.crowd",
+      "A crowd of people talking with footsteps and public indoor ambience."
+    ],
+    [
+      "environment.tunnel",
+      "An echoing underground tunnel ambience with distant machinery and rumble."
+    ],
+    [
+      "environment.depot",
+      "An industrial train workshop ambience with machinery and metal sounds."
+    ],
+    [
+      "other.footsteps",
+      "Footsteps walking across a hard floor."
+    ],
+    [
+      "other.knock",
+      "A few short hard knocks or metallic impacts."
+    ],
+    [
+      "other.scrape",
+      "Metal scraping or creaking against metal."
+    ],
+    [
+      "other.whoosh",
+      "A short rushing swoosh of air."
+    ],
+    [
+      "other.music",
+      "Music with melody and rhythm playing."
+    ],
+    [
+      "other.ui",
+      "A short artificial game menu interface click or notification sound effect."
+    ],
+    [
+      "other.static",
+      "An electronic crackle, static noise or distorted buzz."
+    ],
+    [
+      "other.silence",
+      "Silence with almost no audible sound."
+    ],
+    [
+      "other.low_hum",
+      "A steady low humming drone."
+    ],
+    [
+      "other.water",
+      "Running water splashing or dripping."
+    ],
+    [
+      "other.car_engine",
+      "An internal combustion car engine revving."
+    ],
+    [
+      "other.breath",
+      "A person breathing or coughing."
+    ],
+    [
+      "other.electronic_tone",
+      "A short pure electronic beep or tone."
+    ]
+  ]
+}
