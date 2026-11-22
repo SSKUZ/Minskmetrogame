@@ -51,6 +51,8 @@ func load_catalog(path: String) -> bool:
         return false
     bank.configure(parsed)
     announcer.configure_routes(parsed.get("route_events", {}))
+    train_audio.configure_layers(parsed.get("loop_events", {}))
+    environment_audio.configure_zones(parsed.get("zone_events", {}))
     return true
 
 func bind_origins(train_origin: Node3D, cab_origin: Node3D, station_origin: Node3D) -> void:
