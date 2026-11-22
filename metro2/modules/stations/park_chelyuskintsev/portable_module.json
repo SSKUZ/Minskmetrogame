@@ -1,0 +1,1680 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "park_chelyuskintsev",
+    "type": "station",
+    "scene": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1.0,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "station_scene",
+      "kind": "scene",
+      "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
+      "requires_initialization": true,
+      "status": "declared"
+    },
+    {
+      "id": "interior_generator",
+      "kind": "generator",
+      "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "requires_initialization": true,
+      "status": "declared",
+      "parameters": {
+        "dimension_source": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+        "native_types": [
+          "ArrayMesh",
+          "PrimitiveMesh",
+          "MultiMesh"
+        ],
+        "groups": [
+          "TrackWalls",
+          "VaultBayXX",
+          "NorthEndMasonry",
+          "SouthEndMasonry",
+          "NorthStair",
+          "SouthStair",
+          "NorthStairTurnstiles",
+          "SouthStairTurnstiles",
+          "NorthStairControllerBooth",
+          "SouthStairControllerBooth",
+          "IslandBench00",
+          "IslandBench01"
+        ],
+        "mesh_access": "Existing scene_adapter.gd after normal module initialization; no runtime exporter hook."
+      }
+    },
+    {
+      "id": "track_generator",
+      "kind": "generator",
+      "path": "res://modules/stations/park_chelyuskintsev/trackwork.gd",
+      "node_path": "DetailedTrackwork",
+      "requires_initialization": true,
+      "status": "declared",
+      "parameters": {
+        "reference": "Existing Uruchye running-rail profile copied locally; no cross-station resource dependency."
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "dark_granite",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "wall_dark_granite"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
+        "parameters": {
+          "tint": [
+            0.79,
+            0.81,
+            0.79,
+            1
+          ],
+          "slab": [
+            0.83,
+            0.43
+          ],
+          "roughness": 0.39,
+          "staggered": true,
+          "joints": true
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_photo_stone"
+      }
+    },
+    {
+      "id": "stair_marble",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "stair_side_marble"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
+        "parameters": {
+          "tint": [
+            0.97,
+            0.97,
+            0.92,
+            1
+          ],
+          "slab": [
+            0.9,
+            0.6
+          ],
+          "roughness": 0.35,
+          "joints": true
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_photo_stone"
+      }
+    },
+    {
+      "id": "stair_tread",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "stair_tread"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
+        "parameters": {
+          "tint": [
+            0.96,
+            0.95,
+            0.88,
+            1
+          ],
+          "slab": [
+            1.4,
+            0.6
+          ],
+          "roughness": 0.51,
+          "joints": true
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_photo_stone"
+      }
+    },
+    {
+      "id": "white_plaster",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "vault_plaster"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/plaster.gdshader",
+        "parameters": {
+          "tint": [
+            0.96,
+            0.96,
+            0.93,
+            1
+          ],
+          "cove_bounce": 0.16
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_plaster"
+      }
+    },
+    {
+      "id": "vault_field",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "vault_plaster"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/plaster.gdshader",
+        "parameters": {
+          "tint": [
+            0.87,
+            0.88,
+            0.86,
+            1
+          ],
+          "cove_bounce": 0.16
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_plaster"
+      }
+    },
+    {
+      "id": "niche_plaster",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "vault_plaster"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/plaster.gdshader",
+        "parameters": {
+          "tint": [
+            0.77,
+            0.78,
+            0.75,
+            1
+          ],
+          "cove_bounce": 0.16
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_plaster"
+      }
+    },
+    {
+      "id": "soffit_plaster",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "vault_plaster"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/plaster.gdshader",
+        "parameters": {
+          "tint": [
+            0.66,
+            0.67,
+            0.64,
+            1
+          ],
+          "cove_bounce": 0.16
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_plaster"
+      }
+    },
+    {
+      "id": "tunnel_concrete",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "vault_plaster"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",
+        "parameters": {
+          "tint": [
+            0.66,
+            0.65,
+            0.6,
+            1
+          ],
+          "slab": [
+            2.5,
+            1.2
+          ],
+          "roughness": 0.93,
+          "joints": false
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "world planar by dominant normal",
+        "source_constructor": "_photo_stone"
+      }
+    },
+    {
+      "id": "pressed_glass_bowl",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "chandelier_glass"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/cast_glass.gdshader",
+        "parameters": {
+          "emission_level": 0.58,
+          "sample_scale": [
+            1,
+            1
+          ],
+          "sample_offset": [
+            0,
+            0
+          ]
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "mesh UV2 for photo colour; UV for cast relief",
+        "source_constructor": "_build_chandelier / _side_lantern"
+      }
+    },
+    {
+      "id": "pressed_glass_side",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "alpha_mode": "opaque",
+      "texture_bindings": {
+        "albedo": "side_glass"
+      },
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/cast_glass.gdshader",
+        "parameters": {
+          "sample_scale": [
+            0.18,
+            0.075
+          ],
+          "sample_offset_variants": [
+            [
+              0.02,
+              0.35
+            ],
+            [
+              0.26,
+              0.35
+            ],
+            [
+              0.72,
+              0.35
+            ]
+          ],
+          "emission_level_variants": [
+            0.46,
+            0.23,
+            0.46
+          ]
+        },
+        "adaptation": "required"
+      },
+      "extensions": {
+        "projection": "mesh UV2 for photo colour; UV for cast relief",
+        "source_constructor": "_build_chandelier / _side_lantern"
+      }
+    },
+    {
+      "id": "stainless_steel",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "metallic": 0.82,
+      "alpha_mode": "opaque",
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/satin_metal.gdshader",
+        "parameters": {
+          "tint": [
+            0.6588235294117647,
+            0.6666666666666666,
+            0.6470588235294118,
+            1
+          ],
+          "base_roughness": 0.27
+        },
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "aged_bronze",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "metallic": 0.82,
+      "alpha_mode": "opaque",
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/satin_metal.gdshader",
+        "parameters": {
+          "tint": [
+            0.47058823529411764,
+            0.4196078431372549,
+            0.2980392156862745,
+            1
+          ],
+          "base_roughness": 0.38
+        },
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "lamp_cage",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "metallic": 0.82,
+      "alpha_mode": "opaque",
+      "shader": {
+        "path": "res://modules/stations/park_chelyuskintsev/materials/satin_metal.gdshader",
+        "parameters": {
+          "tint": [
+            0.25098039215686274,
+            0.2196078431372549,
+            0.16862745098039217,
+            1
+          ],
+          "base_roughness": 0.42
+        },
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "floor",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "texture_bindings": {
+        "rose_tex": "floor_rose",
+        "aggregate_tex": "floor_aggregate",
+        "dark_tex": "wall_dark_granite"
+      },
+      "shader": {
+        "adaptation": "required"
+      },
+      "extensions": {
+        "source_constructor": "_floor",
+        "projection": "world XZ, retain the existing medallion pattern when baking"
+      }
+    },
+    {
+      "id": "timber",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/park_chelyuskintsev/station_builder.gd",
+      "shader": {
+        "adaptation": "required",
+        "path": "res://modules/stations/park_chelyuskintsev/materials/timber.gdshader"
+      },
+      "extensions": {
+        "source_constructor": "wood_material",
+        "projection": "world coordinates; preserve the existing timber colour/grain"
+      }
+    },
+    {
+      "id": "booth_glazing",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "albedo": [
+        0.28,
+        0.36,
+        0.35,
+        0.4
+      ],
+      "metallic": 0.08,
+      "roughness": 0.13,
+      "alpha_mode": "blend",
+      "double_sided": true,
+      "extensions": {
+        "source_constructor": "_controller_booth"
+      }
+    },
+    {
+      "id": "cove_diffuser",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+      "emission": [
+        1,
+        0.99,
+        0.95
+      ],
+      "emission_energy": 2.25,
+      "alpha_mode": "opaque",
+      "extensions": {
+        "source_constructor": "_ready, glow material"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "advert_atlas",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/advert_atlas.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "bronze_name_be",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/bronze_name_be.png",
+      "usage": "albedo"
+    },
+    {
+      "id": "bronze_name_ru",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/bronze_name_ru.png",
+      "usage": "albedo"
+    },
+    {
+      "id": "chandelier_glass",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/chandelier_glass.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "direction_north",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/direction_north.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "direction_south",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/direction_south.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/exit.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_north_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/exit_north_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_south_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/exit_south_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_aggregate",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/floor_aggregate.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_rose",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/floor_rose.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "line",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/line.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "name_be",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/name_be.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "name_ru",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/name_ru.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "network",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/network.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_exit_a_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/pylon_exit_a_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_exit_b_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/pylon_exit_b_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_track1_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/pylon_track1_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_track2_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/pylon_track2_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_voltage_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/pylon_voltage_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "route_track1_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/route_track1_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "route_track2_v61",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/route_track2_v61.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "side_glass",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/side_glass.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "sos_info",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/sos_info.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_side_marble",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/stair_side_marble.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_tread",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/stair_tread.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "vault_plaster",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/vault_plaster.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_dark_granite",
+      "source": "file",
+      "path": "res://modules/stations/park_chelyuskintsev/art/wall_dark_granite.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "node_path": "Connections/Entry",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ]
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "node_path": "Connections/Exit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ]
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "node_path": "Connections/Track2Entry",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ]
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "node_path": "Connections/Track2Exit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ]
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/PlatformCentre",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ],
+      "properties": {
+        "source": "existing station scene; not a claim of new navigation logic"
+      }
+    },
+    {
+      "id": "ExitNorth",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/ExitNorth",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        -3,
+        1
+      ],
+      "properties": {
+        "source": "existing station scene; not a claim of new navigation logic"
+      }
+    },
+    {
+      "id": "ExitSouth",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/ExitSouth",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        82,
+        1
+      ],
+      "properties": {
+        "source": "existing station scene; not a claim of new navigation logic"
+      }
+    },
+    {
+      "id": "BenchSeatCentre00",
+      "role": "seat",
+      "node_path": "IslandBench00/BenchSeatCentre",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.6905000000000001,
+        25.8,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_island_bench",
+        "semantic_only": true
+      }
+    },
+    {
+      "id": "BenchSeatCentre01",
+      "role": "seat",
+      "node_path": "IslandBench01/BenchSeatCentre",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.6905000000000001,
+        53.4,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_island_bench",
+        "semantic_only": true
+      }
+    },
+    {
+      "id": "NorthGate00",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate00",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8.17,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthGate01",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate01",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -7.3,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthGate02",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate02",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -6.43,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthGate03",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate03",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.5600000000000005,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthGate04",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate04",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4.6899999999999995,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthGate05",
+      "role": "equipment",
+      "node_path": "NorthStairTurnstiles/Gate05",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.8200000000000007,
+        5.2305,
+        -15.517499999999998,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "NorthControllerWorkplace",
+      "role": "equipment",
+      "node_path": "NorthStairControllerBooth/ControllerWorkplace",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.42,
+        5.7805,
+        -15.8575,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_controller_booth",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate00",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate00",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8.17,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate01",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate01",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -7.3,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate02",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate02",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -6.43,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate03",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate03",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.5600000000000005,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate04",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate04",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4.6899999999999995,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthGate05",
+      "role": "equipment",
+      "node_path": "SouthStairTurnstiles/Gate05",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.8200000000000007,
+        5.2305,
+        94.7415,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_landing_equipment",
+        "visual_equipment": true
+      }
+    },
+    {
+      "id": "SouthControllerWorkplace",
+      "role": "equipment",
+      "node_path": "SouthStairControllerBooth/ControllerWorkplace",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.42,
+        5.7805,
+        95.4615,
+        1
+      ],
+      "properties": {
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_controller_booth",
+        "visual_equipment": true
+      }
+    }
+  ],
+  "zones": [
+    {
+      "id": "island_platform",
+      "role": "platform",
+      "node_path": "IslandPlatform",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        2.1805,
+        39.612,
+        1
+      ],
+      "shape": {
+        "kind": "box",
+        "size": [
+          10,
+          2,
+          105
+        ]
+      },
+      "properties": {
+        "descriptive_only": true,
+        "source": "station_base.gd PLATFORM_LENGTH / PLATFORM_WIDTH / PLATFORM_TOP_Y"
+      }
+    }
+  ],
+  "data": {
+    "parameters": [
+      {
+        "id": "vault_radius",
+        "value": 8.98,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "VAULT_RADIUS"
+        }
+      },
+      {
+        "id": "vault_spring",
+        "value": 3.2,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "VAULT_SPRING"
+        }
+      },
+      {
+        "id": "vault_rise",
+        "value": 4.48,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "VAULT_RISE"
+        }
+      },
+      {
+        "id": "bay_pitch",
+        "value": 6.0,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "BAY_PITCH"
+        }
+      },
+      {
+        "id": "rib_half_width",
+        "value": 0.34,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "RIB_HALF_WIDTH"
+        }
+      },
+      {
+        "id": "niche_half_width",
+        "value": 0.145,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "NICHE_HALF_WIDTH"
+        }
+      },
+      {
+        "id": "niche_depth",
+        "value": 0.075,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "NICHE_DEPTH"
+        }
+      },
+      {
+        "id": "lamp_radii",
+        "value": [
+          0.12,
+          0.26,
+          0.4,
+          0.54,
+          0.69,
+          0.84,
+          1.0,
+          1.16,
+          1.25
+        ],
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "LAMP_RADII"
+        }
+      },
+      {
+        "id": "lamp_heights",
+        "value": [
+          -0.48,
+          -0.46,
+          -0.37,
+          -0.35,
+          -0.22,
+          -0.2,
+          -0.08,
+          -0.06,
+          0.08
+        ],
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "LAMP_HEIGHTS"
+        }
+      },
+      {
+        "id": "lamp_centre_y",
+        "value": 7.45,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "LAMP_CENTRE_Y"
+        }
+      },
+      {
+        "id": "lamp_glass_thickness",
+        "value": 0.065,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "LAMP_GLASS_THICKNESS"
+        }
+      },
+      {
+        "id": "lamp_glass_bevel",
+        "value": 0.008,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "LAMP_GLASS_BEVEL"
+        }
+      },
+      {
+        "id": "bench_length",
+        "value": 2.92,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "BENCH_LENGTH"
+        }
+      },
+      {
+        "id": "bench_width",
+        "value": 1.1,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "BENCH_WIDTH"
+        }
+      },
+      {
+        "id": "bench_top",
+        "value": 0.51,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "BENCH_TOP"
+        }
+      },
+      {
+        "id": "bench_corner_radius",
+        "value": 0.16,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "BENCH_CORNER_RADIUS"
+        }
+      },
+      {
+        "id": "stair_half_width",
+        "value": 3.675,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "STAIR_HALF_WIDTH"
+        }
+      },
+      {
+        "id": "stair_run",
+        "value": 0.285,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "STAIR_RUN"
+        }
+      },
+      {
+        "id": "stair_rise",
+        "value": 0.1125,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "STAIR_RISE"
+        }
+      },
+      {
+        "id": "stair_steps",
+        "value": 36,
+        "unit": "count",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "STAIR_STEPS"
+        }
+      },
+      {
+        "id": "stair_landing",
+        "value": 0.9,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "STAIR_LANDING"
+        }
+      },
+      {
+        "id": "portal_half_width",
+        "value": 1.89,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "PORTAL_HALF_WIDTH"
+        }
+      },
+      {
+        "id": "portal_top",
+        "value": 3.92,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "PORTAL_TOP"
+        }
+      },
+      {
+        "id": "end_wall_depth",
+        "value": 0.52,
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "END_WALL_DEPTH"
+        }
+      },
+      {
+        "id": "shadow_light_z",
+        "value": [
+          20.0,
+          59.0
+        ],
+        "unit": "m",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+          "symbol": "SHADOW_LIGHT_Z"
+        }
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [
+      {
+        "id": "existing_pylon_advert_loop",
+        "source": {
+          "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+          "symbol": "_advert_material"
+        },
+        "duration_seconds": 21.0,
+        "loop": true,
+        "target_rig": "unspecified",
+        "retargeting": "required"
+      }
+    ],
+    "references": [
+      {
+        "id": "metric_construction",
+        "purpose": "other",
+        "path": "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
+        "format": "GDScript constants",
+        "notes": "Authoritative dimensions for the new geometry; no target conversion is applied."
+      },
+      {
+        "id": "station_datums",
+        "purpose": "other",
+        "path": "res://modules/stations/park_chelyuskintsev/station_base.gd",
+        "format": "GDScript",
+        "notes": "Station Base dimensions, platform surface, track datums, infrastructure; unchanged."
+      },
+      {
+        "id": "native_scene_and_anchors",
+        "purpose": "passenger_routes",
+        "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
+        "format": "Godot tscn",
+        "notes": "Existing connection/passenger markers only. No new passenger AI or route graph."
+      },
+      {
+        "id": "local_trackwork",
+        "purpose": "physics",
+        "path": "res://modules/stations/park_chelyuskintsev/trackwork.gd",
+        "format": "GDScript",
+        "notes": "Native profile dimensions, sleeper pitch and existing rail crown at y=0. Visual geometry; collision adaptation is separate."
+      },
+      {
+        "id": "original_photo_crops",
+        "purpose": "other",
+        "path": "res://modules/stations/park_chelyuskintsev/art/owner_photo_assets.json",
+        "format": "JSON",
+        "notes": "Original photograph identifiers, hashes, crop coordinates and video provenance."
+      },
+      {
+        "id": "existing_infrastructure",
+        "purpose": "equipment",
+        "path": "res://scripts/infrastructure/station_infrastructure.gd",
+        "format": "GDScript",
+        "notes": "Existing contact rails and four clocks. Preserve logic parameters; reimplement behaviour in Luau separately."
+      },
+      {
+        "id": "driver_mirrors",
+        "purpose": "cameras",
+        "path": "res://modules/stations/park_chelyuskintsev/driver_mirrors.gd",
+        "format": "GDScript",
+        "notes": "Existing SubViewport mirror behaviour retained; needs a Roblox-specific implementation."
+      },
+      {
+        "id": "lighting_and_fittings",
+        "purpose": "equipment",
+        "path": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd",
+        "format": "GDScript",
+        "notes": "_hall_lighting, _landing_equipment, _controller_booth. Light settings remain available in source."
+      }
+    ]
+  },
+  "adapter_hints": [
+    {
+      "id": "native_scene_meshes",
+      "reason": "Inspect the already initialized module with the existing offline scene adapter. Preserve group transforms and shared MultiMesh geometry."
+    }
+  ],
+  "limitations": [
+    {
+      "code": "unverified_export",
+      "detail": "No scene execution, glTF/GLB export, Roblox import or compatibility certification was performed."
+    },
+    {
+      "code": "godot_shader",
+      "detail": "World-coordinate plaster, stone, timber, metal, glass relief, track grain and floor pattern require PBR translation or UV baking in TZ 53.2. Preserve source shaders and original photo textures."
+    },
+    {
+      "code": "viewport_texture",
+      "detail": "Driver mirrors use SubViewport textures. Reflection behaviour must be implemented separately in Roblox."
+    },
+    {
+      "code": "luau_behaviour",
+      "detail": "Clock/departure logic and shader television animation require Luau adaptation. Turnstiles and booth in this task are visual equipment, with no newly claimed interaction system."
+    },
+    {
+      "code": "lighting_physics_navigation",
+      "detail": "Native lights, shadows, collisions and navigation are not certified by the generic mesh adapter. Keep connection/rail/platform datums unchanged and adapt these systems separately."
+    },
+    {
+      "code": "photo_estimates",
+      "detail": "New fixture and bench dimensions are perspective estimates from owner photographs. Only the visible booth/turnstile area is inferred; concealed vestibule geometry is not surveyed."
+    }
+  ],
+  "extensions": {
+    "source_provenance": {
+      "infrastructure_base": "61c208bfa826e310d7f4b73764752f5e48788f28",
+      "inherited_owner_photo_module": "b7a38f1a0ab71c2ceb12c3fa2b3ccb38c8044dfa"
+    },
+    "surface_bindings": "Resolve actual surface materials and MultiMesh transforms using the scene adapter; do not flatten or remesh here."
+  }
+}

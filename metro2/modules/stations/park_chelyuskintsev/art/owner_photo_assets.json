@@ -1,0 +1,197 @@
+[
+  {
+    "source": "07-7808.jpg",
+    "sha256": "3c0a79c17cd9e1f04358c09fc4905cf83775ee0a6c32d9ae9101c00c4ddff5a2",
+    "asset": "floor_aggregate.jpg",
+    "source_rectangle_pixels": [
+      600,
+      390,
+      850,
+      550
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "09-7810.jpg",
+    "sha256": "7a20a1979cabe1ef5683da94766da9c53751f7905ffe3eed943a3499456df1f6",
+    "asset": "floor_rose.jpg",
+    "source_rectangle_pixels": [
+      628,
+      578,
+      805,
+      776
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "09-7819.jpg",
+    "sha256": "24eb8317599d042ceec2cc18010b7e15727fa3f9dd723634c2aa78b6d23ada53",
+    "asset": "wall_dark_granite.jpg",
+    "source_rectangle_pixels": [
+      770,
+      590,
+      885,
+      650
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "10-7820.jpg",
+    "sha256": "debc60e80130b4394083f3f26e3fb7038bd4f6935a28d9333fa0b0b8d9005f6d",
+    "asset": "vault_plaster.jpg",
+    "source_rectangle_pixels": [
+      640,
+      220,
+      855,
+      300
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "04-7805.jpg",
+    "sha256": "c18b5b0c0d46fcf6e4006624d52ad50554409bcb1ae065dcb570a1537ad1b5a4",
+    "asset": "stair_side_marble.jpg",
+    "source_rectangle_pixels": [
+      947,
+      447,
+      993,
+      489
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "04-7805.jpg",
+    "sha256": "c18b5b0c0d46fcf6e4006624d52ad50554409bcb1ae065dcb570a1537ad1b5a4",
+    "asset": "stair_tread.jpg",
+    "source_rectangle_pixels": [
+      510,
+      621,
+      780,
+      628
+    ],
+    "mirrored_seamless_edges": true
+  },
+  {
+    "source": "06-7807.jpg",
+    "sha256": "e15366490895199a86e180aa1671cc02a1c4f4e7d1da7712a3acb8c0d222b9a9",
+    "asset": "chandelier_glass.jpg",
+    "source_rectangle_pixels": [
+      468,
+      180,
+      1006,
+      684
+    ],
+    "mirrored_seamless_edges": false
+  },
+  {
+    "source": "06-7826.jpg",
+    "sha256": "ab0e5c30770e3556c010edd84e3136f7329e4b00c24db4cec5b80b7accf41fcf",
+    "asset": "side_glass.jpg",
+    "source_quad_pixels": [
+      [
+        594,
+        280
+      ],
+      [
+        681,
+        316
+      ],
+      [
+        549,
+        551
+      ],
+      [
+        465,
+        512
+      ]
+    ],
+    "plaster_removed": false
+  },
+  {
+    "source": "06-7816.jpg",
+    "sha256": "4b14b6d22600e7cf18da727c004d35f137315ff5af6ef68b646db65a7b861448",
+    "asset": "bronze_name_be.png",
+    "source_quad_pixels": [
+      [
+        450,
+        342
+      ],
+      [
+        1076,
+        339
+      ],
+      [
+        1076,
+        406
+      ],
+      [
+        450,
+        408
+      ]
+    ],
+    "plaster_removed": true
+  },
+  {
+    "source": "10-7820.jpg",
+    "sha256": "debc60e80130b4394083f3f26e3fb7038bd4f6935a28d9333fa0b0b8d9005f6d",
+    "asset": "bronze_name_ru.png",
+    "source_quad_pixels": [
+      [
+        363,
+        344
+      ],
+      [
+        940,
+        344
+      ],
+      [
+        940,
+        398
+      ],
+      [
+        363,
+        398
+      ]
+    ],
+    "plaster_removed": true
+  },
+  {
+    "source": "7801.mp4",
+    "sha256": "a649928296b6f6f10464f5556bed64f37fd66c51bc48f422bda8ee981884baac",
+    "duration_seconds": 3.0323,
+    "reviewed_frames": "full sequence sampled every 0.5 seconds",
+    "role": "vault, lighting, pylon and floor spatial arrangement"
+  },
+  {
+    "reviewed_photographs": [
+      "01-7802.jpg",
+      "01-7811.jpg",
+      "01-7821.jpg",
+      "02-7803.jpg",
+      "02-7812.jpg",
+      "02-7822.jpg",
+      "03-7804.jpg",
+      "03-7813.jpg",
+      "03-7823.jpg",
+      "04-7805.jpg",
+      "04-7814.jpg",
+      "04-7824.jpg",
+      "05-7806.jpg",
+      "05-7815.jpg",
+      "05-7825.jpg",
+      "06-7807.jpg",
+      "06-7816.jpg",
+      "06-7826.jpg",
+      "07-7808.jpg",
+      "07-7817.jpg",
+      "07-7827.jpg",
+      "08-7809.jpg",
+      "08-7818.jpg",
+      "08-7829.jpg",
+      "09-7810.jpg",
+      "09-7819.jpg",
+      "09-7828.jpg",
+      "10-7820.jpg"
+    ]
+  }
+]
