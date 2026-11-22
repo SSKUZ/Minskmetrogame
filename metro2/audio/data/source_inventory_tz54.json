@@ -1,8 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_archive": "metro_audio_review_sorted.zip",
   "source_count": 147,
-  "warning": "This is a source filename inventory, not the lost individual 114-file identification. No semantic labels are asserted.",
+  "warning": "Original ZIP paths and preliminary duration-based groups recovered from supplied archive inventory; these groups do NOT identify the sound. No individual transcription or semantic identification has been confirmed.",
   "files": [
     {
       "source_file": "sharedassets0_001.wav",
@@ -10,7 +10,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_001.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_002.wav",
@@ -18,7 +21,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_002.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_003.wav",
@@ -26,7 +32,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_003.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_004.wav",
@@ -34,7 +43,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_004.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_005.wav",
@@ -42,7 +54,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_005.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_006.wav",
@@ -50,7 +65,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_006.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets0_007.wav",
@@ -58,7 +76,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets0_007.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_001.wav",
@@ -66,7 +87,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_001.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_002.wav",
@@ -74,7 +98,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_002.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_003.wav",
@@ -82,7 +109,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_003.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_004.wav",
@@ -90,7 +120,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_004.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_005.wav",
@@ -98,7 +131,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_005.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_006.wav",
@@ -106,7 +142,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_006.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_007.wav",
@@ -114,7 +153,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_007.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_008.wav",
@@ -122,7 +164,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_008.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_009.wav",
@@ -130,7 +175,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_009.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_010.wav",
@@ -138,7 +186,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_010.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_011.wav",
@@ -146,7 +197,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_011.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_012.wav",
@@ -154,7 +208,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_012.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_013.wav",
@@ -162,7 +219,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_013.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_014.wav",
@@ -170,7 +230,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_014.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_015.wav",
@@ -178,7 +241,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_015.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_016.wav",
@@ -186,7 +252,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_016.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_017.wav",
@@ -194,7 +263,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_017.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_018.wav",
@@ -202,7 +274,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_018.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_019.wav",
@@ -210,7 +285,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_019.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_020.wav",
@@ -218,7 +296,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_020.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_021.wav",
@@ -226,7 +307,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_021.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_022.wav",
@@ -234,7 +318,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_022.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_023.wav",
@@ -242,7 +329,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_023.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_024.wav",
@@ -250,7 +340,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_024.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_025.wav",
@@ -258,7 +351,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_025.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_026.wav",
@@ -266,7 +362,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_026.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_027.wav",
@@ -274,7 +373,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_027.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_028.wav",
@@ -282,7 +384,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_028.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_029.wav",
@@ -290,7 +395,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_029.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_030.wav",
@@ -298,7 +406,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_030.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_031.wav",
@@ -306,7 +417,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_031.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_032.wav",
@@ -314,7 +428,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_032.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_033.wav",
@@ -322,7 +439,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_033.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_034.wav",
@@ -330,7 +450,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_034.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_035.wav",
@@ -338,7 +461,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_035.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_036.wav",
@@ -346,7 +472,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_036.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_037.wav",
@@ -354,7 +483,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_037.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_038.wav",
@@ -362,7 +494,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_038.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_039.wav",
@@ -370,7 +505,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_039.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_040.wav",
@@ -378,7 +516,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_040.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_041.wav",
@@ -386,7 +527,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_041.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_042.wav",
@@ -394,7 +538,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_042.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_043.wav",
@@ -402,7 +549,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_043.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_044.wav",
@@ -410,7 +560,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_044.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_045.wav",
@@ -418,7 +571,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_045.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_046.wav",
@@ -426,7 +582,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_046.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_047.wav",
@@ -434,7 +593,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_047.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_048.wav",
@@ -442,7 +604,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_048.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_049.wav",
@@ -450,7 +615,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_049.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_050.wav",
@@ -458,7 +626,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_050.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_051.wav",
@@ -466,7 +637,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_051.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_052.wav",
@@ -474,7 +648,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_052.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_053.wav",
@@ -482,7 +659,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_053.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_054.wav",
@@ -490,7 +670,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_054.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_055.wav",
@@ -498,7 +681,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_055.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_056.wav",
@@ -506,7 +692,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_056.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_057.wav",
@@ -514,7 +703,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_057.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_058.wav",
@@ -522,7 +714,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_058.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_059.wav",
@@ -530,7 +725,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_059.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_060.wav",
@@ -538,7 +736,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_060.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_061.wav",
@@ -546,7 +747,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_061.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_062.wav",
@@ -554,7 +758,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_062.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_063.wav",
@@ -562,7 +769,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_063.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_064.wav",
@@ -570,7 +780,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_064.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_065.wav",
@@ -578,7 +791,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_065.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_066.wav",
@@ -586,7 +802,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets1_066.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_067.wav",
@@ -594,7 +813,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_067.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_068.wav",
@@ -602,7 +824,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_068.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_069.wav",
@@ -610,7 +835,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_069.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_070.wav",
@@ -618,7 +846,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_070.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_071.wav",
@@ -626,7 +857,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_071.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_072.wav",
@@ -634,7 +868,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_072.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_073.wav",
@@ -642,7 +879,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_073.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_074.wav",
@@ -650,7 +890,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_074.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_075.wav",
@@ -658,7 +901,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_075.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_076.wav",
@@ -666,7 +912,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_076.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_077.wav",
@@ -674,7 +923,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_077.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_078.wav",
@@ -682,7 +934,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_078.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_079.wav",
@@ -690,7 +945,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_079.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_080.wav",
@@ -698,7 +956,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_080.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_081.wav",
@@ -706,7 +967,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_081.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_082.wav",
@@ -714,7 +978,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_082.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_083.wav",
@@ -722,7 +989,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_083.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_084.wav",
@@ -730,7 +1000,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_084.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_085.wav",
@@ -738,7 +1011,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_085.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_086.wav",
@@ -746,7 +1022,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_086.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_087.wav",
@@ -754,7 +1033,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_087.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_088.wav",
@@ -762,7 +1044,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_088.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_089.wav",
@@ -770,7 +1055,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_089.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_090.wav",
@@ -778,7 +1066,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_090.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_091.wav",
@@ -786,7 +1077,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_091.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_092.wav",
@@ -794,7 +1088,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_092.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_093.wav",
@@ -802,7 +1099,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_093.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_094.wav",
@@ -810,7 +1110,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_094.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_095.wav",
@@ -818,7 +1121,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets1_095.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_096.wav",
@@ -826,7 +1132,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_096.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_097.wav",
@@ -834,7 +1143,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Короткие эффекты / сигналы/sharedassets1_097.wav",
+      "preliminary_group": "Короткие эффекты / сигналы",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_098.wav",
@@ -842,7 +1154,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_098.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_099.wav",
@@ -850,7 +1165,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_099.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_100.wav",
@@ -858,7 +1176,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_100.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets1_101.wav",
@@ -866,7 +1187,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets1_101.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_001.wav",
@@ -874,7 +1198,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_001.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_002.wav",
@@ -882,7 +1209,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_002.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_003.wav",
@@ -890,7 +1220,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_003.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_004.wav",
@@ -898,7 +1231,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_004.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_005.wav",
@@ -906,7 +1242,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_005.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_006.wav",
@@ -914,7 +1253,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_006.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_007.wav",
@@ -922,7 +1264,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets2_007.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_008.wav",
@@ -930,7 +1275,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_008.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_009.wav",
@@ -938,7 +1286,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets2_009.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_010.wav",
@@ -946,7 +1297,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_010.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_011.wav",
@@ -954,7 +1308,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_011.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_012.wav",
@@ -962,7 +1319,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_012.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_013.wav",
@@ -970,7 +1330,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_013.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_014.wav",
@@ -978,7 +1341,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_014.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_015.wav",
@@ -986,7 +1352,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_015.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_016.wav",
@@ -994,7 +1363,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_016.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_017.wav",
@@ -1002,7 +1374,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_017.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_018.wav",
@@ -1010,7 +1385,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_018.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_019.wav",
@@ -1018,7 +1396,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_019.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_020.wav",
@@ -1026,7 +1407,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_020.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_021.wav",
@@ -1034,7 +1418,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_021.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_022.wav",
@@ -1042,7 +1429,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_022.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_023.wav",
@@ -1050,7 +1440,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_023.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_024.wav",
@@ -1058,7 +1451,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_024.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_025.wav",
@@ -1066,7 +1462,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_025.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_026.wav",
@@ -1074,7 +1473,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_026.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_027.wav",
@@ -1082,7 +1484,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_027.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_028.wav",
@@ -1090,7 +1495,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets2_028.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_029.wav",
@@ -1098,7 +1506,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_029.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets2_030.wav",
@@ -1106,7 +1517,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets2_030.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_001.wav",
@@ -1114,7 +1528,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets3_001.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_002.wav",
@@ -1122,7 +1539,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets3_002.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_003.wav",
@@ -1130,7 +1550,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Средние эффекты / возможная речь/sharedassets3_003.wav",
+      "preliminary_group": "Средние эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_004.wav",
@@ -1138,7 +1561,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets3_004.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_005.wav",
@@ -1146,7 +1572,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets3_005.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_006.wav",
@@ -1154,7 +1583,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets3_006.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_007.wav",
@@ -1162,7 +1594,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets3_007.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_008.wav",
@@ -1170,7 +1605,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длинные эффекты / возможная речь/sharedassets3_008.wav",
+      "preliminary_group": "Длинные эффекты / возможная речь",
+      "preliminary_group_verified": false
     },
     {
       "source_file": "sharedassets3_009.wav",
@@ -1178,7 +1616,10 @@
       "transcript": null,
       "event_id": null,
       "ogg_path": null,
-      "identification_status": "pending"
+      "identification_status": "requires_audio_content_recognition",
+      "source_zip_path": "PRELIMINARY/Длительные записи / фон / объявления/sharedassets3_009.wav",
+      "preliminary_group": "Длительные записи / фон / объявления",
+      "preliminary_group_verified": false
     }
   ]
 }
