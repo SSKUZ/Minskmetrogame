@@ -17,11 +17,15 @@ func enter_zone(zone_id: String) -> void:
     current_zone = zone_id
     var event_id: String = str(zone_events.get(zone_id, ""))
     if event_id != "" and router != null and is_instance_valid(origin):
-        _active = router.dispatch(event_id, origin)
+        if router.bank != null:
+            _active = router.bank.play_at(event_id, origin, Vector3.ZERO, 0.0, true)
 
 func leave_zone() -> void:
     if is_instance_valid(_active):
-        _active.stop()
-        _active.queue_free()
+        if router != null and router.bank != null:
+            router.bank.release_player(_active)
+        else:
+            _active.stop()
+            _active.queue_free()
     _active = null
     current_zone = ""
