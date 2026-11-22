@@ -877,6 +877,7 @@
       "res://modules/stations/akademiya_nauk/driver_mirrors.gd",
       "res://modules/stations/akademiya_nauk/station_base.gd",
       "res://modules/stations/akademiya_nauk/station_builder.gd",
+      "res://modules/stations/akademiya_nauk/trackwork.gd",
       "res://scripts/infrastructure/station_infrastructure.gd",
       "res://scripts/playable_track_path.gd"
     ],

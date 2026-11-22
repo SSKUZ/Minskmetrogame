@@ -285,9 +285,9 @@
       ]
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-70755cf2055665484d62.pck",
-      "sha256": "70755cf2055665484d6272bec563a7539025b03c5e22a353332d55523265a140",
-      "bytes": 4954496,
+      "file": "akademiya_nauk-7ee47020600b3483363c.pck",
+      "sha256": "7ee47020600b3483363c457466784683be44ee484ad7492236e0fbb10891c7c9",
+      "bytes": 4959808,
       "warmup": [
         "res://modules/stations/akademiya_nauk/art/bench_oak.jpg",
         "res://modules/stations/akademiya_nauk/art/ceiling_normal.png",
