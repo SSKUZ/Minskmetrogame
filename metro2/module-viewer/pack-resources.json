@@ -684,6 +684,7 @@
       "res://modules/stations/moskovskaya/platform_monitor.gd",
       "res://modules/stations/moskovskaya/station_base.gd",
       "res://modules/stations/moskovskaya/station_builder.gd",
+      "res://modules/stations/moskovskaya/trackwork.gd",
       "res://scripts/infrastructure/station_infrastructure.gd",
       "res://scripts/playable_track_path.gd"
     ],

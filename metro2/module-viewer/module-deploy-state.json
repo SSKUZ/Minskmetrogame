@@ -16,8 +16,8 @@
       "dependencies": []
     },
     "moskovskaya": {
-      "source_commit": "ec4f54a346d8b2316a381d31797c4285f2890b86",
-      "pack_sha256": "432c8f8f4576f61194ba196c1bdf6d24fd5641b10e5824bbdf9edd13f0179eb0",
+      "source_commit": "886cbbc0f6fbf1a0798bbebe25e4eb06f221d74e",
+      "pack_sha256": "c8e87f75b5fce895df95d38bded29e4f7d7684ed5e975375557d7eabbca60343",
       "category": "station",
       "scene": "modules/stations/moskovskaya/moskovskaya.tscn",
       "dependencies": []

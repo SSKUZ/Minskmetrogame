@@ -240,9 +240,9 @@
       ]
     },
     "moskovskaya": {
-      "file": "moskovskaya-432c8f8f4576f61194ba.pck",
-      "sha256": "432c8f8f4576f61194ba196c1bdf6d24fd5641b10e5824bbdf9edd13f0179eb0",
-      "bytes": 20173024,
+      "file": "moskovskaya-c8e87f75b5fce895df95.pck",
+      "sha256": "c8e87f75b5fce895df95d38bded29e4f7d7684ed5e975375557d7eabbca60343",
+      "bytes": 30527680,
       "warmup": [
         "res://modules/stations/moskovskaya/art/advert_atlas.svg",
         "res://modules/stations/moskovskaya/art/bench_oak.jpg",
