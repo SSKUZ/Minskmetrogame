@@ -285,9 +285,9 @@
       ]
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-731807ebbec63de68a06.pck",
-      "sha256": "731807ebbec63de68a06234e67ee1d688d6719ff2b70a299adc3c5097fc81683",
-      "bytes": 4829344,
+      "file": "akademiya_nauk-7cadb0337ff1d2cfd2a2.pck",
+      "sha256": "7cadb0337ff1d2cfd2a2fc044bfaa23663ac5cd2957a93ef7e2aa26b70411f8c",
+      "bytes": 4814208,
       "warmup": [
         "res://modules/stations/akademiya_nauk/art/ceiling_normal.png",
         "res://modules/stations/akademiya_nauk/art/ceiling_paint.jpg",
@@ -295,9 +295,7 @@
         "res://modules/stations/akademiya_nauk/art/column_marble_alt.jpg",
         "res://modules/stations/akademiya_nauk/art/escalator_warning.svg",
         "res://modules/stations/akademiya_nauk/art/exit_escalators.jpg",
-        "res://modules/stations/akademiya_nauk/art/exit_escalators_clear.svg",
         "res://modules/stations/akademiya_nauk/art/exit_stairs.jpg",
-        "res://modules/stations/akademiya_nauk/art/exit_stairs_clear.svg",
         "res://modules/stations/akademiya_nauk/art/floor_dark.jpg",
         "res://modules/stations/akademiya_nauk/art/floor_grey.jpg",
         "res://modules/stations/akademiya_nauk/art/no_smoking.svg",
