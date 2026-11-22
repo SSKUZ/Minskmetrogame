@@ -53,6 +53,8 @@ func _ready() -> void:
     _escalators(SOUTH)
     _signs()
     _track_details()
+    var trackwork := preload("res://modules/stations/akademiya_nauk/trackwork.gd").new()
+    trackwork.name="DetailedTrackwork";add_child(trackwork)
     _close_end_joints()
     _portal_equipment()
     _floor_fittings()
@@ -370,14 +372,7 @@ func _floor_fittings() -> void:
         for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
 
 func _track_details() -> void:
-    for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
-        var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
+    for x in [0.992,-11.732]:
         for direction in [-1.0,1.0]:
             var end: float=_portal_z(direction)
             var far: float=ZA-8.0 if direction<0.0 else ZB+8.0
