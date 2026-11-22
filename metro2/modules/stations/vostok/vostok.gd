@@ -12,12 +12,15 @@ var stair_stone: ShaderMaterial
 var housing: StandardMaterial3D
 var cream: StandardMaterial3D
 var red_guard: StandardMaterial3D
+var _quiet_grain: NoiseTexture2D
 
 func _ready() -> void:
     super._ready()
     begin_station()
     white.albedo_color=Color("#e4e5df")
-    pale_stone=sampled_stone("stair_marble.jpg",Color("#deded5"),0.43,0.8)
+    pale_stone=_material(Color("#dcded7"),0.0,0.65)
+    # Photo 8006/8012: the cornice is only a shade darker than the white wall.
+    # The dark marble sample belongs exclusively to stair treads and risers.
     white.roughness=0.87
     white.normal_enabled=true
     white.normal_texture=mineral_normal()
@@ -51,11 +54,10 @@ func _floor() -> void:
     var joint := _material(Color("#696d69"),0.0,0.73)
     (get_node("IslandPlatform") as MeshInstance3D).material_override=joint
     var greys: Array[StandardMaterial3D]=[]
-    for i in range(7):
-        var shade := 0.87+float(i)*0.035
-        greys.append(sampled_stone("grey_granite.jpg",Color(shade,shade,shade),0.32+float(i%3)*0.035,1.6))
+    for i in range(3):
+        var shade := 0.98+float(i)*0.02
+        greys.append(_quiet_floor_stone(Color(shade,shade,shade)))
     var red := sampled_stone("red_granite.jpg",Color(0.96,0.95,0.94),0.31,1.55)
-    var dark_grey := sampled_stone("grey_granite.jpg",Color("#a3a69e"),0.39,1.6)
     var ivory := _material(Color("#dad5bc"),0.0,0.39)
     for row in range(175):
         var z: float=ZA+(float(row)+0.5)*0.60
@@ -63,13 +65,11 @@ func _floor() -> void:
         var half_width := 1.8 if dz<0.31 else 1.2 if dz<0.91 else 0.6 if dz<1.51 else 0.0
         for col in range(16):
             var dx: float=(float(col)-7.5)*0.60
-            var mat: Material=red if absf(dx)<half_width else greys[(row*17+col*11)%7]
-            if half_width>0.0 and absf(dx)>half_width and absf(dx)<half_width+0.61:
-                mat=dark_grey
+            var mat: Material=red if absf(dx)<half_width else greys[(row*17+col*11)%3]
             box(Vector3(0.598,0.010,0.598),Vector3(CX+dx,FY+0.005,z),mat)
         # Narrow cut slabs complete the 10 m width underneath the edge finish.
         for side in [-1.0,1.0]:
-            box(Vector3(0.198,0.010,0.598),Vector3(CX+side*4.9,FY+0.005,z),greys[row%7])
+            box(Vector3(0.198,0.010,0.598),Vector3(CX+side*4.9,FY+0.005,z),greys[row%3])
     for i in range(15):
         var z: float=ZA+3.6+float(i)*7.2
         if z>ZB:break
@@ -84,7 +84,7 @@ func _floor() -> void:
         box(Vector3(0.34,0.006,105),Vector3(CX+side*4.18,FY+0.013,MID),red)
 
 func _photo_platform_edges() -> void:
-    var edge := sampled_stone("grey_granite.jpg",Color("#92968e"),0.53,1.5)
+    var edge := _quiet_floor_stone(Color("#b9bcb7"))
     var yellow := _material(Color("#d5ae43"),0.0,0.77)
     for side in [-1.0,1.0]:
         box(Vector3(0.40,0.018,105),Vector3(CX+side*4.80,FY+0.010,MID),edge)
@@ -172,7 +172,7 @@ func _wall_letters(value: String,p: Vector3,yaw: float) -> void:
         cursor+=advance+tracking
 
 func _vault() -> void:
-    var coffer := _material(Color("#d6d8d2"),0.0,0.86)
+    var coffer := _material(Color("#c8ccc4"),0.0,0.86)
     var joint := _material(Color("#bdc0b9"),0.0,0.88)
     var rim := _material(Color("#b5b6ad"),0.28,0.43)
     glow.albedo_color=Color("#fffdf0")
@@ -188,7 +188,7 @@ func _vault() -> void:
             curved_band(float(side),0.012,0.355,z+0.21,z+1.99,SPRING,CROWN_RISE,0.012,coffer)
             for j in range(3):
                 var zz: float=z+0.29+float(j)*0.56
-                _rounded_diffuser(float(side),zz,zz+0.48,rim)
+                _rounded_diffuser(float(side),zz+0.04,zz+0.44,rim)
         if i%3==0:
             for side in [-1.0,1.0]:
                 curved_band(float(side),0.75,PI/2.0,z,z+0.003,SPRING,CROWN_RISE,0.002,joint)
@@ -203,8 +203,8 @@ func _vault_rib(side: float,z: float,edge: Material) -> void:
     for i in range(48):
         var a0: float=float(i)*0.76/48.0
         var a1: float=float(i+1)*0.76/48.0
-        var depth0 := 0.15*(1.0-smoothstep(0.70,0.76,a0))
-        var depth1 := 0.15*(1.0-smoothstep(0.70,0.76,a1))
+        var depth0 := 0.26*(1.0-smoothstep(0.70,0.76,a0))
+        var depth1 := 0.26*(1.0-smoothstep(0.70,0.76,a1))
         var a: Vector2=arc_point(side,a0,SPRING,CROWN_RISE,depth0)
         var b: Vector2=arc_point(side,a1,SPRING,CROWN_RISE,depth1)
         var back_a: Vector2=arc_point(side,a0,SPRING,CROWN_RISE,0.0)
@@ -220,14 +220,14 @@ func _rounded_diffuser(side: float,z0: float,z1: float,rim: Material) -> void:
     # Arc strips are tessellated directly, retaining the bowed wall profile.
     for layer in range(2):
         var mat: Material=rim if layer==0 else glow
-        var margin := 0.025 if layer==0 else 0.0
+        var margin := 0.020 if layer==0 else 0.0
         for j in range(24):
             var t0: float=float(j)/24.0
             var t1: float=float(j+1)/24.0
-            var a0 := 0.025+t0*0.30
-            var a1 := 0.025+t1*0.30
-            var round0 := 0.085*(1.0-sqrt(maxf(0.0,1.0-pow(maxf(0.0,absf(t0-0.5)-0.34)/0.16,2.0))))
-            var round1 := 0.085*(1.0-sqrt(maxf(0.0,1.0-pow(maxf(0.0,absf(t1-0.5)-0.34)/0.16,2.0))))
+            var a0 := 0.050+t0*0.25
+            var a1 := 0.050+t1*0.25
+            var round0 := 0.070*(1.0-sqrt(maxf(0.0,1.0-pow(maxf(0.0,absf(t0-0.5)-0.34)/0.16,2.0))))
+            var round1 := 0.070*(1.0-sqrt(maxf(0.0,1.0-pow(maxf(0.0,absf(t1-0.5)-0.34)/0.16,2.0))))
             var a: Vector2=arc_point(side,a0,SPRING,CROWN_RISE,0.032+float(layer)*0.010)
             var b: Vector2=arc_point(side,a1,SPRING,CROWN_RISE,0.032+float(layer)*0.010)
             quad(Vector3(a.x,a.y,z0+round0-margin),Vector3(b.x,b.y,z0+round1-margin),Vector3(b.x,b.y,z1-round1+margin),Vector3(a.x,a.y,z1-round0+margin),mat,Vector3(CX-a.x,-1,0))
@@ -258,8 +258,11 @@ func _ends() -> void:
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             _tunnel_mouth(tx,end,direction)
-            var p := Vector3(CX+side*4.60,FY+1.39,end-direction*2.0)
-            _driver_mirror(p,direction,side)
+            # Track 1 runs toward -Z; the opposing track runs toward +Z.
+            # Mirrors belong at the leading cab end only, never at its tail.
+            if direction==-side:
+                var p := Vector3(CX+side*4.56,FY+1.39,end-direction*1.40)
+                _driver_mirror(p,direction,side)
 
 func _photo_stairs(direction: float,start: float) -> void:
     var width := 8.10
@@ -281,62 +284,134 @@ func _photo_stairs(direction: float,start: float) -> void:
             for face in [-1.0,1.0]:
                 var xx: float=x+face*0.12
                 quad(Vector3(xx,FY+a.y,start+direction*a.x),Vector3(xx,FY+b.y,start+direction*b.x),Vector3(xx,FY+b.y+0.89,start+direction*b.x),Vector3(xx,FY+a.y+0.89,start+direction*a.x),pale_stone,Vector3(face,0,0))
-            quad(Vector3(x-0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+b.y+0.90,start+direction*b.x),Vector3(x-0.15,FY+b.y+0.90,start+direction*b.x),redstone,Vector3.UP)
+            quad(Vector3(x-0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+b.y+0.90,start+direction*b.x),Vector3(x-0.15,FY+b.y+0.90,start+direction*b.x),timber,Vector3.UP)
             rod(Vector3(x,FY+a.y+0.94,start+direction*a.x),Vector3(x,FY+b.y+0.94,start+direction*b.x),0.033,housing)
         picture("stair_caution.svg",Vector2(0.16,0.23),Vector3(x-direction*0.01,FY+0.61,start-direction*0.135),0.0 if direction<0.0 else PI)
     foot_grille(start-direction*0.40,8.0)
     board("exit_north.svg" if direction<0.0 else "exit_south.svg",Vector3(CX,6.89,start+direction*6.4),Vector2(5.65,0.82))
 
 func _upper_landing(direction: float,end: float) -> void:
-    var y: float=FY+4.60
-    box(Vector3(17.9,0.32,5.4),Vector3(CX,y-0.16,end+direction*1.10),pale_stone)
-    # Gallery balustrades stand above both tunnel mouths, beside the staircase.
+    var y := FY+4.60
+    # Only the steps use dark marble. The upper floor is grey; the canopy,
+    # parapets and rear wall retain the station's light plaster/stone finish.
+    box(Vector3(17.9,0.32,5.4),Vector3(CX,y-0.16,end+direction*1.10),_quiet_floor_stone())
     for side in [-1.0,1.0]:
         var x: float=CX+side*6.60
         box(Vector3(4.5,0.63,0.24),Vector3(x,y+0.27,end-direction*0.44),pale_stone)
         for height in [0.65,0.89,1.10]:
             rod(Vector3(x-2.20,y+float(height),end-direction*0.44),Vector3(x+2.20,y+float(height),end-direction*0.44),0.022,metal)
-        for dx in [-2.18,0.0,2.18]:rod(Vector3(x+float(dx),y+0.55,end-direction*0.44),Vector3(x+float(dx),y+1.10,end-direction*0.44),0.022,metal)
-    box(Vector3(17.9,2.6,0.22),Vector3(CX,y+1.30,end+direction*3.4),pale_stone)
-    # A real vestibule threshold, with turnstile cabinets and glazed attendant cabin.
-    for i in range(7):
-        var x: float=CX-2.8+float(i)*0.93
-        box(Vector3(0.22,0.95,1.0),Vector3(x,y+0.475,end+direction*2.25),metal)
-        box(Vector3(0.25,0.07,0.42),Vector3(x,y+0.96,end+direction*2.02),black)
-        rod(Vector3(x,y+0.71,end+direction*2.0),Vector3(x+0.44,y+0.71,end+direction*2.0),0.018,metal)
-    var blue := _material(Color("#274f75"),0.35,0.30)
-    var glass := _material(Color(0.19,0.27,0.30,0.28),0.3,0.15)
-    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
-    var cabin_x: float=CX+3.40*direction
-    box(Vector3(1.18,0.75,1.20),Vector3(cabin_x,y+0.375,end+direction*1.50),blue)
-    box(Vector3(1.18,1.25,0.035),Vector3(cabin_x,y+1.375,end+direction*0.90),glass)
-    for dx in [-0.59,0.59]:rod(Vector3(cabin_x+float(dx),y+0.75,end+direction*0.90),Vector3(cabin_x+float(dx),y+2.0,end+direction*0.90),0.025,blue)
-    for j in range(10):
-        var zz: float=end-direction*10.5+direction*float(j)*1.45
-        # Curved transverse strip lights belong only to the lower end canopy.
-        for k in range(24):
-            var x0: float=-4.1+float(k)*8.2/24.0
-            var x1: float=-4.1+float(k+1)*8.2/24.0
-            var h0: float=8.10-0.50*pow(x0/4.1,2.0)
-            var h1: float=8.10-0.50*pow(x1/4.1,2.0)
-            rod(Vector3(CX+x0,h0,zz),Vector3(CX+x1,h1,zz),0.026,glow)
+        for dx in [-2.18,0.0,2.18]:
+            rod(Vector3(x+float(dx),y+0.55,end-direction*0.44),Vector3(x+float(dx),y+1.10,end-direction*0.44),0.022,metal)
+    box(Vector3(17.9,2.15,0.22),Vector3(CX,y+1.075,end+direction*3.4),pale_stone)
+    _exit_controls(direction,end,y)
+    _exit_canopy(direction,end)
     box(Vector3(6.8,0.19,0.10),Vector3(CX,7.76,end+direction*3.24),black)
-    for i in range(70):box(Vector3(0.025,0.24,0.07),Vector3(CX-3.35+float(i)*0.096,7.60,end+direction*3.16),black)
+    for i in range(70):
+        box(Vector3(0.025,0.24,0.07),Vector3(CX-3.35+float(i)*0.096,7.60,end+direction*3.16),black)
+
+func _canopy_point(x: float,along: float,direction: float,end: float,depth: float=0.0) -> Vector3:
+    var height := SPRING+CROWN_RISE*sqrt(maxf(0.0,1.0-pow(x/8.98,2.0)))-0.14
+    return Vector3(CX+x,height+depth,end+direction*along)
+
+func _canopy_patch(direction: float,end: float,x0: float,x1: float,z0: float,z1: float,depth: float,mat: Material) -> void:
+    for j in range(36):
+        var a := lerpf(x0,x1,float(j)/36.0)
+        var b := lerpf(x0,x1,float(j+1)/36.0)
+        quad(_canopy_point(a,z0,direction,end,depth),_canopy_point(b,z0,direction,end,depth),_canopy_point(b,z1,direction,end,depth),_canopy_point(a,z1,direction,end,depth),mat,Vector3.DOWN)
+
+func _exit_canopy(direction: float,end: float) -> void:
+    # Photos 7958/8010: curved cut-outs IN the canopy, not glowing rods on it.
+    # Omit each slot from the front skin and build its back and all four reveals.
+    var recess := _material(Color("#b8bdb5"),0.0,0.82)
+    var reveal := _material(Color("#c4c8c0"),0.0,0.84)
+    var previous := -10.5
+    for i in range(10):
+        var centre := -9.80+float(i)*1.40
+        var near := centre-0.13
+        var far := centre+0.13
+        _canopy_patch(direction,end,-4.25,4.25,previous,near,0.0,white)
+        for side in [-1.0,1.0]:
+            _canopy_patch(direction,end,-4.25 if side<0.0 else 3.72,-3.72 if side<0.0 else 4.25,near,far,0.0,white)
+        _canopy_patch(direction,end,-3.72,3.72,near,far,0.10,recess)
+        for j in range(36):
+            var a := -3.72+float(j)*7.44/36.0
+            var b := -3.72+float(j+1)*7.44/36.0
+            for edge in [-1.0,1.0]:
+                var z := centre+edge*0.13
+                quad(_canopy_point(a,z,direction,end),_canopy_point(b,z,direction,end),_canopy_point(b,z,direction,end,0.10),_canopy_point(a,z,direction,end,0.10),reveal,Vector3(0,0,-direction*edge))
+        for side in [-1.0,1.0]:
+            var x: float=side*3.72
+            quad(_canopy_point(x,near,direction,end),_canopy_point(x,far,direction,end),_canopy_point(x,far,direction,end,0.10),_canopy_point(x,near,direction,end,0.10),reveal,Vector3(-side,0,0))
+        # A narrow diffuser is recessed behind the opening lip.
+        _canopy_patch(direction,end,-3.61,3.61,centre-0.035,centre+0.035,0.088,glow)
+        previous=far
+    _canopy_patch(direction,end,-4.25,4.25,previous,4.45,0.0,white)
+    var lamp := OmniLight3D.new()
+    lamp.name="UpperLandingLight"
+    lamp.position=Vector3(CX,7.25,end+direction*0.8)
+    lamp.light_color=Color(1.0,0.98,0.93)
+    lamp.light_energy=0.85
+    lamp.omni_range=10.0
+    lamp.shadow_enabled=false
+    add_child(lamp)
+
+func _exit_controls(direction: float,end: float,y: float) -> void:
+    var reader := _material(Color("#23333d"),0.2,0.35)
+    var indicator := _material(Color("#51b77d"),0.0,0.5)
+    indicator.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+    for i in range(6):
+        var x := CX+direction*(-3.15+float(i)*0.90)
+        var z := end+direction*2.05
+        box(Vector3(0.25,0.96,1.04),Vector3(x,y+0.48,z),metal)
+        box(Vector3(0.28,0.06,1.08),Vector3(x,y+0.99,z),metal)
+        box(Vector3(0.16,0.025,0.26),Vector3(x,y+1.032,z-direction*0.28),reader)
+        box(Vector3(0.085,0.04,0.018),Vector3(x,y+0.84,z-direction*0.529),indicator)
+        if i<5:
+            var pivot := Vector3(x+direction*0.16,y+0.72,z)
+            box(Vector3(0.12,0.16,0.16),pivot,metal)
+            for arm in range(3):
+                var angle := float(arm)*TAU/3.0
+                rod(pivot,pivot+Vector3(direction*0.60,0.22*sin(angle),0.22*cos(angle)),0.021,metal)
+    var bx := CX+direction*2.85
+    var front := end+direction*0.65
+    var back := end+direction*2.45
+    var shell := _material(Color("#58727f"),0.22,0.45)
+    var glass := _material(Color(0.62,0.72,0.73,0.22),0.03,0.15)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+    box(Vector3(1.30,0.80,0.06),Vector3(bx,y+0.40,front),shell)
+    box(Vector3(1.38,0.06,0.22),Vector3(bx,y+0.83,front+direction*0.07),metal)
+    box(Vector3(1.22,1.03,0.025),Vector3(bx,y+1.365,front),glass)
+    for side in [-1.0,1.0]:
+        var x: float=bx+side*0.65
+        box(Vector3(0.055,0.80,1.80),Vector3(x,y+0.40,(front+back)*0.5),shell)
+        box(Vector3(0.025,1.03,1.70),Vector3(x,y+1.365,(front+back)*0.5),glass)
+        for z in [front,back]:
+            box(Vector3(0.055,1.94,0.055),Vector3(x,y+0.97,float(z)),metal)
+    box(Vector3(1.36,0.07,0.07),Vector3(bx,y+1.91,front),shell)
+    box(Vector3(1.42,0.065,1.93),Vector3(bx,y+1.97,(front+back)*0.5),shell)
+    box(Vector3(1.30,1.90,0.06),Vector3(bx,y+0.95,back),shell)
+    box(Vector3(1.08,0.055,0.43),Vector3(bx,y+0.77,front+direction*0.43),timber)
+    box(Vector3(0.29,0.23,0.06),Vector3(bx+0.25,y+0.94,front+direction*0.43),reader)
 
 func _tunnel_mouth(x: float,z: float,direction: float) -> void:
-    for j in range(48):
-        var a: float=float(j)*TAU/48.0
-        var b: float=float(j+1)*TAU/48.0
-        var p0 := Vector3(x+2.04*cos(a),2.13+2.35*sin(a),z)
-        var p1 := Vector3(x+2.04*cos(b),2.13+2.35*sin(b),z)
-        quad(p0,p1,p1+Vector3(0,0,direction*8.0),p0+Vector3(0,0,direction*8.0),black,Vector3(-cos(a),-sin(a),0))
-        for depth in [0.08,1.50,3.0,4.5,6.0]:
-            var offset := Vector3(0,0,direction*float(depth))
-            rod(p0+offset,p1+offset,0.035,housing)
-    box(Vector3(4.12,4.8,0.08),Vector3(x,2.13,z+direction*8.0),black)
+    # Rectangular tunnel walls and a flat inner roof; only the station-facing
+    # lintel follows the hall's shallow curved crown. No lower circular ring.
+    var lining := stone(Color("#363a37"),false)
+    for side in [-1.0,1.0]:
+        box(Vector3(0.18,4.48,8.0),Vector3(x+side*2.13,1.90,z+direction*4.0),lining)
+        box(Vector3(0.22,4.48,0.22),Vector3(x+side*2.13,1.90,z),housing)
+    for j in range(32):
+        var a := -2.04+float(j)*4.08/32.0
+        var b := -2.04+float(j+1)*4.08/32.0
+        var ha := 4.14+0.32*(1.0-pow(a/2.04,2.0))
+        var hb := 4.14+0.32*(1.0-pow(b/2.04,2.0))
+        quad(Vector3(x+a,ha,z),Vector3(x+b,hb,z),Vector3(x+b,4.14,z+direction*1.1),Vector3(x+a,4.14,z+direction*1.1),lining,Vector3.DOWN)
+        rod(Vector3(x+a,ha,z),Vector3(x+b,hb,z),0.033,housing)
+    box(Vector3(4.26,0.16,6.90),Vector3(x,4.22,z+direction*4.55),lining)
+    box(Vector3(4.40,4.70,0.08),Vector3(x,1.90,z+direction*8.0),black)
     for side in [-1.0,1.0]:
         for y in [1.2,1.6,2.0,2.4]:
-            rod(Vector3(x+side*1.99,float(y),z),Vector3(x+side*1.99,float(y),z+direction*7.8),0.018,black)
+            rod(Vector3(x+side*2.025,float(y),z),Vector3(x+side*2.025,float(y),z+direction*7.8),0.018,black)
 
 func _rounded_box(size: Vector3,p: Vector3,mat: Material,r: float=0.05) -> void:
     var pts := PackedVector2Array()
@@ -403,7 +478,9 @@ func _five_seat_bench(p: Vector3) -> void:
 
 func _driver_mirror(p: Vector3,direction: float,side: float) -> void:
     var root := Node3D.new()
-    root.name="DriverMirror";root.position=p;root.rotation.y=(0.0 if direction<0.0 else PI)-side*0.16
+    root.name="Track1HeadMirror" if side>0.0 else "Track2HeadMirror"
+    root.position=p
+    root.rotation.y=(0.0 if direction<0.0 else PI)-side*0.16
     add_child(root)
     var frame := _material(Color("#e3e9df"),0.12,0.38)
     var blue := _material(Color("#265785"),0.3,0.42)
@@ -458,7 +535,8 @@ func _floor_fittings() -> void:
         for i in range(8):box(Vector3(0.012,0.019,0.24),Vector3(CX+0.74+float(i)*0.03,FY+0.022,float(z)+2.0),black)
 
 func _photo_clocks() -> void:
-    # Retain the existing Minsk-time and per-track departure logic; match red displays.
+    # Reuse the same four live time/interval displays as other stations. Place
+    # their faces in front of the portal lintels, below the gallery floor.
     var infrastructure := get_node("StationInfrastructure")
     infrastructure.set("_amber",Color(1.0,0.12,0.045))
     var displays: Array=infrastructure.get("_displays")
@@ -466,15 +544,44 @@ func _photo_clocks() -> void:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.12,0.045))
     for node in infrastructure.get_children():
         if node is Node3D and "Portal" in str(node.name):
-            node.position.y=4.76
-            var s: float=1.0 if node.position.x>CX else -1.0
-            node.position.x=CX+s*6.40
+            var portal := node as Node3D
+            var near_end: bool=portal.position.z<MID
+            portal.position=Vector3(0.992 if portal.position.x>CX else -11.732,4.93,ZA+0.50 if near_end else ZB-0.50)
+            portal.show()
+            for dx in [-0.85,0.85]:
+                box(Vector3(0.035,0.31,0.04),Vector3(portal.position.x+float(dx),5.315,portal.position.z),metal)
 
 func _stair_material() -> ShaderMaterial:
     var shader := Shader.new()
     shader.code="""shader_type spatial;
 uniform sampler2D stone_tex : source_color,filter_linear_mipmap,repeat_enable;
 varying vec3 p;void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
-void fragment(){vec3 c=texture(stone_tex,vec2(p.x*0.65,p.z*1.8+p.y*2.4)).rgb;ALBEDO=c*0.88;ROUGHNESS=0.36;SPECULAR=0.55;}
+void fragment(){vec3 c=texture(stone_tex,vec2(p.x*0.65,p.z*1.8+p.y*2.4)).rgb;ALBEDO=mix(c,vec3(0.62,0.63,0.60),0.24);ROUGHNESS=0.39;SPECULAR=0.50;}
 """
     var m := ShaderMaterial.new();m.shader=shader;m.set_shader_parameter("stone_tex",load(ART+"stair_marble.jpg"));return m
+
+
+func _quiet_floor_stone(tint: Color=Color.WHITE) -> StandardMaterial3D:
+    # Neutral low-contrast mineral grain. The former grey photo crop contained
+    # large bright flecks which repeated as a small toothed pattern everywhere.
+    # The only high-contrast pattern is now the large physical centre inlay.
+    if _quiet_grain==null:
+        var noise := FastNoiseLite.new()
+        noise.seed=122
+        noise.frequency=0.32
+        noise.fractal_octaves=2
+        var tones := Gradient.new()
+        tones.colors=PackedColorArray([Color("#92968f"),Color("#a1a49e")])
+        _quiet_grain=NoiseTexture2D.new()
+        _quiet_grain.width=256
+        _quiet_grain.height=256
+        _quiet_grain.seamless=true
+        _quiet_grain.color_ramp=tones
+        _quiet_grain.noise=noise
+    var m := _material(tint,0.0,0.43)
+    m.albedo_texture=_quiet_grain
+    m.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    m.uv1_triplanar=true
+    m.uv1_world_triplanar=true
+    m.uv1_scale=Vector3.ONE*1.4
+    return m
