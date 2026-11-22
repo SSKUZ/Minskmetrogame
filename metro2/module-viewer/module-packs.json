@@ -182,9 +182,9 @@
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-6a4c88520db0bb463295.pck",
-      "sha256": "6a4c88520db0bb4632959837ee2ce17434f0fb256ee6157bfe39d5172979c5ef",
-      "bytes": 3154464,
+      "file": "borisovsky_trakt-7b9d1592770a2a2a5852.pck",
+      "sha256": "7b9d1592770a2a2a5852aec996385d3a2f5b8d6d9921c843f3efcece0d433e48",
+      "bytes": 3150816,
       "warmup": [
         "res://modules/stations/borisovsky_trakt/art_v69/ad_0.svg",
         "res://modules/stations/borisovsky_trakt/art_v69/ad_1.svg",
