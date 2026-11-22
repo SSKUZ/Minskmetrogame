@@ -298,9 +298,9 @@
       ]
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-f6746d120b2e842ecfeb.pck",
-      "sha256": "f6746d120b2e842ecfeb68184f225c8ec76d6ef7cc270c5148a5aea67d97cfe6",
-      "bytes": 3318944,
+      "file": "park_chelyuskintsev-7252a22bab4bcf1451af.pck",
+      "sha256": "7252a22bab4bcf1451afdab9189a8b046793112ba14acf6df3da53e1b749ad37",
+      "bytes": 5241120,
       "warmup": [
         "res://modules/stations/park_chelyuskintsev/art/advert_atlas.svg",
         "res://modules/stations/park_chelyuskintsev/art/bronze_name_be.png",

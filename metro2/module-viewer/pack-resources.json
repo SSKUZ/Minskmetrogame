@@ -783,6 +783,8 @@
       "res://modules/stations/park_chelyuskintsev/driver_mirrors.gd",
       "res://modules/stations/park_chelyuskintsev/interior_profile.gd",
       "res://modules/stations/park_chelyuskintsev/materials/cast_glass.gdshader",
+      "res://modules/stations/park_chelyuskintsev/materials/mineral_finish.gdshader",
+      "res://modules/stations/park_chelyuskintsev/materials/mineral_finishes.json",
       "res://modules/stations/park_chelyuskintsev/materials/plaster.gdshader",
       "res://modules/stations/park_chelyuskintsev/materials/satin_metal.gdshader",
       "res://modules/stations/park_chelyuskintsev/materials/stone.gdshader",

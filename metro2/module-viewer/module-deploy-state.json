@@ -23,8 +23,8 @@
       "dependencies": []
     },
     "park_chelyuskintsev": {
-      "source_commit": "b03ff71a24ca271aa58b52ed477d06453efbd2fe",
-      "pack_sha256": "f6746d120b2e842ecfeb68184f225c8ec76d6ef7cc270c5148a5aea67d97cfe6",
+      "source_commit": "0cfe91a47ab0db76f80b496a7b380fffe382050e",
+      "pack_sha256": "7252a22bab4bcf1451afdab9189a8b046793112ba14acf6df3da53e1b749ad37",
       "category": "station",
       "scene": "modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
       "dependencies": []
