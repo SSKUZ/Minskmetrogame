@@ -28,13 +28,8 @@ func configure_layers(layer_events: Dictionary) -> void:
         var event_id: String = str(layer_events.get(layer, ""))
         if event_id == "" or router.bank == null or not router.bank.has_event(event_id):
             continue
-        var player: AudioStreamPlayer3D = router.dispatch(event_id, origin, Vector3.ZERO, -60.0)
+        var player: AudioStreamPlayer3D = router.bank.play_at(event_id, origin, Vector3.ZERO, -60.0, true)
         if player != null:
-            if player.stream is AudioStreamOggVorbis:
-                var loop_stream: AudioStreamOggVorbis = player.stream.duplicate()
-                loop_stream.loop = true
-                player.stream = loop_stream
-                player.play()
             _layers[layer] = player
             player.stream_paused = false
 
@@ -56,6 +51,9 @@ func _process(delta: float) -> void:
 func stop_layers() -> void:
     for player in _layers.values():
         if is_instance_valid(player):
-            player.stop()
-            player.queue_free()
+            if router != null and router.bank != null:
+                router.bank.release_player(player)
+            else:
+                player.stop()
+                player.queue_free()
     _layers.clear()
