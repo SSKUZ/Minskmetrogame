@@ -35,6 +35,13 @@
       "category": "station",
       "scene": "modules/stations/akademiya_nauk/akademiya_nauk.tscn",
       "dependencies": []
+    },
+    "yakuba_kolasa": {
+      "source_commit": "bf9bddc5b9f71ceb5fbf2a6a751001254e551a3b",
+      "pack_sha256": "76594e6d40c1f4be9fef719d53a6f2a065c23d45f705f457458f5a145b206dc7",
+      "category": "station",
+      "scene": "modules/stations/yakuba_kolasa/yakuba_kolasa.tscn",
+      "dependencies": []
     }
   }
 }
