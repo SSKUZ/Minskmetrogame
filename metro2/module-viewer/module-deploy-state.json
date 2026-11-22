@@ -2,8 +2,8 @@
   "schema": 1,
   "modules": {
     "borisovsky_trakt": {
-      "source_commit": "257fe45e062489ac4d8d7f58b9c56abe0e730648",
-      "pack_sha256": "f773f8c621d197dc523a7a85b27a29db124f633f82df7a139917a38dd6eb9795",
+      "source_commit": "0f605ce29fae33e31ff548aff5534760fcc84eea",
+      "pack_sha256": "6a4c88520db0bb4632959837ee2ce17434f0fb256ee6157bfe39d5172979c5ef",
       "category": "station",
       "scene": "modules/stations/borisovsky_trakt/borisovsky_trakt.tscn",
       "dependencies": []

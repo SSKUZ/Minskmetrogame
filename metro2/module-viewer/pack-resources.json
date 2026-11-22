@@ -433,6 +433,7 @@
       "res://modules/stations/borisovsky_trakt/textures/name.png.remap",
       "res://modules/stations/borisovsky_trakt/textures/wall_map.jpg.import",
       "res://modules/stations/borisovsky_trakt/textures/wall_map.jpg.remap",
+      "res://modules/stations/borisovsky_trakt/trackwork.gd",
       "res://scripts/infrastructure/station_infrastructure.gd",
       "res://scripts/playable_track_path.gd"
     ],
