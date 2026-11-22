@@ -1,0 +1,947 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:minsk-metro:portable-module:1",
+  "title": "Minsk Metro portable module metadata v1",
+  "description": "Declarative, per-module metadata for future glTF/GLB conversion. No executable logic. Does not certify Roblox importability.",
+  "type": "object",
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "module": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "station",
+            "train",
+            "car",
+            "cab",
+            "tunnel",
+            "track_equipment",
+            "depot",
+            "passenger",
+            "animation",
+            "other"
+          ]
+        },
+        "scene": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "scene"
+      ],
+      "additionalProperties": false
+    },
+    "source_frame": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "Godot"
+        },
+        "engine_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metres_per_unit": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "handedness": {
+          "enum": [
+            "right",
+            "left"
+          ]
+        },
+        "up_axis": {
+          "enum": [
+            "+X",
+            "-X",
+            "+Y",
+            "-Y",
+            "+Z",
+            "-Z"
+          ]
+        },
+        "forward_axis": {
+          "enum": [
+            "+X",
+            "-X",
+            "+Y",
+            "-Y",
+            "+Z",
+            "-Z"
+          ]
+        },
+        "route_positive_axis": {
+          "enum": [
+            "+X",
+            "-X",
+            "+Y",
+            "-Y",
+            "+Z",
+            "-Z"
+          ]
+        },
+        "origin": {
+          "const": "module_root"
+        },
+        "matrix_layout": {
+          "const": "column_major_4x4"
+        },
+        "quaternion_layout": {
+          "const": "xyzw"
+        }
+      },
+      "required": [
+        "engine",
+        "engine_version",
+        "metres_per_unit",
+        "handedness",
+        "up_axis",
+        "forward_axis",
+        "route_positive_axis",
+        "origin",
+        "matrix_layout",
+        "quaternion_layout"
+      ],
+      "additionalProperties": false
+    },
+    "target_frame": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "const": "Roblox"
+        },
+        "studs_per_metre": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "basis_from_source": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number"
+          },
+          "minItems": 9,
+          "maxItems": 9,
+          "description": "Dimensionless column-major 3x3 basis. Null until 53.2 defines the target convention. Units are converted separately using studs_per_metre."
+        }
+      },
+      "required": [
+        "platform",
+        "studs_per_metre",
+        "basis_from_source"
+      ],
+      "additionalProperties": false
+    },
+    "geometry_sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/geometry_source"
+      },
+      "minItems": 1
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/material"
+      }
+    },
+    "textures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/texture"
+      }
+    },
+    "points": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/point"
+      }
+    },
+    "zones": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/zone"
+      }
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/route"
+          }
+        },
+        "equipment_states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/equipment_state"
+          }
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/animation"
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/data_reference"
+          }
+        }
+      },
+      "required": [
+        "parameters",
+        "routes",
+        "equipment_states",
+        "animations",
+        "references"
+      ],
+      "additionalProperties": false
+    },
+    "adapter_hints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/limitation"
+      }
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "format_version",
+    "module",
+    "source_frame",
+    "target_frame",
+    "geometry_sources",
+    "materials",
+    "textures",
+    "points",
+    "zones",
+    "data",
+    "adapter_hints",
+    "limitations"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "transform": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 16,
+      "maxItems": 16,
+      "description": "Column-major affine matrix in module-root coordinates; translation indices 12,13,14. Lengths use source_frame units. Includes local scale; no target conversion applied."
+    },
+    "source_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbol": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "point": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "connection",
+            "door",
+            "bogie",
+            "cab",
+            "controller",
+            "brake",
+            "camera",
+            "equipment",
+            "interaction",
+            "stop",
+            "spawn",
+            "waypoint",
+            "waiting",
+            "boarding",
+            "alighting",
+            "seat",
+            "grip",
+            "custom"
+          ]
+        },
+        "transform": {
+          "$ref": "#/$defs/transform"
+        },
+        "node_path": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "transform"
+      ],
+      "additionalProperties": false
+    },
+    "shape": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "box"
+            },
+            "size": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "kind",
+            "size"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "sphere"
+            },
+            "radius": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "radius"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "capsule"
+            },
+            "radius": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "radius",
+            "height"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "polygon"
+            },
+            "vertices": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "minItems": 3
+            }
+          },
+          "required": [
+            "kind",
+            "vertices"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "zone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "connection",
+            "door",
+            "bogie",
+            "cab",
+            "controller",
+            "brake",
+            "camera",
+            "equipment",
+            "interaction",
+            "stop",
+            "spawn",
+            "waypoint",
+            "waiting",
+            "boarding",
+            "alighting",
+            "seat",
+            "grip",
+            "custom",
+            "navigation",
+            "track",
+            "platform"
+          ]
+        },
+        "transform": {
+          "$ref": "#/$defs/transform"
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "node_path": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "transform",
+        "shape"
+      ],
+      "additionalProperties": false
+    },
+    "geometry_source": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "scene",
+            "generator",
+            "glb",
+            "gltf",
+            "mesh_resource",
+            "multipart_glb"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_path": {
+          "type": "string"
+        },
+        "requires_initialization": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "unassessed",
+            "declared",
+            "adaptation_required"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "transform": {
+          "$ref": "#/$defs/transform"
+        },
+        "surface_bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "node_path": {
+                "type": "string"
+              },
+              "surface": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "material_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "node_path",
+              "surface",
+              "material_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "path",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "texture": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "file",
+            "procedural",
+            "viewport"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "usage": {
+          "enum": [
+            "albedo",
+            "normal",
+            "roughness",
+            "metallic",
+            "emission",
+            "occlusion",
+            "other"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "usage"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "file"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "path"
+            ]
+          }
+        }
+      ]
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "source_class": {
+          "type": "string"
+        },
+        "albedo": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "metallic": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "roughness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "emission": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "emission_energy": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alpha_mode": {
+          "enum": [
+            "opaque",
+            "mask",
+            "blend"
+          ]
+        },
+        "double_sided": {
+          "type": "boolean"
+        },
+        "texture_bindings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "uv_transform": {
+          "type": "object",
+          "properties": {
+            "scale": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "offset": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "world_triplanar": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "shader": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object"
+            },
+            "adaptation": {
+              "enum": [
+                "unassessed",
+                "required"
+              ]
+            }
+          },
+          "required": [
+            "adaptation"
+          ],
+          "additionalProperties": false
+        },
+        "extensions": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "source_class"
+      ],
+      "additionalProperties": false
+    },
+    "parameter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {},
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "$ref": "#/$defs/source_ref"
+        }
+      },
+      "required": [
+        "id",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "route": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "waypoint_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "waiting_zone_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "boarding_zone_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alighting_zone_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seat_point_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "waypoint_ids"
+      ],
+      "additionalProperties": false
+    },
+    "equipment_state": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "values": {
+          "type": "array",
+          "items": {},
+          "minItems": 1
+        },
+        "initial": {},
+        "source": {
+          "$ref": "#/$defs/source_ref"
+        }
+      },
+      "required": [
+        "id",
+        "values"
+      ],
+      "additionalProperties": false
+    },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "$ref": "#/$defs/source_ref"
+        },
+        "clip_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "skeleton_node_path": {
+          "type": "string"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "target_rig": {
+          "enum": [
+            "unspecified",
+            "R15",
+            "custom"
+          ]
+        },
+        "retargeting": {
+          "enum": [
+            "unassessed",
+            "required"
+          ]
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "retargeting"
+      ],
+      "additionalProperties": false
+    },
+    "data_reference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "enum": [
+            "physics",
+            "doors",
+            "passenger_routes",
+            "seats",
+            "boarding",
+            "equipment",
+            "cameras",
+            "animations",
+            "other"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "purpose",
+        "path",
+        "format"
+      ],
+      "additionalProperties": false
+    },
+    "limitation": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_path": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "code",
+        "detail"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
