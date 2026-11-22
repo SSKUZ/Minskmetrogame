@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "description": "Independent sound-event bindings. Empty until each recording has verified content and redistribution rights.",
+  "assets": [],
+  "route_events": {},
+  "loop_events": {},
+  "zone_events": {},
+  "rights_verified": false
+}
