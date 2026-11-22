@@ -21,6 +21,13 @@
       "category": "station",
       "scene": "modules/stations/moskovskaya/moskovskaya.tscn",
       "dependencies": []
+    },
+    "park_chelyuskintsev": {
+      "source_commit": "b03ff71a24ca271aa58b52ed477d06453efbd2fe",
+      "pack_sha256": "f6746d120b2e842ecfeb68184f225c8ec76d6ef7cc270c5148a5aea67d97cfe6",
+      "category": "station",
+      "scene": "modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
+      "dependencies": []
     }
   }
 }
