@@ -30,6 +30,11 @@ func configure_layers(layer_events: Dictionary) -> void:
             continue
         var player: AudioStreamPlayer3D = router.dispatch(event_id, origin, Vector3.ZERO, -60.0)
         if player != null:
+            if player.stream is AudioStreamOggVorbis:
+                var loop_stream: AudioStreamOggVorbis = player.stream.duplicate()
+                loop_stream.loop = true
+                player.stream = loop_stream
+                player.play()
             _layers[layer] = player
             player.stream_paused = false
 
