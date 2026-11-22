@@ -389,28 +389,9 @@ func _ends() -> void:
         if i in [0,14,29]:
             _b("YellowStairNosing",Vector3(7.2,0.025,0.05),Vector3(-5.37,1.20+height,z-0.14),_material(Color(0.95,0.68,0.08)))
     _b("IntermediateStairLanding",Vector3(7.2,0.16,landing),Vector3(-5.37,1.1805+15.0*0.145-0.08,start+14.5*0.31+landing*0.5),stairs)
-    for x in [-9.12,-6.60,-1.62]:
-        for offset in [0.72,1.06]:
-            var y: float=1.1805+float(offset)
-            var a := Vector3(x,y,start-0.2)
-            var b := Vector3(x,y+2.175,start+14.5*0.31)
-            var c := b+Vector3(0,0,landing)
-            var d := Vector3(x,y+4.35,start+29.5*0.31+landing)
-            _rod(a,b,0.025,steel)
-            _rod(b,c,0.025,steel)
-            _rod(c,d,0.025,steel)
-            _rod(a-Vector3(0,0,0.4),a,0.025,steel)
-        for i in range(9):
-            var u := float(i)/8.0
-            var z: float=start+u*(9.3+landing)
-            var rise: float=clampf((z-start)/0.31,0.0,15.0)*0.145 if z<start+14.5*0.31 else 2.175 if z<start+14.5*0.31+landing else 2.175+(z-start-14.5*0.31-landing)*0.145/0.31
-            _rod(Vector3(x,1.1805+rise,z),Vector3(x,2.2805+rise,z),0.026,steel)
-    for side in [-1,1]:
-        _b("StairSideMarble",Vector3(0.25,6.94,14.3),Vector3(-5.37+float(side)*3.8,4.65,91.95),stone)
-        _b("StairSideRedGranite",Vector3(0.27,1.2,14.3),Vector3(-5.37+float(side)*3.8,1.78,91.95),brown)
-    _picture("WestExitDestinations","exit.svg",Vector2(7.05,0.793),Vector3(-5.37,4.1,84.65),PI)
-    _b("WestVestibuleFloor",Vector3(7.2,0.2,4),Vector3(-5.37,5.53,96.3),stairs)
-    _b("WestVestibuleBack",Vector3(7.5,3.0,0.2),Vector3(-5.37,7.1,98.4),stone)
+    _west_stair_railings(start,landing)
+    _picture("WestExitDestinations","exit.svg",Vector2(7.05,0.793),Vector3(CX,4.1,84.65),PI)
+    _west_exit_control_area(start+29.0*0.31+landing)
     # East vestibule is closed: the documented curved screen stops below ceiling.
     var screen: Array[Vector2] = []
     for i in range(21):
@@ -449,9 +430,7 @@ func _equipment() -> void:
     for x in [-9.5,-1.25]:
         _b("CCTVBody",Vector3(0.16,0.15,0.35),Vector3(x,4.26,83.2),white)
         _b("CCTVBracket",Vector3(0.04,0.3,0.04),Vector3(x,4.45,83.3),steel)
-    # Dark existing information screens, no invented advertising or service text.
-    for z in [22.0,58.0]:
-        _b("InformationMonitor",Vector3(1.2,0.7,0.12),Vector3(-2.5,4.1,z),dark)
+    _information_monitors()
     for x in [-9.1,-1.65]:
         _b("EmergencyCallPanel",Vector3(0.24,0.45,0.05),Vector3(x,2.27,84.0),_material(Color(0.95,0.77,0.12)))
         _b("SOSButton",Vector3(0.08,0.10,0.065),Vector3(x,2.27,83.97),_material(Color(0.75,0.08,0.04)))
@@ -489,5 +468,115 @@ func _finish_details() -> void:
         var x: float = CX+side*4.8
         for i in range(70):
             _b("GlobeFixturePlate",Vector3(0.16,0.16,0.025),Vector3(x,4.93,-12.0+float(i)*1.5),steel)
-    for x in [-9.12,-6.60,-1.62]:
-        _b("StairRailFootPlate",Vector3(0.16,0.018,0.18),Vector3(float(x),1.197,85.0),steel)
+
+func _information_monitors() -> void:
+    # Reuse the existing local artwork: static illuminated ads on both faces.
+    # Two rods, a mounting plate, fixings and a rear crossmember form a continuous
+    # connection from each monitor case to the actual side ceiling at y=5.65.
+    for i in range(2):
+        var z := 22.0+float(i)*36.0
+        var p := Vector3(-2.5,4.1,z)
+        _b("InformationMonitor",Vector3(1.2,0.7,0.12),p,dark)
+        _b("MonitorMountCrossmember",Vector3(0.94,0.05,0.09),p+Vector3(0,0.32,0),steel)
+        for dx in [-0.42,0.42]:
+            var x: float=p.x+float(dx)
+            _rod(Vector3(x,4.40,z),Vector3(x,5.63,z),0.019,steel)
+            _b("MonitorCeilingPlate",Vector3(0.16,0.035,0.18),Vector3(x,5.64,z),steel)
+            for dz in [-0.055,0.055]:
+                _cylinder("MonitorMountBolt",0.013,0.012,Vector3(x,5.618,z+float(dz)),dark)
+            _b("MonitorCaseClamp",Vector3(0.09,0.10,0.14),Vector3(x,4.43,z),steel)
+        # The cable is visibly secured alongside the suspension, not floating.
+        _rod(Vector3(p.x+0.445,4.42,z+0.025),Vector3(p.x+0.445,5.62,z+0.025),0.006,dark)
+        for face in [-1.0,1.0]:
+            _picture("StaticAdvertisingScreen","ad_%d.svg" % i,Vector2(1.10,1.10*680.0/1200.0),p+Vector3(0,0,face*0.062),0.0 if face>0.0 else PI)
+
+func _stair_tread_height(z: float,start: float,landing: float) -> float:
+    var first_end := start+14.5*0.31
+    if z<first_end:
+        return FY+clampf(floorf((z-start+0.155)/0.31)+1.0,1.0,15.0)*0.145
+    if z<first_end+landing:return FY+15.0*0.145
+    return FY+clampf(floorf((z-start-landing+0.155)/0.31)+1.0,16.0,30.0)*0.145
+
+func _west_stair_railings(start: float,landing: float) -> void:
+    # Open stainless balustrades replace both tall solid side walls. Posts sit
+    # on the actual treads; the upper side guards continue along the landing.
+    var first_end := start+14.5*0.31
+    var second_start := first_end+landing
+    var top := start+29.5*0.31+landing
+    for index in range(3):
+        var x: float=[CX-3.42,-6.60,CX+3.42][index]
+        var path: Array[Vector2]=[
+            Vector2(start-0.155,FY+0.145),
+            Vector2(first_end,FY+2.175),
+            Vector2(second_start,FY+2.175),
+            Vector2(top,FY+4.35)
+        ]
+        if index!=1:path.append(Vector2(98.90,FY+4.35))
+        for segment in range(path.size()-1):
+            var a: Vector2=path[segment]
+            var b: Vector2=path[segment+1]
+            for height in [0.18,0.64,1.10]:
+                _rod(Vector3(x,a.y+float(height),a.x),Vector3(x,b.y+float(height),b.x),0.025 if height==1.10 else 0.018,steel)
+            var count := maxi(1,ceili((b.x-a.x)/0.72))
+            for j in range(count):
+                var t := float(j)/float(count)
+                var z := lerpf(a.x,b.x,t)
+                var y := _stair_tread_height(z,start,landing)
+                var rail_y := lerpf(a.y,b.y,t)+1.10
+                _rod(Vector3(x,y,z),Vector3(x,rail_y,z),0.022,steel)
+                _b("StairRailFootPlate",Vector3(0.13,0.014,0.14),Vector3(x,y+0.007,z),steel)
+        var end: Vector2=path[-1]
+        _rod(Vector3(x,end.y,end.x),Vector3(x,end.y+1.10,end.x),0.022,steel)
+        _b("StairTopPostFoot",Vector3(0.13,0.014,0.14),Vector3(x,end.y+0.007,end.x),steel)
+
+func _west_exit_control_area(top_step_z: float) -> void:
+    var floor_y := FY+4.35
+    # The landing starts flush with the final tread and ends under the existing
+    # high exit roof. Furniture remains behind the stair approach.
+    var length := 3.80
+    _b("WestVestibuleFloor",Vector3(7.2,0.20,length),Vector3(CX,floor_y-0.10,top_step_z+length*0.5),stairs)
+    _b("WestVestibuleBack",Vector3(7.5,2.42,0.16),Vector3(CX,floor_y+1.21,99.0),stone)
+    var reader := _material(Color("#18252c"),0.28,0.28)
+    var indicator := _material(Color("#46c892"),0.0,0.65)
+    indicator.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+    # Six cabinets form five visible lanes to the left of the attendant cabin.
+    for i in range(6):
+        var x := CX-3.05+float(i)*0.90
+        var z := 97.05
+        _b("TurnstileFoot",Vector3(0.29,0.055,1.12),Vector3(x,floor_y+0.0275,z),dark)
+        _b("TurnstileCabinet",Vector3(0.22,0.94,1.08),Vector3(x,floor_y+0.525,z),steel)
+        _b("TurnstileTop",Vector3(0.26,0.06,1.12),Vector3(x,floor_y+1.025,z),steel)
+        _b("FareCardReader",Vector3(0.17,0.035,0.25),Vector3(x,floor_y+1.072,z-0.29),reader)
+        _b("TurnstileLaneIndicator",Vector3(0.08,0.035,0.016),Vector3(x,floor_y+0.89,z-0.549),indicator)
+        if i<5:
+            var pivot := Vector3(x+0.15,floor_y+0.73,z)
+            _b("TurnstileRotor",Vector3(0.12,0.16,0.16),pivot,steel)
+            for arm in range(3):
+                var angle := float(arm)*TAU/3.0
+                _rod(pivot,pivot+Vector3(0.60,0.23*sin(angle),0.23*cos(angle)),0.022,steel)
+    # A glazed booth with a solid lower panel, metal mullions and an interior
+    # desk is visible above the stairs rather than hidden behind a high wall.
+    var bx := CX+2.55
+    var front := 96.48
+    var back := 98.23
+    var shell := _material(Color("#788b89"),0.38,0.48)
+    var frame := _material(Color("#4a6061"),0.62,0.31)
+    var glass := _material(Color(0.40,0.57,0.58,0.24),0.05,0.17)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+    _b("ControlBoothLowerFront",Vector3(1.60,0.90,0.07),Vector3(bx,floor_y+0.45,front),shell)
+    _b("ControlBoothCounter",Vector3(1.64,0.07,0.25),Vector3(bx,floor_y+0.94,front+0.06),steel)
+    for side in [-1.0,1.0]:
+        var x: float=bx+side*0.80
+        _b("ControlBoothLowerSide",Vector3(0.07,0.90,back-front),Vector3(x,floor_y+0.45,(front+back)*0.5),shell)
+        _b("ControlBoothSideGlass",Vector3(0.025,1.19,back-front-0.08),Vector3(x,floor_y+1.545,(front+back)*0.5),glass)
+        for z in [front,back]:
+            _b("ControlBoothCornerPost",Vector3(0.06,2.20,0.06),Vector3(x,floor_y+1.10,float(z)),frame)
+    for dx in [-0.41,0.41]:
+        _b("ControlBoothFrontGlass",Vector3(0.75,1.19,0.025),Vector3(bx+float(dx),floor_y+1.545,front),glass)
+    _b("ControlBoothFrontMullion",Vector3(0.045,1.24,0.06),Vector3(bx,floor_y+1.55,front),frame)
+    _b("ControlBoothHeader",Vector3(1.65,0.095,0.08),Vector3(bx,floor_y+2.18,front),frame)
+    _b("ControlBoothRoof",Vector3(1.76,0.09,1.91),Vector3(bx,floor_y+2.245,(front+back)*0.5),shell)
+    _b("ControlBoothRearPanel",Vector3(1.60,2.12,0.07),Vector3(bx,floor_y+1.06,back),shell)
+    _b("ControlBoothDesk",Vector3(1.24,0.055,0.48),Vector3(bx,floor_y+0.82,front+0.43),wood)
+    _b("ControlBoothConsole",Vector3(0.34,0.25,0.055),Vector3(bx+0.27,floor_y+1.01,front+0.43),dark)
+    _b("ControlBoothConsoleScreen",Vector3(0.29,0.20,0.01),Vector3(bx+0.27,floor_y+1.01,front+0.398),reader)
