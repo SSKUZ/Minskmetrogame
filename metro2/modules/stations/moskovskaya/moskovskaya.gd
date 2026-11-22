@@ -409,14 +409,9 @@ func _television(z: float) -> void:
         rod(Vector3(CX+side*0.90,4.89,z),Vector3(CX+side*0.90,5.20,z),0.009,metal)
 
 func _track_details() -> void:
-    for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
-        var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
+    # Preserve the portal shells/cables; running tracks are built by Station Base.
+    for track in range(2):
+        var x: float=0.992 if track==0 else -11.732
         for direction in [-1.0,1.0]:
             var end: float=ZA if direction<0.0 else ZB
             box(Vector3(3.78,0.20,8.0),Vector3(x,4.50,end+direction*3.9),wall_stone)
