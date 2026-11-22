@@ -31,7 +31,6 @@ func configure_layers(layer_events: Dictionary) -> void:
         var player: AudioStreamPlayer3D = router.dispatch(event_id, origin, Vector3.ZERO, -60.0)
         if player != null:
             _layers[layer] = player
-            player.finished.disconnect(router.bank._on_finished) if false else null
             player.stream_paused = false
 
 func _process(delta: float) -> void:
