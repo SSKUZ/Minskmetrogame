@@ -10,7 +10,7 @@ varying vec3 p;varying vec3 n;
 void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(MODEL_NORMAL_MATRIX*NORMAL);}
 float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 void fragment(){
- vec2 q=n.x>0.5?p.zy:n.y>0.5?p.xz:p.xy;
+ vec2 q = n.x > 0.5 ? p.zy : (n.y > 0.5 ? p.xz : p.xy);
  vec2 grid=q/slab;grid.x+=staggered?mod(floor(grid.y),2.0)*0.5:0.0;
  vec2 cell=floor(grid);float v=h(cell);
  vec2 uv=fract(grid)+vec2(v*0.23,v*0.17);
