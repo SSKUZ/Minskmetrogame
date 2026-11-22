@@ -1,0 +1,15 @@
+{
+  "previous_individual_identifications_recovered": false,
+  "previous_commit": "dc04014e52c8c896058ca1795741a7c351e7117d",
+  "preserved_recovery_commit": "6d0e193cff0e861d92dcd8d25c39595a9e2ee730",
+  "base_commit": "443575bf2454b139749bc1a582b09b149c4b57bf",
+  "recovered_files": [
+    "previous_system_README.md",
+    "previous_processing_summary.json"
+  ],
+  "existing_catalog_assets": 0,
+  "source_inventory_records": 147,
+  "prepared_ogg_reused": 147,
+  "original_workspace_available": false,
+  "scope": "one focused recovery attempt; no original per-file CLAP/Whisper evidence recovered; all 147 require content identification"
+}
