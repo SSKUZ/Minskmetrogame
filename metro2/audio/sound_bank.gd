@@ -46,7 +46,7 @@ func _stream(event_id: String) -> AudioStream:
         _cache.erase(evicted)
     return resource
 
-func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3.ZERO, volume_db: float = 0.0) -> AudioStreamPlayer3D:
+func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3.ZERO, volume_db: float = 0.0, looped: bool = false) -> AudioStreamPlayer3D:
     if not is_instance_valid(parent):
         return null
     var stream: AudioStream = _stream(event_id)
@@ -61,10 +61,18 @@ func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3
     player.volume_db = volume_db + float(category_db.get(category, 0.0)) + float(entry.get("gain_db", 0.0))
     player.max_distance = float(entry.get("max_distance_m", 80.0))
     player.position = local_position
-    player.stream = stream
+    if looped:
+        if not stream is AudioStreamOggVorbis:
+            return null
+        var loop_stream: AudioStreamOggVorbis = stream.duplicate()
+        loop_stream.loop = true
+        player.stream = loop_stream
+    else:
+        player.stream = stream
     parent.add_child(player)
     _voices.append(player)
-    player.finished.connect(_on_finished.bind(player))
+    if not looped:
+        player.finished.connect(_on_finished.bind(player))
     player.play()
     return player
 
@@ -77,6 +85,12 @@ func _cleanup_voices() -> void:
     for i in range(_voices.size() - 1, -1, -1):
         if not is_instance_valid(_voices[i]):
             _voices.remove_at(i)
+
+func release_player(player: AudioStreamPlayer3D) -> void:
+    _voices.erase(player)
+    if is_instance_valid(player):
+        player.stop()
+        player.queue_free()
 
 func stop_all() -> void:
     for player in _voices:
