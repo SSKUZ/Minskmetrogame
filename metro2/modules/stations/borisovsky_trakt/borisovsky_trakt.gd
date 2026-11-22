@@ -66,6 +66,7 @@ func _ready() -> void:
     _ends()
     _equipment()
     _finish_details()
+    _detailed_trackwork()
     _flush_batches()
 
 func _photo_stone(file: String, tint: Color, rough: float, scale_uv: Vector3) -> StandardMaterial3D:
@@ -392,18 +393,7 @@ func _ends() -> void:
     _west_stair_railings(start,landing)
     _picture("WestExitDestinations","exit.svg",Vector2(7.05,0.793),Vector3(CX,4.1,84.65),PI)
     _west_exit_control_area(start+29.0*0.31+landing)
-    # East vestibule is closed: the documented curved screen stops below ceiling.
-    var screen: Array[Vector2] = []
-    for i in range(21):
-        var a := PI*float(i)/20.0
-        screen.append(Vector2(-5.37+3.4*cos(a),-10.7-1.6*sin(a)))
-    for i in range(screen.size()-1):
-        var a := screen[i]
-        var b := screen[i+1]
-        var mesh := BoxMesh.new()
-        mesh.size = Vector3(a.distance_to(b)+0.015,3.1,0.12)
-        var n := _mesh("ClosedEastVestibuleScreen",mesh,Vector3((a.x+b.x)*0.5,2.73,(a.y+b.y)*0.5),white)
-        n.rotation.y = -atan2(b.y-a.y,b.x-a.x)
+    _closed_east_screen()
     for x in [0.992,-11.732]:
         for z in [-16.9,96.1]:
             _b("ShortTunnelRoof",Vector3(4.6,0.3,8),Vector3(x,4.05,z),dark)
@@ -580,3 +570,84 @@ func _west_exit_control_area(top_step_z: float) -> void:
     _b("ControlBoothDesk",Vector3(1.24,0.055,0.48),Vector3(bx,floor_y+0.82,front+0.43),wood)
     _b("ControlBoothConsole",Vector3(0.34,0.25,0.055),Vector3(bx+0.27,floor_y+1.01,front+0.43),dark)
     _b("ControlBoothConsoleScreen",Vector3(0.29,0.20,0.01),Vector3(bx+0.27,floor_y+1.01,front+0.398),reader)
+
+
+func _detailed_trackwork() -> void:
+    # Keep the proven rail profiles and materials independent of both other
+    # station packages; station datum, gauge and portal clocks stay unchanged.
+    var tracks := preload("res://modules/stations/borisovsky_trakt/trackwork.gd").new()
+    tracks.name="DetailedBorisovskyTrackwork"
+    add_child(tracks)
+
+func _gypsum_material() -> ShaderMaterial:
+    var shader := Shader.new()
+    shader.code="""shader_type spatial;
+render_mode cull_disabled;
+varying vec3 p;
+void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
+float hash_p(vec3 q){return fract(sin(dot(q,vec3(127.1,311.7,74.7)))*43758.5453);}
+float cloud(vec3 q){
+    vec3 i=floor(q),f=fract(q);f=f*f*(3.0-2.0*f);
+    float a=mix(mix(hash_p(i),hash_p(i+vec3(1,0,0)),f.x),mix(hash_p(i+vec3(0,1,0)),hash_p(i+vec3(1,1,0)),f.x),f.y);
+    float b=mix(mix(hash_p(i+vec3(0,0,1)),hash_p(i+vec3(1,0,1)),f.x),mix(hash_p(i+vec3(0,1,1)),hash_p(i+vec3(1,1,1)),f.x),f.y);
+    return mix(a,b,f.z);
+}
+void fragment(){
+    float coating=cloud(p*3.8);
+    float grain=hash_p(floor(p*175.0));
+    ALBEDO=mix(vec3(0.86,0.87,0.84),vec3(0.92,0.925,0.90),coating)+vec3((grain-0.5)*0.008);
+    ROUGHNESS=0.88+grain*0.06;SPECULAR=0.22;
+}
+"""
+    var mat := ShaderMaterial.new()
+    mat.shader=shader
+    return mat
+
+func _screen_collision(node: MeshInstance3D,size: Vector3) -> void:
+    var body := StaticBody3D.new()
+    body.name="SolidPartition"
+    var shape := BoxShape3D.new()
+    shape.size=size
+    var collider := CollisionShape3D.new()
+    collider.shape=shape
+    body.add_child(collider)
+    node.add_child(body)
+
+func _screen_wall(label: String,size: Vector3,p: Vector3,mat: Material) -> void:
+    var mesh := BoxMesh.new()
+    mesh.size=size
+    var node := _mesh(label,mesh,p,mat)
+    _screen_collision(node,size)
+
+func _closed_east_screen() -> void:
+    var gypsum := _gypsum_material()
+    var joint := _material(Color("#ced0c8"),0.0,0.95)
+    var cap := _material(Color("#daddd5"),0.10,0.67)
+    # A solid end wall fills the whole platform width and meets both the floor
+    # and the existing ceiling. Returns close the sides behind the curved face.
+    # There is no opening into the unmodelled space, even beside the screen.
+    var height := 4.65
+    var y := FY-0.02+height*0.5
+    _screen_wall("ClosedVestibuleRearWall",Vector3(10.0,height,0.35),Vector3(CX,y,Z0-0.155),gypsum)
+    var room_front := -10.50
+    var room_back := Z0-0.30
+    for side in [-1.0,1.0]:
+        _screen_wall("ClosedVestibuleSideReturn",Vector3(0.12,height,room_front-room_back),Vector3(CX+side*4.94,y,(room_front+room_back)*0.5),gypsum)
+    var screen: Array[Vector2]=[]
+    for i in range(21):
+        var angle := PI*float(i)/20.0
+        screen.append(Vector2(CX+3.4*cos(angle),-10.7-1.6*sin(angle)))
+    for i in range(screen.size()-1):
+        var a: Vector2=screen[i]
+        var b: Vector2=screen[i+1]
+        var mesh := BoxMesh.new()
+        mesh.size=Vector3(a.distance_to(b)+0.010,3.10,0.14)
+        var node := _mesh("PaintedGypsumScreenPanel",mesh,Vector3((a.x+b.x)*0.5,FY+1.55,(a.y+b.y)*0.5),gypsum)
+        node.rotation.y=-atan2(b.y-a.y,b.x-a.x)
+        _screen_collision(node,mesh.size)
+        _beam("GypsumScreenTopCap",Vector3(a.x,FY+3.11,a.y),Vector3(b.x,FY+3.11,b.y),0.16,0.025,cap)
+        _beam("GypsumScreenSkirting",Vector3(a.x,FY+0.04,a.y),Vector3(b.x,FY+0.04,b.y),0.16,0.08,cap)
+        if i>0:
+            var tangent := (b-a).normalized()
+            var face := Vector3(tangent.y,0,-tangent.x)*0.076
+            _rod(Vector3(a.x,FY+0.09,a.y)+face,Vector3(a.x,FY+3.07,a.y)+face,0.003,joint)
