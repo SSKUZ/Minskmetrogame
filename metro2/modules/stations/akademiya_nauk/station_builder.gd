@@ -45,13 +45,12 @@ func stone(tint: Color,veined: bool) -> ShaderMaterial:
     shader.code="""shader_type spatial;
 uniform vec4 tint : source_color;uniform bool veined=false;
 varying vec3 p;varying vec3 n;
-void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(normalize(MODEL_NORMAL_MATRIX*NORMAL));}
+void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(MODEL_NORMAL_MATRIX*NORMAL);}
 float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.0-2.0*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 q){return noise(q)*0.55+noise(q*2.03)*0.26+noise(q*4.01)*0.13+noise(q*8.03)*0.06;}
 void fragment(){
-vec2 q=p.xy;
-if(n.x>=n.y && n.x>=n.z){q=p.zy;}else if(n.y>=n.z){q=p.xz;}
+vec2 q=n.x>0.5?p.zy:n.y>0.5?p.xz:p.xy;
 vec2 slab=floor(q/vec2(1.20,0.62));float variation=h(slab)*0.05;
 vec2 warped=q+vec2(fbm(q*1.7),fbm(q.yx*2.3))*0.7;
 float vein=pow(1.0-abs(sin(warped.x*5.4+warped.y*2.7+fbm(q*4.2)*5.0)),25.0);
@@ -262,11 +261,7 @@ func triangle(a: Vector3,b: Vector3,c: Vector3,mat: Material,hint: Vector3=Vecto
     # Godot front faces are clockwise; retain the outward/inward normal hint.
     for p in [a,b if reverse else c,c if reverse else b]:
         st.set_normal(normal)
-        var axis := normal.abs()
-        var uv := Vector2(p.x,p.y)
-        if axis.x>=axis.y and axis.x>=axis.z:uv=Vector2(p.z,p.y)
-        elif axis.y>=axis.z:uv=Vector2(p.x,p.z)
-        st.set_uv(uv)
+        st.set_uv(Vector2(p.x,p.z))
         st.add_vertex(p)
 
 func quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,mat: Material,hint: Vector3=Vector3.ZERO) -> void:
