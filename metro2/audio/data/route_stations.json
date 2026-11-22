@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "segment": "Уручье — Площадь Ленина",
+  "note": "Station sequence only. No recording assignments are asserted. Minsk metro line 1; Plošča Lienina is an in-game segment boundary, not the line terminus.",
+  "station_ids": [
+    "uruchye",
+    "barysauski_trakt",
+    "uskhod",
+    "maskouskaya",
+    "park_chalyuskintsau",
+    "akademiya_navuk",
+    "ploshcha_yakuba_kolasa",
+    "ploshcha_peramohi",
+    "kastrychnitskaya",
+    "ploshcha_lenina"
+  ],
+  "directions": [
+    "forward",
+    "reverse"
+  ],
+  "phases": [
+    "next_station",
+    "arrival"
+  ],
+  "recording_map_status": "unverified"
+}
