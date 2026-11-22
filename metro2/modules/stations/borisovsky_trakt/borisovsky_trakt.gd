@@ -66,7 +66,6 @@ func _ready() -> void:
     _ends()
     _equipment()
     _finish_details()
-    _detailed_trackwork()
     _flush_batches()
 
 func _photo_stone(file: String, tint: Color, rough: float, scale_uv: Vector3) -> StandardMaterial3D:
@@ -571,13 +570,6 @@ func _west_exit_control_area(top_step_z: float) -> void:
     _b("ControlBoothConsole",Vector3(0.34,0.25,0.055),Vector3(bx+0.27,floor_y+1.01,front+0.43),dark)
     _b("ControlBoothConsoleScreen",Vector3(0.29,0.20,0.01),Vector3(bx+0.27,floor_y+1.01,front+0.398),reader)
 
-
-func _detailed_trackwork() -> void:
-    # Keep the proven rail profiles and materials independent of both other
-    # station packages; station datum, gauge and portal clocks stay unchanged.
-    var tracks := preload("res://modules/stations/borisovsky_trakt/trackwork.gd").new()
-    tracks.name="DetailedBorisovskyTrackwork"
-    add_child(tracks)
 
 func _gypsum_material() -> ShaderMaterial:
     var shader := Shader.new()

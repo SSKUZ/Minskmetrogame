@@ -3,8 +3,8 @@ extends Node3D
 ## Source geometry is retained; no dependency on another station package.
 const PATH := preload("res://scripts/playable_track_path.gd")
 const TRACKS := [0.992,-11.732]
-const START := -20.888
-const FINISH := 100.112
+var start_z := -20.888
+var finish_z := 100.112
 const GAUGE_HALF := 0.8075
 var batches: Dictionary={}
 var metal: StandardMaterial3D
@@ -13,16 +13,14 @@ var tie: ShaderMaterial
 var ballast: ShaderMaterial
 var fixing: StandardMaterial3D
 
-func _ready() -> void:
+func build(from_z: float,to_z: float) -> void:
+    start_z=from_z
+    finish_z=to_z
     metal=_mat(Color("#9ca9af"),0.83,0.27)
     rust=_mat(Color("#4d443b"),0.63,0.57)
     fixing=_mat(Color("#292d2e"),0.65,0.52)
     tie=_grain(Color("#292d2b"),true)
     ballast=_grain(Color("#383b38"),false)
-    var station := get_parent()
-    for name in ["Track1","Track2"]:
-        var original := station.get_node(name)
-        for key in ["Rails","Beds","Sleepers"]:(original.get_node(key) as GeometryInstance3D).hide()
     _running_tracks()
     _flush()
     # Station Base has already created its clocks and infrastructure.
@@ -76,8 +74,8 @@ func _flush() -> void:
 func _running_tracks() -> void:
     for track in range(2):
         var x: float=TRACKS[track]
-        for i in range(int(ceil(FINISH-START))):
-            var z0: float=START+float(i);var z1: float=minf(FINISH,z0+1.0);var z: float=(z0+z1)*0.5
+        for i in range(int(ceil(finish_z-start_z))):
+            var z0: float=start_z+float(i);var z1: float=minf(finish_z,z0+1.0);var z: float=(z0+z1)*0.5
             var lateral: float=PATH.offset(z) if track==0 else 0.0
             var b := Basis(Vector3.UP,PATH.heading(z) if track==0 else 0.0)
             var centre := Vector3(x+lateral,0,z)
@@ -89,9 +87,9 @@ func _running_tracks() -> void:
                 _box(Vector3(0.021,0.100,z1-z0),rail+Vector3(0,-0.100,0),rust,b)
                 _box(Vector3(0.081,0.022,z1-z0),rail+Vector3(0,-0.040,0),rust,b)
                 _box(Vector3(0.068,0.029,z1-z0),rail+Vector3(0,-0.0145,0),metal,b)
-        var n: int=int(floor((FINISH-START)/0.65))
+        var n: int=int(floor((finish_z-start_z)/0.65))
         for i in range(n):
-            var z: float=START+(float(i)+0.5)*0.65
+            var z: float=start_z+(float(i)+0.5)*0.65
             var lateral: float=PATH.offset(z) if track==0 else 0.0
             var b := Basis(Vector3.UP,PATH.heading(z) if track==0 else 0.0)
             var centre := Vector3(x+lateral,-0.28,z)
@@ -115,19 +113,19 @@ func _contact_rails() -> void:
             if child is MeshInstance3D or (child is MultiMeshInstance3D and str(child.name).begins_with("ContactRailInsulators")):child.hide()
     var porcelain := _mat(Color("#c0c1b1"),0.05,0.48)
     var cover := _grain(Color("#5d5343"),true)
-    var length: float=FINISH-START
+    var length: float=finish_z-start_z
     for track in range(2):
         var side: float=1.0 if track==0 else -1.0
         var x: float=TRACKS[track]+side*1.48
-        _box(Vector3(0.085,0.12,length),Vector3(x,0.225,(START+FINISH)*0.5),rust)
-        _box(Vector3(0.13,0.035,length),Vector3(x,0.15,(START+FINISH)*0.5),metal)
+        _box(Vector3(0.085,0.12,length),Vector3(x,0.225,(start_z+finish_z)*0.5),rust)
+        _box(Vector3(0.13,0.035,length),Vector3(x,0.15,(start_z+finish_z)*0.5),metal)
         for i in range(int(ceil(length/4.0))):
-            var a: float=START+float(i)*4.0;var b: float=minf(FINISH,a+4.0)
+            var a: float=start_z+float(i)*4.0;var b: float=minf(finish_z,a+4.0)
             _box(Vector3(0.27,0.055,b-a-0.015),Vector3(x,0.325,(a+b)*0.5),cover)
             _box(Vector3(0.025,0.16,b-a-0.015),Vector3(x+side*0.145,0.245,(a+b)*0.5),cover)
             _box(Vector3(0.30,0.018,0.055),Vector3(x,0.363,a+0.04),fixing)
         for i in range(int(ceil(length/2.0))):
-            var z: float=START+(float(i)+0.5)*2.0
+            var z: float=start_z+(float(i)+0.5)*2.0
             _box(Vector3(0.26,0.055,0.19),Vector3(x,-0.06,z),fixing)
             _cylinder(0.070,0.16,Vector3(x,0.025,z),porcelain)
             for y in [-0.010,0.040,0.082]:_cylinder(0.084,0.018,Vector3(x,float(y),z),porcelain)
