@@ -17,6 +17,7 @@ var yellow: StandardMaterial3D
 var floor_stone: StandardMaterial3D
 var floor_dark: StandardMaterial3D
 var lettering: StandardMaterial3D
+var bench_oak: StandardMaterial3D
 
 func _ready() -> void:
     super._ready()
@@ -36,6 +37,8 @@ func _ready() -> void:
         var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.82,2.65),0.26)
         m.uv1_offset=Vector3(0.0,float(i)*0.26,0.0)
         column_stones.append(m)
+    bench_oak=_photo("bench_oak.jpg",Vector2(0.48,0.60),0.40)
+    bench_oak.albedo_color=Color(0.99,0.92,0.77)
     _floor()
     _walls()
     _columns_and_girders()
@@ -186,17 +189,37 @@ func _haunch(x: float,z: float,direction: float) -> void:
         quad(Vector3(x-0.43,a.y,a.x),Vector3(x+0.43,a.y,a.x),Vector3(x+0.43,b.y,b.x),Vector3(x-0.43,b.y,b.x),white)
 
 func _ceilings() -> void:
-    box(Vector3(5.12,0.12,86.8),Vector3(CX,6.04,39.7),white)
-    for side in [-1.0,1.0]:box(Vector3(6.43,0.12,105),Vector3(CX+side*5.73,5.73,MID),white)
+    # Existing photographic paint and relief stay separate from column/wall finishes.
+    var plaster := _photo("ceiling_paint.jpg",Vector2(0.72,0.72),0.96)
+    plaster.albedo_color=Color(0.98,0.976,0.96)
+    plaster.normal_enabled=true;plaster.normal_texture=load(ART+"ceiling_normal.png");plaster.normal_scale=0.42
+    var rib_paint := plaster.duplicate() as StandardMaterial3D
+    rib_paint.albedo_color=Color(0.955,0.95,0.93)
+    box(Vector3(5.12,0.12,86.8),Vector3(CX,6.04,39.7),plaster)
+    for side in [-1.0,1.0]:
+        box(Vector3(6.43,0.12,105),Vector3(CX+side*5.73,5.73,MID),plaster)
+        # Narrow projecting cornices give the longitudinal edges a readable profile.
+        box(Vector3(0.105,0.075,86.6),Vector3(CX+side*2.18,5.645,39.7),rib_paint)
     for i in range(59):
         var z: float=ZA+0.35+float(i)*1.80
-        if z>NORTH and z<SOUTH:box(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),white)
-        for side in [-1.0,1.0]:box(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),white)
+        if z>NORTH and z<SOUTH:
+            _rounded_ceiling_rib(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),rib_paint)
+        for side in [-1.0,1.0]:
+            _rounded_ceiling_rib(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),rib_paint)
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.45;child.light_energy=1.45;child.light_color=Color(1.0,0.98,0.94)
+            child.position.y=5.45;child.light_energy=1.30;child.light_color=Color(1.0,0.98,0.94)
     for z in [7.0,33.0,61.0,84.0]:
         var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.45;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
+    # Gentle upward light makes the physical ribs cast onto the ceiling.
+    # Existing diffuse lamps keep their unshadowed fill; avoid cube-map omni shadows.
+    for z in [20.762,40.562,60.362]:
+        var light := SpotLight3D.new()
+        light.name="CeilingRibUplight";light.position=Vector3(CX+0.55,5.32,float(z));light.rotation.x=PI/2.0
+        light.light_color=Color(1.0,0.98,0.94);light.light_energy=0.28
+        light.spot_range=8.0;light.spot_angle=80.0
+        light.shadow_enabled=true;light.shadow_bias=0.06;light.shadow_normal_bias=1.0
+        add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
     var width := 7.1
@@ -306,9 +329,13 @@ func _signs() -> void:
             for dz in [-1.40,1.40]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,5.12,z+float(dz)),0.022,metal)
 
 func _bench(p: Vector3) -> void:
-    var timbermat := _material(Color("#aa8956"),0.0,0.47)
-    for i in range(5):box(Vector3(0.51,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
-    for dz in [-0.78,0.78]:box(Vector3(0.45,0.43,0.10),p+Vector3(0,0.23,float(dz)),black)
+    var brown := _material(Color("#514339"),0.25,0.61)
+    box(Vector3(0.60,0.38,2.45),p+Vector3(0,0.19,0),brown)
+    for i in range(5):
+        var z: float=p.z-0.98+float(i)*0.49
+        _rounded_bench_box(Vector3(0.63,0.10,0.46),Vector3(p.x,p.y+0.43,z),bench_oak,0.025)
+        for dx in [-0.14,0.14]:box(Vector3(0.009,0.008,0.455),Vector3(p.x+float(dx),p.y+0.485,z),brown)
+        if i<4:box(Vector3(0.68,0.065,0.037),Vector3(p.x,p.y+0.46,z+0.244),brown)
 
 func _television(z: float,event: bool) -> void:
     var p := Vector3(CX,4.65,z)
@@ -428,3 +455,35 @@ func _closed_ramp_strip(x0: float,x1: float,start: float,points: PackedVector2Ar
             quad(Vector3(x0,bottom,z0),Vector3(x0,y0,z0),Vector3(x1,y0,z0),Vector3(x1,bottom,z0),mat,Vector3.FORWARD)
         if i==points.size()-2:
             quad(Vector3(x0,bottom,z1),Vector3(x1,bottom,z1),Vector3(x1,y1,z1),Vector3(x0,y1,z1),mat,Vector3.BACK)
+
+# Local copy of the Moscow bench profile; no dependency on the other station package.
+func _rounded_bench_box(size: Vector3,p: Vector3,mat: Material,radius: float=0.03) -> void:
+    var r: float=minf(radius,minf(size.x,size.y)*0.49)
+    var pts := PackedVector2Array()
+    for corner in range(4):
+        var center := Vector2(p.x+(size.x*0.5-r)*(1.0 if corner in [0,3] else -1.0),p.y+(size.y*0.5-r)*(1.0 if corner in [0,1] else -1.0))
+        for j in range(7):
+            var a: float=float(corner)*PI/2.0+float(j)*PI/12.0;pts.append(center+Vector2(cos(a),sin(a))*r)
+    extrusion(pts,p.z-size.z*0.5,p.z+size.z*0.5,mat)
+
+func _rounded_ceiling_rib(size: Vector3,p: Vector3,mat: Material) -> void:
+    # Closed native cross-section along X: eased lower edges, solid end caps.
+    var radius := 0.022
+    var points := PackedVector2Array()
+    for corner in range(4):
+        var center := Vector2((size.y*0.5-radius)*(1.0 if corner in [0,3] else -1.0),(size.z*0.5-radius)*(1.0 if corner in [0,1] else -1.0))
+        for j in range(5):
+            var angle: float=float(corner)*PI/2.0+float(j)*PI/8.0
+            points.append(center+Vector2(cos(angle),sin(angle))*radius)
+    var x0: float=p.x-size.x*0.5
+    var x1: float=p.x+size.x*0.5
+    for i in range(points.size()):
+        var a: Vector2=points[i];var b: Vector2=points[(i+1)%points.size()]
+        var hint := Vector3(0,(a.x+b.x)*0.5,(a.y+b.y)*0.5)
+        quad(Vector3(x0,p.y+a.x,p.z+a.y),Vector3(x1,p.y+a.x,p.z+a.y),Vector3(x1,p.y+b.x,p.z+b.y),Vector3(x0,p.y+b.x,p.z+b.y),mat,hint)
+    var caps := Geometry2D.triangulate_polygon(points)
+    for face in [-1.0,1.0]:
+        var x: float=x0 if face<0.0 else x1
+        for i in range(0,caps.size(),3):
+            var a: Vector2=points[caps[i]];var b: Vector2=points[caps[i+1]];var c: Vector2=points[caps[i+2]]
+            triangle(Vector3(x,p.y+a.x,p.z+a.y),Vector3(x,p.y+b.x,p.z+b.y),Vector3(x,p.y+c.x,p.z+c.y),mat,Vector3(face,0,0))
