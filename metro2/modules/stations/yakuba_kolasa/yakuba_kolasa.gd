@@ -29,7 +29,7 @@ func _ready() -> void:
     super._ready()
     begin_station()
     white=_photo("ceiling_paint.jpg",Vector2(0.9,0.9),0.88)
-    wall_stone=_photo("wall_marble.jpg",Vector2(1.2,0.65),0.35)
+    wall_stone=preload("res://modules/stations/yakuba_kolasa/art/wall_pale_uniform.tres")
     granite=_photo("wall_plinth.jpg",Vector2(1.2,0.50),0.40)
     stair_stone=_photo("stair_grey.jpg",Vector2(0.60,0.60),0.72)
     stair_stone.albedo_color=Color(1.10,1.10,1.07)
@@ -97,8 +97,7 @@ func _floor() -> void:
             for dx in [-0.058,0.0,0.058]:cylinder(0.011,0.004,Vector3(CX+side*4.43+float(dx),FY+0.026,z),yellow)
 
 func _walls() -> void:
-    var joint := _material(Color("#9b9b90"),0.0,0.8)
-    var alt := _photo("wall_marble_alt.jpg",Vector2(1.2,0.65),0.36)
+    var joint := _material(Color("#b5b4aa"),0.0,0.85)
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
         var base: float=FY+0.57
@@ -109,9 +108,8 @@ func _walls() -> void:
             var y: float=base+float(row)*0.65
             box(Vector3(0.006,0.0035,105),Vector3(x-side*0.144,y,MID),joint)
             for i in range(88):
-                var z: float=ZA+float(i)*1.20+(0.6 if row%2==1 else 0.0)
+                var z: float=ZA+float(i)*1.20
                 box(Vector3(0.006,0.65,0.0035),Vector3(x-side*0.145,y+0.325,z),joint)
-                if (i*3+row)%9==0 and z+1.2<ZB:box(Vector3(0.004,0.644,1.194),Vector3(x-side*0.145,y+0.325,z+0.6),alt)
         for y in [6.01,6.08]:rod(Vector3(x-side*0.20,float(y),ZA),Vector3(x-side*0.20,float(y),ZB),0.016,lettering)
         rod(Vector3(x-side*0.18,5.98,ZA),Vector3(x-side*0.18,5.98,ZB),0.013,black)
         for i in range(62):box(Vector3(0.055,0.045,0.035),Vector3(x-side*0.20,5.98,ZA+float(i)*1.70),metal)
