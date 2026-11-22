@@ -172,9 +172,328 @@
       "source": "file",
       "path": "res://modules/stations/akademiya_nauk/art/wall_marble_alt.jpg",
       "usage": "albedo"
+    },
+    {
+      "id": "exit_stairs_clear",
+      "source": "file",
+      "path": "res://modules/stations/akademiya_nauk/art/exit_stairs_clear.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_escalators_clear",
+      "source": "file",
+      "path": "res://modules/stations/akademiya_nauk/art/exit_escalators_clear.svg",
+      "usage": "albedo"
     }
   ],
-  "points": [],
+  "points": [
+    {
+      "id": "NorthVestibule",
+      "role": "waypoint",
+      "node_path": "NorthVestibule",
+      "transform": [
+        -1.0,
+        0,
+        -1.2246467991473532e-16,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1.2246467991473532e-16,
+        0,
+        -1.0,
+        0,
+        -5.37,
+        5.8605,
+        -2.8,
+        1
+      ]
+    },
+    {
+      "id": "NorthVestibule_Turnstile1",
+      "role": "equipment",
+      "node_path": "NorthVestibule/Turnstile01",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -2.72,
+        5.8605,
+        -17.6,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "NorthVestibule_Turnstile2",
+      "role": "equipment",
+      "node_path": "NorthVestibule/Turnstile02",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -3.8200000000000003,
+        5.8605,
+        -17.6,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "NorthVestibule_Turnstile3",
+      "role": "equipment",
+      "node_path": "NorthVestibule/Turnstile03",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -4.92,
+        5.8605,
+        -17.6,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "NorthVestibule_Turnstile4",
+      "role": "equipment",
+      "node_path": "NorthVestibule/Turnstile04",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -6.0200000000000005,
+        5.8605,
+        -17.6,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "NorthVestibule_ControllerBooth",
+      "role": "equipment",
+      "node_path": "NorthVestibule/ControllerBooth",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -7.92,
+        5.8605,
+        -18.05,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "SouthVestibule",
+      "role": "waypoint",
+      "node_path": "SouthVestibule",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -5.37,
+        5.8305,
+        82.024,
+        1
+      ]
+    },
+    {
+      "id": "SouthVestibule_Turnstile1",
+      "role": "equipment",
+      "node_path": "SouthVestibule/Turnstile01",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -8.02,
+        5.8305,
+        96.824,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "SouthVestibule_Turnstile2",
+      "role": "equipment",
+      "node_path": "SouthVestibule/Turnstile02",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -6.92,
+        5.8305,
+        96.824,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "SouthVestibule_Turnstile3",
+      "role": "equipment",
+      "node_path": "SouthVestibule/Turnstile03",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -5.82,
+        5.8305,
+        96.824,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "SouthVestibule_Turnstile4",
+      "role": "equipment",
+      "node_path": "SouthVestibule/Turnstile04",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -4.72,
+        5.8305,
+        96.824,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    },
+    {
+      "id": "SouthVestibule_ControllerBooth",
+      "role": "equipment",
+      "node_path": "SouthVestibule/ControllerBooth",
+      "transform": [
+        1.0,
+        0,
+        -0.0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        1.0,
+        0,
+        -2.8200000000000003,
+        5.8305,
+        97.274,
+        1
+      ],
+      "properties": {
+        "static_architecture": true
+      }
+    }
+  ],
   "zones": [],
   "data": {
     "parameters": [],
@@ -200,6 +519,13 @@
         "purpose": "other",
         "path": "res://modules/stations/akademiya_nauk/trackwork.gd",
         "format": "GDScript constants"
+      },
+      {
+        "id": "exit_layout",
+        "purpose": "equipment",
+        "path": "res://modules/stations/akademiya_nauk/station_layout.gd",
+        "format": "GDScript constants",
+        "notes": "Lengths in metres; leading equipment is Track1 north, Track2 south. Static turnstiles and controller booths."
       }
     ]
   },
@@ -225,6 +551,10 @@
     {
       "code": "photo_estimates",
       "detail": "Architectural dimensions are estimates from owner photographs, not a measured survey; escalators are static architecture."
+    },
+    {
+      "code": "vestibule_estimate",
+      "detail": "Upper landing equipment placement reconstructs a visible approach, not a surveyed vestibule; turnstile admission/booth interaction are not implemented."
     }
   ]
 }
