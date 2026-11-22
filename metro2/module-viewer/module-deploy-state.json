@@ -9,8 +9,8 @@
       "dependencies": []
     },
     "vostok": {
-      "source_commit": "42a25f0e8ef36a6fa64788beeb53760128fd205b",
-      "pack_sha256": "7be8200c3cfff74a68b7e6e7682ad8885d95132dba8ca9b4b2f8e82b0b8b3855",
+      "source_commit": "dee1f12841cc6d221cd470b522ffac9711745a22",
+      "pack_sha256": "e5d4c27173cd76c1cb7612e048aa4fc18b458f846cb967363bb4b628cf551736",
       "category": "station",
       "scene": "modules/stations/vostok/vostok.tscn",
       "dependencies": []

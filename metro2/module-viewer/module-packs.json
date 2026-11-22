@@ -213,9 +213,9 @@
       ]
     },
     "vostok": {
-      "file": "vostok-7be8200c3cfff74a68b7.pck",
-      "sha256": "7be8200c3cfff74a68b7e6e7682ad8885d95132dba8ca9b4b2f8e82b0b8b3855",
-      "bytes": 2296768,
+      "file": "vostok-e5d4c27173cd76c1cb76.pck",
+      "sha256": "e5d4c27173cd76c1cb7612e048aa4fc18b458f846cb967363bb4b628cf551736",
+      "bytes": 3525312,
       "warmup": [
         "res://modules/stations/vostok/art/direction_north.svg",
         "res://modules/stations/vostok/art/direction_south.svg",
