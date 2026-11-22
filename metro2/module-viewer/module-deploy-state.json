@@ -30,8 +30,8 @@
       "dependencies": []
     },
     "akademiya_nauk": {
-      "source_commit": "a3daeb5e64a083669f4a9db4993687100c73bcc3",
-      "pack_sha256": "9d5de38b0946ddb0dc42423f05344de20b833f7281e4d823e9aa4e965f9237be",
+      "source_commit": "4d71690a960405e2db1092925118b9a5a03c03ab",
+      "pack_sha256": "033d2fea1e9466e3fdd0c246da1fb00de37a15d59e92794ce5681fe086649899",
       "category": "station",
       "scene": "modules/stations/akademiya_nauk/akademiya_nauk.tscn",
       "dependencies": []

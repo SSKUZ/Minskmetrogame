@@ -285,10 +285,11 @@
       ]
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-9d5de38b0946ddb0dc42.pck",
-      "sha256": "9d5de38b0946ddb0dc42423f05344de20b833f7281e4d823e9aa4e965f9237be",
-      "bytes": 4803456,
+      "file": "akademiya_nauk-033d2fea1e9466e3fdd0.pck",
+      "sha256": "033d2fea1e9466e3fdd0c246da1fb00de37a15d59e92794ce5681fe086649899",
+      "bytes": 4891040,
       "warmup": [
+        "res://modules/stations/akademiya_nauk/art/bench_oak.jpg",
         "res://modules/stations/akademiya_nauk/art/ceiling_normal.png",
         "res://modules/stations/akademiya_nauk/art/ceiling_paint.jpg",
         "res://modules/stations/akademiya_nauk/art/column_marble.jpg",

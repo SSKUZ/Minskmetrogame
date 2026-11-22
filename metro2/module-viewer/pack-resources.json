@@ -800,6 +800,7 @@
     ],
     "akademiya_nauk": [
       "res://.godot/exported/133200997/export-fad1698b8c09c6963b87010d2cf4ef45-akademiya_nauk.scn",
+      "res://.godot/imported/bench_oak.jpg-3331b5885c5e4473787dfaa62755cfcb.ctex",
       "res://.godot/imported/ceiling_normal.png-529f0056c4464a08969a41c76c31e099.ctex",
       "res://.godot/imported/ceiling_paint.jpg-e013eebf2dbc023845d7f1fa97a7e400.ctex",
       "res://.godot/imported/column_marble.jpg-626232fcee650b4d17b07eddabae9fba.ctex",
@@ -826,6 +827,8 @@
       "res://.godot/imported/wall_marble_alt.jpg-ac4bbfc8103f467c9c995ff3ad3fc59e.ctex",
       "res://modules/stations/akademiya_nauk/akademiya_nauk.gd",
       "res://modules/stations/akademiya_nauk/akademiya_nauk.tscn",
+      "res://modules/stations/akademiya_nauk/art/bench_oak.jpg.import",
+      "res://modules/stations/akademiya_nauk/art/bench_oak.jpg.remap",
       "res://modules/stations/akademiya_nauk/art/ceiling_normal.png.import",
       "res://modules/stations/akademiya_nauk/art/ceiling_normal.png.remap",
       "res://modules/stations/akademiya_nauk/art/ceiling_paint.jpg.import",
