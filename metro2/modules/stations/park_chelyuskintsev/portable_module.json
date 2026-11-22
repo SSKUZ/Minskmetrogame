@@ -1244,6 +1244,66 @@
         "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_controller_booth",
         "visual_equipment": true
       }
+    },
+    {
+      "id": "DriverPlatformMirrorTrack1",
+      "role": "equipment",
+      "node_path": "WhiteBlueDriverMirrorTrack1",
+      "transform": [
+        0.9928086358538663,
+        0,
+        0.11971220728891936,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.11971220728891936,
+        0,
+        0.9928086358538663,
+        0,
+        -0.8300000000000001,
+        2.5705,
+        -0.2999999999999998,
+        1
+      ],
+      "properties": {
+        "kind": "driver_platform_mirror",
+        "track": 1,
+        "arrival_axis": "-Z",
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_portal_equipment / _driver_platform_mirror",
+        "guard_frame": false
+      }
+    },
+    {
+      "id": "DriverPlatformMirrorTrack2",
+      "role": "equipment",
+      "node_path": "WhiteBlueDriverMirrorTrack2",
+      "transform": [
+        -0.9928086358538663,
+        0,
+        0.11971220728891935,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.11971220728891935,
+        0,
+        -0.9928086358538663,
+        0,
+        -9.91,
+        2.5705,
+        79.524,
+        1
+      ],
+      "properties": {
+        "kind": "driver_platform_mirror",
+        "track": 2,
+        "arrival_axis": "+Z",
+        "source": "res://modules/stations/park_chelyuskintsev/park_chelyuskintsev.gd::_portal_equipment / _driver_platform_mirror",
+        "guard_frame": false
+      }
     }
   ],
   "zones": [
@@ -1597,7 +1657,7 @@
         "purpose": "cameras",
         "path": "res://modules/stations/park_chelyuskintsev/driver_mirrors.gd",
         "format": "GDScript",
-        "notes": "Existing SubViewport mirror behaviour retained; needs a Roblox-specific implementation."
+        "notes": "Two mirrors only: track 1 at north leading-cab stop, track 2 at south leading-cab stop. Grey protective guards removed; white casing and blue post retained. Existing SubViewport behaviour requires Roblox-specific implementation."
       },
       {
         "id": "lighting_and_fittings",
@@ -1656,6 +1716,13 @@
     "material_revision": {
       "source_commit": "b03ff71a24ca271aa58b52ed477d06453efbd2fe",
       "request": "Owner screenshots 8602/8604/8606: lighter grey stairs, pale marble sides, brown lower walls, light coping; preserve geometry and Station Base datums."
+    },
+    "driver_mirror_revision": {
+      "source_commit": "0cfe91a47ab0db76f80b496a7b380fffe382050e",
+      "reference": "Owner screenshot 8609",
+      "mirror_count": 2,
+      "selection": "side * direction < 0; one leading-cab mirror per track",
+      "removed": "Trailing-end mirrors and all separate grey guards across the mirror faces."
     }
   }
 }

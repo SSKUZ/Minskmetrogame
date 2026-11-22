@@ -344,19 +344,21 @@ func _portal_equipment() -> void:
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             box(Vector3(3.95,0.15,0.40),Vector3(tx,4.02,end-direction*0.10),plaster)
-            var root := Node3D.new();root.name="WhiteBlueDriverMirror";root.position=Vector3(CX+side*4.54,FY+1.39,end-direction*2.5);root.rotation.y=(0.0 if direction<0.0 else PI)-side*0.12;add_child(root)
-            var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/park_chelyuskintsev/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
-            var q := QuadMesh.new();q.size=Vector2(0.56,1.54);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
-            var pts: Array[Vector3]=[]
-            for corner in range(4):
-                var c := Vector2(0.215*(1.0 if corner in [0,3] else -1.0),0.69*(1.0 if corner in [0,1] else -1.0))
-                for j in range(9):
-                    var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.10*cos(a),c.y+0.10*sin(a),0))
-            for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.030,white)
-            _local_rod(root,Vector3(0,-1.39,0),Vector3(0,-0.80,0),0.065,_material(Color("#1d5688"),0.3,0.44))
-            for dx in [-0.39,0.39]:_local_rod(root,Vector3(float(dx),-1.39,0),Vector3(float(dx),-0.51,0.10),0.023,metal)
-            _local_rod(root,Vector3(-0.39,-0.51,0.10),Vector3(0.39,-0.51,0.10),0.023,metal)
+            # Track 1 arrives toward -Z; track 2 toward +Z: one mirror at each leading cab stop.
+            if side*direction<0.0:_driver_platform_mirror(side,end,direction)
             _camera_box(Vector3(CX+side*3.8,4.30,start-direction*0.4),0.0 if direction<0.0 else PI)
+
+func _driver_platform_mirror(side: float,end: float,direction: float) -> void:
+    var root := Node3D.new();root.name="WhiteBlueDriverMirrorTrack1" if side>0.0 else "WhiteBlueDriverMirrorTrack2";root.position=Vector3(CX+side*4.54,FY+1.39,end-direction*2.5);root.rotation.y=(0.0 if direction<0.0 else PI)-side*0.12;add_child(root)
+    var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/park_chelyuskintsev/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
+    var q := QuadMesh.new();q.size=Vector2(0.56,1.54);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
+    var pts: Array[Vector3]=[]
+    for corner in range(4):
+        var c := Vector2(0.215*(1.0 if corner in [0,3] else -1.0),0.69*(1.0 if corner in [0,1] else -1.0))
+        for j in range(9):
+            var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.10*cos(a),c.y+0.10*sin(a),0))
+    for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.030,white)
+    _local_rod(root,Vector3(0,-1.39,0),Vector3(0,-0.80,0),0.065,_material(Color("#1d5688"),0.3,0.44))
 
 func _fittings() -> void:
     for z in [5.2,34.5,62.8,78.0]:
