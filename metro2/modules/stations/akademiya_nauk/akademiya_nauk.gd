@@ -5,8 +5,10 @@ const NORTH := -2.80
 const SOUTH := 82.024
 const PITCH := 4.35
 const COL_X := 2.55
-# Metres inward from each original Station Base tunnel portal; connection markers stay fixed.
-const PORTAL_INSET := 1.20
+# Metres from the stair/escalator threshold toward its tunnel end. Base connections stay fixed.
+const PORTAL_GAP := 1.75
+const ESCALATOR_PITCH := 2.05
+const ESCALATOR_STEP_WIDTH := 1.30
 var wall_stone: StandardMaterial3D
 var column_stones: Array[StandardMaterial3D]=[]
 var stair_stone: StandardMaterial3D
@@ -42,6 +44,7 @@ func _ready() -> void:
     _escalators(SOUTH)
     _signs()
     _track_details()
+    _close_end_joints()
     _portal_equipment()
     _floor_fittings()
     for z in [14.0,43.0,70.5]:_television(float(z),z==43.0)
@@ -224,37 +227,53 @@ func _escalators(start: float) -> void:
     var width := 7.10
     var rise := 4.65
     var run := 9.20
-    var lower := 1.2
+    var lower := 1.20
     var tan := _material(Color("#9a8060"),0.25,0.38)
     var rubber := _material(Color("#20241f"),0.05,0.60)
     var stepmat := _material(Color("#5d625b"),0.45,0.50)
+    var half_step: float=ESCALATOR_STEP_WIDTH*0.5
+    var half_case: float=ESCALATOR_PITCH*0.5
+    var side_width: float=half_case-half_step
     _exit_hall(1.0,start,width,FY+rise,14.7)
+    # Full lower slab and full-height upper landing close the machine pit and rear view.
+    box(Vector3(width+0.04,0.16,14.9),Vector3(CX,FY-0.08,start+7.25),floor_stone)
+    box(Vector3(width+0.04,rise+0.05,4.40),Vector3(CX,FY+(rise-0.05)*0.5,start+12.5),floor_stone)
+    var body := PackedVector2Array([Vector2(-0.18,0.025),Vector2(lower,0.025),Vector2(lower+run,rise-0.16),Vector2(12.30,rise-0.16)])
+    var casing := PackedVector2Array([Vector2(-0.16,0.76),Vector2(lower,0.76),Vector2(lower+run,rise+0.76),Vector2(12.25,rise+0.76)])
+    # Three complete housings touch at their sides. There is no open trench between lanes.
     for lane in range(3):
-        var x: float=CX+(float(lane)-1.0)*2.05
+        var x: float=CX+(float(lane)-1.0)*ESCALATOR_PITCH
+        _closed_ramp_strip(x-half_case-0.006,x+half_case+0.006,start,body,tan)
         for i in range(49):
             var t: float=float(i)/48.0
             var z: float=start+lower+t*run
-            box(Vector3(1.05,0.18+rise*t,0.205),Vector3(x,FY+(0.18+rise*t)*0.5,z),stepmat)
-            for groove in range(11):box(Vector3(0.006,0.007,0.185),Vector3(x-0.47+float(groove)*0.094,FY+0.185+rise*t,z),black)
-        box(Vector3(1.05,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
+            var h: float=maxf(0.045,rise*t)
+            box(Vector3(ESCALATOR_STEP_WIDTH,h,0.205),Vector3(x,FY+h*0.5,z),stepmat)
+            for groove in range(14):
+                box(Vector3(0.006,0.007,0.185),Vector3(x-half_step+0.05+float(groove)*(ESCALATOR_STEP_WIDTH-0.10)/13.0,FY+h+0.004,z),black)
+        box(Vector3(ESCALATOR_STEP_WIDTH,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
         for side in [-1.0,1.0]:
-            var bx: float=x+side*0.69
-            var offsets := [Vector2(0.0,0.0),Vector2(1.2,0.0),Vector2(10.4,rise),Vector2(12.2,rise)]
+            var x0: float=x+side*half_step
+            var x1: float=x+side*half_case
+            _closed_ramp_strip(minf(x0,x1)-0.006,maxf(x0,x1)+0.006,start,casing,tan)
+            var bx: float=x+side*(half_step+side_width*0.5)
+            var offsets := [Vector2(0.0,0.0),Vector2(lower,0.0),Vector2(lower+run,rise),Vector2(12.20,rise)]
             for i in range(offsets.size()-1):
-                var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
-                var slope: float=atan2(b.y-a.y,b.x-a.x)
-                var length: float=a.distance_to(b)
-                box(Vector3(0.30,0.76,length),Vector3(bx,FY+(a.y+b.y)*0.5+0.38,start+(a.x+b.x)*0.5),tan,Basis(Vector3.RIGHT,-slope))
-                rod(Vector3(bx,FY+a.y+0.82,start+a.x),Vector3(bx,FY+b.y+0.82,start+b.x),0.045,rubber)
-                rod(Vector3(bx-side*0.16,FY+a.y+0.70,start+a.x),Vector3(bx-side*0.16,FY+b.y+0.70,start+b.x),0.022,metal)
+                var p0: Vector2=offsets[i];var p1: Vector2=offsets[i+1]
+                rod(Vector3(bx,FY+p0.y+0.82,start+p0.x),Vector3(bx,FY+p1.y+0.82,start+p1.x),0.045,rubber)
+                rod(Vector3(x0,FY+p0.y+0.70,start+p0.x),Vector3(x0,FY+p1.y+0.70,start+p1.x),0.022,metal)
             cylinder(0.085,0.57,Vector3(bx,FY+0.285,start+0.06),metal)
             picture("escalator_warning.svg",Vector2(0.22,0.25),Vector3(bx,FY+0.31,start-0.05),PI)
             box(Vector3(0.15,0.68,0.26),Vector3(bx,FY+0.34,start-0.10),metal)
-        box(Vector3(1.05,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
+        box(Vector3(ESCALATOR_STEP_WIDTH,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
         var indicator := _material(Color("#0f9d57") if lane==0 else Color("#bc274a"),0,0.4)
         indicator.emission_enabled=true;indicator.emission=indicator.albedo_color
-        box(Vector3(0.08,0.10,0.02),Vector3(x-0.69,FY+0.58,start-0.245),indicator)
-    box(Vector3(width,0.22,4.2),Vector3(CX,FY+rise-0.11,start+12.5),floor_stone)
+        box(Vector3(0.08,0.10,0.02),Vector3(x-half_step-side_width*0.5,FY+0.58,start-0.245),indicator)
+    # Marble cheeks meet the outer housings and overlap the existing hall walls.
+    for side in [-1.0,1.0]:
+        var x0: float=CX+side*ESCALATOR_PITCH*1.5
+        var x1: float=CX+side*(width*0.5+0.025)
+        _closed_ramp_strip(minf(x0,x1)-0.006,maxf(x0,x1)+0.006,start,casing,wall_stone)
     board("exit_escalators.jpg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
     foot_grille(start-0.46,7.25)
 
@@ -273,7 +292,7 @@ func _exit_hall(direction: float,start: float,width: float,top: float,length: fl
         box(Vector3(width+0.1,0.20,0.16),Vector3(CX,7.75,z),white)
         if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,7.62,z),glow)
     # Upper landing is deliberately limited to the photographed approach.
-    box(Vector3(width+0.55,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
+    box(Vector3(width+0.55,7.95-FY,0.24),Vector3(CX,(7.95+FY)*0.5,start+direction*(length-0.45)),wall_stone)
 
 func _signs() -> void:
     # Clear opening = 4.35 - .84 = 3.51 m; framed signs = 3.23 m.
@@ -319,11 +338,14 @@ func _track_details() -> void:
             for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
         for direction in [-1.0,1.0]:
             var end: float=_portal_z(direction)
-            box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
+            var far: float=ZA-8.0 if direction<0.0 else ZB+8.0
+            var length: float=absf(far-end)
+            var center: float=(far+end)*0.5
+            box(Vector3(3.92,0.20,length+0.12),Vector3(x,4.90,center),wall_stone)
             for side in [-1.0,1.0]:
-                box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
-                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
-            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
+                box(Vector3(0.14,5.02,length+0.12),Vector3(x+side*1.94,2.31,center),wall_stone)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),far-direction*0.20),0.015,black)
+            box(Vector3(4.04,5.45,0.14),Vector3(x,2.275,far),black)
 
 func _portal_equipment() -> void:
     var infra := get_node("StationInfrastructure")
@@ -334,7 +356,7 @@ func _portal_equipment() -> void:
     for node in infra.get_children():
         if node is Node3D and "Portal" in str(node.name):
             node.position.y=4.68
-            node.position.z+=PORTAL_INSET if "Portal1Clock" in str(node.name) else -PORTAL_INSET
+            node.position.z=_portal_z(-1.0)+0.20 if "Portal1Clock" in str(node.name) else _portal_z(1.0)-0.20
             # Track 1 runs toward decreasing Z; Track 2 has the opposite leading end.
             node.visible=str(node.name)=="Track1Portal1Clock" or str(node.name)=="Track2Portal2Clock"
     for direction in [-1.0,1.0]:
@@ -342,7 +364,6 @@ func _portal_equipment() -> void:
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
-            box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
             if side==-direction:
                 var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
                 var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
@@ -377,4 +398,33 @@ func _camera_box(p: Vector3,yaw: float) -> void:
 
 
 func _portal_z(direction: float) -> float:
-    return ZA+PORTAL_INSET if direction<0.0 else ZB-PORTAL_INSET
+    return NORTH-PORTAL_GAP if direction<0.0 else SOUTH+PORTAL_GAP
+
+func _close_end_joints() -> void:
+    # Overlap opaque native wall/roof meshes so the tunnel mouths form one closed shell.
+    for direction in [-1.0,1.0]:
+        var start: float=NORTH if direction<0.0 else SOUTH
+        var end: float=_portal_z(direction)
+        for side in [-1.0,1.0]:
+            box(Vector3(3.94,1.40,0.32),Vector3(CX+side*6.362,5.14,end),wall_stone)
+            box(Vector3(0.94,5.84-FY,PORTAL_GAP+0.60),Vector3(CX+side*4.01,(5.84+FY)*0.5,(start+end)*0.5),wall_stone)
+            box(Vector3(0.66,6.29,0.32),Vector3(CX+side*8.57,2.695,end),wall_stone)
+    # Close the raised roof's exposed edges without changing its lighting/materials.
+    for side in [-1.0,1.0]:
+        box(Vector3(0.18,0.58,86.80),Vector3(CX+side*2.55,5.83,39.70),white)
+
+func _closed_ramp_strip(x0: float,x1: float,start: float,points: PackedVector2Array,mat: Material) -> void:
+    # Closed six-face segments, including the floor and both end caps; standard mesh surfaces.
+    var bottom: float=FY-0.06
+    for i in range(points.size()-1):
+        var a: Vector2=points[i];var b: Vector2=points[i+1]
+        var z0: float=start+a.x;var z1: float=start+b.x
+        var y0: float=FY+a.y;var y1: float=FY+b.y
+        quad(Vector3(x0,bottom,z0),Vector3(x1,bottom,z0),Vector3(x1,bottom,z1),Vector3(x0,bottom,z1),mat,Vector3.DOWN)
+        quad(Vector3(x0,y0,z0),Vector3(x0,y1,z1),Vector3(x1,y1,z1),Vector3(x1,y0,z0),mat,Vector3.UP)
+        quad(Vector3(x0,bottom,z0),Vector3(x0,bottom,z1),Vector3(x0,y1,z1),Vector3(x0,y0,z0),mat,Vector3.LEFT)
+        quad(Vector3(x1,bottom,z0),Vector3(x1,y0,z0),Vector3(x1,y1,z1),Vector3(x1,bottom,z1),mat,Vector3.RIGHT)
+        if i==0:
+            quad(Vector3(x0,bottom,z0),Vector3(x0,y0,z0),Vector3(x1,y0,z0),Vector3(x1,bottom,z0),mat,Vector3.FORWARD)
+        if i==points.size()-2:
+            quad(Vector3(x0,bottom,z1),Vector3(x1,bottom,z1),Vector3(x1,y1,z1),Vector3(x0,y1,z1),mat,Vector3.BACK)
