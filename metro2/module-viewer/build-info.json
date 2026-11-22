@@ -314,9 +314,9 @@
       ]
     },
     "yakuba_kolasa": {
-      "file": "yakuba_kolasa-a90e2f5dbc25dc4509d7.pck",
-      "sha256": "a90e2f5dbc25dc4509d7e16fea0c50683ba3f4958cc300b717054a44844ed681",
-      "bytes": 18906880,
+      "file": "yakuba_kolasa-d42310a3b9ac20caa549.pck",
+      "sha256": "d42310a3b9ac20caa549388540132e8d5679b939c79de8b8ea9fec71fab27d4e",
+      "bytes": 19043872,
       "warmup": [
         "res://modules/stations/yakuba_kolasa/art/base_marble.jpg",
         "res://modules/stations/yakuba_kolasa/art/bench_oak.jpg",

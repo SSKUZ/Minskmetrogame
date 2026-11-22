@@ -37,8 +37,8 @@
       "dependencies": []
     },
     "yakuba_kolasa": {
-      "source_commit": "da3f25d244da8eb81b0f71c41291ad7c5980f18a",
-      "pack_sha256": "a90e2f5dbc25dc4509d7e16fea0c50683ba3f4958cc300b717054a44844ed681",
+      "source_commit": "be32933767459d31fc1daa1a7a93bcf5714e58a7",
+      "pack_sha256": "d42310a3b9ac20caa549388540132e8d5679b939c79de8b8ea9fec71fab27d4e",
       "category": "station",
       "scene": "modules/stations/yakuba_kolasa/yakuba_kolasa.tscn",
       "dependencies": []
