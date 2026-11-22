@@ -19,17 +19,17 @@ func _ready() -> void:
     begin_station()
     white=_photo("ceiling_paint.jpg",Vector2(1.0,1.0),0.90)
     white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.16
-    wall_stone=_photo("wall_marble.jpg",Vector2(1.20,0.48),0.36)
+    wall_stone=_photo("wall_marble.jpg",Vector2(1.20,0.48),0.53)
     granite=_photo("plinth_granite.jpg",Vector2(1.20,0.40),0.50)
-    stair_stone=_photo("stair_granite.jpg",Vector2(1.4,0.16),0.64)
+    stair_stone=_photo("floor_grey.jpg",Vector2(0.60,0.60),0.72)
     floor_stone=_photo("floor_grey.jpg",Vector2(0.60,0.60),0.42)
     floor_dark=_photo("floor_dark.jpg",Vector2(1.20,0.15),0.36)
-    floor_dark.albedo_color=Color(0.42,0.45,0.43)
+    floor_dark.albedo_color=Color(0.67,0.69,0.65)
     trim=_material(Color("#bdb9a8"),0.15,0.42)
     lettering=_material(Color("#d0cbc0"),0.55,0.29)
     yellow=_material(Color("#d9ac37"),0.0,0.68)
     for i in range(4):
-        var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.82,2.65),0.26)
+        var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.82,2.65),0.44)
         m.uv1_offset=Vector3(0.0,float(i)*0.26,0.0)
         column_stones.append(m)
     _floor()
@@ -40,6 +40,9 @@ func _ready() -> void:
     _escalators(SOUTH)
     _signs()
     _track_details()
+    var tracks := preload("res://modules/stations/akademiya_nauk/trackwork.gd").new()
+    tracks.name="DetailedTrackwork"
+    add_child(tracks)
     _portal_equipment()
     _floor_fittings()
     for z in [14.0,43.0,70.5]:_television(float(z),z==43.0)
@@ -53,7 +56,7 @@ func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
     mat.transparency=BaseMaterial3D.TRANSPARENCY_DISABLED
     mat.cull_mode=BaseMaterial3D.CULL_DISABLED
     mat.roughness=roughness
-    mat.uv1_triplanar=true;mat.uv1_world_triplanar=true;mat.uv1_triplanar_sharpness=8.0
+    mat.uv1_triplanar=true;mat.uv1_world_triplanar=true;mat.uv1_triplanar_sharpness=16.0
     mat.uv1_scale=Vector3(1.0/slab.x,1.0/slab.y,1.0/slab.x)
     mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
     return mat
@@ -61,6 +64,8 @@ func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
 func _floor() -> void:
     (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_stone
     # Native stone slabs: grey field, black transverse bands, narrow cream inlay.
+    var coping := _photo("floor_grey.jpg",Vector2(0.60,0.60),0.70)
+    coping.albedo_color=Color(0.94,0.94,0.90)
     var pale := _material(Color("#d6d3c2"),0.0,0.51)
     var variants: Array[StandardMaterial3D]=[]
     for i in range(5):
@@ -79,7 +84,7 @@ func _floor() -> void:
     for side in [-1.0,1.0]:
         box(Vector3(0.16,0.012,105),Vector3(CX+side*3.03,FY+0.014,MID),floor_dark)
         box(Vector3(0.026,0.014,105),Vector3(CX+side*3.16,FY+0.015,MID),pale)
-        box(Vector3(0.46,0.014,105),Vector3(CX+side*4.77,FY+0.010,MID),_material(Color("#948d7c"),0.0,0.68))
+        box(Vector3(0.46,0.014,105),Vector3(CX+side*4.77,FY+0.010,MID),coping)
         box(Vector3(0.19,0.014,105),Vector3(CX+side*4.42,FY+0.018,MID),yellow)
         for i in range(1312):
             var z: float=ZA+0.04+float(i)*0.08
@@ -87,7 +92,7 @@ func _floor() -> void:
 
 func _walls() -> void:
     var joint := _material(Color("#8c8d81"),0.0,0.85)
-    var alternate := _photo("wall_marble_alt.jpg",Vector2(1.2,0.48),0.38)
+    var alternate := _photo("wall_marble_alt.jpg",Vector2(1.2,0.48),0.55)
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
         var plinth_top: float=FY+0.60
@@ -120,7 +125,8 @@ func _name(value: String,p: Vector3,yaw: float) -> void:
     var font: Font=load(ART+"station_letters.ttf")
     var frame := Node3D.new();frame.name="OutlinedMetalStationLetters";frame.position=p;frame.rotation.y=yaw;add_child(frame)
     var size := 0.0048
-    var total: float=font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size+float(value.length())*0.035
+    var total: float=float(maxi(value.length()-1,0))*0.035
+    for letter in value:total+=font.get_string_size(letter,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size
     var cursor: float=-total*0.5
     for letter in value:
         var advance: float=font.get_string_size(letter,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size
@@ -138,7 +144,7 @@ func _columns_and_girders() -> void:
     for side in [-1.0,1.0]:
         var x: float=CX+side*COL_X
         box(Vector3(0.86,0.53,86.6),Vector3(x,5.385,39.7),white)
-        for i in range(20):
+        for i in range(1,19):
             var z: float=-1.50+float(i)*PITCH
             # Solid opaque core; four closed stone faces, no transparent column shader.
             box(Vector3(0.84,capital-bottom,0.84),Vector3(x,(capital+bottom)*0.5,z),column_stones[i%4])
@@ -157,7 +163,7 @@ func _columns_and_girders() -> void:
                     box(Vector3(0.027,3.84,0.018),Vector3(x+float(dx),FY+1.98,z+face*0.43),metal)
                     box(Vector3(0.018,3.84,0.027),Vector3(x+face*0.43,FY+1.98,z+float(dx)),metal)
             for h in [FY+0.91,FY+1.78]:box(Vector3(0.842,0.002,0.842),Vector3(x,float(h),z),_material(Color("#656962"),0.0,0.6))
-            if i<19:
+            if i<18:
                 _haunch(x,z+0.42,1.0)
                 _haunch(x,z+PITCH-0.42,-1.0)
                 var center: float=z+PITCH*0.5
@@ -182,15 +188,22 @@ func _haunch(x: float,z: float,direction: float) -> void:
 func _ceilings() -> void:
     box(Vector3(5.12,0.12,86.8),Vector3(CX,6.04,39.7),white)
     for side in [-1.0,1.0]:box(Vector3(6.43,0.12,105),Vector3(CX+side*5.73,5.73,MID),white)
-    for i in range(59):
-        var z: float=ZA+0.35+float(i)*1.80
+    # Closed upstands join the raised centre roof to both longitudinal girders.
+    for side in [-1.0,1.0]:
+        box(Vector3(0.22,0.58,86.8),Vector3(CX+side*2.55,5.83,39.7),white)
+    for i in range(73):
+        var z: float=ZA+0.35+float(i)*(PITCH/3.0)
         if z>NORTH and z<SOUTH:box(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),white)
         for side in [-1.0,1.0]:box(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),white)
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.45;child.light_energy=1.45;child.light_color=Color(1.0,0.98,0.94)
-    for z in [7.0,33.0,61.0,84.0]:
-        var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.45;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
+            child.position.y=5.45;child.light_energy=1.65;child.light_color=Color(1.0,0.98,0.94)
+    for z in [7.0,33.0,61.0,77.0]:
+        var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.70;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
+    for z in [15.0,60.0]:
+        var light := OmniLight3D.new()
+        light.position=Vector3(CX,5.45,float(z));light.light_energy=0.50;light.omni_range=11.0
+        light.light_color=Color(1.0,0.98,0.94);light.shadow_enabled=true;add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
     var width := 7.1
@@ -285,7 +298,7 @@ func _signs() -> void:
 
 func _bench(p: Vector3) -> void:
     var timbermat := _material(Color("#aa8956"),0.0,0.47)
-    for i in range(5):box(Vector3(0.51,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
+    for i in range(5):box(Vector3(0.10,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
     for dz in [-0.78,0.78]:box(Vector3(0.45,0.43,0.10),p+Vector3(0,0.23,float(dz)),black)
 
 func _television(z: float,event: bool) -> void:
@@ -306,21 +319,22 @@ func _floor_fittings() -> void:
         for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
 
 func _track_details() -> void:
-    for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
-        var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
-        for direction in [-1.0,1.0]:
-            var end: float=ZA if direction<0.0 else ZB
-            box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
-            for side in [-1.0,1.0]:
-                box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
-                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
-            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
+    var lining := _photo("ceiling_paint.jpg",Vector2(1.4,1.0),0.95)
+    lining.albedo_color=Color(0.82,0.81,0.77)
+    for direction in [-1.0,1.0]:
+        var end: float=NORTH if direction<0.0 else SOUTH
+        # Solid end masonry above the track openings; no floating roof edge.
+        for side in [-1.0,1.0]:
+            var x: float=CX+side*6.362
+            box(Vector3(3.92,1.38,0.48),Vector3(x,5.13,end),white)
+            box(Vector3(0.92,5.82-FY,0.48),Vector3(CX+side*4.01,(5.82+FY)*0.5,end),wall_stone)
+            box(Vector3(0.66,5.82,0.48),Vector3(CX+side*8.57,2.91,end),wall_stone)
+            box(Vector3(3.78,0.20,18.1),Vector3(x,4.54,end+direction*8.95),lining)
+            for edge in [-1.0,1.0]:
+                box(Vector3(0.14,4.60,18.1),Vector3(x+edge*1.94,2.12,end+direction*8.95),lining)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:
+                    rod(Vector3(x+edge*1.84,float(h),end),Vector3(x+edge*1.84,float(h),end+direction*17.8),0.015,black)
+            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*18.0),black)
 
 func _portal_equipment() -> void:
     var infra := get_node("StationInfrastructure")
@@ -329,26 +343,26 @@ func _portal_equipment() -> void:
     for display in displays:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
-        if node is Node3D and "Portal" in str(node.name):node.position.y=4.68
+        if node is Node3D and "Portal" in str(node.name):
+            node.position.y=4.68
+            node.position.z=NORTH+0.30 if "Portal1Clock" in str(node.name) else SOUTH-0.30
     for direction in [-1.0,1.0]:
-        var end: float=ZA if direction<0.0 else ZB
+        var end: float=NORTH if direction<0.0 else SOUTH
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
-            box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
-            var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
-            var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
-            var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
-            var pts: Array[Vector3]=[]
-            for corner in range(4):
-                var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
-                for j in range(9):
-                    var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
-            for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
-            _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
-            for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
-            _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
-            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
+            if side==direction:
+                var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
+                var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
+                var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
+                var pts: Array[Vector3]=[]
+                for corner in range(4):
+                    var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
+                    for j in range(9):
+                        var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
+                for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
+                _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
+            var p := Vector3(tx-side*1.42,4.68,end-direction*0.46)
             box(Vector3(0.72,0.46,0.08),p,black)
             picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
             _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
