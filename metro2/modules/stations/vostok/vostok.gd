@@ -337,7 +337,7 @@ func _exit_canopy(direction: float,end: float) -> void:
             var a := -3.72+float(j)*7.44/36.0
             var b := -3.72+float(j+1)*7.44/36.0
             for edge in [-1.0,1.0]:
-                var z := centre+edge*0.13
+                var z: float = centre + float(edge) * 0.13
                 quad(_canopy_point(a,z,direction,end),_canopy_point(b,z,direction,end),_canopy_point(b,z,direction,end,0.10),_canopy_point(a,z,direction,end,0.10),reveal,Vector3(0,0,-direction*edge))
         for side in [-1.0,1.0]:
             var x: float=side*3.72
