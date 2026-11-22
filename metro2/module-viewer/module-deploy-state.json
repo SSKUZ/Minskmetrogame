@@ -14,6 +14,13 @@
       "category": "station",
       "scene": "modules/stations/vostok/vostok.tscn",
       "dependencies": []
+    },
+    "moskovskaya": {
+      "source_commit": "ec4f54a346d8b2316a381d31797c4285f2890b86",
+      "pack_sha256": "432c8f8f4576f61194ba196c1bdf6d24fd5641b10e5824bbdf9edd13f0179eb0",
+      "category": "station",
+      "scene": "modules/stations/moskovskaya/moskovskaya.tscn",
+      "dependencies": []
     }
   }
 }
