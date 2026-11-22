@@ -363,11 +363,12 @@
       ]
     },
     "yakuba_kolasa": {
-      "file": "yakuba_kolasa-76594e6d40c1f4be9fef.pck",
-      "sha256": "76594e6d40c1f4be9fef719d53a6f2a065c23d45f705f457458f5a145b206dc7",
-      "bytes": 12127936,
+      "file": "yakuba_kolasa-a90e2f5dbc25dc4509d7.pck",
+      "sha256": "a90e2f5dbc25dc4509d7e16fea0c50683ba3f4958cc300b717054a44844ed681",
+      "bytes": 18906880,
       "warmup": [
         "res://modules/stations/yakuba_kolasa/art/base_marble.jpg",
+        "res://modules/stations/yakuba_kolasa/art/bench_oak.jpg",
         "res://modules/stations/yakuba_kolasa/art/ceiling_paint.jpg",
         "res://modules/stations/yakuba_kolasa/art/escalator_warning.svg",
         "res://modules/stations/yakuba_kolasa/art/escalator_wood.jpg",
@@ -411,6 +412,7 @@
         "res://modules/stations/yakuba_kolasa/art/route_track2.svg",
         "res://modules/stations/yakuba_kolasa/art/sos_info.svg",
         "res://modules/stations/yakuba_kolasa/art/stair_granite.jpg",
+        "res://modules/stations/yakuba_kolasa/art/stair_grey.jpg",
         "res://modules/stations/yakuba_kolasa/art/upper_ornament.jpg",
         "res://modules/stations/yakuba_kolasa/art/upper_ornament_normal.png",
         "res://modules/stations/yakuba_kolasa/art/wall_marble.jpg",
