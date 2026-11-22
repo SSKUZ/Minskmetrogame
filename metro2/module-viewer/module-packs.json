@@ -334,9 +334,9 @@
       ]
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-abaa9e797b010221f7b4.pck",
-      "sha256": "abaa9e797b010221f7b48b11677f37826fbb0700fdfe550b0a23541b2aa136b9",
-      "bytes": 4814208,
+      "file": "akademiya_nauk-bc75711490bbcc2461dd.pck",
+      "sha256": "bc75711490bbcc2461dd8f3eb44211c32e47dacdda6aef07a68685e455238d70",
+      "bytes": 4799520,
       "warmup": [
         "res://modules/stations/akademiya_nauk/art/ceiling_normal.png",
         "res://modules/stations/akademiya_nauk/art/ceiling_paint.jpg",
