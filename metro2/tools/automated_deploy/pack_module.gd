@@ -16,38 +16,56 @@ func _initialize() -> void:
         _pack()
 
 func _prepare_imported_scenes() -> bool:
-    # Resource conversion only: never instantiate a scene or run gameplay.
-    # Godot 4.3's compressed-texture loader accepts CompressedTexture2D, while
-    # historical imported GLBs name their external images as generic Texture2D.
-    # Warm exported images to load the old scene safely, then normalize the
-    # external type table after saving. Texture2D.get_save_class() keeps returning
-    # the generic base class, so ResourceSaver alone does not fix the saved hint.
+    # Resource preparation only. Never instantiate or run a game scene.
     var paths: Array[String] = []
     _walk("res://",paths)
+    var reimporting: Dictionary = {}
+    if control.mode=="prepare":
+        # Raw GLBs copied into this stage need the mandatory editor import first.
+        # Do not load their stale cached scenes before external PNG/JPG sources
+        # have been imported. Only discard cache files backed by those raw sources.
+        for path in paths:
+            if path.get_extension().to_lower() not in ["glb","gltf"]: continue
+            var mapping := ConfigFile.new()
+            if mapping.load(path+".import")!=OK: continue
+            var artifact := str(mapping.get_value("remap","path",""))
+            if not artifact.begins_with("res://.godot/imported/") or not artifact.ends_with(".scn"): continue
+            reimporting[artifact]=true
+            if FileAccess.file_exists(artifact):
+                if DirAccess.remove_absolute(ProjectSettings.globalize_path(artifact))!=OK:
+                    return _fail("Cannot refresh cached scene for saved raw model "+path)
     for path in paths:
         if not path.ends_with(".ctex"): continue
         var texture := ResourceLoader.load(path,"CompressedTexture2D") as CompressedTexture2D
         if texture==null: return _fail("Cannot prepare saved compressed texture "+path)
         import_texture_cache.append(texture)
     for path in paths:
-        if not path.ends_with(".remap"): continue
-        var source := path.trim_suffix(".remap")
+        if not path.ends_with(".remap") and not path.ends_with(".import"): continue
+        var source := path.trim_suffix(".remap").trim_suffix(".import")
         if source.get_extension().to_lower() not in ["png","jpg","jpeg","webp","svg"]: continue
+        var mapping := ConfigFile.new()
+        if mapping.load(path)!=OK: return _fail("Cannot read image mapping "+path)
+        var target := str(mapping.get_value("remap","path",mapping.get_value("remap","path.s3tc","")))
+        if target.is_empty() or not FileAccess.file_exists(target):
+            # A newly staged source image is handled by the editor import below.
+            if FileAccess.file_exists(source): continue
+            return _fail("Missing saved image target "+source)
         var texture := ResourceLoader.load(source) as Texture2D
         if texture==null: return _fail("Cannot resolve saved image mapping "+source)
         import_texture_cache.append(texture)
     for path in paths:
-        if not path.begins_with("res://.godot/imported/") or not path.ends_with(".scn"): continue
+        if not path.begins_with("res://.godot/imported/") or not path.ends_with(".scn") or reimporting.has(path): continue
         var scene := ResourceLoader.load(path,"PackedScene") as PackedScene
         if scene==null: return _fail("Cannot prepare saved model scene "+path)
-        if ResourceSaver.save(scene,path)!=OK: return _fail("Cannot retain corrected model resource types "+path)
+        if ResourceSaver.save(scene,path)!=OK: return _fail("Cannot retain imported model scene "+path)
         if not _clear_compressed_texture_hints(path): return false
     return true
 
 func _clear_compressed_texture_hints(path: String) -> bool:
     # ResourceSaver above writes an uncompressed RSRC binary (flags=0).
     # Layout: Godot 4.3 core/io/resource_format_binary.cpp::ResourceLoaderBinary::open.
-    # Only clear the optional type hint of direct .ctex external resources.
+    # Clear generic image hints for source PNG/JPG mappings as well as direct
+    # CTEX paths. Exported model scenes retain their original source-image paths.
     # Keep the encoded string length and all offsets unchanged: geometry,
     # materials, hierarchy, animation data and texture bytes are not rewritten.
     var binary := FileAccess.open(path,FileAccess.READ_WRITE)
@@ -79,7 +97,7 @@ func _clear_compressed_texture_hints(path: String) -> bool:
         var dependency := _binary_string(binary)
         if (flags&2)!=0: binary.get_64()
         var resume := binary.get_position()
-        if type_name=="Texture2D" and dependency.ends_with(".ctex"):
+        if type_name=="Texture2D" and dependency.get_extension().to_lower() in ["ctex","png","jpg","jpeg","webp","svg"]:
             binary.seek(type_position)
             # get_unicode_string reads the stored byte count, then parses a
             # NUL-terminated UTF-8 string. A zero-filled fixed-width slot is an
@@ -90,7 +108,7 @@ func _clear_compressed_texture_hints(path: String) -> bool:
     binary.flush()
     if binary.get_error()!=OK: return _fail("Cannot normalize imported texture hints: "+path)
     binary.close()
-    if corrected>0: print("NORMALIZED_CTEX_HINTS ",path," count=",corrected)
+    print("NORMALIZED_IMAGE_HINTS ",path," count=",corrected)
     return true
 
 func _binary_string(binary: FileAccess) -> String:
