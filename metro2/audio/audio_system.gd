@@ -75,7 +75,17 @@ func set_listener_mode(mode: String) -> void:
     router.set_listener_mode(mode)
 
 func route_announcement(station_id: String, phase: String, direction: String, visit_id: String) -> void:
-    announcer.route_announcement(station_id, phase, direction, visit_id)
+    # Legacy route callbacks must never bypass MANUAL INFO gating.
+    if info.mode != MetroInfoController.AUTO:
+        return
+    if station_id == "" or visit_id == "":
+        return
+    if phase == MetroInfoController.ARRIVAL:
+        info.set_route_context(station_id, info.next_station_id, direction, visit_id)
+        info.on_auto_approach()
+    elif phase == MetroInfoController.DEPARTURE:
+        info.set_route_context(info.station_id, station_id, direction, visit_id)
+        info.on_auto_departure()
 
 func _exit_tree() -> void:
     if is_instance_valid(bank):
