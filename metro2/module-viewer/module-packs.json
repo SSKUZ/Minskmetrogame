@@ -498,9 +498,9 @@
       ]
     },
     "ploshchad_lenina": {
-      "file": "ploshchad_lenina-a44a2d1028b50ae77ce8.pck",
-      "sha256": "a44a2d1028b50ae77ce8eb8ed888289678da7f7598516d599139cfd11f669a8d",
-      "bytes": 3162880,
+      "file": "ploshchad_lenina-7c8ed79fd34d65341935.pck",
+      "sha256": "7c8ed79fd34d65341935831df73503a3d0e760a5ac62caab4ea7aa45382b7b68",
+      "bytes": 4479360,
       "warmup": [
         "res://modules/stations/ploshchad_lenina/art/ceiling_paint.jpg",
         "res://modules/stations/ploshchad_lenina/art/ceiling_paint_normal.png",
