@@ -4,7 +4,7 @@ extends Node3D
 const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
 const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
 const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
-const ANNOUNCER = preload("res://scripts/station_announcer.gd")
+const AUDIO_SYSTEM = preload("res://audio/audio_system.gd")
 const MAX_SPEED_MPS := 25.0
 const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
@@ -70,9 +70,13 @@ func _ready() -> void:
         push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
     if not door_system.get("validated"):
         push_warning("V106 doors are not validated; movement is blocked.")
-    announcer = ANNOUNCER.new()
-    announcer.name = "StationAnnouncer"
+    announcer = AUDIO_SYSTEM.new()
+    announcer.name = "MetroAudioSystem"
     add_child(announcer)
+    announcer.load_catalog("res://audio/data/audio_catalog.json")
+    announcer.announcer.set_speakers([train])
+    announcer.info.set_mode("manual")
+    announcer.info.set_route_context("uruchye", "barysauski_trakt", "forward", "first_playable_01")
     _initialize_car_followers()
     _make_controls()
     _update_camera()
@@ -327,7 +331,10 @@ func _reset_train() -> void:
     braking = false
     speed_mps = 0.0
     arrival_announced = false
-    announcer.call("reset_sequence")
+    announcer.announcer.stop_all()
+    announcer.info.bind(announcer.announcer)
+    announcer.info.set_route_context("", "", "forward", "reset")
+    announcer.info.set_route_context("uruchye", "barysauski_trakt", "forward", "first_playable_01")
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -385,8 +392,9 @@ func _play_info_announcement() -> void:
         return
     var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
     var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z >= STATION_STOP_Z - DOOR_STOP_TOLERANCE
-    var message: String = str(announcer.call("press_info", approaching, at_station,
-        bool(door_system.get("target_open")), speed_mps > 0.05))
+    var doors_are_open: bool = bool(door_system.get("target_open"))
+    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, doors_are_open, not doors_are_open)
+    var message: String = announcer.info.press_info()
     if status_label != null:
         status_label.text = message
         info_notice_until = Time.get_ticks_msec() + 3000
