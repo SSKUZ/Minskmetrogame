@@ -39,7 +39,9 @@
           "_portal_shell",
           "_escalator_wall_infill",
           "_glass_quad",
-          "_portal_z"
+          "_portal_z",
+          "_gate_concourse",
+          "_concourse_material"
         ],
         "profile": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
         "output": [
@@ -48,6 +50,25 @@
         ],
         "fixture_layout": "four joined two-face corner trays plus four long axial rectangular compartments per existing capital",
         "glass_uv": "U spans the common diffuser; V is 0 at its base, 1 at the top, up to 1.12 on the crown. No repeating cell UVs."
+      }
+    },
+    {
+      "id": "uruchye_style_trackwork",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_pobedy/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "source_path": "metro2/scripts/station/uruchye_tracks_v68.gd",
+        "source_commit": "47222a79d57dda035ce2713f70b91d6abc0f13b1",
+        "bound_source": "parent.track_min_z / parent.track_max_z",
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65,
+        "rail_top_m": 0,
+        "station_parent": "direct parent",
+        "output": [
+          "MultiMesh"
+        ]
       }
     }
   ],
@@ -109,6 +130,21 @@
         },
         "adaptation": "required"
       }
+    },
+    {
+      "id": "concourse_fade",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/concourse_fade.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/concourse_fade.gdshader",
+        "parameters": {
+          "fade_start_m": 8,
+          "fade_finish_m": 23,
+          "branch_start_x": 4.65,
+          "branch_finish_x": 12.6
+        },
+        "adaptation": "required"
+      }
     }
   ],
   "textures": [
@@ -119,7 +155,64 @@
       "usage": "albedo"
     }
   ],
-  "points": [],
+  "points": [
+    {
+      "id": "NorthFareControl",
+      "role": "equipment",
+      "node_path": "NorthFareControl",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        5.8205,
+        -23.35,
+        1
+      ],
+      "properties": {
+        "turnstile_lanes": 4,
+        "controller_booth": true,
+        "implementation": "static geometry; passenger validation and payment logic not connected"
+      }
+    },
+    {
+      "id": "SouthFareControl",
+      "role": "equipment",
+      "node_path": "SouthFareControl",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        6.6325,
+        104.25,
+        1
+      ],
+      "properties": {
+        "turnstile_lanes": 4,
+        "controller_booth": true,
+        "implementation": "static geometry; passenger validation and payment logic not connected"
+      }
+    }
+  ],
   "zones": [],
   "data": {
     "parameters": [
@@ -167,6 +260,14 @@
     {
       "code": "rear_camera_pending",
       "detail": "RearPlatformMonitorTrack1/2 and RearPlatformCameraTrack1/2 markers reserve feed connection points. Monitors retain the existing static imagery; live camera connection is deferred."
+    },
+    {
+      "code": "concourse_layout_inferred",
+      "detail": "Concourse equipment dimensions follow the existing Uruchye upper hall. Exact upper vestibule plan for Pobedy is inferred. Geometry is static; ticketing and gate animation are not implemented."
+    },
+    {
+      "code": "concourse_shader",
+      "detail": "Upper corridors use surface UV projection and distance darkening. Preserve concourse_fade.gdshader and source textures for future baking."
     }
   ]
 }

@@ -502,29 +502,142 @@ func _landing(z: float,width: float,length: float) -> void:
     for i in range(12):box(Vector3(width*0.82,0.004,0.012),Vector3(CX,FY+0.036,z-length*0.42+float(i)*length*0.075),black)
 
 func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
+    var roof_y: float=maxf(8.0,top+2.80)
     for side in [-1.0,1.0]:
         var x: float=CX+side*(width*0.5+0.16)
-        box(Vector3(0.30,8.0-FY,length),Vector3(x,(8.0+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
+        box(Vector3(0.30,roof_y-FY,length),Vector3(x,(roof_y+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
         box(Vector3(0.31,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
         for y in [FY+0.6,FY+1.2,FY+1.8,FY+2.4,FY+3.0,FY+3.6,FY+4.2]:
             box(Vector3(0.003,0.003,length),Vector3(x-side*0.152,float(y),start+direction*(length*0.5-0.30)),trim)
         picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.47),0.0 if direction<0 else PI)
         picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.472),0.0 if direction<0 else PI)
         _camera_box(Vector3(x-side*0.16,4.92,start-direction*0.5),0.0 if direction<0 else PI)
-    box(Vector3(width+0.62,0.20,length),Vector3(CX,8.10,start+direction*(length*0.5-0.3)),white)
+    box(Vector3(width+0.62,0.20,length),Vector3(CX,roof_y+0.10,start+direction*(length*0.5-0.3)),white)
     # The rectangular plaster recess above the exit board is also physical geometry.
     var front: float=start-direction*0.36
     box(Vector3(width+0.62,1.05,0.42),Vector3(CX,5.87,front),white)
-    box(Vector3(width+0.62,1.00,0.42),Vector3(CX,7.60,front),white)
+    box(Vector3(width+0.62,roof_y-7.10,0.42),Vector3(CX,(roof_y+7.10)*0.5,front),white)
     for side in [-1.0,1.0]:box(Vector3((width+0.62-2.6)*0.5,0.73,0.42),Vector3(CX+side*(2.6+(width+0.62-2.6)*0.5)*0.5,6.755,front),white)
     box(Vector3(2.6,0.73,0.06),Vector3(CX,6.755,front+direction*0.16),white)
     for i in range(7):
         var z: float=start+direction*float(i)*2.3
-        box(Vector3(width+0.2,0.14,0.28),Vector3(CX,7.95,z),white)
-        box(Vector3(5.6,0.045,0.045),Vector3(CX,7.84,z),glow)
+        box(Vector3(width+0.2,0.14,0.28),Vector3(CX,roof_y-0.05,z),white)
+        box(Vector3(5.6,0.045,0.045),Vector3(CX,roof_y-0.16,z),glow)
     for side in [-1.0,1.0]:
         rod(Vector3(CX+side*3.35,5.22,start),Vector3(CX+side*3.35,5.22,start+direction*5.0),0.025,glow)
-    box(Vector3(width+0.60,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
+    _gate_concourse(direction,start+direction*(length-1.15),width,top,roof_y)
+
+func _concourse_material(file: String,origin_z: float,direction: float) -> ShaderMaterial:
+    var mat := ShaderMaterial.new()
+    mat.shader=preload("res://modules/stations/ploshchad_pobedy/concourse_fade.gdshader")
+    mat.set_shader_parameter("surface_texture",load(ART+file))
+    mat.set_shader_parameter("origin_z",origin_z)
+    mat.set_shader_parameter("outward_direction",direction)
+    return mat
+
+func _gate_concourse(direction: float,landing: float,width: float,top: float,roof_y: float) -> void:
+    # The landing opens onto a real upper hall before the gate row, continuing into shade.
+    var length := 25.0
+    var middle: float=landing+direction*length*0.5
+    var wall := _concourse_material("wall_marble.jpg",landing,direction)
+    var paving := _concourse_material("floor_grey.jpg",landing,direction)
+    var soffit := _concourse_material("ceiling_paint.jpg",landing,direction)
+    box(Vector3(9.30,top-FY, length),Vector3(CX,(top+FY)*0.5,middle),wall)
+    box(Vector3(9.30,0.045,length),Vector3(CX,top-0.020,middle),paving)
+    box(Vector3(9.58,0.18,length),Vector3(CX,roof_y+0.09,middle),soffit)
+    for side in [-1.0,1.0]:
+        if side<0.0:
+            box(Vector3(0.28,roof_y-top,length),Vector3(CX+side*4.79,(roof_y+top)*0.5,middle),wall)
+        else:
+            for interval in [Vector2(0,11),Vector2(14,25)]:
+                box(Vector3(0.28,roof_y-top,interval.y-interval.x),Vector3(CX+4.79,(roof_y+top)*0.5,landing+direction*(interval.x+interval.y)*0.5),wall)
+            box(Vector3(0.28,roof_y-top-2.35,3.0),Vector3(CX+4.79,top+2.35+(roof_y-top-2.35)*0.5,landing+direction*12.5),wall)
+        # Widen beyond the existing stair/escalator hall without a gap at the shoulder.
+        var shoulder: float=(9.30-width)*0.5
+        box(Vector3(shoulder,roof_y-top,0.24),Vector3(CX+side*(width*0.5+shoulder*0.5),(top+roof_y)*0.5,landing),wall_stone)
+    # No masonry across the passenger route. Only a distant, featureless dark backdrop
+    # after 25 metres; all floor/wall/ceiling detail fades before it reaches this point.
+    var darkness := _material(Color.BLACK,0,1)
+    darkness.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+    var opening := QuadMesh.new();opening.size=Vector2(10.5,roof_y-top+1.0);opening.material=darkness
+    var backdrop := MeshInstance3D.new();backdrop.name="ConcourseDarkContinuation"
+    backdrop.mesh=opening;backdrop.position=Vector3(CX,(top+roof_y)*0.5,landing+direction*(length-0.10))
+    backdrop.rotation.y=0.0 if direction<0.0 else PI
+    backdrop.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(backdrop)
+    # A side passage beyond the booth makes the upper hall visibly continue around a turn.
+    var branch_z: float=landing+direction*12.5
+    box(Vector3(8.0,0.20,3.0),Vector3(CX+8.65,top-0.10,branch_z),paving)
+    box(Vector3(8.0,0.18,3.0),Vector3(CX+8.65,roof_y+0.09,branch_z),soffit)
+    for edge in [-1.0,1.0]:
+        box(Vector3(8.0,roof_y-top,0.25),Vector3(CX+8.65,(roof_y+top)*0.5,branch_z+float(edge)*1.50),wall)
+    var bend := MeshInstance3D.new();var bend_mesh := QuadMesh.new()
+    bend_mesh.size=Vector2(3.5,roof_y-top+0.40);bend_mesh.material=darkness
+    bend.mesh=bend_mesh;bend.name="ConcourseSidePassageContinuation"
+    bend.position=Vector3(CX+12.60,(roof_y+top)*0.5,branch_z);bend.rotation.y=-PI/2.0;add_child(bend)
+    # Complete gate equipment is reused dimensionally from the Uruchye upper concourse.
+    var scanner := _material(Color("#101c25"),0.30,0.25)
+    var steel := _material(Color("#b9c1c6"),0.80,0.26)
+    var blue := _material(Color("#9daba9"),0.30,0.42)
+    var glass := _material(Color(0.41,0.63,0.68,0.26),0.12,0.16)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
+    var green := _material(Color("#2eaa72"),0,0.38)
+    green.emission_enabled=true;green.emission=Color(0.06,0.35,0.14);green.emission_energy_multiplier=1.1
+    var gate_z: float=landing+direction*4.70
+    for i in range(5):
+        var x: float=CX-2.64+float(i)*1.32
+        box(Vector3(0.31,1.05,0.84),Vector3(x,top+0.525,gate_z),steel)
+        box(Vector3(0.28,0.065,0.79),Vector3(x,top+1.082,gate_z),black)
+        box(Vector3(0.22,0.028,0.23),Vector3(x,top+1.126,gate_z-direction*0.16),scanner)
+        box(Vector3(0.07,0.07,0.012),Vector3(x,top+0.91,gate_z-direction*0.429),green)
+        if i<4:
+            var pivot := Vector3(x+0.17,top+0.83,gate_z)
+            cylinder(0.08,0.14,pivot,steel)
+            rod(pivot,pivot+Vector3(0.76,-0.05,0),0.025,steel)
+            rod(pivot,pivot+Vector3(0.52,-0.45,direction*0.33),0.025,steel)
+            rod(pivot,pivot+Vector3(0.52,-0.45,-direction*0.33),0.025,steel)
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*3.85
+        box(Vector3(0.10,1.10,0.10),Vector3(x,top+0.55,gate_z),steel)
+        box(Vector3(1.15,0.70,0.018),Vector3(x-side*0.52,top+0.72,gate_z),glass)
+        for y in [0.26,1.03]:
+            rod(Vector3(x,top+float(y),gate_z),Vector3(CX+side*4.65,top+float(y),gate_z),0.020,steel)
+    var booth_x: float=CX+3.60;var booth_z: float=landing+direction*7.30
+    box(Vector3(1.55,0.085,2.40),Vector3(booth_x,top+0.043,booth_z),steel)
+    box(Vector3(1.55,0.08,2.40),Vector3(booth_x,top+2.38,booth_z),steel)
+    for side in [-1.0,1.0]:
+        for face in [-1.0,1.0]:
+            box(Vector3(0.065,2.30,0.065),Vector3(booth_x+side*0.74,top+1.23,booth_z+face*1.16),steel)
+        box(Vector3(0.025,1.10,2.27),Vector3(booth_x+side*0.74,top+1.62,booth_z),glass)
+        box(Vector3(0.06,0.84,2.32),Vector3(booth_x+side*0.74,top+0.51,booth_z),blue)
+    for face in [-1.0,1.0]:
+        box(Vector3(1.44,1.10,0.025),Vector3(booth_x,top+1.62,booth_z+face*1.16),glass)
+        box(Vector3(1.48,0.84,0.06),Vector3(booth_x,top+0.51,booth_z+face*1.16),blue)
+    # Door frame, handle, operator desk, monitor and seat remain visible through the glazing.
+    var door_x: float=booth_x-0.77
+    for dz in [-0.48,0.30]:
+        rod(Vector3(door_x,top+0.10,booth_z+float(dz)),Vector3(door_x,top+2.18,booth_z+float(dz)),0.018,steel)
+    rod(Vector3(door_x-0.035,top+1.00,booth_z+0.20),Vector3(door_x-0.035,top+1.22,booth_z+0.20),0.012,metal)
+    box(Vector3(1.20,0.08,0.55),Vector3(booth_x,top+0.80,booth_z-direction*0.55),oak)
+    box(Vector3(0.43,0.30,0.035),Vector3(booth_x,top+1.06,booth_z-direction*0.57),scanner)
+    box(Vector3(0.40,0.045,0.32),Vector3(booth_x,top+0.49,booth_z+direction*0.32),black)
+    box(Vector3(0.40,0.42,0.045),Vector3(booth_x,top+0.72,booth_z+direction*0.48),black)
+    picture("control_booth.svg",Vector2(1.40,0.305),Vector3(booth_x,top+2.15,booth_z-direction*1.205),0.0 if direction<0.0 else PI)
+    # Gradually fewer and dimmer lights beyond the fare line.
+    for i in range(7):
+        var distance: float=1.5+float(i)*2.7
+        var energy: float=1.0-smoothstep(8.0,20.0,distance)
+        var strip := _material(Color(0.80,0.78,0.70)*energy,0,0.6)
+        strip.emission_enabled=true;strip.emission=Color(1.0,0.93,0.78)*energy;strip.emission_energy_multiplier=0.85
+        box(Vector3(3.60,0.035,0.10),Vector3(CX,roof_y-0.055,landing+direction*distance),strip)
+    for offset in [2.5,7.0]:
+        var light := OmniLight3D.new()
+        light.position=Vector3(CX,top+2.20,landing+direction*float(offset))
+        light.light_color=Color(1.0,0.96,0.87);light.light_energy=0.65
+        light.omni_range=5.0;light.shadow_enabled=false;add_child(light)
+    var anchor := Marker3D.new()
+    anchor.name="NorthFareControl" if direction<0.0 else "SouthFareControl"
+    anchor.position=Vector3(CX,top,gate_z)
+    anchor.set_meta("lanes",4);anchor.set_meta("controller_booth",Vector3(booth_x,top,booth_z));add_child(anchor)
 
 func _signs() -> void:
     # Clear opening = 4.80 - .84 = 3.96 m; framed signs = 3.48 m.
@@ -582,14 +695,11 @@ func _portal_z(direction: float) -> float:
     return eye_z+direction*(float(lighting["mirror_ahead_of_eye_m"])+float(lighting["tunnel_mouth_mirror_clearance_m"]))
 
 func _track_details() -> void:
+    var detail := preload("res://modules/stations/ploshchad_pobedy/track_detail.gd").new()
+    detail.name="UruchyeStyleTrackwork"
+    detail.start_z=track_min_z;detail.finish_z=track_max_z;add_child(detail)
     for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
         var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
         for direction in [-1.0,1.0]:
             var end: float=_portal_z(float(direction))
             box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
