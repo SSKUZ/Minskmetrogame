@@ -78,7 +78,7 @@
           }
         ],
         "glass_uv": "One [0,1] square per curved basket quadrant; eight by eight glass sections; retain UVs during mesh conversion.",
-        "station_names": "Native TextMesh, 18mm extrusion; one straight baseline; local station_letters.ttf retained."
+        "station_names": "Custom heavy stamp-cut glyph outlines from owner photos, uniform 0.40m cap height, 0.065m physical extrusion; no horizontal condensing. Both language words reused at all ten wall occurrences."
       }
     },
     {
@@ -96,6 +96,31 @@
         "rail_top_m": 0,
         "output": [
           "MultiMesh"
+        ]
+      }
+    },
+    {
+      "id": "bronze_station_glyphs",
+      "kind": "generator",
+      "path": "res://modules/stations/oktyabrskaya/art/bronze_letter_shapes.json",
+      "requires_initialization": false,
+      "status": "unassessed",
+      "parameters": {
+        "font": "res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf",
+        "generator_function": "_name_letters",
+        "outline_units_per_cap_height": 1000,
+        "cap_height_m": 0.4,
+        "extrusion_depth_m": 0.065,
+        "wall_clearance_m": 0.012,
+        "reference_images": [
+          "8275.jpg",
+          "8274.jpg",
+          "8253.jpg",
+          "8248.jpg"
+        ],
+        "output": [
+          "TextMesh",
+          "closed vector contours"
         ]
       }
     }
@@ -143,6 +168,29 @@
       "texture_bindings": {
         "paint": "ceiling_paint"
       }
+    },
+    {
+      "id": "cast_bronze_letters",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/oktyabrskaya/bronze_letters.gdshader",
+      "shader": {
+        "path": "res://modules/stations/oktyabrskaya/bronze_letters.gdshader",
+        "parameters": {
+          "bronze_face": [
+            0.79,
+            0.66,
+            0.36,
+            1
+          ],
+          "bronze_side": [
+            0.33,
+            0.24,
+            0.1,
+            1
+          ]
+        },
+        "adaptation": "required"
+      }
     }
   ],
   "textures": [
@@ -183,9 +231,9 @@
       {
         "id": "station_name_font",
         "purpose": "other",
-        "path": "res://modules/stations/oktyabrskaya/art/station_letters.ttf",
+        "path": "res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf",
         "format": "ttf",
-        "notes": "Native TextMesh glyphs for КАСТРЫЧНІЦКАЯ and ОКТЯБРЬСКАЯ; extract initialized mesh geometry for future export."
+        "notes": "Dedicated heavy glyph outlines manually reconstructed from owner reference photos. Contours and metric parameters retained in bronze_letter_shapes.json."
       }
     ]
   },
@@ -204,8 +252,8 @@
       "detail": "Advertising uses the project's existing static landscape artwork. No video or external network feed is introduced."
     },
     {
-      "code": "textmesh_export",
-      "detail": "Station names are native extruded TextMesh primitives. Retain font and generated meshes; no Roblox or GLB export performed."
+      "code": "bronze_letter_portability",
+      "detail": "Keep custom TTF, closed contour/counter data and initialized TextMesh geometry. Shader grain and separate face/side bronze finishes need baking or material adaptation. Glyph geometry is inferred from photos; no game, visual or export checks performed."
     }
   ]
 }

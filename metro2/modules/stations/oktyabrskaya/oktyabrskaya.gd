@@ -18,6 +18,9 @@ var lantern_glass: ShaderMaterial
 var ceiling_wash: ShaderMaterial
 var layout: Dictionary = {}
 var charcoal: StandardMaterial3D
+var lettering_meshes: Dictionary = {}
+var lettering_profile: Dictionary = {}
+var bronze_name_material: ShaderMaterial
 
 func _ready() -> void:
     super._ready();begin_station()
@@ -120,19 +123,36 @@ func _walls() -> void:
             _name_letters("КАСТРЫЧНІЦКАЯ" if side>0 else "ОКТЯБРЬСКАЯ",Vector3(x-side*0.18,3.24,z),-side*PI/2.0)
 
 func _name_letters(text: String,p: Vector3,yaw: float) -> void:
-    # Native extruded letters share one baseline; no photographed background or perspective warp.
-    var mesh := TextMesh.new()
-    mesh.font=preload("res://modules/stations/oktyabrskaya/art/station_letters.ttf")
-    mesh.text=text;mesh.font_size=128;mesh.pixel_size=0.01;mesh.depth=0.018
-    mesh.material=_material(Color("#c6a464"),0.40,0.36)
+    # Dedicated heavy outlines reconstructed from owner photographs, with their small counters.
+    # The two complete words share meshes across every occurrence on the platform walls.
+    if lettering_profile.is_empty():
+        lettering_profile=JSON.parse_string(FileAccess.get_file_as_string("res://modules/stations/oktyabrskaya/art/bronze_letter_shapes.json"))
+    if bronze_name_material==null:
+        bronze_name_material=ShaderMaterial.new()
+        bronze_name_material.shader=preload("res://modules/stations/oktyabrskaya/bronze_letters.gdshader")
+    if not lettering_meshes.has(text):
+        var generated_mesh := TextMesh.new()
+        generated_mesh.font=preload("res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf")
+        generated_mesh.text=text;generated_mesh.font_size=1000;generated_mesh.pixel_size=0.001
+        generated_mesh.depth=float(lettering_profile["extrusion_depth_m"])
+        generated_mesh.material=bronze_name_material
+        lettering_meshes[text]=generated_mesh
+    var mesh: TextMesh=lettering_meshes[text]
     var bounds: AABB=mesh.get_aabb()
-    var scale_x: float=4.65/maxf(bounds.size.x,0.001)
-    var scale_y: float=0.38/maxf(bounds.size.y,0.001)
-    var node := MeshInstance3D.new();node.name="StraightRaisedStationName"
-    node.mesh=mesh
-    node.basis=Basis(Vector3.UP,yaw)*Basis.from_scale(Vector3(scale_x,scale_y,1.0))
-    node.position=p-node.basis*(bounds.position+bounds.size*0.5)
-    node.set_meta("station_text",text);add_child(node)
+    # This font has a cap height of 1000 design units = one local metre at these settings.
+    # Use a uniform scale: broad strokes and round counters must never be condensed to a fixed word width.
+    var cap_height: float=float(lettering_profile["cap_height_m"])
+    var basis := Basis(Vector3.UP,yaw)*Basis.from_scale(Vector3(cap_height,cap_height,1.0))
+    var cap_top: float=bounds.position.y+bounds.size.y
+    var centre := Vector3(bounds.position.x+bounds.size.x*0.5,cap_top-0.5,bounds.position.z)
+    # Existing mounting datum is 29mm in front of the stone skin; put the back at a 12mm clearance.
+    var normal := Basis(Vector3.UP,yaw).z
+    var back_plane: Vector3=p+normal*(float(lettering_profile["wall_clearance_m"])-0.029)
+    var node := MeshInstance3D.new();node.name="HeavyBronzeStationName"
+    node.mesh=mesh;node.basis=basis;node.position=back_plane-basis*centre
+    node.set_meta("station_text",text)
+    node.set_meta("extrusion_depth_m",float(lettering_profile["extrusion_depth_m"]))
+    add_child(node)
 
 func _column_profile() -> PackedVector2Array:
     var p := PackedVector2Array()
