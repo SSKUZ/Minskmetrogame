@@ -43,3 +43,30 @@ func update_switch(switch_id: String, enabled: bool) -> void:
 func route_announcement(station_id: String, phase: String, direction: String, visit_id: String) -> void:
     if _bound and is_instance_valid(system):
         system.route_announcement(station_id, phase, direction, visit_id)
+
+## Both the physical cab INFO button and every camera's HUD INFO button
+## must call press_info(). No camera-specific counters or auto triggers in manual mode.
+func press_info() -> String:
+    if not _bound or not is_instance_valid(system):
+        return "Аудиосистема не подключена"
+    return system.info.press_info()
+
+func set_info_mode(mode: String) -> void:
+    if _bound and is_instance_valid(system):
+        system.info.set_mode(mode)
+
+func set_info_route(current_station: String, next_station: String, direction: String, visit_id: String) -> void:
+    if _bound and is_instance_valid(system):
+        system.info.set_route_context(current_station, next_station, direction, visit_id)
+
+func update_info_state(approaching: bool, stopped: bool, doors_open: bool, doors_closed: bool) -> void:
+    if _bound and is_instance_valid(system):
+        system.info.update_train_state(approaching, stopped, doors_open, doors_closed)
+
+func auto_info_approach() -> void:
+    if _bound and is_instance_valid(system):
+        system.info.on_auto_approach()
+
+func auto_info_departure() -> void:
+    if _bound and is_instance_valid(system):
+        system.info.on_auto_departure()
