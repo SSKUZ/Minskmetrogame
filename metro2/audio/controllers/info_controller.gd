@@ -4,6 +4,7 @@ class_name MetroInfoController
 ## The owner feeds real route/door events; this module never guesses station coordinates.
 signal info_result(message: String)
 signal mode_changed(mode: String)
+signal departure_started(event_id: String, warning_seconds: float)
 
 const MANUAL := "manual"
 const AUTO := "auto"
@@ -59,6 +60,8 @@ func set_route_context(current_id: String, following_id: String, route_direction
     if unique_visit_id == "":
         return
     if visit_id != unique_visit_id or direction != route_direction or station_id != current_id or next_station_id != following_id:
+        if is_instance_valid(announcer):
+            announcer.stop_all()
         _arrival_used = false
         _departure_used = false
         _service_used = false
@@ -82,21 +85,25 @@ func press_info() -> String:
         return _result("INFO управляется автоматически")
     if _busy:
         return _result("Дождитесь окончания объявления")
-    if approaching and not stopped and not _arrival_used:
-        return _play_route(station_id, ARRIVAL, true)
     if stopped and doors_open and _doors_opened_this_visit and not _departure_used:
         return _play_route(next_station_id, DEPARTURE, false)
+    if (approaching or (stopped and doors_closed)) and not _arrival_used:
+        return _play_route(station_id, ARRIVAL, true)
     if _departure_used and doors_closed and not doors_open and not _service_used and not stopped:
         return _play_service()
     return _result("Сейчас нет доступного объявления")
 
 func on_auto_approach() -> void:
-    if mode == AUTO and approaching and not stopped and not _arrival_used and not _busy:
+    if mode == AUTO and (approaching or stopped) and not _arrival_used and not _busy:
         _play_route(station_id, ARRIVAL, true)
 
 func on_auto_departure() -> void:
     if mode == AUTO and stopped and doors_open and _doors_opened_this_visit and not _departure_used and not _busy:
         _play_route(next_station_id, DEPARTURE, false)
+
+func on_auto_service() -> void:
+    if mode == AUTO and not stopped and doors_closed and _departure_used and not _service_used and not _busy:
+        _play_service()
 
 func _play_route(id: String, phase: String, is_arrival: bool) -> String:
     if not is_instance_valid(announcer) or not is_instance_valid(announcer.bank):
@@ -106,16 +113,17 @@ func _play_route(id: String, phase: String, is_arrival: bool) -> String:
     var event_id: String = str(announcer.route_events.get("%s|%s|%s" % [id, phase, direction], ""))
     if event_id == "" or not announcer.bank.has_event(event_id):
         return _result("Для станции нет подтверждённой записи")
-    if announcer._current_id != "" or not announcer._queue.is_empty():
+    if announcer.is_busy():
         return _result("Информатор занят")
     # Do not queue or overlap. A successful start consumes this phase once per visit.
     announcer.manual_play(event_id)
-    if announcer._current_id != event_id:
+    if announcer.current_event() != event_id:
         return _result("Запись не запустилась")
     if is_arrival:
         _arrival_used = true
     else:
         _departure_used = true
+        departure_started.emit(event_id, float(announcer.bank.event_data(event_id).get("warning_seconds", 0.0)))
     return _result("Воспроизводится: " + event_id)
 
 func _play_service() -> String:
@@ -131,11 +139,11 @@ func _play_service() -> String:
                 choices.append(event_id)
     if choices.is_empty():
         return _result("Нет подтверждённых служебных записей")
-    if announcer._current_id != "" or not announcer._queue.is_empty():
+    if announcer.is_busy():
         return _result("Информатор занят")
     var event_id: String = choices.pick_random()
     announcer.manual_play(event_id)
-    if announcer._current_id != event_id:
+    if announcer.current_event() != event_id:
         return _result("Запись не запустилась")
     _service_used = true
     _last_service = event_id

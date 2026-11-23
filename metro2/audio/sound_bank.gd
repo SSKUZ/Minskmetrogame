@@ -26,6 +26,9 @@ func configure(catalog: Dictionary) -> void:
 func has_event(event_id: String) -> bool:
     return _entries.has(event_id)
 
+func event_data(event_id: String) -> Dictionary:
+    return _entries.get(event_id, {})
+
 func _stream(event_id: String) -> AudioStream:
     if _cache.has(event_id):
         _order.erase(event_id)
@@ -46,7 +49,7 @@ func _stream(event_id: String) -> AudioStream:
         _cache.erase(evicted)
     return resource
 
-func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3.ZERO, volume_db: float = 0.0, looped: bool = false) -> AudioStreamPlayer3D:
+func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3.ZERO, volume_db: float = 0.0, looped: bool = false, start_seconds: float = 0.0) -> AudioStreamPlayer3D:
     if not is_instance_valid(parent):
         return null
     var stream: AudioStream = _stream(event_id)
@@ -73,7 +76,7 @@ func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3
     _voices.append(player)
     if not looped:
         player.finished.connect(_on_finished.bind(player))
-    player.play()
+    player.play(maxf(0.0, start_seconds))
     return player
 
 func _on_finished(player: AudioStreamPlayer3D) -> void:

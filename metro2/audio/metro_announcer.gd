@@ -10,6 +10,8 @@ var _queue: Array[Dictionary] = []
 var _seen_visits: Dictionary = {}
 var _active: Array[AudioStreamPlayer3D] = []
 var _current_id: String = ""
+var _segments: Array = []
+var _segment_index: int = 0
 @export var max_queue: int = 8
 
 func configure_routes(mapping: Dictionary) -> void:
@@ -53,12 +55,24 @@ func repeat_current() -> void:
 
 func stop_all() -> void:
     _queue.clear()
+    var interrupted: String = _current_id
+    _release_active()
+    _segments.clear()
+    _current_id = ""
+    if interrupted != "":
+        announcement_finished.emit(interrupted)
+
+func is_busy() -> bool:
+    return _current_id != "" or not _queue.is_empty()
+
+func current_event() -> String:
+    return _current_id
+
+func _release_active() -> void:
     for player in _active:
         if is_instance_valid(player):
-            player.stop()
-            player.queue_free()
+            bank.release_player(player)
     _active.clear()
-    _current_id = ""
 
 func reset_visit_history() -> void:
     _seen_visits.clear()
@@ -68,16 +82,20 @@ func _process(_delta: float) -> void:
         _advance()
         return
     var any_playing: bool = false
+    var end_seconds: float = float(_segments[_segment_index].get("to_s", -1.0)) if not _segments.is_empty() else -1.0
     for player in _active:
         if is_instance_valid(player) and player.playing:
-            any_playing = true
+            if end_seconds < 0.0 or player.get_playback_position() < end_seconds:
+                any_playing = true
     if not any_playing:
+        _release_active()
+        if _segment_index + 1 < _segments.size():
+            _segment_index += 1
+            if _start_segment():
+                return
         var completed: String = _current_id
-        for player in _active:
-            if is_instance_valid(player):
-                player.queue_free()
-        _active.clear()
         _current_id = ""
+        _segments.clear()
         announcement_finished.emit(completed)
         _advance()
 
@@ -89,12 +107,19 @@ func _advance() -> void:
     if not bank.has_event(event_id):
         return
     _current_id = event_id
-    for origin in speaker_origins:
-        if is_instance_valid(origin):
-            var player: AudioStreamPlayer3D = bank.play_at(event_id, origin)
-            if player != null:
-                _active.append(player)
-    if _active.is_empty():
+    _segments = bank.event_data(event_id).get("playback_segments", [])
+    _segment_index = 0
+    if not _start_segment():
         _current_id = ""
+        _segments.clear()
         return
     announcement_started.emit(event_id)
+
+func _start_segment() -> bool:
+    var start_seconds: float = float(_segments[_segment_index].get("from_s", 0.0)) if not _segments.is_empty() else 0.0
+    for origin in speaker_origins:
+        if is_instance_valid(origin):
+            var player: AudioStreamPlayer3D = bank.play_at(_current_id, origin, Vector3.ZERO, 0.0, false, start_seconds)
+            if player != null:
+                _active.append(player)
+    return not _active.is_empty()

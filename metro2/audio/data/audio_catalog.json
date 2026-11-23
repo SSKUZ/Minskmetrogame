@@ -10,7 +10,29 @@
       "verified": true,
       "source_file": "sharedassets1_002.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Плошча Перамогі» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Плошча Перамогі» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.49,
+          "to_s": 5.9
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.49
+        },
+        {
+          "from_s": 5.9,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.41,
+      "sequence_basis": {
+        "source_file": "sharedassets1_002.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_005",
@@ -19,7 +41,8 @@
       "verified": true,
       "source_file": "sharedassets1_005.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Парк Чалюскінцаў»."
+      "content_description_ru": "Объявление станции «Парк Чалюскінцаў».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_008",
@@ -28,7 +51,8 @@
       "verified": true,
       "source_file": "sharedassets1_008.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Усход»."
+      "content_description_ru": "Объявление станции «Усход».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_009",
@@ -37,7 +61,8 @@
       "verified": true,
       "source_file": "sharedassets1_009.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Просьба уступать места пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым."
+      "content_description_ru": "Просьба уступать места пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_011",
@@ -46,7 +71,8 @@
       "verified": true,
       "source_file": "sharedassets1_011.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление конечной «Уручча»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+      "content_description_ru": "Объявление конечной «Уручча»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_015",
@@ -55,7 +81,8 @@
       "verified": true,
       "source_file": "sharedassets1_015.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Сообщение о пункте вакцинации против COVID-19 в пешеходном переходе станции «Кавальская Слабада». Историческое служебное объявление; актуальность не установлена."
+      "content_description_ru": "Сообщение о пункте вакцинации против COVID-19 в пешеходном переходе станции «Кавальская Слабада». Историческое служебное объявление; актуальность не установлена.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_017",
@@ -64,7 +91,8 @@
       "verified": true,
       "source_file": "sharedassets1_017.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Міхалова» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Міхалова» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_019",
@@ -73,7 +101,8 @@
       "verified": true,
       "source_file": "sharedassets1_019.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Міхалова»."
+      "content_description_ru": "Объявление станции «Міхалова».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_020",
@@ -82,7 +111,8 @@
       "verified": true,
       "source_file": "sharedassets1_020.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Предупреждение: после объявления о закрытии дверей посадка в вагоны не допускается."
+      "content_description_ru": "Предупреждение: после объявления о закрытии дверей посадка в вагоны не допускается.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_023",
@@ -91,7 +121,29 @@
       "verified": true,
       "source_file": "sharedassets1_023.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Уручча» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Уручча» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 2.73,
+          "to_s": 5.07
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 2.73
+        },
+        {
+          "from_s": 5.07,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.34,
+      "sequence_basis": {
+        "source_file": "sharedassets1_023.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_026",
@@ -100,7 +152,8 @@
       "verified": true,
       "source_file": "sharedassets1_026.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Грушаўка»."
+      "content_description_ru": "Объявление станции «Грушаўка».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_028",
@@ -109,7 +162,8 @@
       "verified": true,
       "source_file": "sharedassets1_028.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Просьба проходить в середину салона и не скапливаться у дверей."
+      "content_description_ru": "Просьба проходить в середину салона и не скапливаться у дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_029",
@@ -118,7 +172,29 @@
       "verified": true,
       "source_file": "sharedassets1_029.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Усход» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Усход» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 2.66,
+          "to_s": 5.22
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 2.66
+        },
+        {
+          "from_s": 5.22,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.56,
+      "sequence_basis": {
+        "source_file": "sharedassets1_029.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_030",
@@ -127,7 +203,8 @@
       "verified": true,
       "source_file": "sharedassets1_030.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Інстытут Культуры»."
+      "content_description_ru": "Объявление станции «Інстытут Культуры».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_031",
@@ -136,7 +213,29 @@
       "verified": true,
       "source_file": "sharedassets1_031.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Акадэмія навук» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Акадэмія навук» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.27,
+          "to_s": 5.57
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.27
+        },
+        {
+          "from_s": 5.57,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.3,
+      "sequence_basis": {
+        "source_file": "sharedassets1_031.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_032",
@@ -145,7 +244,29 @@
       "verified": true,
       "source_file": "sharedassets1_032.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Плошча Леніна» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Плошча Леніна» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.86,
+          "to_s": 6.18
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.86
+        },
+        {
+          "from_s": 6.18,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.32,
+      "sequence_basis": {
+        "source_file": "sharedassets1_032.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_034",
@@ -154,7 +275,8 @@
       "verified": true,
       "source_file": "sharedassets1_034.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Інстытут Культуры» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Інстытут Культуры» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_037",
@@ -163,7 +285,29 @@
       "verified": true,
       "source_file": "sharedassets1_037.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Маскоўская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Маскоўская» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.25,
+          "to_s": 5.45
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.25
+        },
+        {
+          "from_s": 5.45,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.2,
+      "sequence_basis": {
+        "source_file": "sharedassets1_037.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_040",
@@ -172,7 +316,8 @@
       "verified": true,
       "source_file": "sharedassets1_040.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Предупреждение не заходить за ограничительную линию у края платформы: на путях высокое напряжение."
+      "content_description_ru": "Предупреждение не заходить за ограничительную линию у края платформы: на путях высокое напряжение.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_041",
@@ -181,7 +326,8 @@
       "verified": true,
       "source_file": "sharedassets1_041.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Плошча Перамогі»."
+      "content_description_ru": "Объявление станции «Плошча Перамогі».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_042",
@@ -190,7 +336,8 @@
       "verified": true,
       "source_file": "sharedassets1_042.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Кастрычніцкая» и пересадки на Автозаводскую линию; в ASR есть белорусская и английская части с ошибками."
+      "content_description_ru": "Объявление «Кастрычніцкая» и пересадки на Автозаводскую линию; в ASR есть белорусская и английская части с ошибками.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_045",
@@ -199,7 +346,8 @@
       "verified": true,
       "source_file": "sharedassets1_045.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Пятроўшчына»."
+      "content_description_ru": "Объявление станции «Пятроўшчына».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_047",
@@ -208,7 +356,8 @@
       "verified": true,
       "source_file": "sharedassets1_047.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление конечной «Малінаўка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+      "content_description_ru": "Объявление конечной «Малінаўка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_050",
@@ -217,7 +366,29 @@
       "verified": true,
       "source_file": "sharedassets1_050.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Парк Чалюскінцаў» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Парк Чалюскінцаў» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.24,
+          "to_s": 5.64
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.24
+        },
+        {
+          "from_s": 5.64,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.4,
+      "sequence_basis": {
+        "source_file": "sharedassets1_050.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_051",
@@ -226,7 +397,8 @@
       "verified": true,
       "source_file": "sharedassets1_051.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Малінаўка»."
+      "content_description_ru": "Объявление станции «Малінаўка».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_057",
@@ -235,7 +407,29 @@
       "verified": true,
       "source_file": "sharedassets1_057.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Кастрычніцкая» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Кастрычніцкая» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.06,
+          "to_s": 6.09
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.06
+        },
+        {
+          "from_s": 6.09,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 3.03,
+      "sequence_basis": {
+        "source_file": "sharedassets1_057.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_066",
@@ -244,7 +438,8 @@
       "verified": true,
       "source_file": "sharedassets1_066.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Плошча Леніна»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Зеленолужскую линию; белорусская и английская части с ошибками ASR."
+      "content_description_ru": "Объявление «Плошча Леніна»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Зеленолужскую линию; белорусская и английская части с ошибками ASR.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_069",
@@ -253,7 +448,8 @@
       "verified": true,
       "source_file": "sharedassets1_069.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Уручча»."
+      "content_description_ru": "Объявление станции «Уручча».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_072",
@@ -262,7 +458,8 @@
       "verified": true,
       "source_file": "sharedassets1_072.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Предупреждение остерегаться карманных краж."
+      "content_description_ru": "Предупреждение остерегаться карманных краж.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_073",
@@ -271,7 +468,8 @@
       "verified": true,
       "source_file": "sharedassets1_073.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Плошча Якуба Коласа»."
+      "content_description_ru": "Объявление станции «Плошча Якуба Коласа».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_077",
@@ -280,7 +478,8 @@
       "verified": true,
       "source_file": "sharedassets1_077.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Просьба сообщать милиции или работникам метро об оставленных вещах и подозрительных предметах на станциях и в поездах."
+      "content_description_ru": "Просьба сообщать милиции или работникам метро об оставленных вещах и подозрительных предметах на станциях и в поездах.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_081",
@@ -289,7 +488,8 @@
       "verified": true,
       "source_file": "sharedassets1_081.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Просьба уступать места для сидения пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым."
+      "content_description_ru": "Просьба уступать места для сидения пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_083",
@@ -298,7 +498,8 @@
       "verified": true,
       "source_file": "sharedassets1_083.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Магілёўская»."
+      "content_description_ru": "Объявление станции «Магілёўская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_084",
@@ -307,7 +508,29 @@
       "verified": true,
       "source_file": "sharedassets1_084.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Барысаўскі тракт» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Барысаўскі тракт» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.23,
+          "to_s": 5.56
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.23
+        },
+        {
+          "from_s": 5.56,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.33,
+      "sequence_basis": {
+        "source_file": "sharedassets1_084.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_085",
@@ -316,7 +539,8 @@
       "verified": true,
       "source_file": "sharedassets1_085.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Маскоўская»."
+      "content_description_ru": "Объявление станции «Маскоўская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_086",
@@ -325,7 +549,8 @@
       "verified": true,
       "source_file": "sharedassets1_086.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Малінаўка» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Малінаўка» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_088",
@@ -334,7 +559,8 @@
       "verified": true,
       "source_file": "sharedassets1_088.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Грушаўка» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Грушаўка» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_090",
@@ -343,7 +569,8 @@
       "verified": true,
       "source_file": "sharedassets1_090.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Акадэмія навук»."
+      "content_description_ru": "Объявление станции «Акадэмія навук».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_091",
@@ -352,7 +579,8 @@
       "verified": true,
       "source_file": "sharedassets1_091.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Предупреждение: нарушение правил пользования эскалаторами может привести к падению и травмам."
+      "content_description_ru": "Предупреждение: нарушение правил пользования эскалаторами может привести к падению и травмам.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_092",
@@ -361,7 +589,8 @@
       "verified": true,
       "source_file": "sharedassets1_092.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Пятроўшчына» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Пятроўшчына» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_095",
@@ -370,7 +599,29 @@
       "verified": true,
       "source_file": "sharedassets1_095.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Плошча Якуба Коласа» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Плошча Якуба Коласа» и предупреждение о закрытии дверей.",
+      "playback_segments": [
+        {
+          "from_s": 3.83,
+          "to_s": 6.81
+        },
+        {
+          "from_s": 0.0,
+          "to_s": 3.83
+        },
+        {
+          "from_s": 6.81,
+          "to_s": -1.0
+        }
+      ],
+      "warning_seconds": 2.98,
+      "sequence_basis": {
+        "source_file": "sharedassets1_095.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Play the recorded warning first, then the recorded next-station phrase, then the remaining bilingual recording. No speech synthesis or replacement source.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_1_096",
@@ -379,7 +630,8 @@
       "verified": true,
       "source_file": "sharedassets1_096.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Барысаўскі тракт»."
+      "content_description_ru": "Объявление станции «Барысаўскі тракт».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_001",
@@ -388,7 +640,8 @@
       "verified": true,
       "source_file": "sharedassets2_001.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Аўтазаводская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Аўтазаводская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_002",
@@ -397,7 +650,8 @@
       "verified": true,
       "source_file": "sharedassets2_002.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Трактарны завод»."
+      "content_description_ru": "Объявление станции «Трактарны завод».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_003",
@@ -406,7 +660,8 @@
       "verified": true,
       "source_file": "sharedassets2_003.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Пралетарская»."
+      "content_description_ru": "Объявление станции «Пралетарская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_004",
@@ -415,7 +670,8 @@
       "verified": true,
       "source_file": "sharedassets2_004.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Партызанская»."
+      "content_description_ru": "Объявление станции «Партызанская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_005",
@@ -424,7 +680,8 @@
       "verified": true,
       "source_file": "sharedassets2_005.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Маладзёжная» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Маладзёжная» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_006",
@@ -433,7 +690,8 @@
       "verified": true,
       "source_file": "sharedassets2_006.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Спартыўная»."
+      "content_description_ru": "Объявление станции «Спартыўная».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_007",
@@ -442,7 +700,8 @@
       "verified": true,
       "source_file": "sharedassets2_007.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление конечной «Магілёўская»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+      "content_description_ru": "Объявление конечной «Магілёўская»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_008",
@@ -451,7 +710,8 @@
       "verified": true,
       "source_file": "sharedassets2_008.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Кунцаўшчына» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Кунцаўшчына» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_009",
@@ -460,7 +720,8 @@
       "verified": true,
       "source_file": "sharedassets2_009.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление конечной «Каменная Горка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+      "content_description_ru": "Объявление конечной «Каменная Горка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_010",
@@ -469,7 +730,8 @@
       "verified": true,
       "source_file": "sharedassets2_010.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Партызанская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Партызанская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_011",
@@ -478,7 +740,8 @@
       "verified": true,
       "source_file": "sharedassets2_011.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Кунцаўшчына»."
+      "content_description_ru": "Объявление станции «Кунцаўшчына».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_012",
@@ -487,7 +750,8 @@
       "verified": true,
       "source_file": "sharedassets2_012.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Каменная Горка» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Каменная Горка» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_013",
@@ -496,7 +760,8 @@
       "verified": true,
       "source_file": "sharedassets2_013.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Няміга» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Няміга» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_014",
@@ -505,7 +770,8 @@
       "verified": true,
       "source_file": "sharedassets2_014.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Спартыўная» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Спартыўная» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_015",
@@ -514,7 +780,8 @@
       "verified": true,
       "source_file": "sharedassets2_015.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Пралетарская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Пралетарская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_016",
@@ -523,7 +790,8 @@
       "verified": true,
       "source_file": "sharedassets2_016.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Каменная Горка»."
+      "content_description_ru": "Объявление станции «Каменная Горка».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_017",
@@ -532,7 +800,8 @@
       "verified": true,
       "source_file": "sharedassets2_017.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Купалаўская» и пересадки на Московскую линию."
+      "content_description_ru": "Объявление «Купалаўская» и пересадки на Московскую линию.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_018",
@@ -541,7 +810,8 @@
       "verified": true,
       "source_file": "sharedassets2_018.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Трактарны завод» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Трактарны завод» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_019",
@@ -550,7 +820,8 @@
       "verified": true,
       "source_file": "sharedassets2_019.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Першамайская»: выход справа; предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Першамайская»: выход справа; предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_020",
@@ -559,7 +830,8 @@
       "verified": true,
       "source_file": "sharedassets2_020.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Пушкінская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Пушкінская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_021",
@@ -568,7 +840,8 @@
       "verified": true,
       "source_file": "sharedassets2_021.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Няміга»."
+      "content_description_ru": "Объявление станции «Няміга».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_023",
@@ -577,7 +850,8 @@
       "verified": true,
       "source_file": "sharedassets2_023.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Магілёўская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Магілёўская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_024",
@@ -586,7 +860,8 @@
       "verified": true,
       "source_file": "sharedassets2_024.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Фрунзенская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Фрунзенская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_025",
@@ -595,7 +870,8 @@
       "verified": true,
       "source_file": "sharedassets2_025.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Купалаўская» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Купалаўская» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_026",
@@ -604,7 +880,8 @@
       "verified": true,
       "source_file": "sharedassets2_026.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Пушкінская»."
+      "content_description_ru": "Объявление станции «Пушкінская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_027",
@@ -613,7 +890,8 @@
       "verified": true,
       "source_file": "sharedassets2_027.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Маладзёжная»."
+      "content_description_ru": "Объявление станции «Маладзёжная».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_028",
@@ -622,7 +900,8 @@
       "verified": true,
       "source_file": "sharedassets2_028.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Аўтазаводская»."
+      "content_description_ru": "Объявление станции «Аўтазаводская».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_029",
@@ -631,7 +910,8 @@
       "verified": true,
       "source_file": "sharedassets2_029.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Першамайская»: выход справа."
+      "content_description_ru": "Объявление «Першамайская»: выход справа.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_2_030",
@@ -640,7 +920,8 @@
       "verified": true,
       "source_file": "sharedassets2_030.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Фрунзенская» и пересадки на Зеленолужскую линию; также распознана искажённая английская часть."
+      "content_description_ru": "Объявление «Фрунзенская» и пересадки на Зеленолужскую линию; также распознана искажённая английская часть.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_001",
@@ -649,7 +930,8 @@
       "verified": true,
       "source_file": "sharedassets3_001.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Вакзальная»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Московскую линию. Уточняющий ASR сократил зацикливание первого прохода; текст сохраняет ошибки и повышенную повторяемость."
+      "content_description_ru": "Объявление «Вакзальная»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Московскую линию. Уточняющий ASR сократил зацикливание первого прохода; текст сохраняет ошибки и повышенную повторяемость.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_002",
@@ -658,7 +940,8 @@
       "verified": true,
       "source_file": "sharedassets3_002.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Юбілейная плошча» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Юбілейная плошча» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_004",
@@ -667,7 +950,8 @@
       "verified": true,
       "source_file": "sharedassets3_004.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление «Юбілейная плошча»: пересадка на Автозаводскую линию; конечная, просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения."
+      "content_description_ru": "Объявление «Юбілейная плошча»: пересадка на Автозаводскую линию; конечная, просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_005",
@@ -676,7 +960,8 @@
       "verified": true,
       "source_file": "sharedassets3_005.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Кавальская Слабада» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Кавальская Слабада» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_006",
@@ -685,7 +970,8 @@
       "verified": true,
       "source_file": "sharedassets3_006.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Вакзальная» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Вакзальная» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_007",
@@ -694,7 +980,8 @@
       "verified": true,
       "source_file": "sharedassets3_007.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление следующей станции «Плошча Францішка Багушэвіча» и предупреждение о закрытии дверей."
+      "content_description_ru": "Объявление следующей станции «Плошча Францішка Багушэвіча» и предупреждение о закрытии дверей.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_008",
@@ -703,7 +990,8 @@
       "verified": true,
       "source_file": "sharedassets3_008.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление станции «Плошча Францішка Багушэвіча»."
+      "content_description_ru": "Объявление станции «Плошча Францішка Багушэвіча».",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     },
     {
       "event_id": "voice_3_009",
@@ -712,7 +1000,8 @@
       "verified": true,
       "source_file": "sharedassets3_009.wav",
       "identification_status": "machine_provisional",
-      "content_description_ru": "Объявление конечной «Кавальская Слабада»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения."
+      "content_description_ru": "Объявление конечной «Кавальская Слабада»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     }
   ],
   "route_events": {
@@ -763,9 +1052,9 @@
     "voice_1_028",
     "voice_1_072",
     "voice_1_077",
-    "voice_1_081",
     "voice_1_091"
   ],
   "loop_events": {},
-  "zone_events": {}
+  "zone_events": {},
+  "coverage_note": "20 station/phase recordings cover 10 stations in both directions; the same direction-neutral recording is shared explicitly. Unknown effects and unrelated/historical service recordings are not assigned to this route."
 }
