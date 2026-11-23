@@ -49,6 +49,23 @@
     ],
     "grushevka": [
       "grushevka"
+    ],
+    "full_line": [
+      "shared",
+      "v106",
+      "depot",
+      "uruchye",
+      "tunnel_16m",
+      "borisovsky_trakt",
+      "vostok",
+      "moskovskaya",
+      "park_chelyuskintsev",
+      "akademiya_nauk",
+      "yakuba_kolasa",
+      "ploshchad_pobedy",
+      "oktyabrskaya",
+      "ploshchad_lenina",
+      "full_line"
     ]
   },
   "names": {
@@ -66,14 +83,30 @@
     "oktyabrskaya": "Октябрьская",
     "ploshchad_lenina": "Площадь Ленина",
     "institut_kultury": "Институт культуры",
-    "grushevka": "Грушевка"
+    "grushevka": "Грушевка",
+    "full_line": "Депо — Площадь Ленина"
   },
   "packs": {
     "depot": {
-      "file": "depot-047f3693453b81589c6f.pck",
-      "bytes": 74784,
-      "sha256": "047f3693453b81589c6f6f36489d8575fbcb5c823fd15b383a00972e57d67e1c",
-      "warmup": []
+      "file": "depot-4c8340df86a8c857f1c3.pck",
+      "sha256": "4c8340df86a8c857f1c3d5bcd8ba468f2337f499e92ecf042222f84d30ccdad3",
+      "bytes": 7860768,
+      "warmup": [
+        "res://assets/passengers/textures/0033a27e6e9498d0.png",
+        "res://assets/passengers/textures/32b0f29c89962499.jpg",
+        "res://assets/passengers/textures/3e68f9ced2a90764.jpg",
+        "res://assets/passengers/textures/44b3efa99337d69c.png",
+        "res://assets/passengers/textures/553494d1ccc522d8.jpg",
+        "res://assets/passengers/textures/678513301fa65bca.png",
+        "res://assets/passengers/textures/84dff0819163531f.jpg",
+        "res://assets/passengers/textures/9e91ec2807b2d16e.jpg",
+        "res://assets/passengers/textures/a7254eb5a61acf36.png",
+        "res://assets/passengers/textures/ac7876f0428c7a8c.png",
+        "res://assets/passengers/textures/ad4af5a677aa531c.jpg",
+        "res://assets/passengers/textures/b00accc90e6a5ade.jpg",
+        "res://assets/passengers/textures/c105b5014a31550d.jpg",
+        "res://assets/passengers/textures/da0f928329466e45.jpg"
+      ]
     },
     "shared": {
       "bytes": 22720,
@@ -107,9 +140,9 @@
       ]
     },
     "v106": {
-      "file": "v106-ce35202d071e2f465949.pck",
-      "bytes": 47155296,
-      "sha256": "ce35202d071e2f465949f1156c617a44b7b8d0eaf1930c9d0369fe01bc582bed",
+      "file": "v106-9b5041acf3ce05a96252.pck",
+      "sha256": "9b5041acf3ce05a96252603e23550961a40500b0490e1ec1ebcc6d82256829bc",
+      "bytes": 132865984,
       "warmup": [
         "res://assets/cab_r21/cab_r21_0.png",
         "res://assets/cab_r21/cab_r21_1.png",
@@ -137,6 +170,26 @@
         "res://assets/cab_r21/cab_r21_7.png",
         "res://assets/cab_r21/cab_r21_8.png",
         "res://assets/cab_r21/cab_r21_9.png",
+        "res://assets/saloon_v46/ad_01.svg",
+        "res://assets/saloon_v46/ad_02.svg",
+        "res://assets/saloon_v46/ad_03.svg",
+        "res://assets/saloon_v46/ad_04.svg",
+        "res://assets/saloon_v46/ad_05.svg",
+        "res://assets/saloon_v46/ad_06.svg",
+        "res://assets/saloon_v46/ad_07.svg",
+        "res://assets/saloon_v46/ad_08.svg",
+        "res://assets/saloon_v46/ad_09.svg",
+        "res://assets/saloon_v46/ad_10.svg",
+        "res://assets/saloon_v46/ad_11.svg",
+        "res://assets/saloon_v46/ad_12.svg",
+        "res://assets/saloon_v46/ad_13.svg",
+        "res://assets/saloon_v46/ad_14.svg",
+        "res://assets/saloon_v46/ad_15.svg",
+        "res://assets/saloon_v46/ad_16.svg",
+        "res://assets/saloon_v46/ad_17.svg",
+        "res://assets/saloon_v46/ad_18.svg",
+        "res://assets/saloon_v46/ad_19.svg",
+        "res://assets/saloon_v46/ad_20.svg",
         "res://assets/saloon_v46/minsk_network.svg",
         "res://assets/saloon_v46/moscow_line.svg",
         "res://assets/saloon_v46/passenger_notice.svg",
@@ -166,6 +219,10 @@
         "res://assets/saloon_v49/emergency_exit.svg",
         "res://assets/saloon_v49/goodmix-duo-zakhar.jpg",
         "res://assets/signage_v54/moscow_line.svg",
+        "res://assets/signage_v63/uruchye_route.svg",
+        "res://assets/station/uruchye_v68/route_arrived.svg",
+        "res://assets/station/uruchye_v68/security.svg",
+        "res://assets/station/uruchye_v68/upper_exit.svg",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_0.png",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_1.png",
         "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed_2.png",
@@ -187,6 +244,88 @@
         "res://assets/v106_original/car04/v106_car_04_3.png",
         "res://assets/v106_original/car04/v106_car_04_4.png",
         "res://assets/v106_warning/v106_warning_caution.png"
+      ],
+      "chunks": [
+        {
+          "file": "v106-part-17b54883edb2ba351941.bin",
+          "bytes": 8388608,
+          "sha256": "17b54883edb2ba351941816f0387954a9deb7c98a185bc10749995b2ff75b038"
+        },
+        {
+          "file": "v106-part-7362446760cbbf1f478e.bin",
+          "bytes": 8388608,
+          "sha256": "7362446760cbbf1f478e6aa04ce94e6357876058c7e2620e3155ce0ed317a469"
+        },
+        {
+          "file": "v106-part-9fd107af86160ccd0a6d.bin",
+          "bytes": 8388608,
+          "sha256": "9fd107af86160ccd0a6d55ee37ebf499012f4a2ed9b2568b97c1261965e18ada"
+        },
+        {
+          "file": "v106-part-ea8bf61c432f2cf78c8c.bin",
+          "bytes": 8388608,
+          "sha256": "ea8bf61c432f2cf78c8c81148cd595c4b5a9057b2e54d077ad06586fe943a1d2"
+        },
+        {
+          "file": "v106-part-291602e282bf3a39a3e3.bin",
+          "bytes": 8388608,
+          "sha256": "291602e282bf3a39a3e3c3f6dd8c72a347af2637945086b96359c54681e59b16"
+        },
+        {
+          "file": "v106-part-cc1190f6cffd949bcdf4.bin",
+          "bytes": 8388608,
+          "sha256": "cc1190f6cffd949bcdf4d1ddd20cce32c725ec7eef27c37c8d6ee2796ea39e1d"
+        },
+        {
+          "file": "v106-part-6d01ceb11e9641d3191a.bin",
+          "bytes": 8388608,
+          "sha256": "6d01ceb11e9641d3191ab756716aca6d4cb1ecf4b5d6a9798c05579051e40000"
+        },
+        {
+          "file": "v106-part-c3c596c16eea1afe130e.bin",
+          "bytes": 8388608,
+          "sha256": "c3c596c16eea1afe130e980a6441586d7dfe90197c2ab5075bff18eb8f199c2a"
+        },
+        {
+          "file": "v106-part-144bef39214d8ae6103b.bin",
+          "bytes": 8388608,
+          "sha256": "144bef39214d8ae6103b8598a07d064d85b7d4d217c42ab24104c9543d37598b"
+        },
+        {
+          "file": "v106-part-dc8a02f0dd1bf3a6e72b.bin",
+          "bytes": 8388608,
+          "sha256": "dc8a02f0dd1bf3a6e72b6e26f6e41c3c0b9224161a765d34078f7dabbe5bbf73"
+        },
+        {
+          "file": "v106-part-3f7d77c82c5136a72f49.bin",
+          "bytes": 8388608,
+          "sha256": "3f7d77c82c5136a72f49008e828fa7f0938188307ac43ca7fb4b042ae9afe65a"
+        },
+        {
+          "file": "v106-part-8e118db671b46c5faad8.bin",
+          "bytes": 8388608,
+          "sha256": "8e118db671b46c5faad8b94821b08b540c78a186c7e8b66c2d9dec32336d77ba"
+        },
+        {
+          "file": "v106-part-6745dc158134ec9c79ea.bin",
+          "bytes": 8388608,
+          "sha256": "6745dc158134ec9c79ea0212231f356c70c9186c40eed03c8f57ef26b02d226c"
+        },
+        {
+          "file": "v106-part-2ea70e2a49c51ff6fa0a.bin",
+          "bytes": 8388608,
+          "sha256": "2ea70e2a49c51ff6fa0a302d1e34031083251514b1e915a0bd0f875ae4a6fdc0"
+        },
+        {
+          "file": "v106-part-1ec230604b8b7e721e27.bin",
+          "bytes": 8388608,
+          "sha256": "1ec230604b8b7e721e27e15f9c85f476cb41e5e07fd1d6b7b2e0f91b5097a279"
+        },
+        {
+          "file": "v106-part-2bbe95240c7305a17c1b.bin",
+          "bytes": 7036864,
+          "sha256": "2bbe95240c7305a17c1b86764bdf90d772a8e243b45da31920d910ed44a2b370"
+        }
       ]
     },
     "borisovsky_trakt": {
@@ -429,9 +568,9 @@
       ]
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-daede7a5748ed70fe9d8.pck",
-      "sha256": "daede7a5748ed70fe9d8a0e8a09a151472021c165c9ab1166b7fb4c87903a594",
-      "bytes": 5131840,
+      "file": "ploshchad_pobedy-ca96e3dfdb1bcb980bc6.pck",
+      "sha256": "ca96e3dfdb1bcb980bc616fbad6faedb86617aa99f366ee13f046284770d2291",
+      "bytes": 5159616,
       "warmup": [
         "res://modules/stations/ploshchad_pobedy/art/bench_oak.jpg",
         "res://modules/stations/ploshchad_pobedy/art/burger_ad.jpg",
@@ -440,6 +579,7 @@
         "res://modules/stations/ploshchad_pobedy/art/checker_plate.svg",
         "res://modules/stations/ploshchad_pobedy/art/column_marble.jpg",
         "res://modules/stations/ploshchad_pobedy/art/column_marble_alt.jpg",
+        "res://modules/stations/ploshchad_pobedy/art/control_booth.svg",
         "res://modules/stations/ploshchad_pobedy/art/escalator_oak.jpg",
         "res://modules/stations/ploshchad_pobedy/art/escalator_warning.svg",
         "res://modules/stations/ploshchad_pobedy/art/exit_escalators.svg",
@@ -587,6 +727,112 @@
         "res://modules/stations/grushevka/art/sos.svg",
         "res://modules/stations/grushevka/art/stair_granite.jpg",
         "res://modules/stations/grushevka/art/wall_route.svg"
+      ]
+    },
+    "full_line": {
+      "file": "full_line-9e9f54434f94f4700999.pck",
+      "sha256": "9e9f54434f94f470099904a0b5a6d5b39767f33c9d0d427406eff5b38440cfba",
+      "bytes": 37844608,
+      "warmup": [
+        "res://assets/passengers/textures/0033a27e6e9498d0.png",
+        "res://assets/passengers/textures/0850a16e07b06dfc.jpg",
+        "res://assets/passengers/textures/145cd3870d417629.jpg",
+        "res://assets/passengers/textures/177a90c7c5511337.jpg",
+        "res://assets/passengers/textures/32b0f29c89962499.jpg",
+        "res://assets/passengers/textures/3e68f9ced2a90764.jpg",
+        "res://assets/passengers/textures/4088c2081c3be56a.jpg",
+        "res://assets/passengers/textures/44b3efa99337d69c.png",
+        "res://assets/passengers/textures/521aa0383a030643.jpg",
+        "res://assets/passengers/textures/551d8180ef862624.jpg",
+        "res://assets/passengers/textures/553494d1ccc522d8.jpg",
+        "res://assets/passengers/textures/60d5e01eae9f1d87.jpg",
+        "res://assets/passengers/textures/678513301fa65bca.png",
+        "res://assets/passengers/textures/6bbbcb334b5f2dc4.png",
+        "res://assets/passengers/textures/6db491b5abff537c.jpg",
+        "res://assets/passengers/textures/7017beccb0c0e93c.jpg",
+        "res://assets/passengers/textures/84dff0819163531f.jpg",
+        "res://assets/passengers/textures/882ff32e675bbff0.jpg",
+        "res://assets/passengers/textures/940073c02316c570.jpg",
+        "res://assets/passengers/textures/947a6d9c3b8a9949.jpg",
+        "res://assets/passengers/textures/948c6e83d9df6ee0.jpg",
+        "res://assets/passengers/textures/9ca6a96c2f07cc13.png",
+        "res://assets/passengers/textures/9e91ec2807b2d16e.jpg",
+        "res://assets/passengers/textures/a5cc754d4ea90dd9.jpg",
+        "res://assets/passengers/textures/a68d21f8699fc041.jpg",
+        "res://assets/passengers/textures/a7254eb5a61acf36.png",
+        "res://assets/passengers/textures/a72b86d70b1987d4.jpg",
+        "res://assets/passengers/textures/aa81a48ce3259044.jpg",
+        "res://assets/passengers/textures/ac15d1710346eb5d.png",
+        "res://assets/passengers/textures/ac7876f0428c7a8c.png",
+        "res://assets/passengers/textures/acced072f2f6be5c.jpg",
+        "res://assets/passengers/textures/ad4af5a677aa531c.jpg",
+        "res://assets/passengers/textures/b00accc90e6a5ade.jpg",
+        "res://assets/passengers/textures/b04170b6cea97186.png",
+        "res://assets/passengers/textures/b261c92e7252ddc9.jpg",
+        "res://assets/passengers/textures/b7d8b0e550a2cdc5.jpg",
+        "res://assets/passengers/textures/c1036b2e5fbb6951.png",
+        "res://assets/passengers/textures/c105b5014a31550d.jpg",
+        "res://assets/passengers/textures/cb0cd4facb0b57ba.jpg",
+        "res://assets/passengers/textures/cca6df1b1b341ddc.jpg",
+        "res://assets/passengers/textures/d5e12e8a487dfedf.jpg",
+        "res://assets/passengers/textures/da0f928329466e45.jpg",
+        "res://assets/passengers/textures/e31d16b006108f25.jpg",
+        "res://assets/passengers/textures/f207c719f15d4b6d.jpg",
+        "res://assets/passengers/textures/f651de553aabcce1.png",
+        "res://assets/passengers/textures/f7218c7ef2a21a65.jpg",
+        "res://assets/passengers/textures/fa6aff7932ef0baf.jpg",
+        "res://assets/saloon_v46/ad_01.svg",
+        "res://assets/saloon_v46/ad_02.svg",
+        "res://assets/saloon_v46/ad_03.svg",
+        "res://assets/saloon_v46/ad_04.svg",
+        "res://assets/saloon_v46/ad_05.svg",
+        "res://assets/saloon_v46/ad_06.svg",
+        "res://assets/saloon_v46/ad_07.svg",
+        "res://assets/saloon_v46/ad_08.svg",
+        "res://assets/saloon_v46/ad_09.svg",
+        "res://assets/saloon_v46/ad_10.svg",
+        "res://assets/saloon_v46/ad_11.svg",
+        "res://assets/saloon_v46/ad_12.svg",
+        "res://assets/saloon_v46/ad_13.svg",
+        "res://assets/saloon_v46/ad_14.svg",
+        "res://assets/saloon_v46/ad_15.svg",
+        "res://assets/saloon_v46/ad_16.svg",
+        "res://assets/saloon_v46/ad_17.svg",
+        "res://assets/saloon_v46/ad_18.svg",
+        "res://assets/saloon_v46/ad_19.svg",
+        "res://assets/saloon_v46/ad_20.svg",
+        "res://assets/signage_v54/moscow_line.svg",
+        "res://assets/signage_v63/uruchye_route.svg",
+        "res://assets/station/uruchye_v68/route_arrived.svg",
+        "res://assets/station/uruchye_v68/security.svg",
+        "res://assets/station/uruchye_v68/upper_exit.svg"
+      ],
+      "chunks": [
+        {
+          "file": "full_line-part-2470354a66d1dc628a9d.bin",
+          "bytes": 8388608,
+          "sha256": "2470354a66d1dc628a9d1bb27f16f6ef3018a5c88382a9fcd2af84c7217a884f"
+        },
+        {
+          "file": "full_line-part-baf02f95baf8aaf0145a.bin",
+          "bytes": 8388608,
+          "sha256": "baf02f95baf8aaf0145a865e6c4917163412323487c8fa298b032d9209cb0737"
+        },
+        {
+          "file": "full_line-part-9de73eb9011294ee2597.bin",
+          "bytes": 8388608,
+          "sha256": "9de73eb9011294ee259785f1e104e01e141a21e5afaa0d1cc7760de7c43929ff"
+        },
+        {
+          "file": "full_line-part-f8f720cef9f0e72aadb0.bin",
+          "bytes": 8388608,
+          "sha256": "f8f720cef9f0e72aadb0645bc335507df394b4e003bf32c331c7bd081f7207ef"
+        },
+        {
+          "file": "full_line-part-c0beb2bc69dd98b4a0f7.bin",
+          "bytes": 4290176,
+          "sha256": "c0beb2bc69dd98b4a0f71e7bee2308267d311674280e35012a078a5dc0b75927"
+        }
       ]
     }
   },

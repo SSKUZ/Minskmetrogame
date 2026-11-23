@@ -44,8 +44,8 @@
       "dependencies": []
     },
     "ploshchad_pobedy": {
-      "source_commit": "47222a79d57dda035ce2713f70b91d6abc0f13b1",
-      "pack_sha256": "daede7a5748ed70fe9d8a0e8a09a151472021c165c9ab1166b7fb4c87903a594",
+      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
+      "pack_sha256": "ca96e3dfdb1bcb980bc616fbad6faedb86617aa99f366ee13f046284770d2291",
       "category": "station",
       "scene": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
       "dependencies": []
@@ -77,10 +77,50 @@
       "category": "station",
       "scene": "modules/stations/grushevka/grushevka.tscn",
       "dependencies": []
+    },
+    "depot": {
+      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
+      "pack_sha256": "4c8340df86a8c857f1c3d5bcd8ba468f2337f499e92ecf042222f84d30ccdad3",
+      "category": "module",
+      "scene": "modules/depot/depot.tscn",
+      "dependencies": [
+        "shared"
+      ]
+    },
+    "full_line": {
+      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
+      "pack_sha256": "9e9f54434f94f470099904a0b5a6d5b39767f33c9d0d427406eff5b38440cfba",
+      "category": "module",
+      "scene": "modules/line/full_line.tscn",
+      "dependencies": [
+        "shared",
+        "v106",
+        "depot",
+        "uruchye",
+        "tunnel_16m",
+        "borisovsky_trakt",
+        "vostok",
+        "moskovskaya",
+        "park_chelyuskintsev",
+        "akademiya_nauk",
+        "yakuba_kolasa",
+        "ploshchad_pobedy",
+        "oktyabrskaya",
+        "ploshchad_lenina"
+      ]
+    },
+    "v106": {
+      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
+      "pack_sha256": "9b5041acf3ce05a96252603e23550961a40500b0490e1ec1ebcc6d82256829bc",
+      "category": "train",
+      "scene": "viewers/v106_inspection.tscn",
+      "dependencies": [
+        "shared"
+      ]
     }
   },
   "boot": {
-    "source_commit": "e2d39ba4ec791517d24a1c8bcf38bc508bcccf23",
-    "file": "boot-dd543b2be6892a739c50.pck"
+    "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
+    "file": "boot-e472934b0752fb0cd4a1.pck"
   }
 }
