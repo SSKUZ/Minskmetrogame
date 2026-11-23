@@ -43,6 +43,9 @@
     ],
     "ploshchad_lenina": [
       "ploshchad_lenina"
+    ],
+    "institut_kultury": [
+      "institut_kultury"
     ]
   },
   "names": {
@@ -58,7 +61,8 @@
     "yakuba_kolasa": "Площадь Якуба Коласа",
     "ploshchad_pobedy": "Площадь Победы",
     "oktyabrskaya": "Октябрьская",
-    "ploshchad_lenina": "Площадь Ленина"
+    "ploshchad_lenina": "Площадь Ленина",
+    "institut_kultury": "Институт культуры"
   },
   "packs": {
     "depot": {
@@ -529,6 +533,32 @@
         "res://modules/stations/ploshchad_lenina/art/wall_breccia.jpg",
         "res://modules/stations/ploshchad_lenina/art/wall_breccia_alt.jpg",
         "res://modules/stations/ploshchad_lenina/art/white_marble.jpg"
+      ]
+    },
+    "institut_kultury": {
+      "file": "institut_kultury-32e83755ed7ade24750b.pck",
+      "sha256": "32e83755ed7ade24750b1c64dbd31ce89f7767baf04b1889207f468b62edfdc2",
+      "bytes": 3513856,
+      "warmup": [
+        "res://modules/stations/institut_kultury/art/advert.jpg",
+        "res://modules/stations/institut_kultury/art/exit_surazhskaya.svg",
+        "res://modules/stations/institut_kultury/art/exit_tolstogo.svg",
+        "res://modules/stations/institut_kultury/art/floor_light.jpg",
+        "res://modules/stations/institut_kultury/art/floor_russet.jpg",
+        "res://modules/stations/institut_kultury/art/floor_taupe.jpg",
+        "res://modules/stations/institut_kultury/art/glass_builder.jpg",
+        "res://modules/stations/institut_kultury/art/glass_musician.jpg",
+        "res://modules/stations/institut_kultury/art/glass_player.jpg",
+        "res://modules/stations/institut_kultury/art/glass_reader.jpg",
+        "res://modules/stations/institut_kultury/art/no_smoking.svg",
+        "res://modules/stations/institut_kultury/art/pylon_exits.jpg",
+        "res://modules/stations/institut_kultury/art/pylon_routes.jpg",
+        "res://modules/stations/institut_kultury/art/sos.svg",
+        "res://modules/stations/institut_kultury/art/stair_granite.jpg",
+        "res://modules/stations/institut_kultury/art/vault_plaster.jpg",
+        "res://modules/stations/institut_kultury/art/vestibule_marble.jpg",
+        "res://modules/stations/institut_kultury/art/wall_granite.jpg",
+        "res://modules/stations/institut_kultury/art/wall_route.svg"
       ]
     }
   },

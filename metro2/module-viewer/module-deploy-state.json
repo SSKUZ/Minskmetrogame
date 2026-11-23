@@ -63,6 +63,17 @@
       "category": "station",
       "scene": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn",
       "dependencies": []
+    },
+    "institut_kultury": {
+      "source_commit": "a1a9096a2207de36366db6c446a128b1c4cb53e4",
+      "pack_sha256": "32e83755ed7ade24750b1c64dbd31ce89f7767baf04b1889207f468b62edfdc2",
+      "category": "station",
+      "scene": "modules/stations/institut_kultury/institut_kultury.tscn",
+      "dependencies": []
     }
+  },
+  "boot": {
+    "source_commit": "a1a9096a2207de36366db6c446a128b1c4cb53e4",
+    "file": "boot-3f5cd0c85215a14320a9.pck"
   }
 }
