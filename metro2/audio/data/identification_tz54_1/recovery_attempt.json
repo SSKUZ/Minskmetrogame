@@ -11,5 +11,32 @@
   "source_inventory_records": 147,
   "prepared_ogg_reused": 147,
   "original_workspace_available": false,
-  "scope": "one focused recovery attempt; no original per-file CLAP/Whisper evidence recovered; all 147 require content identification"
+  "scope": "one focused recovery attempt; no original per-file CLAP/Whisper evidence recovered; all 147 require content identification",
+  "continuation_2026_11_23": {
+    "resumed_from_commit": "aa8e572958941d621adf1d432a01b0e08082ad97",
+    "original_wav_available": 147,
+    "original_wav_sha256_matches_manifest": 147,
+    "prepared_ogg_present": 147,
+    "previous_ogg_reused_byte_for_byte": 140,
+    "missing_ogg_restored_without_reencoding": 7,
+    "clap_unique_sources": 147,
+    "asr_unique_sources": 147,
+    "targeted_asr_refinements": 1,
+    "catalog_records": 147,
+    "provisional_identifications": 125,
+    "unresolved": 22,
+    "machine_transcripts": 79,
+    "human_listening_verified": 0,
+    "all_records_require_review": true,
+    "confidence_counts": {
+      "medium": 77,
+      "low": 70
+    },
+    "rejected_asr_outputs": 6,
+    "runtime_event_assignments_added": 0,
+    "source_archive_sha256": "ac32c03bcd7f7e6fdadbf0c8e1550de9d4d8a3c6cc90f7a976997e70cd162f3a",
+    "prepared_archive_sha256": "8102aa1697d24f501839bd2c94f2e8393a07a069ebe68cdd162592841bd4109b",
+    "inference_network_policy": "Linux seccomp denies socket/socketpair/connect/sendto/sendmsg/sendmmsg before imports; model weights are local.",
+    "note": "Original ASR attempts retained, including overlaps. Catalogue selects last per-source small-model evidence and the targeted refinement where available. Initial preservation summary above describes historical recovery, not current progress."
+  }
 }

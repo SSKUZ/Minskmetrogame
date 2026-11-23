@@ -4,6 +4,41 @@ Dependencies: faster-whisper 1.2.1, transformers 4.57.6, onnxruntime, scipy,
 soundfile. Models are supplied as local paths; weights are never committed.
 """
 import argparse, json, math, pathlib, hashlib, time, os
+
+def deny_network():
+    """Fail closed: inference and native dependencies cannot open sockets.
+
+    Model libraries may send native telemetry despite their offline settings.
+    Install this Linux seccomp filter before importing any model dependency;
+    subsequently created worker threads inherit it. Requires libseccomp.so.2.
+    """
+    import ctypes
+    import errno
+    import sys
+    if not sys.platform.startswith('linux'):
+        raise RuntimeError('Offline analysis requires Linux with libseccomp')
+    lib = ctypes.CDLL('libseccomp.so.2', use_errno=True)
+    lib.seccomp_init.argtypes = [ctypes.c_uint32]
+    lib.seccomp_init.restype = ctypes.c_void_p
+    lib.seccomp_syscall_resolve_name.argtypes = [ctypes.c_char_p]
+    lib.seccomp_syscall_resolve_name.restype = ctypes.c_int
+    lib.seccomp_rule_add.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_int, ctypes.c_uint]
+    lib.seccomp_load.argtypes = [ctypes.c_void_p]
+    lib.seccomp_release.argtypes = [ctypes.c_void_p]
+    ctx = lib.seccomp_init(0x7fff0000)  # SCMP_ACT_ALLOW
+    if not ctx:
+        raise RuntimeError('Cannot create offline seccomp filter')
+    try:
+        for name in (b'socket', b'socketpair', b'connect', b'sendto', b'sendmsg', b'sendmmsg'):
+            number = lib.seccomp_syscall_resolve_name(name)
+            if number < 0 or lib.seccomp_rule_add(ctx, 0x00050000 | errno.EACCES, number, 0) != 0:
+                raise RuntimeError('Cannot block network syscall: ' + name.decode())
+        if lib.seccomp_load(ctx) != 0:
+            raise RuntimeError('Cannot enforce offline analysis')
+    finally:
+        lib.seccomp_release(ctx)
+
+deny_network()
 # All weights are provisioned separately. Inference must not make network calls.
 os.environ['HF_HUB_OFFLINE']='1'
 os.environ['TRANSFORMERS_OFFLINE']='1'
