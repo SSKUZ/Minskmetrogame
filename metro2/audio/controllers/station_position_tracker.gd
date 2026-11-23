@@ -8,6 +8,7 @@ var active_index: int = -1
 var visit_number: int = 0
 var approach_radius_m: float = 100.0
 var stop_radius_m: float = 0.5
+var release_radius_m: float = 125.0
 
 func configure(markers: Array[Dictionary], travel_direction: String = "forward") -> void:
     stations.clear()
@@ -34,6 +35,9 @@ func update(train_world_position: Vector3) -> Dictionary:
             nearest = i
             nearest_distance = distance
     if nearest < 0 or nearest_distance > approach_radius_m:
+        # Leaving the station area releases the visit; returning creates a new one.
+        if active_index >= 0 and (nearest < 0 or nearest_distance > release_radius_m):
+            active_index = -1
         return {}
     if active_index != nearest:
         active_index = nearest
