@@ -1,0 +1,143 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "ploshchad_pobedy",
+    "type": "station",
+    "scene": "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1.0,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "folded_capital_luminaires",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "functions": [
+          "_lamp_point",
+          "_lamp_wing",
+          "_lamp_corner_seam"
+        ],
+        "profile": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
+        "output": [
+          "ArrayMesh",
+          "MultiMesh"
+        ],
+        "fixture_layout": "four joined two-face corner trays on each existing capital"
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "silver_reflector",
+      "source_class": "StandardMaterial3D",
+      "albedo": [
+        0.855,
+        0.859,
+        0.835,
+        1.0
+      ],
+      "metallic": 0.72,
+      "roughness": 0.24
+    },
+    {
+      "id": "opal_diffuser",
+      "source_class": "StandardMaterial3D",
+      "emission": [
+        1.0,
+        0.9,
+        0.69
+      ],
+      "emission_energy": 2.1,
+      "roughness": 0.29
+    },
+    {
+      "id": "white_lamp_core",
+      "source_class": "StandardMaterial3D",
+      "emission": [
+        1.0,
+        0.96,
+        0.85
+      ],
+      "emission_energy": 3.2,
+      "roughness": 0.22
+    },
+    {
+      "id": "ceiling_bounce",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader",
+        "parameters": {
+          "station_center_x": -5.37,
+          "column_x": 2.55,
+          "column_pitch": 4.8,
+          "first_column_z": -1.2,
+          "last_column_z": 80.4,
+          "pool_radius": 1.55
+        },
+        "adaptation": "required"
+      },
+      "texture_bindings": {
+        "paint": "ceiling_paint"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "ceiling_paint",
+      "source": "file",
+      "path": "res://modules/stations/ploshchad_pobedy/art/ceiling_paint.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [],
+  "zones": [],
+  "data": {
+    "parameters": [],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "lighting_profile",
+        "purpose": "equipment",
+        "path": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
+        "format": "json",
+        "notes": "Original fixture geometry, emission and local light parameters; local dimensions in metres."
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "lighting_scope",
+      "detail": "Metadata describes the revised lighting only. Existing station anchors and dimensions remain in the scene and catalog."
+    },
+    {
+      "code": "godot_shader",
+      "detail": "Ceiling bounce is an analytic static illumination field. Preserve shader and parameters; bake to texture or reimplement for Roblox. Local OmniLight3D settings and distance fades require platform adaptation."
+    },
+    {
+      "code": "unverified_export",
+      "detail": "Mesh sources are retained; no GLB export, Roblox import or runtime verification performed."
+    }
+  ]
+}

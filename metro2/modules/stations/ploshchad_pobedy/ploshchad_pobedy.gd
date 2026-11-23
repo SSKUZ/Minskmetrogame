@@ -17,11 +17,16 @@ var floor_red: StandardMaterial3D
 var bronze: StandardMaterial3D
 var lamp_bead: StandardMaterial3D
 var lamp_tube: StandardMaterial3D
+var lamp_silver: StandardMaterial3D
+var lamp_core: StandardMaterial3D
+var ceiling_light: ShaderMaterial
+var lighting: Dictionary = {}
 var oak: StandardMaterial3D
 
 func _ready() -> void:
     super._ready()
     begin_station()
+    lighting=JSON.parse_string(FileAccess.get_file_as_string("res://modules/stations/ploshchad_pobedy/lighting_profile.json"))
     white=_photo("ceiling_paint.jpg",Vector2(1.0,1.0),0.90)
     white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.045
     wall_stone=_photo("wall_marble.jpg",Vector2(0.90,0.90),0.46)
@@ -33,9 +38,24 @@ func _ready() -> void:
     trim=_material(Color("#a6a493"),0.12,0.52)
     brass=_material(Color("#8d6b38"),0.50,0.37)
     bronze=_material(Color("#6f4c2d"),0.38,0.43)
-    lamp_bead=_material(Color("#ad9060"),0.25,0.29)
-    lamp_tube=_material(Color("#cdb585"),0.05,0.46)
-    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(0.70,0.47,0.20);lamp_tube.emission_energy_multiplier=0.13
+    lamp_silver=_material(Color("#dadbd5"),0.72,0.24)
+    lamp_bead=_material(Color("#ead5a2"),0.52,0.18)
+    lamp_bead.emission_enabled=true;lamp_bead.emission=Color(1.0,0.79,0.40);lamp_bead.emission_energy_multiplier=0.38
+    lamp_tube=_material(Color("#fff4d9"),0.0,0.29)
+    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(1.0,0.90,0.69)
+    lamp_tube.emission_energy_multiplier=float(lighting["diffuser_emission"])
+    lamp_core=_material(Color("#fffdf3"),0.0,0.22)
+    lamp_core.emission_enabled=true;lamp_core.emission=Color(1.0,0.96,0.85)
+    lamp_core.emission_energy_multiplier=float(lighting["core_emission"])
+    ceiling_light=ShaderMaterial.new()
+    ceiling_light.shader=preload("res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader")
+    ceiling_light.set_shader_parameter("paint",load(ART+"ceiling_paint.jpg"))
+    ceiling_light.set_shader_parameter("station_center_x",CX)
+    ceiling_light.set_shader_parameter("column_x",COL_X)
+    ceiling_light.set_shader_parameter("column_pitch",PITCH)
+    ceiling_light.set_shader_parameter("first_column_z",-1.2)
+    ceiling_light.set_shader_parameter("last_column_z",80.4)
+    ceiling_light.set_shader_parameter("pool_radius",float(lighting["ceiling_pool_radius_m"]))
     lettering=_material(Color("#b69b60"),0.45,0.32)
     yellow=_material(Color("#d7ad39"),0.0,0.67)
     oak=_photo("bench_oak.jpg",Vector2(0.65,0.30),0.48)
@@ -190,42 +210,78 @@ func _columns_and_girders() -> void:
                     var r0: float=_capital_radius(t0);var r1: float=_capital_radius(t1)
                     quad(_capital_point(o,face,t0,-r0),_capital_point(o,face,t0,r0),_capital_point(o,face,t1,r1),_capital_point(o,face,t1,-r1),white,radial-Vector3.UP)
                 for wing in [-1.0,1.0]:_lamp_wing(o,face,wing)
+                # Each positive face edge joins the next face's negative edge exactly.
+                # Four folded corner fixtures share one continuous casing per corner.
+                _lamp_corner_seam(o,face)
                 var corner: Vector3=(radial+tangent).normalized()*0.597
                 rod(o+corner+Vector3.UP*3.61,o+corner+Vector3.UP*4.58,0.012,brass)
             box(Vector3(2.80,0.14,2.80),Vector3(x,6.17,z),white)
 
-func _lamp_point(o: Vector3,face: int,wing: float,t: float,u: float,offset: float=0.022) -> Vector3:
-    var level: float=0.21+t*0.715
-    var inner: float=0.24+0.045*t
-    var outer: float=_capital_radius(level)-0.035
+func _lamp_point(o: Vector3,face: int,wing: float,t: float,u: float,offset: float=0.025) -> Vector3:
+    var level: float=float(lighting["capital_t_start"])+t*float(lighting["capital_t_span"])
+    var inner: float=0.23+0.065*t
+    # Including the face offset in BOTH axes closes the folded corner without a gap.
+    var outer: float=_capital_radius(level)+offset
     return _capital_point(o,face,level,wing*lerpf(inner,outer,u),offset)
 
 func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
-    var angle: float=float(face)*PI/2.0
-    var radial := Vector3(sin(angle),0,cos(angle))
-    # Brown stamped-metal trays, slender amber tubes, rows of bronze cups and muted glass beads.
-    for row in range(18):
-        var t0: float=float(row)/18.0;var t1: float=float(row+1)/18.0
-        quad(_lamp_point(o,face,wing,t0,0),_lamp_point(o,face,wing,t0,1),_lamp_point(o,face,wing,t1,1),_lamp_point(o,face,wing,t1,0),bronze,radial-Vector3.UP)
-        for u in [0.0,1.0]:rod(_lamp_point(o,face,wing,t0,float(u),0.030),_lamp_point(o,face,wing,t1,float(u),0.030),0.010,brass)
-        for lane in range(5):
-            var u: float=(float(lane)+0.5)/5.0
-            rod(_lamp_point(o,face,wing,t0,u,0.041),_lamp_point(o,face,wing,t1,u,0.041),0.006,brass)
-            if lane in [1,3]:rod(_lamp_point(o,face,wing,t0,u,0.048),_lamp_point(o,face,wing,t1,u,0.048),0.009,lamp_tube)
-    for row in range(10):
-        var t: float=0.05+float(row)*0.10
-        rod(_lamp_point(o,face,wing,t,0,0.035),_lamp_point(o,face,wing,t,1,0.035),0.006,brass)
-        var count: int=2+int(t*3.0)
-        for j in range(count):
-            var u: float=(float(j)+0.5)/float(count)
-            var p: Vector3=_lamp_point(o,face,wing,t,u,0.052)
-            sphere(Vector3(0.048,0.045,0.048),p,brass)
-            sphere(Vector3(0.027,0.028,0.027),p+radial*0.016,lamp_bead)
+    var radial := Vector3(sin(float(face)*PI/2.0),0,cos(float(face)*PI/2.0))
+    var rows: int=int(lighting["reflector_rows"])
+    var lanes: int=int(lighting["diffuser_lanes_per_face"])
+    # A deep folded tray, not isolated tubes: closed back, side cheeks and continuous rim.
+    for row in range(rows):
+        var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
+        quad(_lamp_point(o,face,wing,t0,0),_lamp_point(o,face,wing,t0,1),_lamp_point(o,face,wing,t1,1),_lamp_point(o,face,wing,t1,0),lamp_silver,radial-Vector3.UP)
+        for edge in [0.0,1.0]:
+            quad(_lamp_point(o,face,wing,t0,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.079),_lamp_point(o,face,wing,t0,float(edge),0.079),brass)
+            rod(_lamp_point(o,face,wing,t0,float(edge),0.080),_lamp_point(o,face,wing,t1,float(edge),0.080),0.009,lamp_silver)
+        for lane in range(lanes):
+            var u0: float=(float(lane)+0.08)/float(lanes)
+            var u1: float=(float(lane)+0.92)/float(lanes)
+            var um: float=(u0+u1)*0.5
+            var tm: float=(t0+t1)*0.5
+            var reflector: Material=brass if lane%2==0 else lamp_silver
+            # Four actual stamped facets catch light around a recessed opal diffuser.
+            var a: Vector3=_lamp_point(o,face,wing,t0+0.006,u0,0.070)
+            var b: Vector3=_lamp_point(o,face,wing,t0+0.006,u1,0.070)
+            var c: Vector3=_lamp_point(o,face,wing,t1-0.006,u1,0.070)
+            var d: Vector3=_lamp_point(o,face,wing,t1-0.006,u0,0.070)
+            var inset: Vector3=_lamp_point(o,face,wing,tm,um,0.040)
+            triangle(a,b,inset,reflector,radial-Vector3.UP)
+            triangle(b,c,inset,lamp_bead,radial-Vector3.UP)
+            triangle(c,d,inset,reflector,radial-Vector3.UP)
+            triangle(d,a,inset,lamp_silver,radial-Vector3.UP)
+            # Ivory edges remain visible around the brighter white central strip.
+            var half_width: float=0.19/float(lanes)
+            quad(_lamp_point(o,face,wing,t0+0.009,um-half_width,0.074),_lamp_point(o,face,wing,t0+0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um-half_width,0.074),lamp_tube,radial-Vector3.UP)
+            rod(_lamp_point(o,face,wing,t0+0.012,um,0.079),_lamp_point(o,face,wing,t1-0.012,um,0.079),0.006,lamp_core)
+            sphere(Vector3(0.023,0.023,0.023),_lamp_point(o,face,wing,tm,u0,0.076),lamp_bead)
+        # Narrow stamped crossbars tie all reflector cells into one lattice.
+        rod(_lamp_point(o,face,wing,t0,0,0.084),_lamp_point(o,face,wing,t0,1,0.084),0.005,lamp_silver)
+    for t in [0.0,1.0]:
+        quad(_lamp_point(o,face,wing,float(t),0,0.022),_lamp_point(o,face,wing,float(t),1,0.022),_lamp_point(o,face,wing,float(t),1,0.079),_lamp_point(o,face,wing,float(t),0,0.079),brass)
+    # Vertical top crown as in the close-ups, physically joined to the flared lower tray.
+    for lane in range(lanes):
+        var u0: float=float(lane)/float(lanes);var u1: float=float(lane+1)/float(lanes)
+        var a: Vector3=_lamp_point(o,face,wing,1.0,u0,0.079)
+        var b: Vector3=_lamp_point(o,face,wing,1.0,u1,0.079)
+        var h := Vector3.UP*float(lighting["crown_height_m"])
+        quad(a,b,b+h,a+h,lamp_silver if lane%2 else brass,radial)
+        rod(a,a+h,0.007,lamp_silver)
+        rod(a.lerp(b,0.5)+h*0.10,a.lerp(b,0.5)+h*0.88,0.007,lamp_tube)
+        for v in [0.23,0.50,0.77]:sphere(Vector3(0.025,0.025,0.025),a.lerp(b,0.72)+h*float(v)+radial*0.009,lamp_bead)
+        rod(a+h,b+h,0.007,lamp_silver)
+
+func _lamp_corner_seam(o: Vector3,face: int) -> void:
+    var rows: int=int(lighting["reflector_rows"])
+    for row in range(rows):
+        var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
+        rod(_lamp_point(o,face,1.0,t0,1.0,0.084),_lamp_point(o,face,1.0,t1,1.0,0.084),0.011,brass)
 
 func _ceilings() -> void:
     # Solid white soffit, recessed panel fields and narrow panel joints instead of repeated Academy ribs.
-    box(Vector3(7.7,0.18,SOUTH-NORTH),Vector3(CX,6.30,(SOUTH+NORTH)*0.5),white)
-    for side in [-1.0,1.0]:box(Vector3(5.15,0.18,105),Vector3(CX+side*6.425,6.30,MID),white)
+    box(Vector3(7.7,0.18,SOUTH-NORTH),Vector3(CX,6.30,(SOUTH+NORTH)*0.5),ceiling_light)
+    for side in [-1.0,1.0]:box(Vector3(5.15,0.18,105),Vector3(CX+side*6.425,6.30,MID),ceiling_light)
     var seam := _material(Color("#c1c2b9"),0.0,0.80)
     for i in range(44):
         var z: float=ZA+1.2+float(i)*2.4
@@ -239,15 +295,27 @@ func _ceilings() -> void:
     for i in range(18):
         var z: float=-1.2+float(i)*PITCH
         box(Vector3(17.9,0.30,0.44),Vector3(CX,6.12,z),white)
+    # Remove the six broad inherited fills: they washed out every ceiling bay equally.
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.52;child.light_energy=0.78;child.light_color=Color(1.0,0.96,0.88)
-    # Local non-shadowing pools at selected lamp heads, with restrained falloff.
-    for i in range(6):
+            child.hide()
+    # Real light is attached to every photographed capital, not unrelated 15m intervals.
+    # Static ceiling bounce above is evaluated per surface, avoiding dozens of shadow maps
+    # and the Compatibility renderer's per-object light limit across the long soffit mesh.
+    for i in range(18):
         for side in [-1.0,1.0]:
             var light := OmniLight3D.new()
-            light.position=Vector3(CX+side*COL_X,5.3,1.2+float(i)*15.4)
-            light.light_energy=0.12;light.light_color=Color(1.0,0.87,0.62);light.omni_range=6.5;light.shadow_enabled=false;add_child(light)
+            light.name="CapitalLight_%02d_%s" % [i,"L" if side<0.0 else "R"]
+            light.position=Vector3(CX+side*COL_X,float(lighting["local_light_height_m"]),-1.2+float(i)*PITCH)
+            light.light_energy=float(lighting["local_light_energy"])
+            light.light_color=Color(1.0,0.94,0.81)
+            light.omni_range=float(lighting["local_light_range_m"])
+            light.omni_attenuation=1.45
+            light.light_specular=0.60
+            light.shadow_enabled=false
+            light.distance_fade_enabled=true;light.distance_fade_begin=24.0;light.distance_fade_length=12.0
+            light.set_meta("fixture_type","continuous_folded_corner_lattice")
+            add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
     var width := 7.12

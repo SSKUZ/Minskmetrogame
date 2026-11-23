@@ -1,0 +1,19 @@
+{
+  "reference_images": [
+    "8375.jpg",
+    "8363.jpg",
+    "8354.jpg",
+    "8353.jpg"
+  ],
+  "capital_t_start": 0.22,
+  "capital_t_span": 0.735,
+  "crown_height_m": 0.145,
+  "reflector_rows": 10,
+  "diffuser_lanes_per_face": 6,
+  "diffuser_emission": 2.1,
+  "core_emission": 3.2,
+  "ceiling_pool_radius_m": 1.55,
+  "local_light_height_m": 4.85,
+  "local_light_range_m": 4.8,
+  "local_light_energy": 0.82
+}
