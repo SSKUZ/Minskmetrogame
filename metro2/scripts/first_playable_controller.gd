@@ -76,7 +76,8 @@ func _ready() -> void:
     announcer.load_catalog("res://audio/data/audio_catalog.json")
     announcer.announcer.set_speakers([train])
     announcer.info.set_mode("manual")
-    announcer.info.set_route_context("uruchye", "barysauski_trakt", "forward", "first_playable_01")
+    # Route IDs must come from verified route triggers, not a guessed preview mapping.
+    announcer.info.set_route_context("", "", "forward", "first_playable_01")
     _initialize_car_followers()
     _make_controls()
     _update_camera()
@@ -398,3 +399,8 @@ func _play_info_announcement() -> void:
     if status_label != null:
         status_label.text = message
         info_notice_until = Time.get_ticks_msec() + 3000
+
+## Called by a verified route trigger when the station and direction are known.
+func set_info_route(current_station_id: String, next_station_id: String, route_direction: String, visit_key: String) -> void:
+    if announcer != null and announcer.info != null:
+        announcer.info.set_route_context(current_station_id, next_station_id, route_direction, visit_key)
