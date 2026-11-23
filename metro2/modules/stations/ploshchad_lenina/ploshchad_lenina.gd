@@ -19,6 +19,8 @@ var gold: StandardMaterial3D
 var yellow: StandardMaterial3D
 var glass: StandardMaterial3D
 var vault_plaster: ShaderMaterial
+var advert_material: ShaderMaterial
+var advert_index: int=0
 
 func _ready() -> void:
     super._ready();begin_station()
@@ -36,6 +38,7 @@ func _ready() -> void:
     granite=dark;yellow=_material(Color("#d6b341"),0,0.68)
     gold=_material(Color("#ac8c4e"),0.72,0.33)
     glass=_material(Color(0.78,0.87,0.84,0.25),0.12,0.12);glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
+    _setup_advertising()
     _platform();_walls();_vault();_lower_interchange();_order_pylon()
     _exit(-1.0,NORTH,false);_exit(1.0,SOUTH,true)
     _track_details();_portal_equipment();_fittings()
@@ -385,7 +388,7 @@ func _order_pylon() -> void:
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*1.65,FY+4.27,z)
         box(Vector3(1.38,0.86,0.10),p,black)
-        for face in [-1.0,1.0]:box(Vector3(1.29,0.77,0.008),p+Vector3(0,0,face*0.058),_material(Color("#101418"),0.25,0.20))
+        for face in [-1.0,1.0]:_advert_screen(Vector2(1.29,0.77),p+Vector3(0,0,face*0.058),0.0 if face>0.0 else PI)
         rod(p+Vector3(0,0.44,0),Vector3(p.x,7.42,z),0.014,metal)
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*0.62,FY,z)
@@ -451,9 +454,7 @@ func _exit(direction: float,start: float,portrait: bool) -> void:
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*2.24,5.48,start-direction*0.30)
         box(Vector3(1.45,0.82,0.09),p,black)
-        # The side screens in the owner's end views display changing colour advertisements.
-        var screen := _material(Color("#8c9b9d"),0.05,0.38);screen.emission_enabled=true;screen.emission=Color(0.20,0.24,0.22);screen.emission_energy_multiplier=0.28
-        box(Vector3(1.35,0.73,0.008),p+Vector3(0,0,-direction*0.051),screen)
+        _advert_screen(Vector2(1.35,0.73),p+Vector3(0,0,-direction*0.051),0.0 if direction<0.0 else PI)
 
 func _fittings() -> void:
     for z in [11.0,31.0,59.0,74.0]:
@@ -575,3 +576,26 @@ func _camera_box(p: Vector3,yaw: float) -> void:
     sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
     rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
 
+
+func _setup_advertising() -> void:
+    var playlist: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"police_playlist.json"))
+    advert_material=ShaderMaterial.new()
+    advert_material.shader=preload("res://modules/stations/ploshchad_lenina/advertising_screen.gdshader")
+    for i in range(3):
+        advert_material.set_shader_parameter(["poster_a","poster_b","poster_c"][i],load(ART+str(playlist.slides[i].file)))
+    advert_material.set_shader_parameter("slide_seconds",float(playlist.slide_seconds))
+    advert_material.set_shader_parameter("crossfade_seconds",float(playlist.crossfade_seconds))
+    advert_material.set_shader_parameter("poster_aspect",float(playlist.poster_aspect))
+
+func _advert_screen(size: Vector2,p: Vector3,yaw: float) -> void:
+    var material := advert_material.duplicate() as ShaderMaterial
+    material.set_shader_parameter("screen_aspect",size.x/size.y)
+    material.set_shader_parameter("phase_offset",float(advert_index)*2.4)
+    advert_index+=1
+    var mesh := QuadMesh.new();mesh.size=size;mesh.material=material
+    var screen := MeshInstance3D.new();screen.name="PoliceAdvertisingScreen"+str(advert_index)
+    screen.mesh=mesh;screen.position=p;screen.rotation.y=yaw
+    screen.transform=construction_transform*screen.transform
+    screen.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    screen.set_meta("playlist","res://modules/stations/ploshchad_lenina/art/police_playlist.json")
+    add_child(screen)

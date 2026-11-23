@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "slide_seconds": 8,
+  "crossfade_seconds": 0.85,
+  "poster_aspect": 1.7777777777777777,
+  "slides": [
+    {
+      "id": "service",
+      "file": "police_service.jpg",
+      "headline": "СЛУЖЫМ ЗАКОНУ, НАРОДУ, АЙЧЫНЕ!"
+    },
+    {
+      "id": "patrol",
+      "file": "police_patrol.jpg",
+      "headline": "МІЛІЦЫЯ — ПОБАЧ",
+      "subheadline": "ВАША БЯСПЕКА — НАША ПРАЦА"
+    },
+    {
+      "id": "safety",
+      "file": "police_safety.jpg",
+      "headline": "РАЗАМ ДЗЕЛЯ БЯСПЕКІ"
+    }
+  ],
+  "provenance": {
+    "kind": "generated_game_art",
+    "notes": "Fictional public-service posters created for station monitors. Generic people; not copied from an official campaign."
+  }
+}
