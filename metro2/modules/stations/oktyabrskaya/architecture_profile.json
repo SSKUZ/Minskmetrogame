@@ -1,0 +1,17 @@
+{
+  "reference_images": [
+    "8292.jpg"
+  ],
+  "lantern_emission": 1.7,
+  "glass_columns": 8,
+  "glass_rows": 8,
+  "glass_y_m": [
+    5.36,
+    6.18
+  ],
+  "glass_radius_m": [
+    0.58,
+    0.76
+  ],
+  "divider_radius_m": 0.0018
+}
