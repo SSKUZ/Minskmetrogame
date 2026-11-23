@@ -54,6 +54,10 @@ var door_button: Button
 var announcer: Node
 var arrival_announced := false
 const PLATFORM_VIEW_Z := 112.0
+## Set explicitly in the scene after confirming the station geometry and route.
+@export var info_station_id: String = ""
+@export var info_next_station_id: String = ""
+@export_enum("forward", "reverse") var info_direction: String = "forward"
 
 func _ready() -> void:
     initial_train_position = train.position
@@ -66,6 +70,7 @@ func _ready() -> void:
     cab_adapter.name = "CabV106Adapter"
     train.add_child(cab_adapter)
     cab_adapter.call("initialize", train)
+    cab_adapter.info_pressed.connect(_play_info_announcement)
     if not cab_adapter.get("ready_for_play"):
         push_error("BLOCK A: original cab missing. Run python3 metro2/tools/prepare_cab.py BEFORE Godot import.")
     if not door_system.get("validated"):
@@ -78,7 +83,7 @@ func _ready() -> void:
     announcer.announcer.set_speakers(info_speakers)
     announcer.info.set_mode("manual")
     # Route IDs must come from verified route triggers, not a guessed preview mapping.
-    announcer.info.set_route_context("", "", "forward", "first_playable_01")
+    announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "first_playable_01")
     _initialize_car_followers()
     _make_controls()
     _update_camera()
@@ -176,6 +181,7 @@ func _physics_process(delta: float) -> void:
     _update_car_followers()
     _update_camera()
     _update_hud()
+    _update_info_train_state()
     if Engine.get_physics_frames() % 120 == 0:
         _refresh_render_diagnostics()
 
@@ -394,8 +400,7 @@ func _play_info_announcement() -> void:
         return
     var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
     var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z >= STATION_STOP_Z - DOOR_STOP_TOLERANCE
-    var doors_are_open: bool = bool(door_system.get("target_open"))
-    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, doors_are_open, not doors_are_open)
+    _update_info_train_state()
     var message: String = announcer.info.press_info()
     if status_label != null:
         status_label.text = message
@@ -405,3 +410,12 @@ func _play_info_announcement() -> void:
 func set_info_route(current_station_id: String, next_station_id: String, route_direction: String, visit_key: String) -> void:
     if announcer != null and announcer.info != null:
         announcer.info.set_route_context(current_station_id, next_station_id, route_direction, visit_key)
+
+func _update_info_train_state() -> void:
+    if announcer == null or announcer.info == null or door_system == null:
+        return
+    var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
+    var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z > STATION_STOP_Z + DOOR_STOP_TOLERANCE and speed_mps > 0.05
+    var open_requested: bool = bool(door_system.get("target_open"))
+    # target_open is a command, not a verified door-closed sensor.
+    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, open_requested, not open_requested)
