@@ -1,0 +1,148 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "ploshchad_lenina",
+    "type": "station",
+    "scene": "res://modules/stations/ploshchad_lenina/ploshchad_lenina.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "station_structure",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_lenina/ploshchad_lenina.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "upper_corridor_floor_y": 5.3805,
+        "corridor_side_opening_width": 2.05,
+        "tunnel_sign_bays_per_wall": 5,
+        "head_clock_platform_offset_m": 0.55
+      }
+    },
+    {
+      "id": "belarusian_contour_letters",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_lenina/contour_letters.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "uruchye_style_tracks",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_lenina/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "start_z": -20.888,
+        "finish_z": 100.112,
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "vault_plaster",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_lenina/cement_plaster.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_lenina/cement_plaster.gdshader",
+        "parameters": {
+          "paint": "ceiling_paint.jpg"
+        },
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "corridor_falloff",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_lenina/ploshchad_lenina.gd",
+      "shader": {
+        "adaptation": "required",
+        "parameters": {
+          "fade_start_m": 4.4,
+          "fade_end_m": 11.5
+        }
+      }
+    },
+    {
+      "id": "bronze_lettering",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/ploshchad_lenina/contour_letters.gd",
+      "metallic": 0.7,
+      "roughness": 0.36
+    }
+  ],
+  "textures": [
+    {
+      "id": "russian_reference_name",
+      "source": "file",
+      "path": "res://modules/stations/ploshchad_lenina/art/name_ru.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "ceiling_paint",
+      "source": "file",
+      "path": "res://modules/stations/ploshchad_lenina/art/ceiling_paint.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [],
+  "zones": [],
+  "data": {
+    "parameters": [],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "letter_geometry",
+        "purpose": "other",
+        "path": "res://modules/stations/ploshchad_lenina/art/belarusian_letter_shapes.json",
+        "format": "json",
+        "notes": "Photo-matched stroke outlines and actual row dimensions. Russian photo is unchanged."
+      },
+      {
+        "id": "owner_reference_provenance",
+        "purpose": "other",
+        "path": "res://modules/stations/ploshchad_lenina/art/owner_sources.json",
+        "format": "json"
+      },
+      {
+        "id": "head_equipment_rules",
+        "purpose": "equipment",
+        "path": "res://modules/stations/ploshchad_lenina/ploshchad_lenina.gd",
+        "format": "gdscript",
+        "notes": "Track1Portal1Clock at north and Track2Portal2Clock at south; tail clocks hidden, no tail mirrors. Original clock display array indices remain stable."
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "unmeasured_vestibules",
+      "detail": "Side corridors are a visual continuation inferred from owner direction; dimensions beyond the stairs are not surveyed."
+    },
+    {
+      "code": "procedural_materials",
+      "detail": "World-space plaster, track grain, dark corridor falloff and live mirror rendering require adaptation or baking. Native ArrayMesh/MultiMesh sources and material parameters are preserved; no export performed."
+    }
+  ]
+}
