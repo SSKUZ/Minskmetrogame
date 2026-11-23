@@ -9,6 +9,7 @@ var door_audio: MetroDoorAudioController
 var cab_audio: MetroCabAudioController
 var environment_audio: MetroEnvironmentAudioController
 var announcer: MetroAnnouncer
+var info: MetroInfoController
 
 func _ready() -> void:
     bank = MetroSoundBank.new()
@@ -42,6 +43,10 @@ func _ready() -> void:
     announcer.name = "Announcer"
     announcer.bank = bank
     add_child(announcer)
+    info = MetroInfoController.new()
+    info.name = "InfoController"
+    add_child(info)
+    info.bind(announcer)
 
 func load_catalog(path: String) -> bool:
     if not FileAccess.file_exists(path):
@@ -51,6 +56,11 @@ func load_catalog(path: String) -> bool:
         return false
     bank.configure(parsed)
     announcer.configure_routes(parsed.get("route_events", {}))
+    var notices: Array[String] = []
+    for item in parsed.get("service_notice_events", []):
+        if item is String:
+            notices.append(item)
+    info.configure_service_events(notices)
     train_audio.configure_layers(parsed.get("loop_events", {}))
     environment_audio.configure_zones(parsed.get("zone_events", {}))
     return true
