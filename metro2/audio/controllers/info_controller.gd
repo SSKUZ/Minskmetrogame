@@ -78,9 +78,9 @@ func press_info() -> String:
         return _result("INFO управляется автоматически")
     if _busy:
         return _result("Дождитесь окончания объявления")
-    if approaching and not _arrival_used:
+    if approaching and not stopped and not _arrival_used:
         return _play_route(station_id, ARRIVAL, true)
-    if stopped and doors_closed and not _departure_used:
+    if stopped and doors_closed and not doors_open and not _departure_used:
         return _play_route(next_station_id, DEPARTURE, false)
     if _departure_used and doors_closed and not _service_used and not stopped:
         return _play_service()
@@ -91,7 +91,7 @@ func on_auto_approach() -> void:
         _play_route(station_id, ARRIVAL, true)
 
 func on_auto_departure() -> void:
-    if mode == AUTO and doors_closed and not _departure_used and not _busy:
+    if mode == AUTO and stopped and doors_closed and not doors_open and not _departure_used and not _busy:
         _play_route(next_station_id, DEPARTURE, false)
 
 func _play_route(id: String, phase: String, is_arrival: bool) -> String:
