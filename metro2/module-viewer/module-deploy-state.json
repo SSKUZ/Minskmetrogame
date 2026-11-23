@@ -49,6 +49,13 @@
       "category": "station",
       "scene": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
       "dependencies": []
+    },
+    "oktyabrskaya": {
+      "source_commit": "3bf8ffae121ba484cae7f7d9e058691201ca9202",
+      "pack_sha256": "312f472dc8e605ad204ffb40101294134a7c7e2f214b7fe58543dd11a815dfc7",
+      "category": "station",
+      "scene": "modules/stations/oktyabrskaya/oktyabrskaya.tscn",
+      "dependencies": []
     }
   }
 }
