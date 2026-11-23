@@ -458,9 +458,9 @@
       ]
     },
     "oktyabrskaya": {
-      "file": "oktyabrskaya-2b4f15874bfb2c3a05c2.pck",
-      "sha256": "2b4f15874bfb2c3a05c26e5b369bf224b7c767b2c793651f36afc716bbae4c5c",
-      "bytes": 9561952,
+      "file": "oktyabrskaya-978194d189b2bbacac40.pck",
+      "sha256": "978194d189b2bbacac400fb019b9347a3102516e714e091e86bcd9bae9a36916",
+      "bytes": 9836352,
       "warmup": [
         "res://modules/stations/oktyabrskaya/art/amber_glass.jpg",
         "res://modules/stations/oktyabrskaya/art/bench_oak.jpg",
