@@ -60,8 +60,8 @@ var announcer: MetroAudioSystem
 var arrival_announced := false
 const PLATFORM_VIEW_Z := 112.0
 ## Set explicitly in the scene after confirming the station geometry and route.
-@export var info_station_id: String = ""
-@export var info_next_station_id: String = ""
+@export var info_station_id: String = "uruchye"
+@export var info_next_station_id: String = "barysauski_trakt"
 @export_enum("forward", "reverse") var info_direction: String = "forward"
 
 func _ready() -> void:
@@ -88,6 +88,7 @@ func _ready() -> void:
     announcer.announcer.set_speakers(info_speakers)
     announcer.info.set_mode("manual")
     # Route IDs must come from verified route triggers, not a guessed preview mapping.
+    # First playable is explicitly the depot-to-Uruchye segment.
     announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "first_playable_01")
     _initialize_car_followers()
     _make_controls()
@@ -416,7 +417,7 @@ func _unhandled_input(event: InputEvent) -> void:
             cab_pitch = clampf(cab_pitch - event.relative.y * 0.004, -0.75, 0.75)
 
 func _play_info_announcement() -> void:
-    if announcer == null:
+    if announcer == null or passenger_mode:
         return
     _update_info_train_state()
     var message: String = announcer.info.press_info()
