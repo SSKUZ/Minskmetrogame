@@ -234,24 +234,7 @@ func _lower_interchange() -> void:
     box(Vector3(4.12,0.93,0.018),Vector3(CX,FY+0.77,WELL_BACK),glass)
     for y in [0.54,1.24]:rod(Vector3(CX-2.1,FY+float(y),WELL_BACK),Vector3(CX+2.1,FY+float(y),WELL_BACK),0.026,metal)
     for x in [-1.95,0.0,1.95]:rod(Vector3(CX+float(x),FY+0.24,WELL_BACK),Vector3(CX+float(x),FY+1.25,WELL_BACK),0.023,metal)
-    # Two descending flights with a real intermediate landing, individual stone steps and three handrail lines.
-    for flight in range(2):
-        var zstart: float=WELL_TOP-float(flight)*6.60
-        for i in range(18):
-            var y: float=FY-float(flight)*2.70-float(i+1)*0.15
-            var z: float=zstart-(float(i)+0.5)*0.30
-            _solid_box(Vector3(3.98,0.16,0.30),Vector3(CX,y-0.08,z),stair_stone)
-            box(Vector3(3.96,0.005,0.045),Vector3(CX,y+0.004,z+0.122),yellow if i in [0,17] else metal)
-        for x in [-1.84,0.0,1.84]:
-            for h in [0.67,0.96]:
-                var a := Vector3(CX+float(x),FY-float(flight)*2.70+float(h),zstart+0.12)
-                var b := Vector3(CX+float(x),FY-float(flight+1)*2.70+float(h),zstart-5.4)
-                rod(a,b,0.025,metal)
-                for i in range(6):
-                    var p: Vector3=a.lerp(b,float(i)/5.0)
-                    if h==0.96:rod(p,p-Vector3.UP*0.91,0.020,metal)
-                if flight==0:rod(b,b-Vector3(0,0,1.20),0.025,metal)
-        if flight==0:_solid_box(Vector3(4.0,0.20,1.20),Vector3(CX,FY-2.80,zstart-6.0),grey)
+    _lower_escalators()
     _solid_box(Vector3(4.0,0.20,6.5),Vector3(CX,LOWER-0.10,WELL_BACK-3.25),grey)
     # The far upper return wall hangs above the lower corridor rather than sealing its mouth.
     box(Vector3(4.0,1.85,0.18),Vector3(CX,FY-0.925,WELL_BACK),white)
@@ -266,7 +249,7 @@ func _lower_interchange() -> void:
     box(Vector3(4.0,3.1,0.08),Vector3(CX,LOWER+1.55,WELL_BACK-6.5),dark)
     for name in ["LowerTransferEntrance","LowerTransferLanding","TransferToVakzalnaya","BypassLeft","BypassRight"]:
         var p := Vector3(CX,FY,WELL_TOP+0.8)
-        if name=="LowerTransferLanding":p=Vector3(CX,FY-2.70,WELL_TOP-6.0)
+        if name=="LowerTransferLanding":p=Vector3(CX,LOWER,WELL_BACK-0.6)
         elif name=="TransferToVakzalnaya":p=Vector3(CX,LOWER,WELL_BACK-6.2)
         elif name=="BypassLeft":p=Vector3(CX-3.1,FY,(WELL_TOP+WELL_BACK)*0.5)
         elif name=="BypassRight":p=Vector3(CX+3.1,FY,(WELL_TOP+WELL_BACK)*0.5)
@@ -278,6 +261,73 @@ func _floor_sign(file: String,p: Vector3,size: Vector2) -> void:
     var m := StandardMaterial3D.new();m.albedo_texture=load(ART+file);m.roughness=0.65
     var q := QuadMesh.new();q.size=size;q.material=m;var n := MeshInstance3D.new();n.mesh=q;n.rotation.x=-PI/2.0;n.position=p;add_child(n)
 
+func _lower_escalators() -> void:
+    var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"lower_escalators.json"))
+    var run: float=data.run_m
+    var flat: float=data.flat_m
+    var incline: float=run-flat*2.0
+    var angle: float=atan2(float(data.rise_m),incline)
+    var steel := _material(Color("#9fa8a7"),0.76,0.38)
+    var skirt := _material(Color("#697170"),0.68,0.48)
+    var rubber := _material(Color("#171b1b"),0.08,0.72)
+    var comb := _material(Color("#bbb49a"),0.68,0.48)
+    for lane in range(2):
+        var x: float=CX+float(data.lane_centres_x_m[lane])
+        var moving := preload("res://modules/stations/ploshchad_lenina/escalator_steps.gd").new()
+        moving.name="LowerEscalator"+str(lane+1);moving.position=Vector3(x,FY,WELL_TOP)
+        moving.parameters=data;moving.direction=float(data.lane_directions[lane]);add_child(moving)
+        # Walkable inclined support and flat comb landings replace every old stone stair collider.
+        _solid_box(Vector3(float(data.tread_width_m),0.12,sqrt(incline*incline+float(data.rise_m)*float(data.rise_m))),
+            Vector3(x,(FY+LOWER)*0.5-0.09,(WELL_TOP+WELL_BACK)*0.5),skirt,Basis(Vector3.RIGHT,-angle))
+        for distance in [flat*0.5,run-flat*0.5]:
+            var y: float=FY-_escalator_drop(float(distance),data)
+            _solid_box(Vector3(float(data.tread_width_m),0.12,flat),Vector3(x,y-0.06,WELL_TOP-float(distance)),skirt)
+        for distance in [0.04,run-0.04]:
+            var y: float=FY-_escalator_drop(float(distance),data)
+            box(Vector3(float(data.tread_width_m)+0.04,0.022,0.26),Vector3(x,y+0.012,WELL_TOP-float(distance)),comb)
+            for tooth in range(40):
+                var xx: float=x-float(data.tread_width_m)*0.48+float(tooth)*float(data.tread_width_m)*0.96/39.0
+                box(Vector3(0.010,0.013,0.085),Vector3(xx,y+0.026,WELL_TOP-float(distance)+(0.15 if distance>run*0.5 else -0.15)),metal)
+        for side in [-1.0,1.0]:
+            var inner: float=x+side*float(data.skirt_inner_x_m)
+            var outer: float=x+side*float(data.skirt_outer_x_m)
+            var stations: Array[float]=[0.05,0.20,0.40,flat,run-flat,run-0.40,run-0.20,run-0.05]
+            var tops: Array[float]=[0.40,0.66,0.78,0.80,0.80,0.78,0.66,0.40]
+            for j in range(stations.size()-1):
+                var a: float=stations[j];var b: float=stations[j+1]
+                var ya: float=FY-_escalator_drop(a,data)
+                var yb: float=FY-_escalator_drop(b,data)
+                var za: float=WELL_TOP-a;var zb: float=WELL_TOP-b
+                quad(Vector3(inner,ya-0.27,za),Vector3(inner,yb-0.27,zb),Vector3(inner,yb+tops[j+1],zb),Vector3(inner,ya+tops[j],za),steel,Vector3(-side,0,0))
+                quad(Vector3(outer,ya-0.27,za),Vector3(outer,ya+tops[j],za),Vector3(outer,yb+tops[j+1],zb),Vector3(outer,yb-0.27,zb),steel,Vector3(side,0,0))
+                quad(Vector3(inner,ya+tops[j],za),Vector3(inner,yb+tops[j+1],zb),Vector3(outer,yb+tops[j+1],zb),Vector3(outer,ya+tops[j],za),steel,Vector3.UP)
+                rod(Vector3(inner,ya+0.07,za),Vector3(inner,yb+0.07,zb),0.018,metal)
+            for distance in [stations[0],stations[-1]]:
+                var y: float=FY-_escalator_drop(float(distance),data);var z: float=WELL_TOP-float(distance)
+                quad(Vector3(inner,y-0.27,z),Vector3(outer,y-0.27,z),Vector3(outer,y+0.40,z),Vector3(inner,y+0.40,z),steel,Vector3(0,0,1 if distance<run*0.5 else -1))
+            var rail_x: float=x+side*float(data.handrail_x_m)
+            var path: Array[float]=[0.40,flat,run-flat,run-0.40]
+            for j in range(path.size()-1):
+                var a: float=path[j];var b: float=path[j+1]
+                for h in [float(data.handrail_height_m),0.10]:
+                    rod(Vector3(rail_x,FY-_escalator_drop(a,data)+float(h),WELL_TOP-a),Vector3(rail_x,FY-_escalator_drop(b,data)+float(h),WELL_TOP-b),0.046,rubber)
+            for end in range(2):
+                var centre_s: float=0.40 if end==0 else run-0.40
+                var y: float=FY if end==0 else LOWER
+                for j in range(16):
+                    var a: float=float(j)*PI/16.0;var b: float=float(j+1)*PI/16.0
+                    var sign: float=-1.0 if end==0 else 1.0
+                    rod(Vector3(rail_x,y+0.50+0.40*cos(a),WELL_TOP-centre_s-sign*0.40*sin(a)),
+                        Vector3(rail_x,y+0.50+0.40*cos(b),WELL_TOP-centre_s-sign*0.40*sin(b)),0.046,rubber)
+        for lower in [false,true]:
+            var marker := Marker3D.new();marker.name="Escalator"+str(lane+1)+("Lower" if lower else "Upper")
+            marker.position=Vector3(x,LOWER if lower else FY,WELL_BACK-0.35 if lower else WELL_TOP+0.35)
+            get_node("PassengerAnchors").add_child(marker)
+
+func _escalator_drop(distance: float,data: Dictionary) -> float:
+    return clampf((distance-float(data.flat_m))/(float(data.run_m)-2.0*float(data.flat_m)),0.0,1.0)*float(data.rise_m)
+
+
 func _stair_pole(z: float) -> void:
     cylinder(0.105,0.045,Vector3(CX,FY+0.022,z),metal)
     cylinder(0.065,4.65,Vector3(CX,FY+2.325,z),metal)
@@ -288,10 +338,14 @@ func _stair_pole(z: float) -> void:
         for i in range(25):
             var a: float=float(i)*PI/24.0;pts.append(Vector3(CX+0.17*cos(a),FY+float(h),z+0.29*sin(a)))
         for i in range(pts.size()-1):rod(pts[i],pts[i+1],0.026,metal)
-    board("no_entrance.svg",Vector3(CX,FY+3.48,z-0.11),Vector2(0.98,0.327))
+    # Front (+Z) faces the approach shown by the owner. The reverse is a plain metal back.
+    var sign := Vector3(CX,FY+3.48,z+0.16)
+    box(Vector3(1.07,0.407,0.09),sign,metal)
+    picture("no_entrance.svg",Vector2(0.98,0.327),sign+Vector3(0,0,0.052),0)
+    for dx in [-0.43,0.43]:
+        rod(sign+Vector3(float(dx),0.205,0),Vector3(CX+float(dx),FY+3.64,z),0.016,metal)
     for side in [-1.0,1.0]:
         rod(Vector3(CX,FY+3.64,z),Vector3(CX+side*1.6,FY+3.64,z),0.011,metal)
-    picture("transfer.svg",Vector2(1.6,0.352),Vector3(CX,FY+2.60,z+0.09),0)
 
 func _order_pylon() -> void:
     var z := 24.2

@@ -1,0 +1,23 @@
+{
+  "format_version": 1,
+  "units": "metres",
+  "run_m": 12,
+  "rise_m": 5.4,
+  "flat_m": 0.6,
+  "step_pitch_m": 0.3,
+  "tread_width_m": 1.06,
+  "lane_centres_x_m": [
+    -0.94,
+    0.94
+  ],
+  "skirt_inner_x_m": 0.56,
+  "skirt_outer_x_m": 0.82,
+  "handrail_x_m": 0.7,
+  "handrail_height_m": 0.9,
+  "belt_speed_mps": 0.45,
+  "lane_directions": [
+    1,
+    -1
+  ],
+  "reference": "Owner correction: two parallel escalators replace the former two-flight stone stair in the existing 4 x 12 m opening."
+}
