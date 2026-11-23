@@ -51,8 +51,8 @@
       "dependencies": []
     },
     "oktyabrskaya": {
-      "source_commit": "eec24a209a8a701a94ee6f24375071372ed5e300",
-      "pack_sha256": "978194d189b2bbacac400fb019b9347a3102516e714e091e86bcd9bae9a36916",
+      "source_commit": "e05e29b0cd5ae63aeb69b330d1a83696bb4bb43f",
+      "pack_sha256": "29fbca04f991b4fb546c05b31d159381c041cee31b315c925e093319e8d7e334",
       "category": "station",
       "scene": "modules/stations/oktyabrskaya/oktyabrskaya.tscn",
       "dependencies": []
