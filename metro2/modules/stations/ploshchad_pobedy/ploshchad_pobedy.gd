@@ -16,9 +16,8 @@ var lettering: StandardMaterial3D
 var floor_red: StandardMaterial3D
 var bronze: StandardMaterial3D
 var lamp_bead: StandardMaterial3D
-var lamp_tube: StandardMaterial3D
+var lamp_glass: ShaderMaterial
 var lamp_silver: StandardMaterial3D
-var lamp_core: StandardMaterial3D
 var ceiling_light: ShaderMaterial
 var lighting: Dictionary = {}
 var oak: StandardMaterial3D
@@ -41,12 +40,11 @@ func _ready() -> void:
     lamp_silver=_material(Color("#cdbb9a"),0.72,0.28)
     lamp_bead=_material(Color("#dfc188"),0.56,0.22)
     lamp_bead.emission_enabled=true;lamp_bead.emission=Color(1.0,0.79,0.40);lamp_bead.emission_energy_multiplier=0.24
-    lamp_tube=_material(Color("#fff4d9"),0.0,0.29)
-    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(1.0,0.87,0.63)
-    lamp_tube.emission_energy_multiplier=float(lighting["diffuser_emission"])
-    lamp_core=_material(Color("#fffdf3"),0.0,0.22)
-    lamp_core.emission_enabled=true;lamp_core.emission=Color(1.0,0.96,0.85)
-    lamp_core.emission_energy_multiplier=float(lighting["core_emission"])
+    lamp_glass=ShaderMaterial.new()
+    lamp_glass.shader=preload("res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader")
+    lamp_glass.set_shader_parameter("emission_strength",float(lighting["glass_emission"]))
+    lamp_glass.set_shader_parameter("upper_light_fraction",float(lighting["upper_glass_light_fraction"]))
+    lamp_glass.set_shader_parameter("prism_lanes",float(lighting["diffuser_lanes_per_face"]))
     ceiling_light=ShaderMaterial.new()
     ceiling_light.shader=preload("res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader")
     ceiling_light.set_shader_parameter("paint",load(ART+"ceiling_paint.jpg"))
@@ -226,6 +224,26 @@ func _lamp_point(o: Vector3,face: int,wing: float,t: float,u: float,offset: floa
     var outer: float=_capital_radius(level)+offset
     return _capital_point(o,face,level,wing*lerpf(inner,outer,u),offset)
 
+func _glass_triangle(a: Vector3,b: Vector3,c: Vector3,ua: Vector2,ub: Vector2,uc: Vector2,hint: Vector3) -> void:
+    # Continuous fixture UVs are retained for later material baking/export.
+    var key := str(lamp_glass.get_instance_id())
+    if not surfaces.has(key):
+        var surface := SurfaceTool.new()
+        surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+        surfaces[key]={"surface":surface,"mat":lamp_glass}
+    var st: SurfaceTool=surfaces[key].surface
+    var normal := (b-a).cross(c-a).normalized()
+    var reverse: bool=normal.dot(hint)<0.0
+    if reverse:normal=-normal
+    var points: Array[Vector3]=[a,b if reverse else c,c if reverse else b]
+    var coords: Array[Vector2]=[ua,ub if reverse else uc,uc if reverse else ub]
+    for i in range(3):
+        st.set_normal(normal);st.set_uv(coords[i]);st.add_vertex(points[i])
+
+func _glass_quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,t0: float,t1: float,hint: Vector3,u0: float=0.0,u1: float=1.0) -> void:
+    _glass_triangle(a,b,c,Vector2(u0,t0),Vector2(u1,t0),Vector2(u1,t1),hint)
+    _glass_triangle(a,c,d,Vector2(u0,t0),Vector2(u1,t1),Vector2(u0,t1),hint)
+
 func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
     var radial := Vector3(sin(float(face)*PI/2.0),0,cos(float(face)*PI/2.0))
     var rows: int=int(lighting["reflector_rows"])
@@ -234,9 +252,11 @@ func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
     for row in range(rows):
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
         quad(_lamp_point(o,face,wing,t0,0),_lamp_point(o,face,wing,t0,1),_lamp_point(o,face,wing,t1,1),_lamp_point(o,face,wing,t1,0),lamp_silver,radial-Vector3.UP)
+        # One continuous glass skin across all reflector cells, without rectangular gaps.
+        _glass_quad(_lamp_point(o,face,wing,t0,0.003,0.078),_lamp_point(o,face,wing,t0,0.997,0.078),_lamp_point(o,face,wing,t1,0.997,0.078),_lamp_point(o,face,wing,t1,0.003,0.078),t0,t1,radial-Vector3.UP)
         for edge in [0.0,1.0]:
             quad(_lamp_point(o,face,wing,t0,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.079),_lamp_point(o,face,wing,t0,float(edge),0.079),brass)
-            rod(_lamp_point(o,face,wing,t0,float(edge),0.080),_lamp_point(o,face,wing,t1,float(edge),0.080),0.009,lamp_silver)
+            rod(_lamp_point(o,face,wing,t0,float(edge),0.080),_lamp_point(o,face,wing,t1,float(edge),0.080),0.003,lamp_silver)
         for lane in range(lanes):
             var u0: float=(float(lane)+0.08)/float(lanes)
             var u1: float=(float(lane)+0.92)/float(lanes)
@@ -253,13 +273,15 @@ func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
             triangle(b,c,inset,lamp_bead,radial-Vector3.UP)
             triangle(c,d,inset,reflector,radial-Vector3.UP)
             triangle(d,a,inset,brass,radial-Vector3.UP)
-            # Ivory edges remain visible around the brighter white central strip.
-            var half_width: float=0.19/float(lanes)
-            quad(_lamp_point(o,face,wing,t0+0.009,um-half_width,0.074),_lamp_point(o,face,wing,t0+0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um-half_width,0.074),lamp_tube,radial-Vector3.UP)
-            rod(_lamp_point(o,face,wing,t0+0.012,um,0.079),_lamp_point(o,face,wing,t1-0.012,um,0.079),0.006,lamp_core)
-            sphere(Vector3(0.023,0.023,0.023),_lamp_point(o,face,wing,tm,u0,0.076),lamp_bead)
+            if row%3==1:
+                sphere(Vector3(0.017,0.020,0.017),_lamp_point(o,face,wing,tm,u0,0.084),lamp_bead)
+            # Fine longitudinal ribs sit on the common glass skin.
+            if lane>0:
+                var u: float=float(lane)/float(lanes)
+                rod(_lamp_point(o,face,wing,t0,u,0.083),_lamp_point(o,face,wing,t1,u,0.083),0.0015,lamp_silver)
         # Narrow stamped crossbars tie all reflector cells into one lattice.
-        rod(_lamp_point(o,face,wing,t0,0,0.084),_lamp_point(o,face,wing,t0,1,0.084),0.005,lamp_silver)
+        if row>0 and row%6==0:
+            rod(_lamp_point(o,face,wing,t0,0,0.084),_lamp_point(o,face,wing,t0,1,0.084),0.0015,lamp_silver)
     for t in [0.0,1.0]:
         quad(_lamp_point(o,face,wing,float(t),0,0.022),_lamp_point(o,face,wing,float(t),1,0.022),_lamp_point(o,face,wing,float(t),1,0.079),_lamp_point(o,face,wing,float(t),0,0.079),brass)
     # Vertical top crown as in the close-ups, physically joined to the flared lower tray.
@@ -268,17 +290,17 @@ func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
         var a: Vector3=_lamp_point(o,face,wing,1.0,u0,0.079)
         var b: Vector3=_lamp_point(o,face,wing,1.0,u1,0.079)
         var h := Vector3.UP*float(lighting["crown_height_m"])
-        quad(a,b,b+h,a+h,lamp_silver if lane%2 else brass,radial)
-        rod(a,a+h,0.007,lamp_silver)
-        rod(a.lerp(b,0.5)+h*0.10,a.lerp(b,0.5)+h*0.88,0.007,lamp_tube)
+        _glass_quad(a,b,b+h,a+h,1.0,1.12,radial,u0,u1)
+        rod(a,a+h,0.002,brass)
+        rod(a.lerp(b,0.5)+h*0.10,a.lerp(b,0.5)+h*0.88,0.002,brass)
         for v in [0.23,0.50,0.77]:sphere(Vector3(0.025,0.025,0.025),a.lerp(b,0.72)+h*float(v)+radial*0.009,lamp_bead)
-        rod(a+h,b+h,0.007,lamp_silver)
+        rod(a+h,b+h,0.003,brass)
 
 func _lamp_corner_seam(o: Vector3,face: int) -> void:
     var rows: int=int(lighting["reflector_rows"])
     for row in range(rows):
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
-        rod(_lamp_point(o,face,1.0,t0,1.0,0.084),_lamp_point(o,face,1.0,t1,1.0,0.084),0.011,brass)
+        rod(_lamp_point(o,face,1.0,t0,1.0,0.084),_lamp_point(o,face,1.0,t1,1.0,0.084),0.004,brass)
 
 func _axial_lamp_point(o: Vector3,face: int,t: float,u: float,depth: float) -> Vector3:
     var level: float=float(lighting["axial_t_start"])+t*float(lighting["axial_t_span"])
@@ -295,21 +317,11 @@ func _axial_lamp(o: Vector3,face: int) -> void:
         for edge in [-1.0,1.0]:
             var u: float=float(edge)*half
             quad(_axial_lamp_point(o,face,t0,u,0.032),_axial_lamp_point(o,face,t1,u,0.032),_axial_lamp_point(o,face,t1,u,0.092),_axial_lamp_point(o,face,t0,u,0.092),brass)
-            rod(_axial_lamp_point(o,face,t0,u,0.094),_axial_lamp_point(o,face,t1,u,0.094),0.007,brass)
-        # The short upper housing stays metallic; the recessed long lens emits warm white.
-        if row<rows-1:
-            var lens: float=half*0.57
-            quad(_axial_lamp_point(o,face,t0+0.004,-lens,0.078),_axial_lamp_point(o,face,t0+0.004,lens,0.078),_axial_lamp_point(o,face,t1-0.004,lens,0.078),_axial_lamp_point(o,face,t1-0.004,-lens,0.078),lamp_tube,radial-Vector3.UP)
-            rod(_axial_lamp_point(o,face,t0+0.006,0,0.083),_axial_lamp_point(o,face,t1-0.006,0,0.083),0.005,lamp_core)
-            for edge in [-1.0,1.0]:
-                var u: float=float(edge)*half*0.80
-                var a: Vector3=_axial_lamp_point(o,face,t0,u,0.084)
-                var b: Vector3=_axial_lamp_point(o,face,t1,u,0.084)
-                rod(a,b,0.004,lamp_silver)
-                sphere(Vector3(0.018,0.018,0.018),a.lerp(b,0.5),lamp_bead)
-        else:
-            quad(_axial_lamp_point(o,face,t0,-half,0.092),_axial_lamp_point(o,face,t0,half,0.092),_axial_lamp_point(o,face,t1,half,0.092),_axial_lamp_point(o,face,t1,-half,0.092),lamp_silver,radial)
-        if row%4==0:rod(_axial_lamp_point(o,face,t0,-half,0.095),_axial_lamp_point(o,face,t0,half,0.095),0.004,brass)
+            rod(_axial_lamp_point(o,face,t0,u,0.094),_axial_lamp_point(o,face,t1,u,0.094),0.0035,brass)
+        var lens: float=half*0.70
+        _glass_quad(_axial_lamp_point(o,face,t0,-lens,0.079),_axial_lamp_point(o,face,t0,lens,0.079),_axial_lamp_point(o,face,t1,lens,0.079),_axial_lamp_point(o,face,t1,-lens,0.079),t0,t1,radial-Vector3.UP)
+        if row>0 and row%6==0:
+            rod(_axial_lamp_point(o,face,t0,-half,0.095),_axial_lamp_point(o,face,t0,half,0.095),0.0015,brass)
     for t in [0.0,1.0]:
         quad(_axial_lamp_point(o,face,float(t),-half,0.032),_axial_lamp_point(o,face,float(t),half,0.032),_axial_lamp_point(o,face,float(t),half,0.092),_axial_lamp_point(o,face,float(t),-half,0.092),brass)
     # Joined bronze stem continues down onto the marble, as in 9897.jpg.
@@ -562,6 +574,13 @@ func _floor_fittings() -> void:
         box(Vector3(0.35,0.018,0.38),Vector3(CX-0.25,FY+0.025,float(z)+3.4),trim)
         for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
 
+func _portal_z(direction: float) -> float:
+    # Equal clearance from the existing mirrors at all four tunnel mouths.
+    # Platform, stop markers, rails and mirror positions retain their current coordinates.
+    var eye_z: float=STOP_Z+float(lighting["driver_eye_offset_z_m"])
+    if direction>0.0:eye_z=2.0*MID-eye_z
+    return eye_z+direction*(float(lighting["mirror_ahead_of_eye_m"])+float(lighting["tunnel_mouth_mirror_clearance_m"]))
+
 func _track_details() -> void:
     for name in ["Track1","Track2"]:
         var root := get_node(name)
@@ -572,7 +591,7 @@ func _track_details() -> void:
             var z: float=ZA+float(i)*0.65
             for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
         for direction in [-1.0,1.0]:
-            var end: float=ZA if direction<0.0 else ZB
+            var end: float=_portal_z(float(direction))
             box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
             for side in [-1.0,1.0]:
                 box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
@@ -587,7 +606,7 @@ func _portal_shell() -> void:
     var inner_edge := 3.86
     var outer_edge := 8.94
     for direction in [-1.0,1.0]:
-        var end: float=ZA if direction<0.0 else ZB
+        var end: float=_portal_z(float(direction))
         for side in [-1.0,1.0]:
             var track: float=CX+float(side)*6.362
             var mouth_inner := 6.362-1.89
@@ -607,10 +626,12 @@ func _portal_equipment() -> void:
     for node in infra.get_children():
         if node is Node3D and "Portal" in str(node.name):
             node.position.y=4.68
+            var portal_direction: float=-1.0 if "Portal1" in str(node.name) else 1.0
+            node.position.z=_portal_z(portal_direction)-portal_direction*0.20
             # Keep the shared clock arrays intact, hide only the two tail-end panels locally.
             node.visible=str(node.name) in ["Track1Portal1Clock","Track2Portal2Clock"]
     for direction in [-1.0,1.0]:
-        var end: float=ZA if direction<0.0 else ZB
+        var end: float=_portal_z(float(direction))
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
@@ -637,11 +658,22 @@ func _portal_equipment() -> void:
             _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
             for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
             _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
-            var p := Vector3(tx-side*1.42,4.10,mirror_z+direction*0.18)
+            var p := Vector3(tx-side*1.60,4.68,end-direction*0.19)
             box(Vector3(0.72,0.46,0.08),p,black)
             picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
-            # The monitor is now beside the driver's stop, with a physical support.
-            rod(Vector3(p.x,FY, p.z),p-Vector3(0,0.23,0),0.028,metal)
+            # Monitor belongs beside the clock; reserve its future rear-platform camera mount.
+            rod(p+Vector3(0,0.23,0),Vector3(p.x,5.80,p.z),0.018,metal)
+            var screen_anchor := Marker3D.new()
+            screen_anchor.name="RearPlatformMonitorTrack%d" % (1 if side>0.0 else 2)
+            screen_anchor.position=p;screen_anchor.rotation.y=yaw
+            screen_anchor.set_meta("clock_node","StationInfrastructure/Track%dPortal%dClock" % [1 if side>0.0 else 2,1 if direction<0.0 else 2])
+            screen_anchor.set_meta("camera_mount","RearPlatformCameraTrack%d" % (1 if side>0.0 else 2))
+            screen_anchor.set_meta("feed_connected",false);add_child(screen_anchor)
+            var camera_anchor := Marker3D.new()
+            camera_anchor.name="RearPlatformCameraTrack%d" % (1 if side>0.0 else 2)
+            camera_anchor.position=Vector3(CX+side*4.0,4.25,_portal_z(-direction)+direction*0.65)
+            camera_anchor.rotation.y=0.0 if direction<0.0 else PI
+            add_child(camera_anchor)
 
 func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     var mesh := CylinderMesh.new();mesh.top_radius=r;mesh.bottom_radius=r;mesh.height=a.distance_to(b);mesh.radial_segments=10;mesh.material=mat

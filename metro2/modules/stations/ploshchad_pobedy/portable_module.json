@@ -8,7 +8,7 @@
   "source_frame": {
     "engine": "Godot",
     "engine_version": "4.3",
-    "metres_per_unit": 1.0,
+    "metres_per_unit": 1,
     "handedness": "right",
     "up_axis": "+Y",
     "forward_axis": "-Z",
@@ -37,14 +37,17 @@
           "_axial_lamp_point",
           "_axial_lamp",
           "_portal_shell",
-          "_escalator_wall_infill"
+          "_escalator_wall_infill",
+          "_glass_quad",
+          "_portal_z"
         ],
         "profile": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
         "output": [
           "ArrayMesh",
           "MultiMesh"
         ],
-        "fixture_layout": "four joined two-face corner trays plus four long axial rectangular compartments per existing capital"
+        "fixture_layout": "four joined two-face corner trays plus four long axial rectangular compartments per existing capital",
+        "glass_uv": "U spans the common diffuser; V is 0 at its base, 1 at the top, up to 1.12 on the crown. No repeating cell UVs."
       }
     }
   ],
@@ -56,32 +59,10 @@
         0.803921568627451,
         0.7333333333333333,
         0.6039215686274509,
-        1.0
+        1
       ],
       "metallic": 0.72,
       "roughness": 0.28
-    },
-    {
-      "id": "opal_diffuser",
-      "source_class": "StandardMaterial3D",
-      "emission": [
-        1.0,
-        0.87,
-        0.63
-      ],
-      "emission_energy": 1.9,
-      "roughness": 0.29
-    },
-    {
-      "id": "white_lamp_core",
-      "source_class": "StandardMaterial3D",
-      "emission": [
-        1.0,
-        0.96,
-        0.85
-      ],
-      "emission_energy": 2.9,
-      "roughness": 0.22
     },
     {
       "id": "ceiling_bounce",
@@ -101,6 +82,32 @@
       },
       "texture_bindings": {
         "paint": "ceiling_paint"
+      }
+    },
+    {
+      "id": "continuous_amber_glass",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader",
+        "parameters": {
+          "emission_strength": 1.25,
+          "upper_light_fraction": 0.13,
+          "prism_lanes": 6,
+          "white_center": [
+            1,
+            0.96,
+            0.85,
+            1
+          ],
+          "amber_edge": [
+            1,
+            0.65,
+            0.22,
+            1
+          ]
+        },
+        "adaptation": "required"
       }
     }
   ],
@@ -152,6 +159,14 @@
     {
       "code": "unverified_export",
       "detail": "Mesh sources are retained; no GLB export, Roblox import or runtime verification performed."
+    },
+    {
+      "code": "glass_emission_bake",
+      "detail": "Retain continuous UVs and lamp_glass.gdshader; bake amber perimeter, white centre and dim upper half for other renderers."
+    },
+    {
+      "code": "rear_camera_pending",
+      "detail": "RearPlatformMonitorTrack1/2 and RearPlatformCameraTrack1/2 markers reserve feed connection points. Monitors retain the existing static imagery; live camera connection is deferred."
     }
   ]
 }
