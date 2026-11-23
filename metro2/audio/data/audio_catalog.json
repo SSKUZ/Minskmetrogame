@@ -1,9 +1,771 @@
 {
   "schema_version": 1,
-  "description": "Independent sound-event bindings. Empty until each recording has verified content and redistribution rights.",
-  "assets": [],
-  "route_events": {},
+  "description": "User-approved speech recordings; route mapping based on individual_catalog descriptions. Direction-neutral clips only. Other station clips retained as addressable assets.",
+  "rights_verified": true,
+  "assets": [
+    {
+      "event_id": "voice_1_002",
+      "resource": "res://audio/resources/tz54/sharedassets1_002.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_002.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Плошча Перамогі» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_005",
+      "resource": "res://audio/resources/tz54/sharedassets1_005.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_005.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Парк Чалюскінцаў»."
+    },
+    {
+      "event_id": "voice_1_008",
+      "resource": "res://audio/resources/tz54/sharedassets1_008.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_008.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Усход»."
+    },
+    {
+      "event_id": "voice_1_009",
+      "resource": "res://audio/resources/tz54/sharedassets1_009.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_009.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Просьба уступать места пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым."
+    },
+    {
+      "event_id": "voice_1_011",
+      "resource": "res://audio/resources/tz54/sharedassets1_011.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_011.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление конечной «Уручча»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+    },
+    {
+      "event_id": "voice_1_015",
+      "resource": "res://audio/resources/tz54/sharedassets1_015.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_015.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Сообщение о пункте вакцинации против COVID-19 в пешеходном переходе станции «Кавальская Слабада». Историческое служебное объявление; актуальность не установлена."
+    },
+    {
+      "event_id": "voice_1_017",
+      "resource": "res://audio/resources/tz54/sharedassets1_017.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_017.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Міхалова» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_019",
+      "resource": "res://audio/resources/tz54/sharedassets1_019.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_019.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Міхалова»."
+    },
+    {
+      "event_id": "voice_1_020",
+      "resource": "res://audio/resources/tz54/sharedassets1_020.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_020.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Предупреждение: после объявления о закрытии дверей посадка в вагоны не допускается."
+    },
+    {
+      "event_id": "voice_1_023",
+      "resource": "res://audio/resources/tz54/sharedassets1_023.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_023.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Уручча» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_026",
+      "resource": "res://audio/resources/tz54/sharedassets1_026.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_026.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Грушаўка»."
+    },
+    {
+      "event_id": "voice_1_028",
+      "resource": "res://audio/resources/tz54/sharedassets1_028.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_028.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Просьба проходить в середину салона и не скапливаться у дверей."
+    },
+    {
+      "event_id": "voice_1_029",
+      "resource": "res://audio/resources/tz54/sharedassets1_029.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_029.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Усход» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_030",
+      "resource": "res://audio/resources/tz54/sharedassets1_030.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_030.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Інстытут Культуры»."
+    },
+    {
+      "event_id": "voice_1_031",
+      "resource": "res://audio/resources/tz54/sharedassets1_031.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_031.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Акадэмія навук» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_032",
+      "resource": "res://audio/resources/tz54/sharedassets1_032.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_032.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Плошча Леніна» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_034",
+      "resource": "res://audio/resources/tz54/sharedassets1_034.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_034.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Інстытут Культуры» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_037",
+      "resource": "res://audio/resources/tz54/sharedassets1_037.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_037.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Маскоўская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_040",
+      "resource": "res://audio/resources/tz54/sharedassets1_040.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_040.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Предупреждение не заходить за ограничительную линию у края платформы: на путях высокое напряжение."
+    },
+    {
+      "event_id": "voice_1_041",
+      "resource": "res://audio/resources/tz54/sharedassets1_041.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_041.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Плошча Перамогі»."
+    },
+    {
+      "event_id": "voice_1_042",
+      "resource": "res://audio/resources/tz54/sharedassets1_042.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_042.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Кастрычніцкая» и пересадки на Автозаводскую линию; в ASR есть белорусская и английская части с ошибками."
+    },
+    {
+      "event_id": "voice_1_045",
+      "resource": "res://audio/resources/tz54/sharedassets1_045.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_045.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Пятроўшчына»."
+    },
+    {
+      "event_id": "voice_1_047",
+      "resource": "res://audio/resources/tz54/sharedassets1_047.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_047.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление конечной «Малінаўка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+    },
+    {
+      "event_id": "voice_1_050",
+      "resource": "res://audio/resources/tz54/sharedassets1_050.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_050.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Парк Чалюскінцаў» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_051",
+      "resource": "res://audio/resources/tz54/sharedassets1_051.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_051.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Малінаўка»."
+    },
+    {
+      "event_id": "voice_1_057",
+      "resource": "res://audio/resources/tz54/sharedassets1_057.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_057.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Кастрычніцкая» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_066",
+      "resource": "res://audio/resources/tz54/sharedassets1_066.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_066.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Плошча Леніна»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Зеленолужскую линию; белорусская и английская части с ошибками ASR."
+    },
+    {
+      "event_id": "voice_1_069",
+      "resource": "res://audio/resources/tz54/sharedassets1_069.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_069.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Уручча»."
+    },
+    {
+      "event_id": "voice_1_072",
+      "resource": "res://audio/resources/tz54/sharedassets1_072.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_072.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Предупреждение остерегаться карманных краж."
+    },
+    {
+      "event_id": "voice_1_073",
+      "resource": "res://audio/resources/tz54/sharedassets1_073.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_073.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Плошча Якуба Коласа»."
+    },
+    {
+      "event_id": "voice_1_077",
+      "resource": "res://audio/resources/tz54/sharedassets1_077.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_077.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Просьба сообщать милиции или работникам метро об оставленных вещах и подозрительных предметах на станциях и в поездах."
+    },
+    {
+      "event_id": "voice_1_081",
+      "resource": "res://audio/resources/tz54/sharedassets1_081.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_081.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Просьба уступать места для сидения пассажирам с дошкольными детьми, беременным женщинам, людям с инвалидностью и пожилым."
+    },
+    {
+      "event_id": "voice_1_083",
+      "resource": "res://audio/resources/tz54/sharedassets1_083.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_083.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Магілёўская»."
+    },
+    {
+      "event_id": "voice_1_084",
+      "resource": "res://audio/resources/tz54/sharedassets1_084.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_084.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Барысаўскі тракт» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_085",
+      "resource": "res://audio/resources/tz54/sharedassets1_085.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_085.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Маскоўская»."
+    },
+    {
+      "event_id": "voice_1_086",
+      "resource": "res://audio/resources/tz54/sharedassets1_086.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_086.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Малінаўка» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_088",
+      "resource": "res://audio/resources/tz54/sharedassets1_088.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_088.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Грушаўка» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_090",
+      "resource": "res://audio/resources/tz54/sharedassets1_090.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_090.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Акадэмія навук»."
+    },
+    {
+      "event_id": "voice_1_091",
+      "resource": "res://audio/resources/tz54/sharedassets1_091.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_091.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Предупреждение: нарушение правил пользования эскалаторами может привести к падению и травмам."
+    },
+    {
+      "event_id": "voice_1_092",
+      "resource": "res://audio/resources/tz54/sharedassets1_092.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_092.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Пятроўшчына» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_095",
+      "resource": "res://audio/resources/tz54/sharedassets1_095.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_095.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Плошча Якуба Коласа» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_1_096",
+      "resource": "res://audio/resources/tz54/sharedassets1_096.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_096.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Барысаўскі тракт»."
+    },
+    {
+      "event_id": "voice_2_001",
+      "resource": "res://audio/resources/tz54/sharedassets2_001.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_001.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Аўтазаводская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_002",
+      "resource": "res://audio/resources/tz54/sharedassets2_002.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_002.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Трактарны завод»."
+    },
+    {
+      "event_id": "voice_2_003",
+      "resource": "res://audio/resources/tz54/sharedassets2_003.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_003.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Пралетарская»."
+    },
+    {
+      "event_id": "voice_2_004",
+      "resource": "res://audio/resources/tz54/sharedassets2_004.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_004.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Партызанская»."
+    },
+    {
+      "event_id": "voice_2_005",
+      "resource": "res://audio/resources/tz54/sharedassets2_005.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_005.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Маладзёжная» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_006",
+      "resource": "res://audio/resources/tz54/sharedassets2_006.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_006.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Спартыўная»."
+    },
+    {
+      "event_id": "voice_2_007",
+      "resource": "res://audio/resources/tz54/sharedassets2_007.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_007.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление конечной «Магілёўская»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+    },
+    {
+      "event_id": "voice_2_008",
+      "resource": "res://audio/resources/tz54/sharedassets2_008.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_008.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Кунцаўшчына» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_009",
+      "resource": "res://audio/resources/tz54/sharedassets2_009.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_009.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление конечной «Каменная Горка»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи."
+    },
+    {
+      "event_id": "voice_2_010",
+      "resource": "res://audio/resources/tz54/sharedassets2_010.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_010.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Партызанская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_011",
+      "resource": "res://audio/resources/tz54/sharedassets2_011.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_011.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Кунцаўшчына»."
+    },
+    {
+      "event_id": "voice_2_012",
+      "resource": "res://audio/resources/tz54/sharedassets2_012.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_012.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Каменная Горка» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_013",
+      "resource": "res://audio/resources/tz54/sharedassets2_013.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_013.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Няміга» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_014",
+      "resource": "res://audio/resources/tz54/sharedassets2_014.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_014.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Спартыўная» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_015",
+      "resource": "res://audio/resources/tz54/sharedassets2_015.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_015.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Пралетарская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_016",
+      "resource": "res://audio/resources/tz54/sharedassets2_016.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_016.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Каменная Горка»."
+    },
+    {
+      "event_id": "voice_2_017",
+      "resource": "res://audio/resources/tz54/sharedassets2_017.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_017.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Купалаўская» и пересадки на Московскую линию."
+    },
+    {
+      "event_id": "voice_2_018",
+      "resource": "res://audio/resources/tz54/sharedassets2_018.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_018.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Трактарны завод» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_019",
+      "resource": "res://audio/resources/tz54/sharedassets2_019.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_019.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Першамайская»: выход справа; предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_020",
+      "resource": "res://audio/resources/tz54/sharedassets2_020.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_020.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Пушкінская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_021",
+      "resource": "res://audio/resources/tz54/sharedassets2_021.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_021.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Няміга»."
+    },
+    {
+      "event_id": "voice_2_023",
+      "resource": "res://audio/resources/tz54/sharedassets2_023.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_023.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Магілёўская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_024",
+      "resource": "res://audio/resources/tz54/sharedassets2_024.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_024.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Фрунзенская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_025",
+      "resource": "res://audio/resources/tz54/sharedassets2_025.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_025.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Купалаўская» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_2_026",
+      "resource": "res://audio/resources/tz54/sharedassets2_026.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_026.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Пушкінская»."
+    },
+    {
+      "event_id": "voice_2_027",
+      "resource": "res://audio/resources/tz54/sharedassets2_027.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_027.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Маладзёжная»."
+    },
+    {
+      "event_id": "voice_2_028",
+      "resource": "res://audio/resources/tz54/sharedassets2_028.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_028.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Аўтазаводская»."
+    },
+    {
+      "event_id": "voice_2_029",
+      "resource": "res://audio/resources/tz54/sharedassets2_029.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_029.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Першамайская»: выход справа."
+    },
+    {
+      "event_id": "voice_2_030",
+      "resource": "res://audio/resources/tz54/sharedassets2_030.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets2_030.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Фрунзенская» и пересадки на Зеленолужскую линию; также распознана искажённая английская часть."
+    },
+    {
+      "event_id": "voice_3_001",
+      "resource": "res://audio/resources/tz54/sharedassets3_001.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_001.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Вакзальная»: выход к железнодорожному вокзалу и площади Независимости; пересадка на Московскую линию. Уточняющий ASR сократил зацикливание первого прохода; текст сохраняет ошибки и повышенную повторяемость."
+    },
+    {
+      "event_id": "voice_3_002",
+      "resource": "res://audio/resources/tz54/sharedassets3_002.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_002.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Юбілейная плошча» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_3_004",
+      "resource": "res://audio/resources/tz54/sharedassets3_004.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_004.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление «Юбілейная плошча»: пересадка на Автозаводскую линию; конечная, просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения."
+    },
+    {
+      "event_id": "voice_3_005",
+      "resource": "res://audio/resources/tz54/sharedassets3_005.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_005.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Кавальская Слабада» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_3_006",
+      "resource": "res://audio/resources/tz54/sharedassets3_006.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_006.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Вакзальная» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_3_007",
+      "resource": "res://audio/resources/tz54/sharedassets3_007.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_007.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление следующей станции «Плошча Францішка Багушэвіча» и предупреждение о закрытии дверей."
+    },
+    {
+      "event_id": "voice_3_008",
+      "resource": "res://audio/resources/tz54/sharedassets3_008.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_008.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление станции «Плошча Францішка Багушэвіча»."
+    },
+    {
+      "event_id": "voice_3_009",
+      "resource": "res://audio/resources/tz54/sharedassets3_009.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets3_009.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Объявление конечной «Кавальская Слабада»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения."
+    }
+  ],
+  "route_events": {
+    "ploshcha_peramohi|next_station|forward": "voice_1_002",
+    "ploshcha_peramohi|next_station|reverse": "voice_1_002",
+    "park_chalyuskintsau|arrival|forward": "voice_1_005",
+    "park_chalyuskintsau|arrival|reverse": "voice_1_005",
+    "uskhod|arrival|forward": "voice_1_008",
+    "uskhod|arrival|reverse": "voice_1_008",
+    "uruchye|next_station|forward": "voice_1_023",
+    "uruchye|next_station|reverse": "voice_1_023",
+    "uskhod|next_station|forward": "voice_1_029",
+    "uskhod|next_station|reverse": "voice_1_029",
+    "akademiya_navuk|next_station|forward": "voice_1_031",
+    "akademiya_navuk|next_station|reverse": "voice_1_031",
+    "ploshcha_lenina|next_station|forward": "voice_1_032",
+    "ploshcha_lenina|next_station|reverse": "voice_1_032",
+    "maskouskaya|next_station|forward": "voice_1_037",
+    "maskouskaya|next_station|reverse": "voice_1_037",
+    "ploshcha_peramohi|arrival|forward": "voice_1_041",
+    "ploshcha_peramohi|arrival|reverse": "voice_1_041",
+    "kastrychnitskaya|arrival|forward": "voice_1_042",
+    "kastrychnitskaya|arrival|reverse": "voice_1_042",
+    "park_chalyuskintsau|next_station|forward": "voice_1_050",
+    "park_chalyuskintsau|next_station|reverse": "voice_1_050",
+    "kastrychnitskaya|next_station|forward": "voice_1_057",
+    "kastrychnitskaya|next_station|reverse": "voice_1_057",
+    "ploshcha_lenina|arrival|forward": "voice_1_066",
+    "ploshcha_lenina|arrival|reverse": "voice_1_066",
+    "uruchye|arrival|forward": "voice_1_069",
+    "uruchye|arrival|reverse": "voice_1_069",
+    "ploshcha_yakuba_kolasa|arrival|forward": "voice_1_073",
+    "ploshcha_yakuba_kolasa|arrival|reverse": "voice_1_073",
+    "barysauski_trakt|next_station|forward": "voice_1_084",
+    "barysauski_trakt|next_station|reverse": "voice_1_084",
+    "maskouskaya|arrival|forward": "voice_1_085",
+    "maskouskaya|arrival|reverse": "voice_1_085",
+    "akademiya_navuk|arrival|forward": "voice_1_090",
+    "akademiya_navuk|arrival|reverse": "voice_1_090",
+    "ploshcha_yakuba_kolasa|next_station|forward": "voice_1_095",
+    "ploshcha_yakuba_kolasa|next_station|reverse": "voice_1_095",
+    "barysauski_trakt|arrival|forward": "voice_1_096",
+    "barysauski_trakt|arrival|reverse": "voice_1_096"
+  },
+  "service_notice_events": [
+    "voice_1_009",
+    "voice_1_020",
+    "voice_1_028",
+    "voice_1_072",
+    "voice_1_077",
+    "voice_1_081",
+    "voice_1_091"
+  ],
   "loop_events": {},
-  "zone_events": {},
-  "rights_verified": false
+  "zone_events": {}
 }
