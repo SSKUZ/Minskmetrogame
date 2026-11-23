@@ -102,6 +102,8 @@ func _play_route(id: String, phase: String, is_arrival: bool) -> String:
     var event_id: String = str(announcer.route_events.get("%s|%s|%s" % [id, phase, direction], ""))
     if event_id == "" or not announcer.bank.has_event(event_id):
         return _result("Для станции нет подтверждённой записи")
+    if announcer._current_id != "" or not announcer._queue.is_empty():
+        return _result("Информатор занят")
     # Do not queue or overlap. A successful start consumes this phase once per visit.
     announcer.manual_play(event_id)
     if announcer._current_id != event_id:
@@ -125,6 +127,8 @@ func _play_service() -> String:
                 choices.append(event_id)
     if choices.is_empty():
         return _result("Нет подтверждённых служебных записей")
+    if announcer._current_id != "" or not announcer._queue.is_empty():
+        return _result("Информатор занят")
     var event_id: String = choices.pick_random()
     announcer.manual_play(event_id)
     if announcer._current_id != event_id:
