@@ -55,3 +55,20 @@ func update(train_world_position: Vector3) -> Dictionary:
         "approaching": nearest_distance > stop_radius_m,
         "at_station": nearest_distance <= stop_radius_m
     }
+
+## Register authored StationStopMarker Node3D children in route order.
+## Each marker carries station_id metadata; no fabricated distances are used.
+func configure_from_nodes(marker_root: Node, travel_direction: String = "forward") -> int:
+    var markers: Array[Dictionary] = []
+    if marker_root == null:
+        configure(markers, travel_direction)
+        return 0
+    for child in marker_root.get_children():
+        if not child is Node3D:
+            continue
+        var id: String = str(child.get_meta("station_id", ""))
+        if id == "":
+            continue
+        markers.append({"id": id, "position": (child as Node3D).global_position})
+    configure(markers, travel_direction)
+    return stations.size()
