@@ -49,6 +49,9 @@ var info_notice_until := 0
 var platform_view_available := false
 var platform_button: Button
 var info_button: Button
+var info_mode_button: Button
+var _info_was_approaching: bool = false
+var _info_was_ready_to_depart: bool = false
 var cab_adapter: Node3D
 var door_button: Button
 var announcer: MetroAudioSystem
@@ -315,6 +318,8 @@ func _make_controls() -> void:
     )
     info_button = _button("Info", row)
     info_button.pressed.connect(_play_info_announcement)
+    info_mode_button = _button("INFO: РУЧН.", row)
+    info_mode_button.pressed.connect(_toggle_info_mode)
     platform_button = _button("ПЛАТФОРМА", row)
     platform_button.visible = false
     platform_button.pressed.connect(func() -> void:
@@ -342,6 +347,8 @@ func _reset_train() -> void:
     announcer.announcer.stop_all()
     announcer.info.bind(announcer.announcer)
     announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "reset_%d" % Time.get_ticks_msec())
+    _info_was_approaching = false
+    _info_was_ready_to_depart = false
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -417,4 +424,24 @@ func _update_info_train_state() -> void:
     var openness: float = float(door_system.get("openness"))
     var doors_open: bool = open_requested or openness > 0.001
     var doors_closed: bool = not open_requested and openness <= 0.001 and bool(door_system.get("validated"))
-    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, doors_open, doors_closed)
+    var stopped: bool = at_station and speed_mps <= 0.05
+    announcer.info.update_train_state(approaching, stopped, doors_open, doors_closed)
+    var departure_ready: bool = stopped and doors_closed
+    if announcer.info.mode == MetroInfoController.AUTO:
+        if approaching and not _info_was_approaching:
+            announcer.info.on_auto_approach()
+        if departure_ready and not _info_was_ready_to_depart:
+            announcer.info.on_auto_departure()
+    _info_was_approaching = approaching
+    _info_was_ready_to_depart = departure_ready
+
+func _toggle_info_mode() -> void:
+    if announcer == null or announcer.info == null:
+        return
+    var next_mode: String = MetroInfoController.AUTO if announcer.info.mode == MetroInfoController.MANUAL else MetroInfoController.MANUAL
+    announcer.info.set_mode(next_mode)
+    if info_mode_button != null:
+        info_mode_button.text = "INFO: АВТО" if next_mode == MetroInfoController.AUTO else "INFO: РУЧН."
+    # Re-arm state edges only; announcement-per-visit guards stay intact.
+    _info_was_approaching = false
+    _info_was_ready_to_depart = false
