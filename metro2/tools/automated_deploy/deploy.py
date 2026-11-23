@@ -130,6 +130,15 @@ def plan():
     if not before or set(before)=={'0'}:before=POLICY['integration_base_commit']
     git('fetch','--filter=blob:none','--depth=1','origin',before)
     changed=git('diff','--name-only',before,head).decode().splitlines()
+    planner_inputs={'metro2/config/module_deploy_manifest.json',
+                    'metro2/tools/automated_deploy/deploy.py',
+                    'metro2/tools/automated_deploy/pack_module.gd'}
+    if planner_inputs.intersection(changed):
+        # A planner repair must include runtime changes from a failed previous
+        # push, even when this push changes only deployment code/configuration.
+        before=POLICY['integration_base_commit']
+        git('fetch','--filter=blob:none','--depth=1','origin',before)
+        changed=git('diff','--name-only',before,head).decode().splitlines()
     runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/','metro2/audio/')) and not ignored(p) and '/parts/' not in p and '/identification_tz54_1/' not in p and not p.startswith('metro2/audio/tools/')]
     part_changes=[p[7:] for p in changed if p.startswith('metro2/assets/') and '/parts/' in p]
     runtime+=part_changes
@@ -159,6 +168,11 @@ def plan():
         found=set(owners.get(name,()))
         for key,root in roots.items():
             if root and name.startswith(root+'/'):found.add(key)
+        if not found and (name in POLICY.get('source_only_paths',[]) or
+                          any(name.startswith(prefix) for prefix in POLICY.get('optional_media_prefixes',[]))):
+            # These sources stay saved in Git. If a real module references them,
+            # owners above selects that consumer normally; only unowned files skip.
+            continue
         if not found:
             for prefix,key in POLICY['category_hints'].items():
                 if name.startswith(prefix):found.update(manifest['packs'] if key=='integration' else [key]);break

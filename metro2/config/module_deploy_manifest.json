@@ -87,5 +87,14 @@
   "boot_class_sources": [
     "audio/audio_system.gd",
     "audio/controllers/station_position_tracker.gd"
+  ],
+  "source_only_paths": [
+    "audio/data/recovery_source_statistics.json",
+    "audio/data/source_inventory_tz54.json",
+    "scripts/cab_v106_adapter.gd",
+    "scripts/first_playable_controller.gd"
+  ],
+  "optional_media_prefixes": [
+    "audio/resources/tz54/"
   ]
 }
