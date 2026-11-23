@@ -341,8 +341,7 @@ func _reset_train() -> void:
     arrival_announced = false
     announcer.announcer.stop_all()
     announcer.info.bind(announcer.announcer)
-    announcer.info.set_route_context("", "", "forward", "reset")
-    announcer.info.set_route_context("uruchye", "barysauski_trakt", "forward", "first_playable_01")
+    announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "reset_%d" % Time.get_ticks_msec())
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -398,8 +397,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _play_info_announcement() -> void:
     if announcer == null:
         return
-    var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
-    var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z >= STATION_STOP_Z - DOOR_STOP_TOLERANCE
     _update_info_train_state()
     var message: String = announcer.info.press_info()
     if status_label != null:
@@ -417,5 +414,7 @@ func _update_info_train_state() -> void:
     var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
     var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z > STATION_STOP_Z + DOOR_STOP_TOLERANCE and speed_mps > 0.05
     var open_requested: bool = bool(door_system.get("target_open"))
-    # target_open is a command, not a verified door-closed sensor.
-    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, open_requested, not open_requested)
+    var openness: float = float(door_system.get("openness"))
+    var doors_open: bool = open_requested or openness > 0.001
+    var doors_closed: bool = not open_requested and openness <= 0.001 and bool(door_system.get("validated"))
+    announcer.info.update_train_state(approaching, at_station and speed_mps <= 0.05, doors_open, doors_closed)
