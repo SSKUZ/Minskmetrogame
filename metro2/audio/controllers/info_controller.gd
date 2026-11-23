@@ -57,7 +57,7 @@ func set_mode(new_mode: String) -> void:
 func set_route_context(current_id: String, following_id: String, route_direction: String, unique_visit_id: String) -> void:
     if unique_visit_id == "":
         return
-    if visit_id != unique_visit_id or direction != route_direction:
+    if visit_id != unique_visit_id or direction != route_direction or station_id != current_id or next_station_id != following_id:
         _arrival_used = false
         _departure_used = false
         _service_used = false
@@ -82,12 +82,12 @@ func press_info() -> String:
         return _play_route(station_id, ARRIVAL, true)
     if stopped and doors_closed and not doors_open and not _departure_used:
         return _play_route(next_station_id, DEPARTURE, false)
-    if _departure_used and doors_closed and not _service_used and not stopped:
+    if _departure_used and doors_closed and not doors_open and not _service_used and not stopped:
         return _play_service()
     return _result("Сейчас нет доступного объявления")
 
 func on_auto_approach() -> void:
-    if mode == AUTO and approaching and not _arrival_used and not _busy:
+    if mode == AUTO and approaching and not stopped and not _arrival_used and not _busy:
         _play_route(station_id, ARRIVAL, true)
 
 func on_auto_departure() -> void:
