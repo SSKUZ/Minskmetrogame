@@ -88,25 +88,15 @@
       ]
     },
     "full_line": {
-      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
-      "pack_sha256": "9e9f54434f94f470099904a0b5a6d5b39767f33c9d0d427406eff5b38440cfba",
+      "source_commit": "215acf29be99c36fd5ee7b53b04ec664a5ace45e",
+      "pack_sha256": "59648a2ff4866d5ebf35e1a4980e0bc5a20bfa14ff576a0028d88dd994ede273",
       "category": "module",
       "scene": "modules/line/full_line.tscn",
       "dependencies": [
         "shared",
         "v106",
         "depot",
-        "uruchye",
-        "tunnel_16m",
-        "borisovsky_trakt",
-        "vostok",
-        "moskovskaya",
-        "park_chelyuskintsev",
-        "akademiya_nauk",
-        "yakuba_kolasa",
-        "ploshchad_pobedy",
-        "oktyabrskaya",
-        "ploshchad_lenina"
+        "tunnel_16m"
       ]
     },
     "v106": {
@@ -120,7 +110,7 @@
     }
   },
   "boot": {
-    "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
-    "file": "boot-e472934b0752fb0cd4a1.pck"
+    "source_commit": "215acf29be99c36fd5ee7b53b04ec664a5ace45e",
+    "file": "boot-b20bd4f7e2db708e26e9.pck"
   }
 }

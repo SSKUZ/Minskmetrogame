@@ -2426,6 +2426,7 @@
       "res://modules/line/portable_module.json",
       "res://modules/line/route_layout.json",
       "res://modules/line/station_connection_adapter.gd",
+      "res://modules/line/station_streamer.gd",
       "res://modules/passengers/v106_seats.json",
       "res://scripts/depot/mobile_inspection_ui.gd",
       "res://scripts/passengers/passenger_agent.gd",

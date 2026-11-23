@@ -54,17 +54,7 @@
       "shared",
       "v106",
       "depot",
-      "uruchye",
       "tunnel_16m",
-      "borisovsky_trakt",
-      "vostok",
-      "moskovskaya",
-      "park_chelyuskintsev",
-      "akademiya_nauk",
-      "yakuba_kolasa",
-      "ploshchad_pobedy",
-      "oktyabrskaya",
-      "ploshchad_lenina",
       "full_line"
     ]
   },
@@ -730,9 +720,9 @@
       ]
     },
     "full_line": {
-      "file": "full_line-9e9f54434f94f4700999.pck",
-      "sha256": "9e9f54434f94f470099904a0b5a6d5b39767f33c9d0d427406eff5b38440cfba",
-      "bytes": 37844608,
+      "file": "full_line-59648a2ff4866d5ebf35.pck",
+      "sha256": "59648a2ff4866d5ebf35e1a4980e0bc5a20bfa14ff576a0028d88dd994ede273",
+      "bytes": 44782880,
       "warmup": [
         "res://assets/passengers/textures/0033a27e6e9498d0.png",
         "res://assets/passengers/textures/0850a16e07b06dfc.jpg",
@@ -809,29 +799,34 @@
       ],
       "chunks": [
         {
-          "file": "full_line-part-2470354a66d1dc628a9d.bin",
+          "file": "full_line-part-62477de13a9c7d119e66.bin",
           "bytes": 8388608,
-          "sha256": "2470354a66d1dc628a9d1bb27f16f6ef3018a5c88382a9fcd2af84c7217a884f"
+          "sha256": "62477de13a9c7d119e663e89de460907830dc2c12c054460b48dbed7f170da4e"
         },
         {
-          "file": "full_line-part-baf02f95baf8aaf0145a.bin",
+          "file": "full_line-part-5d0fb54ad2bec504064d.bin",
           "bytes": 8388608,
-          "sha256": "baf02f95baf8aaf0145a865e6c4917163412323487c8fa298b032d9209cb0737"
+          "sha256": "5d0fb54ad2bec504064d942d365a26f910eac18ec8b6e59aafeebaf65263a77e"
         },
         {
-          "file": "full_line-part-9de73eb9011294ee2597.bin",
+          "file": "full_line-part-4ba3d910062589813fa6.bin",
           "bytes": 8388608,
-          "sha256": "9de73eb9011294ee259785f1e104e01e141a21e5afaa0d1cc7760de7c43929ff"
+          "sha256": "4ba3d910062589813fa6e10b6d5f2e29bca440dfca7e915e8e685f4251b934b9"
         },
         {
-          "file": "full_line-part-f8f720cef9f0e72aadb0.bin",
+          "file": "full_line-part-68626fbe05fd78396682.bin",
           "bytes": 8388608,
-          "sha256": "f8f720cef9f0e72aadb0645bc335507df394b4e003bf32c331c7bd081f7207ef"
+          "sha256": "68626fbe05fd7839668277ded838c7206448b9460f1ea9f998c5c8700441b2e6"
         },
         {
-          "file": "full_line-part-c0beb2bc69dd98b4a0f7.bin",
-          "bytes": 4290176,
-          "sha256": "c0beb2bc69dd98b4a0f71e7bee2308267d311674280e35012a078a5dc0b75927"
+          "file": "full_line-part-7522adec2fad1ff58e95.bin",
+          "bytes": 8388608,
+          "sha256": "7522adec2fad1ff58e9548865d04a29be410ac504a118138ab18bf8563c68339"
+        },
+        {
+          "file": "full_line-part-f2f28b00e8fb2efd7771.bin",
+          "bytes": 2839840,
+          "sha256": "f2f28b00e8fb2efd777128b0ed8928cfed6f8cecb3a166200a3b3b5310ace2bb"
         }
       ]
     }
