@@ -1,0 +1,41 @@
+name: Metro2 audio library — publish static page
+on:
+  push:
+    branches:
+      - feature/metro2-auto/integration/audio-library-tz54
+    paths:
+      - 'metro2/audio-library/**'
+      - '.github/workflows/metro2-audio-library-publish.yml'
+permissions:
+  contents: write
+concurrency:
+  group: metro2-audio-library-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Publish only audio library into existing gh-pages viewer folder
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s metro2/audio-library/index.html
+          git fetch origin gh-pages
+          git worktree add "$RUNNER_TEMP/metro2-pages" origin/gh-pages
+          cd "$RUNNER_TEMP/metro2-pages"
+          test -d metro2/module-viewer
+          mkdir -p metro2/module-viewer/audio-library
+          cp "$GITHUB_WORKSPACE/metro2/audio-library/index.html" metro2/module-viewer/audio-library/index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- metro2/module-viewer/audio-library/index.html
+          if git diff --cached --quiet; then
+            echo "Audio library already matches published content"
+            exit 0
+          fi
+          git commit -m "Publish TZ54 audio library static page"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
