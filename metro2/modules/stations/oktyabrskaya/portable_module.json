@@ -78,7 +78,7 @@
           }
         ],
         "glass_uv": "One [0,1] square per curved basket quadrant; eight by eight glass sections; retain UVs during mesh conversion.",
-        "station_names": "Custom heavy stamp-cut glyph outlines from owner photos, uniform 0.40m cap height, 0.065m physical extrusion; no horizontal condensing. Both language words reused at all ten wall occurrences."
+        "station_names": "Custom heavy stamp-cut glyphs; actual native TextMesh cap measurement normalized to 0.40m, 0.065m physical depth. Uniform XY scale preserves stroke/counter proportions in both languages."
       }
     },
     {
@@ -121,7 +121,10 @@
         "output": [
           "TextMesh",
           "closed vector contours"
-        ]
+        ],
+        "textmesh_font_size": 127,
+        "textmesh_pixel_size": 0.01,
+        "scale_method": "cap_height_m / actual TextMesh.get_aabb().size.y for glyph Н; depth axis remains 1"
       }
     }
   ],

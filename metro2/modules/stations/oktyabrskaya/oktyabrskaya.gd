@@ -130,21 +130,34 @@ func _name_letters(text: String,p: Vector3,yaw: float) -> void:
     if bronze_name_material==null:
         bronze_name_material=ShaderMaterial.new()
         bronze_name_material.shader=preload("res://modules/stations/oktyabrskaya/bronze_letters.gdshader")
+    if not lettering_meshes.has("__cap_probe"):
+        var cap_mesh := TextMesh.new()
+        cap_mesh.font=preload("res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf")
+        cap_mesh.text="Н"
+        cap_mesh.font_size=int(lettering_profile["textmesh_font_size"])
+        cap_mesh.pixel_size=float(lettering_profile["textmesh_pixel_size"])
+        lettering_meshes["__cap_probe"]=cap_mesh
     if not lettering_meshes.has(text):
         var generated_mesh := TextMesh.new()
         generated_mesh.font=preload("res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf")
-        generated_mesh.text=text;generated_mesh.font_size=1000;generated_mesh.pixel_size=0.001
+        generated_mesh.text=text
+        generated_mesh.font_size=int(lettering_profile["textmesh_font_size"])
+        generated_mesh.pixel_size=float(lettering_profile["textmesh_pixel_size"])
         generated_mesh.depth=float(lettering_profile["extrusion_depth_m"])
         generated_mesh.material=bronze_name_material
         lettering_meshes[text]=generated_mesh
     var mesh: TextMesh=lettering_meshes[text]
     var bounds: AABB=mesh.get_aabb()
-    # This font has a cap height of 1000 design units = one local metre at these settings.
-    # Use a uniform scale: broad strokes and round counters must never be condensed to a fixed word width.
+    var cap_probe: TextMesh=lettering_meshes["__cap_probe"]
+    var native_cap_height: float=maxf(cap_probe.get_aabb().size.y,0.00001)
+    # Godot 4.3 clamps TextMesh.font_size to 127. Normalize the actual cap mesh,
+    # including font metrics/pixel size, instead of assuming one local metre.
+    # The Н probe has no descender, so Ц keeps its proper tail below the common baseline.
     var cap_height: float=float(lettering_profile["cap_height_m"])
-    var basis := Basis(Vector3.UP,yaw)*Basis.from_scale(Vector3(cap_height,cap_height,1.0))
+    var scale_xy: float=cap_height/native_cap_height
+    var basis := Basis(Vector3.UP,yaw)*Basis.from_scale(Vector3(scale_xy,scale_xy,1.0))
     var cap_top: float=bounds.position.y+bounds.size.y
-    var centre := Vector3(bounds.position.x+bounds.size.x*0.5,cap_top-0.5,bounds.position.z)
+    var centre := Vector3(bounds.position.x+bounds.size.x*0.5,cap_top-native_cap_height*0.5,bounds.position.z)
     # Existing mounting datum is 29mm in front of the stone skin; put the back at a 12mm clearance.
     var normal := Basis(Vector3.UP,yaw).z
     var back_plane: Vector3=p+normal*(float(lettering_profile["wall_clearance_m"])-0.029)

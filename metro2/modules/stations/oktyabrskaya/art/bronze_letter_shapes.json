@@ -1178,5 +1178,7 @@
       ]
     }
   },
-  "notes": "Manually reconstructed broad bronze letter contours from owner reference photos; common straight baseline. Closed outer contours and counter contours preserved for future mesh export."
+  "notes": "Manually reconstructed broad bronze letter contours from owner reference photos. Runtime uniform XY scale uses the actual native TextMesh cap height of Н, not a presumed font-unit-to-metre conversion. Common straight baseline; unscaled 65mm depth.",
+  "textmesh_font_size": 127,
+  "textmesh_pixel_size": 0.01
 }
