@@ -27,8 +27,14 @@ func _prepare_imported_scenes() -> bool:
         for path in paths:
             if path.get_extension().to_lower() not in ["glb","gltf"]: continue
             var mapping := ConfigFile.new()
-            if mapping.load(path+".import")!=OK: continue
-            var artifact := str(mapping.get_value("remap","path",""))
+            var artifact := ""
+            if mapping.load(path+".import")==OK:
+                artifact=str(mapping.get_value("remap","path",""))
+            if artifact.is_empty():
+                # Legacy exported packs may retain only .glb.remap; source-copy
+                # staging removes that export mapping before the editor import.
+                # Match Godot 4.3 ResourceFormatImporter::get_import_base_path.
+                artifact="res://.godot/imported/"+path.get_file()+"-"+path.md5_text()+".scn"
             if not artifact.begins_with("res://.godot/imported/") or not artifact.ends_with(".scn"): continue
             reimporting[artifact]=true
             if FileAccess.file_exists(artifact):
