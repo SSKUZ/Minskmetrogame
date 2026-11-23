@@ -19,8 +19,9 @@ func _prepare_imported_scenes() -> bool:
     # Resource conversion only: never instantiate a scene or run gameplay.
     # Godot 4.3's compressed-texture loader accepts CompressedTexture2D, while
     # historical imported GLBs name their external images as generic Texture2D.
-    # Warm the exact exported image paths, then let ResourceSaver write concrete
-    # external resource types into the same imported PackedScene artifacts.
+    # Warm exported images to load the old scene safely, then normalize the
+    # external type table after saving. Texture2D.get_save_class() keeps returning
+    # the generic base class, so ResourceSaver alone does not fix the saved hint.
     var paths: Array[String] = []
     _walk("res://",paths)
     for path in paths:
@@ -40,7 +41,65 @@ func _prepare_imported_scenes() -> bool:
         var scene := ResourceLoader.load(path,"PackedScene") as PackedScene
         if scene==null: return _fail("Cannot prepare saved model scene "+path)
         if ResourceSaver.save(scene,path)!=OK: return _fail("Cannot retain corrected model resource types "+path)
+        if not _clear_compressed_texture_hints(path): return false
     return true
+
+func _clear_compressed_texture_hints(path: String) -> bool:
+    # ResourceSaver above writes an uncompressed RSRC binary (flags=0).
+    # Layout: Godot 4.3 core/io/resource_format_binary.cpp::ResourceLoaderBinary::open.
+    # Only clear the optional type hint of direct .ctex external resources.
+    # Keep the encoded string length and all offsets unchanged: geometry,
+    # materials, hierarchy, animation data and texture bytes are not rewritten.
+    var binary := FileAccess.open(path,FileAccess.READ_WRITE)
+    if binary==null: return _fail("Cannot open imported resource metadata "+path)
+    if binary.get_buffer(4).get_string_from_ascii()!="RSRC":
+        return _fail("Expected uncompressed Godot binary after native save: "+path)
+    var endian := binary.get_32()
+    binary.get_32() # Legacy real64 field.
+    var major := binary.get_32()
+    binary.get_32() # Minor version.
+    var format_version := binary.get_32()
+    if endian!=0 or major!=4 or format_version<4 or format_version>6:
+        return _fail("Unsupported imported resource metadata layout: "+path)
+    if _binary_string(binary)!="PackedScene":
+        return _fail("Expected imported PackedScene: "+path)
+    binary.get_64() # Import metadata offset.
+    var flags := binary.get_32()
+    binary.get_64() # Resource UID field is present even when UID flag is unset.
+    if (flags&8)!=0: _binary_string(binary) # Optional script class.
+    binary.seek(binary.get_position()+44) # Eleven reserved uint32 fields.
+    var string_count := binary.get_32()
+    for i in range(string_count): _binary_string(binary)
+    var external_count := binary.get_32()
+    var corrected := 0
+    for i in range(external_count):
+        var type_size := binary.get_32()
+        var type_position := binary.get_position()
+        var type_name := _binary_text(binary.get_buffer(type_size))
+        var dependency := _binary_string(binary)
+        if (flags&2)!=0: binary.get_64()
+        var resume := binary.get_position()
+        if type_name=="Texture2D" and dependency.ends_with(".ctex"):
+            binary.seek(type_position)
+            # get_unicode_string reads the stored byte count, then parses a
+            # NUL-terminated UTF-8 string. A zero-filled fixed-width slot is an
+            # empty optional hint; ResourceLoader infers CompressedTexture2D.
+            for byte in range(type_size): binary.store_8(0)
+            binary.seek(resume)
+            corrected+=1
+    binary.flush()
+    if binary.get_error()!=OK: return _fail("Cannot normalize imported texture hints: "+path)
+    binary.close()
+    if corrected>0: print("NORMALIZED_CTEX_HINTS ",path," count=",corrected)
+    return true
+
+func _binary_string(binary: FileAccess) -> String:
+    var length := binary.get_32()
+    return _binary_text(binary.get_buffer(length))
+
+func _binary_text(bytes: PackedByteArray) -> String:
+    var nul := bytes.find(0)
+    return bytes.slice(0,nul).get_string_from_utf8() if nul>=0 else bytes.get_string_from_utf8()
 
 func _unpack() -> void:
     if not ProjectSettings.load_resource_pack(str(control.pack),true):
