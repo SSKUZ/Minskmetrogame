@@ -153,6 +153,7 @@ func open_module(key: String) -> void:
         _menu.show()
         return
     await unload_module()
+    if key=="full_line": _pack_loader.retain_only_module_resources(key)
     await get_tree().process_frame
     var train_selection := key == "v106" or key.begins_with("car")
     if train_selection:
@@ -172,8 +173,10 @@ func open_module(key: String) -> void:
         busy = false
         return
     active_key = key
+    if key=="full_line": active_module.set("pack_loader",_pack_loader)
     add_child(active_module)
     if key=="full_line":
+        _pack_loader.release_module_resources(key)
         rig.enabled=false
         rig.clear_gestures()
         rig.camera.clear_current(false)

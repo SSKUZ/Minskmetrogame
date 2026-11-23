@@ -9,16 +9,27 @@ const DEPOT_WARNING := "line_doors_warning"
 func initialize(owner_game: Node3D, world: Node) -> void:
     _line=world
     super.initialize(owner_game,world)
+    if get_tree().node_added.is_connected(_on_node_added):
+        get_tree().node_added.disconnect(_on_node_added)
     if _button!=null: _button.position.y=145.0
     tracker.route_ids=_route.station_ids
     _refresh_markers()
 
-func _discover(node: Node) -> void:
-    # Register the actual station roots and STOP_Z markers; no absent modules.
-    if node==route_root and is_instance_valid(_line):
-        for s in _line.stations: _register_station(s.node,str(s.info_id))
-        return
-    super._discover(node)
+func _discover(_node: Node) -> void:
+    # Whole-line tracking never owns station nodes or temporary stop markers.
+    pass
+
+func _on_node_added(_node: Node) -> void:
+    pass
+
+func _refresh_markers() -> void:
+    if tracker!=null and is_instance_valid(_line):
+        tracker.configure(_line.path.info_points(),tracker.direction)
+
+func _has_loaded_stop(id: String) -> bool:
+    for record in _line.stations:
+        if str(record.info_id)==id: return _line.streamer.is_loaded(int(record.index))
+    return false
 
 func select_passenger_mode(enabled: bool) -> void:
     super.select_passenger_mode(enabled)

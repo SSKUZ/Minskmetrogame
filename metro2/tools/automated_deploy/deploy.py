@@ -205,7 +205,10 @@ def plan():
                 # ancestry. Reuse a published pack when all its actual sources match.
                 source_delta=git('diff','--name-only',previous['source_commit'],head,'--',*sorted('metro2/'+s for s in own))
                 if not source_delta.strip():continue
-            for requirement in manifest['modules'].get(key,[]):
+            # Streaming routes explicitly replace their former eager dependency
+            # list. Their station packs are build support and runtime requests.
+            inherited=[] if key in POLICY.get('streamed_module_dependencies',{}) else manifest['modules'].get(key,[])
+            for requirement in inherited:
                 if requirement!=key and requirement not in deps:deps.append(requirement)
             # Composed routes declare existing package dependencies. Preserve each
             # dependency's real transitive pack order from the live registry.

@@ -71,17 +71,7 @@
     "full_line": [
       "v106",
       "depot",
-      "uruchye",
-      "tunnel_16m",
-      "borisovsky_trakt",
-      "vostok",
-      "moskovskaya",
-      "park_chelyuskintsev",
-      "akademiya_nauk",
-      "yakuba_kolasa",
-      "ploshchad_pobedy",
-      "oktyabrskaya",
-      "ploshchad_lenina"
+      "tunnel_16m"
     ]
   },
   "boot_class_sources": [
@@ -100,6 +90,32 @@
   "build_support_dependencies": {
     "v106": [
       "uruchye"
+    ],
+    "full_line": [
+      "uruchye",
+      "borisovsky_trakt",
+      "vostok",
+      "moskovskaya",
+      "park_chelyuskintsev",
+      "akademiya_nauk",
+      "yakuba_kolasa",
+      "ploshchad_pobedy",
+      "oktyabrskaya",
+      "ploshchad_lenina"
+    ]
+  },
+  "streamed_module_dependencies": {
+    "full_line": [
+      "uruchye",
+      "borisovsky_trakt",
+      "vostok",
+      "moskovskaya",
+      "park_chelyuskintsev",
+      "akademiya_nauk",
+      "yakuba_kolasa",
+      "ploshchad_pobedy",
+      "oktyabrskaya",
+      "ploshchad_lenina"
     ]
   }
 }

@@ -35,7 +35,7 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
         for bogie in record.bogies:
             axles.append(float(bogie.z)-1.05)
             axles.append(float(bogie.z)+1.05)
-    _sound.bind(info_binding.audio,train,cab_runtime,line.stations[0].node,speakers,axles)
+    _sound.bind(info_binding.audio,train,cab_runtime,line.station_sound_origin,speakers,axles)
     for side in [-1,1]: _sound.register_door(str(side),train,0.0)
     _install_inspection_ui()
     _set_camera_mode("cabin")
@@ -73,19 +73,31 @@ func _physics_process(delta: float) -> void:
     if not service_ready: return
     if is_instance_valid(line.passengers):
         line.passengers.guard_doors(door_system)
+    var direction: int=int(cab_runtime.direction)
+    var limit: float=line.streamer.approach_limit(distance,direction,_train_bounds) if direction!=0 else INF
+    var before_move: float=distance
+    var loading_hold: bool=is_finite(limit) and absf(distance-limit)<=1.0
+    if is_finite(limit):
+        var remaining: float=absf(distance-limit)
+        # Loading interlock leaves the selected mode and cab input intact. It
+        # limits movement only while the protected approach lacks a station.
+        var safe_speed: float=sqrt(2.0*float(line.layout.streaming.braking_deceleration_mps2)*maxf(0.0,remaining-1.0))
+        speed=minf(speed,safe_speed)
     super._physics_process(delta)
+    if loading_hold or (is_finite(limit) and ((direction>0 and distance<limit) or (direction<0 and distance>limit))):
+        distance=before_move if loading_hold else limit
+        speed=0.0
+        train.position.z=distance
+        _update_camera()
     if distance>442.0:
         distance=442.0
         speed=0.0
         train.position.z=distance
-    var nearest: Dictionary={}
-    var separation := INF
-    for station in line.stations:
-        var d := absf(distance-float(station.stop_z))
-        if d<separation: separation=d;nearest=station
+    var nearest: Dictionary=line.path.nearest_station(distance)
     if not nearest.is_empty():
-        _station=nearest.node
+        _station=line.station_instance(int(nearest.index))
         _station_stop_z=float(nearest.stop_z)
+        line.station_sound_origin.global_position=Vector3(0.992,1.2,_station_stop_z)
     if is_instance_valid(line.passengers): line.passengers.update_service(nearest,speed,(speed-_last_speed)/maxf(delta,0.001))
     if is_instance_valid(_sound):
         _sound.update_motion(430.0-distance,speed,(speed-_last_speed)/maxf(delta,0.001),cab_runtime.traction_actual,cab_runtime.applied_brake,true)
@@ -132,6 +144,9 @@ func _place_consist() -> void:
             var z := (car.get_child(0) as Node3D).position.z+rest.origin.z
             var frame: Transform3D=line.path.frame_at(distance+z)
             car.global_transform=Transform3D(frame.basis,frame.origin+Vector3(0,0.22,0)-frame.basis*Vector3(0,0,z))
+
+func release_station(station: Node3D) -> void:
+    if _station==station: _station=null
 
 func platform_camera_available() -> bool:
     return is_instance_valid(_station) and absf(distance-_station_stop_z)<180.0

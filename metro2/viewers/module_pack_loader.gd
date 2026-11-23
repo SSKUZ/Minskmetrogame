@@ -7,7 +7,8 @@ var _textures: Dictionary = {}
 var _base_url := ""
 var error_message := ""
 
-func ensure_module(key: String) -> bool:
+func ensure_module(key: String, consumer: Node = null) -> bool:
+    var consumer_ref: WeakRef=weakref(consumer) if consumer!=null else null
     error_message = ""
     if not OS.has_feature("web"):
         return true
@@ -26,6 +27,7 @@ func ensure_module(key: String) -> bool:
             return _fail("Не удалось запросить список модулей")
         var response: Array = await request.request_completed
         request.queue_free()
+        if not _consumer_alive(consumer_ref): return false
         if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
             return _fail("Не удалось получить список модулей (HTTP %d, код %d)" % [int(response[1]), int(response[0])])
         var parsed = JSON.parse_string((response[3] as PackedByteArray).get_string_from_utf8())
@@ -36,14 +38,20 @@ func ensure_module(key: String) -> bool:
     if not _manifest.modules.has(id):
         return _fail("Модуль отсутствует в списке: " + id)
     for pack_id in _manifest.modules[id]:
+        if not _consumer_alive(consumer_ref):
+            release_module_resources(id)
+            return false
         if not _mounted.has(pack_id):
-            if not await _download_pack(str(pack_id), str(_manifest.names[id])):
+            if not await _download_pack(str(pack_id), str(_manifest.names[id]), consumer_ref):
                 return false
         # Godot 4.3 imported GLTF scenes can use a generic Texture2D hint for
         # compressed image dependencies. Resolve their real texture type first.
         var warmup: Array = _manifest.packs[pack_id].get("warmup", [])
         var prepared := 0
         for path in warmup:
+            if not _consumer_alive(consumer_ref):
+                release_module_resources(id)
+                return false
             prepared += 1
             if _textures.has(path): continue
             progress.emit("Текстуры «%s»: %d/%d…" % [str(_manifest.names[id]), prepared, warmup.size()])
@@ -55,7 +63,29 @@ func ensure_module(key: String) -> bool:
     await get_tree().process_frame
     return true
 
-func _download_pack(id: String, title: String) -> bool:
+func release_module_resources(key: String) -> void:
+    # Dropping our strong references does not free resources still owned by a
+    # train, station or another scene. Godot's Resource cache itself is weak.
+    if not _manifest.get("modules",{}).has(key): return
+    for id in _manifest.modules[key]:
+        for path in _manifest.packs[id].get("warmup",[]):
+            _textures.erase(path)
+
+func retain_only_module_resources(key: String) -> void:
+    var keep: Dictionary={}
+    if _manifest.get("modules",{}).has(key):
+        for id in _manifest.modules[key]:
+            for path in _manifest.packs[id].get("warmup",[]): keep[path]=true
+    for path in _textures.keys():
+        if not keep.has(path): _textures.erase(path)
+    _train_models.clear()
+
+func _consumer_alive(consumer: WeakRef) -> bool:
+    if consumer==null: return true
+    var node: Node=consumer.get_ref() as Node
+    return is_instance_valid(node) and node.is_inside_tree()
+
+func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool:
     var info: Dictionary = _manifest.packs[id]
     var target := "user://module-" + str(info.sha256) + ".pck"
     # A complete, verified local file may survive a browser session. Otherwise
@@ -75,7 +105,8 @@ func _download_pack(id: String, title: String) -> bool:
         var partial := "user://download-" + str(chunk.sha256) + ".part"
         var success := false
         for attempt in range(3):
-            if await _fetch_chunk(chunk, partial, title, completed_bytes, int(info.bytes), index+1, chunks.size(), attempt):
+            if not _consumer_alive(consumer): break
+            if await _fetch_chunk(chunk, partial, title, completed_bytes, int(info.bytes), index+1, chunks.size(), attempt, consumer):
                 success = true
                 break
             await get_tree().process_frame
@@ -102,7 +133,7 @@ func _download_pack(id: String, title: String) -> bool:
     _mounted[id] = true
     return true
 
-func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, total: int, part: int, parts: int, attempt: int) -> bool:
+func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, total: int, part: int, parts: int, attempt: int, consumer: WeakRef = null) -> bool:
     if FileAccess.file_exists(target) and FileAccess.get_sha256(target) == str(info.sha256): return true
     var request := HTTPRequest.new()
     request.accept_gzip=false
@@ -121,6 +152,11 @@ func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, 
     var last_bytes := -1
     var last_change := Time.get_ticks_msec()
     while completed.is_empty():
+        if not _consumer_alive(consumer):
+            request.cancel_request()
+            request.queue_free()
+            DirAccess.remove_absolute(target)
+            return false
         var received := request.get_downloaded_bytes()
         if received != last_bytes:
             last_bytes=received

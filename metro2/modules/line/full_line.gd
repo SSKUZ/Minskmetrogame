@@ -4,9 +4,13 @@ const PathData = preload("res://modules/line/line_path.gd")
 const LineTrain = preload("res://modules/line/line_train.gd")
 const LineTunnel = preload("res://modules/line/line_tunnel.gd")
 const Passengers = preload("res://modules/line/line_passengers.gd")
-const StationConnections = preload("res://modules/line/station_connection_adapter.gd")
+const Streamer = preload("res://modules/line/station_streamer.gd")
 const LAYOUT := "res://modules/line/route_layout.json"
 const INFO_ROUTE := "res://audio/data/route_stations.json"
+var pack_loader: Node
+var streamer: Streamer
+var station_sound_origin: Marker3D
+var _stream_status: Label
 var path = PathData.new()
 var train: Node3D
 var passengers: Node3D
@@ -23,41 +27,23 @@ func _ready() -> void:
     var depot := Catalog.create_module("depot")
     depot.name="OperatingDepot"
     add_child(depot)
-    var previous_exit := float(layout.first_station_root_z)
-    for i in range(layout.station_module_ids.size()):
-        var id: String=str(layout.station_module_ids[i])
-        var station := Catalog.create_module(id)
-        var entry := station.get_node("Connections/Entry") as Node3D
-        var exit := station.get_node("Connections/Exit") as Node3D
-        var root_z := float(layout.first_station_root_z) if i==0 else previous_exit-float(layout.tunnel_lengths_m[i-1])-entry.position.z
-        station.position.z=root_z
-        station.name="LineStation_"+id
-        # The source contains redundant approach rails for its standalone viewer.
-        # Confine those rails to the existing portal contract in this world only.
-        station.set("track_min_z",exit.position.z)
-        station.set("track_max_z",entry.position.z)
-        add_child(station)
-        var stop_z := _stop_datum(station)
-        if not is_finite(stop_z):
-            push_error("TZ55: missing existing STOP_Z for "+id)
-            return
-        var record := {"module_id":id,"info_id":str(info.station_ids[i]),"node":station,"index":i,
-            "root_z":root_z,"stop_z":root_z+stop_z,"high":root_z+entry.position.z,"low":root_z+exit.position.z}
-        var throat: Dictionary=StationConnections.open_connections(station)
-        if not throat.is_empty():
-            record.low=root_z+float(throat.low)
-            record.high=root_z+float(throat.high)
-            record.low_profile=throat.low_profile
-            record.high_profile=throat.high_profile
-        stations.append(record)
-        if i>0:
-            path.spans.append({"high":float(stations[i-1].low),"low":float(record.high),"bend_m":float(layout.tunnel_bends_m[i-1]),
-                "high_profile":stations[i-1].get("low_profile",Vector2(3.15,7.0)),"low_profile":record.get("high_profile",Vector2(3.15,7.0))})
-        previous_exit=float(record.low)
-        await get_tree().process_frame
-    path.stations=stations
-    path.lower_z=float(stations[-1].low)-160.0
-    path.spans.push_front({"high":96.0,"low":float(stations[0].high),"bend_m":0.0})
+    if not path.configure_route(layout,info): return
+    stations=path.stations
+    station_sound_origin=Marker3D.new()
+    station_sound_origin.name="PersistentStationAudioOrigin"
+    add_child(station_sound_origin)
+    var layer := CanvasLayer.new()
+    add_child(layer)
+    _stream_status=Label.new()
+    _stream_status.position=Vector2(16,265)
+    layer.add_child(_stream_status)
+    streamer=Streamer.new()
+    streamer.name="StationStreamingService"
+    streamer.station_loaded.connect(_station_loaded)
+    streamer.station_unloading.connect(_station_unloading)
+    streamer.loading_changed.connect(func(message: String): _stream_status.text=message)
+    add_child(streamer)
+    streamer.configure(self,pack_loader)
     train=LineTrain.new()
     train.name="OperatingV106Consist"
     train.line=self
@@ -71,30 +57,36 @@ func _ready() -> void:
         tunnel.configure(train.train,train._train_bounds,train.camera)
         if float(track_x)>0.0: train.bind_tunnel(tunnel)
 
-func _stop_datum(station: Node3D) -> float:
-    var script: Script=station.get_script()
-    while script!=null:
-        var constants: Dictionary=script.get_script_constant_map()
-        if constants.has("STOP_Z"): return float(constants.STOP_Z)
-        script=script.get_base_script()
-    return NAN
+func station_instance(index: int) -> Node3D:
+    return streamer.station(index) if is_instance_valid(streamer) else null
 
-func _consist_ready() -> void:
-    passengers=Passengers.new()
-    passengers.name="WholeLinePassengerService"
-    add_child(passengers)
-    await passengers.initialize_line(self,train)
+func _station_loaded(index: int, station: Node3D) -> void:
+    if is_instance_valid(passengers): passengers.add_platform(stations[index],station)
+    _start_service_if_ready()
+
+func _station_unloading(index: int, station: Node3D) -> void:
+    if is_instance_valid(passengers): passengers.remove_platform(index)
+    if is_instance_valid(train): train.release_station(station)
+
+func _start_service_if_ready() -> void:
+    if ready_for_service or not is_instance_valid(passengers) or not streamer.is_loaded(0): return
     ready_for_service=true
     train.service_ready=true
     train.camera.make_current()
 
+func _consist_ready() -> void:
+    # consist_ready is emitted before the inherited train attaches its INFO binding.
+    await get_tree().process_frame
+    passengers=Passengers.new()
+    passengers.name="WholeLinePassengerService"
+    add_child(passengers)
+    passengers.initialize_line(self,train)
+    for index in streamer.instances:
+        passengers.add_platform(stations[int(index)],streamer.station(int(index)))
+    _start_service_if_ready()
+
 func _process(_delta: float) -> void:
     if not is_instance_valid(train): return
-    var z: float=train.distance
-    for s in stations:
-        var visible_now: bool=absf(z-float(s.stop_z))<340.0 or absf(train.camera.global_position.z-float(s.stop_z))<340.0
-        s.node.visible=visible_now
-        s.node.process_mode=Node.PROCESS_MODE_INHERIT if visible_now else Node.PROCESS_MODE_DISABLED
     var outside := smoothstep(75.0,170.0,train.camera.global_position.z)
     _sun.light_energy=lerpf(0.0,1.05,outside)
     _environment.ambient_light_energy=lerpf(0.12,0.65,outside)
