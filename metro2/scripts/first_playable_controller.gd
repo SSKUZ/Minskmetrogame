@@ -74,7 +74,8 @@ func _ready() -> void:
     announcer.name = "MetroAudioSystem"
     add_child(announcer)
     announcer.load_catalog("res://audio/data/audio_catalog.json")
-    announcer.announcer.set_speakers([train])
+    var info_speakers: Array[Node3D] = [train]
+    announcer.announcer.set_speakers(info_speakers)
     announcer.info.set_mode("manual")
     # Route IDs must come from verified route triggers, not a guessed preview mapping.
     announcer.info.set_route_context("", "", "forward", "first_playable_01")
