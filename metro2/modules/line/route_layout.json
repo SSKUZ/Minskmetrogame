@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "units": "metres",
   "axis": "forward decreases world Z",
   "layout_basis": "Existing depot ramp and Station Base connection/STOP_Z datums. Interstation spans are authored simulation distances, not surveyed Minsk track geometry.",
@@ -60,5 +60,268 @@
     "uruchye": "96cfe7201462db515213287375f921afbbf3e59c",
     "v106_info": "96cfe7201462db515213287375f921afbbf3e59c",
     "passenger_assets": "5c205137999c5b8359e1234fa8f26d89554e9464"
+  },
+  "streaming": {
+    "retain_neighbours": 1,
+    "prefetch_min_m": 400,
+    "load_estimate_seconds": 20,
+    "load_margin_seconds": 12,
+    "braking_deceleration_mps2": 0.65,
+    "approach_guard_m": 60,
+    "camera_radius_m": 340,
+    "refresh_seconds": 0.25,
+    "retry_seconds": 15
+  },
+  "station_datums": {
+    "uruchye": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -19.888
+      ],
+      "low_local_z": -19.888,
+      "high_local_z": 92.112,
+      "low_profile": [
+        3.15,
+        7
+      ],
+      "high_profile": [
+        3.15,
+        7
+      ],
+      "source_commit": "96cfe7201462db515213287375f921afbbf3e59c",
+      "derivation": "Connections/Entry and Connections/Exit; scripts/station_base_static.gd STOP_Z"
+    },
+    "borisovsky_trakt": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -12.888,
+      "high_local_z": 92.112,
+      "low_profile": [
+        3.15,
+        7
+      ],
+      "high_profile": [
+        3.15,
+        7
+      ],
+      "source_commit": "eac2331ae930b760c4d9931f58da9b45610f6078",
+      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z"
+    },
+    "vostok": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -12.888,
+      "high_local_z": 92.112,
+      "low_profile": [
+        3.15,
+        7
+      ],
+      "high_profile": [
+        3.15,
+        7
+      ],
+      "source_commit": "dee1f12841cc6d221cd470b522ffac9711745a22",
+      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z"
+    },
+    "moskovskaya": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -20.888,
+      "high_local_z": 100.112,
+      "low_profile": [
+        1.925,
+        4.455
+      ],
+      "high_profile": [
+        1.925,
+        4.455
+      ],
+      "source_commit": "886cbbc0f6fbf1a0798bbebe25e4eb06f221d74e",
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=3.85 top=2.13+4.65/2"
+    },
+    "park_chelyuskintsev": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -20.9,
+      "high_local_z": 100.124,
+      "low_profile": [
+        1.925,
+        4.01
+      ],
+      "high_profile": [
+        1.925,
+        4.01
+      ],
+      "source_commit": "bdf45142d8edc396df6c09a6604b18e0cb663f5d",
+      "derivation": "NORTH/SOUTH +/- _tunnel_lining length=18.1; cap width=3.85 top=1.96+4.10/2"
+    },
+    "akademiya_nauk": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -20.888,
+      "high_local_z": 100.112,
+      "low_profile": [
+        2.02,
+        5
+      ],
+      "high_profile": [
+        2.02,
+        5
+      ],
+      "source_commit": "bd3cdc47ba8d5e173fdaa1af02369fab00730ec0",
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details far; cap width=4.04 top=2.275+5.45/2"
+    },
+    "yakuba_kolasa": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -20.888,
+      "high_local_z": 100.112,
+      "low_profile": [
+        2.02,
+        5
+      ],
+      "high_profile": [
+        2.02,
+        5
+      ],
+      "source_commit": "be32933767459d31fc1daa1a7a93bcf5714e58a7",
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=4.04 top=2.275+5.45/2"
+    },
+    "ploshchad_pobedy": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -10.997,
+      "high_local_z": 90.221,
+      "low_profile": [
+        1.925,
+        4.455
+      ],
+      "high_profile": [
+        1.925,
+        4.455
+      ],
+      "source_commit": "2e38db3b8d40eb84b11d864edf751667190163cf",
+      "derivation": "_portal_z: STOP_Z + lighting driver_eye_offset, reflected around MID; +/- mirror_ahead+mouth_clearance+8; cap width=3.85 top=2.13+4.65/2"
+    },
+    "oktyabrskaya": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -12.976,
+      "high_local_z": 92.2,
+      "low_profile": [
+        1.925,
+        4.455
+      ],
+      "high_profile": [
+        1.925,
+        4.455
+      ],
+      "source_commit": "e05e29b0cd5ae63aeb69b330d1a83696bb4bb43f",
+      "derivation": "NORTH=ZA+ZB-SOUTH, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2"
+    },
+    "ploshchad_lenina": {
+      "stop_local_z": 9.603,
+      "entry_local": [
+        0.992,
+        0,
+        92.112
+      ],
+      "exit_local": [
+        0.992,
+        0,
+        -12.888
+      ],
+      "low_local_z": -12.976,
+      "high_local_z": 92.2,
+      "low_profile": [
+        1.925,
+        4.455
+      ],
+      "high_profile": [
+        1.925,
+        4.455
+      ],
+      "source_commit": "fab8b9299170e063365f0f95473e8c852622ba67",
+      "derivation": "NORTH=-4.976, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2"
+    }
   }
 }

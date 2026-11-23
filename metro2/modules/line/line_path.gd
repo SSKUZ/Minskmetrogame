@@ -8,6 +8,51 @@ var lower_z := -10000.0
 const DEPOT_STOP := 430.0
 const TRACK_2_X := -11.732
 
+func configure_route(layout: Dictionary, info: Dictionary) -> bool:
+    # Only scalar/Vector data survives station eviction. No PackedScene or Node.
+    stations.clear()
+    spans.clear()
+    var previous_exit: float=float(layout.first_station_root_z)
+    for i in range(layout.station_module_ids.size()):
+        var id: String=str(layout.station_module_ids[i])
+        var datum: Dictionary=layout.station_datums.get(id,{})
+        if datum.is_empty():
+            push_error("Streaming: missing saved route datum for "+id)
+            return false
+        var root_z: float=float(layout.first_station_root_z) if i==0 else previous_exit-float(layout.tunnel_lengths_m[i-1])-float(datum.entry_local[2])
+        var record: Dictionary={"module_id":id,"info_id":str(info.station_ids[i]),"index":i,
+            "root_z":root_z,"stop_z":root_z+float(datum.stop_local_z),
+            "low":root_z+float(datum.low_local_z),"high":root_z+float(datum.high_local_z),
+            "entry_local_z":float(datum.entry_local[2]),"exit_local_z":float(datum.exit_local[2]),
+            "low_profile":Vector2(float(datum.low_profile[0]),float(datum.low_profile[1])),
+            "high_profile":Vector2(float(datum.high_profile[0]),float(datum.high_profile[1]))}
+        stations.append(record)
+        if i>0:
+            spans.append({"high":float(stations[i-1].low),"low":float(record.high),
+                "bend_m":float(layout.tunnel_bends_m[i-1]),"high_profile":stations[i-1].low_profile,
+                "low_profile":record.high_profile})
+        previous_exit=float(record.low)
+    if stations.is_empty(): return false
+    lower_z=float(stations[-1].low)-160.0
+    spans.push_front({"high":Depot.PORTAL_Z,"low":float(stations[0].high),"bend_m":0.0})
+    return true
+
+func nearest_station(z: float) -> Dictionary:
+    var nearest: Dictionary={}
+    var separation: float=INF
+    for station in stations:
+        var d: float=absf(z-float(station.stop_z))
+        if d<separation:
+            nearest=station
+            separation=d
+    return nearest
+
+func info_points() -> Array[Dictionary]:
+    var points: Array[Dictionary]=[]
+    for station in stations:
+        points.append({"id":str(station.info_id),"position":Vector3(0.992,0.22,float(station.stop_z)),"side":-1})
+    return points
+
 func position_at(z: float, track_x: float = Depot.CENTER_X) -> Vector3:
     return Vector3(track_x + lateral(z), Depot.height(z), z)
 
