@@ -50,6 +50,8 @@ var platform_view_available := false
 var platform_button: Button
 var info_button: Button
 var info_mode_button: Button
+var passenger_mode_button: Button
+var passenger_mode: bool = false
 var _info_was_approaching: bool = false
 var _info_was_ready_to_depart: bool = false
 var cab_adapter: Node3D
@@ -162,7 +164,11 @@ func _physics_process(delta: float) -> void:
     var acceleration: float = -COAST_MPS2
     if braking:
         acceleration = -BRAKE_MPS2
-    elif throttle and door_system != null and bool(door_system.call("can_move")):
+    elif passenger_mode and door_system != null and bool(door_system.call("can_move")):
+        var remaining: float = maxf(0.0, train.position.z - STATION_STOP_Z)
+        var safe_braking_distance: float = speed_mps * speed_mps / (2.0 * BRAKE_MPS2)
+        acceleration = -BRAKE_MPS2 if remaining <= safe_braking_distance + 3.0 else ACCEL_MPS2
+    elif not passenger_mode and throttle and door_system != null and bool(door_system.call("can_move")):
         acceleration = ACCEL_MPS2
     var dt: float = clampf(delta, 0.0, MAX_PHYSICS_DELTA)
     if dt <= 0.0:
@@ -294,7 +300,7 @@ func _make_controls() -> void:
     canvas.add_child(row)
 
     var accelerate := _button("РАЗГОН", row)
-    accelerate.button_down.connect(func() -> void: throttle = true)
+    accelerate.button_down.connect(func() -> void: throttle = not passenger_mode)
     accelerate.button_up.connect(func() -> void: throttle = false)
     accelerate.focus_exited.connect(func() -> void: throttle = false)
 
@@ -307,6 +313,7 @@ func _make_controls() -> void:
     view.pressed.connect(func() -> void:
         camera_mode = 2 if camera_mode == 1 else 1
         _update_camera()
+        _sync_play_mode_controls()
     )
 
     door_button = _button("▮▮ ДВЕРИ", row)
@@ -320,6 +327,10 @@ func _make_controls() -> void:
     info_button.pressed.connect(_play_info_announcement)
     info_mode_button = _button("INFO: РУЧН.", row)
     info_mode_button.pressed.connect(_toggle_info_mode)
+    info_mode_button.visible = false
+    passenger_mode_button = _button("РЕЖИМ ПАССАЖИРА", row)
+    passenger_mode_button.pressed.connect(_select_passenger_mode)
+    _sync_play_mode_controls()
     platform_button = _button("ПЛАТФОРМА", row)
     platform_button.visible = false
     platform_button.pressed.connect(func() -> void:
@@ -342,6 +353,7 @@ func _button(caption: String, parent: HBoxContainer) -> Button:
 func _reset_train() -> void:
     throttle = false
     braking = false
+    passenger_mode = false
     speed_mps = 0.0
     arrival_announced = false
     announcer.announcer.stop_all()
@@ -357,6 +369,8 @@ func _reset_train() -> void:
     cab_pitch = 0.0
     cab_zoom = 75.0
     camera_mode = 1
+    announcer.info.set_mode(MetroInfoController.MANUAL)
+    _sync_play_mode_controls()
     touch_points.clear()
     camera_drag_index = -1
     mouse_dragging = false
@@ -436,7 +450,7 @@ func _update_info_train_state() -> void:
     _info_was_ready_to_depart = departure_ready
 
 func _toggle_info_mode() -> void:
-    if announcer == null or announcer.info == null:
+    if not passenger_mode or announcer == null or announcer.info == null:
         return
     var next_mode: String = MetroInfoController.AUTO if announcer.info.mode == MetroInfoController.MANUAL else MetroInfoController.MANUAL
     announcer.info.set_mode(next_mode)
@@ -445,3 +459,25 @@ func _toggle_info_mode() -> void:
     # Re-arm state edges only; announcement-per-visit guards stay intact.
     _info_was_approaching = false
     _info_was_ready_to_depart = false
+
+func _select_passenger_mode() -> void:
+    # The camera switch alone never transfers train authority.
+    if camera_mode == 1 or passenger_mode or announcer == null:
+        return
+    passenger_mode = true
+    throttle = false
+    braking = false
+    announcer.info.set_mode(MetroInfoController.AUTO)
+    _info_was_approaching = false
+    _info_was_ready_to_depart = false
+    _sync_play_mode_controls()
+
+func _sync_play_mode_controls() -> void:
+    if passenger_mode_button != null:
+        passenger_mode_button.visible = camera_mode != 1 and not passenger_mode
+    if info_mode_button != null:
+        info_mode_button.visible = passenger_mode and camera_mode != 1
+    if info_button != null:
+        info_button.visible = not passenger_mode
+    if not passenger_mode and announcer != null and announcer.info != null:
+        announcer.info.set_mode(MetroInfoController.MANUAL)
