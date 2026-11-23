@@ -46,6 +46,9 @@
     ],
     "institut_kultury": [
       "institut_kultury"
+    ],
+    "grushevka": [
+      "grushevka"
     ]
   },
   "names": {
@@ -62,7 +65,8 @@
     "ploshchad_pobedy": "Площадь Победы",
     "oktyabrskaya": "Октябрьская",
     "ploshchad_lenina": "Площадь Ленина",
-    "institut_kultury": "Институт культуры"
+    "institut_kultury": "Институт культуры",
+    "grushevka": "Грушевка"
   },
   "packs": {
     "depot": {
@@ -562,6 +566,27 @@
         "res://modules/stations/institut_kultury/art/vestibule_marble.jpg",
         "res://modules/stations/institut_kultury/art/wall_granite.jpg",
         "res://modules/stations/institut_kultury/art/wall_route.svg"
+      ]
+    },
+    "grushevka": {
+      "file": "grushevka-3b4d6649e5ed333f6e5c.pck",
+      "sha256": "3b4d6649e5ed333f6e5c864936bb8d98695065caaaac77a1e437f564f5d40a3e",
+      "bytes": 1954912,
+      "warmup": [
+        "res://modules/stations/grushevka/art/advert.jpg",
+        "res://modules/stations/grushevka/art/exit.svg",
+        "res://modules/stations/grushevka/art/floor_dark.jpg",
+        "res://modules/stations/grushevka/art/floor_light.jpg",
+        "res://modules/stations/grushevka/art/marble.jpg",
+        "res://modules/stations/grushevka/art/nameplate.jpg",
+        "res://modules/stations/grushevka/art/no_smoking.svg",
+        "res://modules/stations/grushevka/art/plinth_green.jpg",
+        "res://modules/stations/grushevka/art/seat_wood.jpg",
+        "res://modules/stations/grushevka/art/service_door.svg",
+        "res://modules/stations/grushevka/art/service_stone.jpg",
+        "res://modules/stations/grushevka/art/sos.svg",
+        "res://modules/stations/grushevka/art/stair_granite.jpg",
+        "res://modules/stations/grushevka/art/wall_route.svg"
       ]
     }
   },

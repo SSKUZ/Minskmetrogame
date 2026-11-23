@@ -70,10 +70,17 @@
       "category": "station",
       "scene": "modules/stations/institut_kultury/institut_kultury.tscn",
       "dependencies": []
+    },
+    "grushevka": {
+      "source_commit": "e2d39ba4ec791517d24a1c8bcf38bc508bcccf23",
+      "pack_sha256": "3b4d6649e5ed333f6e5c864936bb8d98695065caaaac77a1e437f564f5d40a3e",
+      "category": "station",
+      "scene": "modules/stations/grushevka/grushevka.tscn",
+      "dependencies": []
     }
   },
   "boot": {
-    "source_commit": "a1a9096a2207de36366db6c446a128b1c4cb53e4",
-    "file": "boot-3f5cd0c85215a14320a9.pck"
+    "source_commit": "e2d39ba4ec791517d24a1c8bcf38bc508bcccf23",
+    "file": "boot-dd543b2be6892a739c50.pck"
   }
 }
