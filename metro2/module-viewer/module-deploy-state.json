@@ -42,6 +42,13 @@
       "category": "station",
       "scene": "modules/stations/yakuba_kolasa/yakuba_kolasa.tscn",
       "dependencies": []
+    },
+    "ploshchad_pobedy": {
+      "source_commit": "43c3f4832d584f5302096e2b2ccf12e3cd122e49",
+      "pack_sha256": "c234e65f042eec99879112eba7b4291110afd7fadf70710d0fb8f405cbe1b189",
+      "category": "station",
+      "scene": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
+      "dependencies": []
     }
   }
 }
