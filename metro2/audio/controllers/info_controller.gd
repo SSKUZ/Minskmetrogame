@@ -20,6 +20,7 @@ var approaching: bool = false
 var stopped: bool = false
 var doors_open: bool = false
 var doors_closed: bool = true
+var _doors_opened_this_visit: bool = false
 var _arrival_used: bool = false
 var _departure_used: bool = false
 var _service_used: bool = false
@@ -61,6 +62,7 @@ func set_route_context(current_id: String, following_id: String, route_direction
         _arrival_used = false
         _departure_used = false
         _service_used = false
+        _doors_opened_this_visit = false
     station_id = current_id
     next_station_id = following_id
     direction = route_direction
@@ -71,6 +73,8 @@ func update_train_state(is_approaching: bool, is_stopped: bool, are_doors_open: 
     stopped = is_stopped
     doors_open = are_doors_open
     doors_closed = are_doors_closed
+    if stopped and are_doors_open:
+        _doors_opened_this_visit = true
 
 func press_info() -> String:
     # Both physical and touch buttons MUST call this same method.
@@ -80,7 +84,7 @@ func press_info() -> String:
         return _result("Дождитесь окончания объявления")
     if approaching and not stopped and not _arrival_used:
         return _play_route(station_id, ARRIVAL, true)
-    if stopped and doors_closed and not doors_open and not _departure_used:
+    if stopped and doors_closed and not doors_open and _doors_opened_this_visit and not _departure_used:
         return _play_route(next_station_id, DEPARTURE, false)
     if _departure_used and doors_closed and not doors_open and not _service_used and not stopped:
         return _play_service()
@@ -91,7 +95,7 @@ func on_auto_approach() -> void:
         _play_route(station_id, ARRIVAL, true)
 
 func on_auto_departure() -> void:
-    if mode == AUTO and stopped and doors_closed and not doors_open and not _departure_used and not _busy:
+    if mode == AUTO and stopped and doors_closed and not doors_open and _doors_opened_this_visit and not _departure_used and not _busy:
         _play_route(next_station_id, DEPARTURE, false)
 
 func _play_route(id: String, phase: String, is_arrival: bool) -> String:
