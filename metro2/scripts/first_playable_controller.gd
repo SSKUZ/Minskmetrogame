@@ -54,6 +54,7 @@ var passenger_mode_button: Button
 var passenger_mode: bool = false
 var _info_was_approaching: bool = false
 var _info_was_ready_to_depart: bool = false
+var _info_doors_opened_at_stop: bool = false
 var cab_adapter: Node3D
 var door_button: Button
 var announcer: MetroAudioSystem
@@ -362,6 +363,7 @@ func _reset_train() -> void:
     announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "reset_%d" % Time.get_ticks_msec())
     _info_was_approaching = false
     _info_was_ready_to_depart = false
+    _info_doors_opened_at_stop = false
     door_system.call("request_close")
     train.position = initial_train_position
     train.rotation = initial_train_rotation
@@ -441,7 +443,11 @@ func _update_info_train_state() -> void:
     var doors_closed: bool = not open_requested and openness <= 0.001 and bool(door_system.get("validated"))
     var stopped: bool = at_station and speed_mps <= 0.05
     announcer.info.update_train_state(approaching, stopped, doors_open, doors_closed)
-    var departure_ready: bool = stopped and doors_closed
+    # Never announce departure merely because a newly loaded train is standing with closed doors.
+    # Require a real open-then-close door cycle at the station.
+    if stopped and doors_open:
+        _info_doors_opened_at_stop = true
+    var departure_ready: bool = stopped and doors_closed and _info_doors_opened_at_stop
     if announcer.info.mode == MetroInfoController.AUTO:
         if approaching and not _info_was_approaching:
             announcer.info.on_auto_approach()
@@ -449,6 +455,8 @@ func _update_info_train_state() -> void:
             announcer.info.on_auto_departure()
     _info_was_approaching = approaching
     _info_was_ready_to_depart = departure_ready
+    if not stopped and speed_mps > 0.05:
+        _info_doors_opened_at_stop = false
 
 func _toggle_info_mode() -> void:
     if not passenger_mode or announcer == null or announcer.info == null:
