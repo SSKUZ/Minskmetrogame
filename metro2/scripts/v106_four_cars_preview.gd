@@ -42,6 +42,7 @@ var _car_centers: Array[Vector3] = []
 var cab_runtime: Node3D
 var door_system: Node
 var _ui_layer: CanvasLayer
+var info_binding: Node
 var _bogie_visuals = BOGIE_VISUALS.new()
 
 func _ready() -> void:
@@ -161,6 +162,10 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     lead.add_child(cab_runtime)
     cab_runtime.call("initialize",self,lead,door_system)
     cab_runtime.call("make_screen_controls",_ui_layer)
+    info_binding = preload("res://audio/controllers/route_info_binding.gd").new()
+    info_binding.name = "RouteInfoBinding"
+    add_child(info_binding)
+    info_binding.call("initialize", self, _info_route_root())
     var lighting := preload("res://scripts/train_interior_v36.gd").new()
     lighting.name = "TrainInteriorLighting"
     add_child(lighting)
@@ -168,6 +173,9 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     _decorate_consist()
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
+
+func _info_route_root() -> Node:
+    return self
 
 func _report_saloon_artwork_v46() -> void:
     # Temporary visual diagnostic: distinguish missing artwork from hidden geometry.

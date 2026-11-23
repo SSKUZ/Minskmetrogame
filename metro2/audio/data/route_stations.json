@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "segment": "Уручье — Площадь Ленина",
-  "note": "Station sequence only. No recording assignments are asserted. Minsk metro line 1; Plošča Lienina is an in-game segment boundary, not the line terminus.",
+  "note": "Stop coordinates come from instantiated station module transforms and the existing Station Base train-root stop datum (STOP_Z). This registry does not invent world placement for modules absent from a route scene. Plošča Lienina is a game-segment boundary, not the line terminus.",
   "station_ids": [
     "uruchye",
     "barysauski_trakt",
@@ -22,5 +22,29 @@
     "next_station",
     "arrival"
   ],
-  "recording_map_status": "unverified"
+  "recording_map_status": "Explicit station-and-phase mapping to original recordings; direction-neutral clips shared between directions. Human listening verification outstanding.",
+  "module_ids": {
+    "uruchye": "uruchye",
+    "barysauski_trakt": "borisovsky_trakt",
+    "uskhod": "vostok",
+    "maskouskaya": "moskovskaya",
+    "park_chalyuskintsau": "park_chelyuskintsev",
+    "akademiya_navuk": "akademiya_nauk",
+    "ploshcha_yakuba_kolasa": "yakuba_kolasa",
+    "ploshcha_peramohi": "ploshchad_pobedy",
+    "kastrychnitskaya": "oktyabrskaya",
+    "ploshcha_lenina": "ploshchad_lenina"
+  },
+  "station_names": {
+    "uruchye": "Уручча",
+    "barysauski_trakt": "Барысаўскі тракт",
+    "uskhod": "Усход",
+    "maskouskaya": "Маскоўская",
+    "park_chalyuskintsau": "Парк Чалюскінцаў",
+    "akademiya_navuk": "Акадэмія навук",
+    "ploshcha_yakuba_kolasa": "Плошча Якуба Коласа",
+    "ploshcha_peramohi": "Плошча Перамогі",
+    "kastrychnitskaya": "Кастрычніцкая",
+    "ploshcha_lenina": "Плошча Леніна"
+  }
 }

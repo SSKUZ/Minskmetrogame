@@ -37,9 +37,14 @@ func bind_tunnel(tunnel: Node3D) -> void:
     _configure_tunnel()
 
 func passenger_information() -> Dictionary:
+    if is_instance_valid(info_binding):
+        return info_binding.call("passenger_information")
     if route_information.is_valid():
         return route_information.call()
     return {"current_station":"", "next_station":"", "at_station":false}
+
+func _info_route_root() -> Node:
+    return get_parent()
 
 func _place_consist() -> void:
     preload("res://scripts/depot/v106_route_placement.gd").place(self,_pose_cache,_rest_poses)

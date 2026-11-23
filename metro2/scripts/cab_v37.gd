@@ -481,6 +481,20 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
 
 func command(id: String, value: float = 0.0, phase: String = "press") -> void:
     var release := phase == "release"
+    var binding: Node = game.get("info_binding")
+    if id == "info":
+        if not release:
+            notice = str(binding.call("press_info")) if is_instance_valid(binding) else "INFO: контроллер маршрута не подключён"
+        return
+    if id == "mode" and is_instance_valid(binding):
+        if not release:
+            notice = "Выбор автоматики: кнопка РЕЖИМ ПАССАЖИРА"
+        return
+    if is_instance_valid(binding) and bool(binding.get("passenger_mode")) and not bool(binding.get("applying_auto_input")):
+        if id in ["master", "tractionUp", "tractionDown", "brake", "brake1", "brake2", "release", "service", "open", "openLeft", "openRight", "close", "reverse", "mode", "reserve"]:
+            if not release:
+                notice = "Управление поездом: режим пассажира"
+            return
     if _source_enabled.has(id) and not bool(_source_enabled[id]):
         if not release: notice = CONTROL_TITLES[id]+" · система не моделируется"
         return
@@ -548,21 +562,6 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
         "sandRight": sand_right = not release
         "volume":
             if not release: volume = 0.0 if volume >= 0.99 else minf(1.0,volume+0.25)
-        "info":
-            if not release:
-                if _radio.playing:
-                    notice = "INFO: объявление уже звучит"
-                elif bool(doors.get("target_open")):
-                    _radio.stream = load("res://assets/cab_r21/malinovka_departure_petrovshchina.mp3")
-                    _radio.play()
-                    notice = "Исходный информатор: следующая станция — Петровщина"
-                elif not _info_arrival_played:
-                    _info_arrival_played = true
-                    _radio.stream = load("res://assets/cab_r21/malinovka_arrival.mp3")
-                    _radio.play()
-                    notice = "Исходный информатор: станция Малиновка"
-                else:
-                    notice = "INFO: откройте двери для объявления об отправлении"
         "radioTalk":
             radio_tx = not release
             if not release:
@@ -609,12 +608,16 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
         moving[id].set_meta("pressed_until",clock+0.16)
 
 func physics_inputs(delta: float, speed: float, screen_throttle: bool, screen_brake: bool) -> Dictionary:
+    var binding: Node = game.get("info_binding")
+    if is_instance_valid(binding) and bool(binding.get("passenger_mode")):
+        screen_throttle = false
+        screen_brake = false
     var desired_brake := maxf(brake_demand,1.0 if screen_brake or emergency else 0.0)
     if bool(switches.ars) and speed > 16.67:
         desired_brake = maxf(desired_brake,0.65)
         notice = "АРС: ограничение 60 км/ч"
     var desired_traction := maxf(maxf(controller_value,0.0),1.0 if screen_throttle else 0.0)
-    if bool(switches.mode) and not screen_throttle and not screen_brake and brake_demand == 0.0 and controller_notch > 0:
+    if not is_instance_valid(binding) and bool(switches.mode) and not screen_throttle and not screen_brake and brake_demand == 0.0 and controller_notch > 0:
         desired_traction = clampf((target_speed-speed)*0.5,0.0,1.0)
         desired_brake = maxf(desired_brake,clampf((speed-target_speed)*0.3,0.0,0.5))
     if switches.reserve: desired_traction = minf(desired_traction,0.4)
@@ -749,7 +752,7 @@ func _install_audio() -> void:
     add_child(_horn)
     add_child(_radio)
     _horn.stream = _tone(330.0,0.45,true)
-    _radio.stream = load("res://assets/cab_r21/malinovka_arrival.mp3")
+    # Radio controls cannot replay a station announcement from another route.
 
 func _tone(frequency: float, seconds: float, loop: bool) -> AudioStreamWAV:
     var stream := AudioStreamWAV.new()

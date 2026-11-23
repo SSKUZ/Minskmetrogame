@@ -355,8 +355,9 @@ func _process(_delta: float) -> void:
             _doors.queue_redraw()
         _doors.disabled=not bool(doors.get("validated"))
     if is_instance_valid(_cab):
-        var radio := _cab.get("_radio") as AudioStreamPlayer
-        var playing := is_instance_valid(radio) and radio.playing
+        var binding: Node = game.get("info_binding")
+        var system: Node = binding.get("audio") if is_instance_valid(binding) else null
+        var playing: bool = system != null and system.announcer.is_busy()
         if playing != _speaker.selected:
             _speaker.selected=playing
             _speaker.queue_redraw()

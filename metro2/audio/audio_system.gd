@@ -1,5 +1,14 @@
 extends Node
 class_name MetroAudioSystem
+const BANK = preload("res://audio/sound_bank.gd")
+const ROUTER = preload("res://audio/audio_event_router.gd")
+const TRAIN_AUDIO = preload("res://audio/controllers/train_audio_controller.gd")
+const RAIL_AUDIO = preload("res://audio/controllers/rail_joint_audio_controller.gd")
+const DOOR_AUDIO = preload("res://audio/controllers/door_audio_controller.gd")
+const CAB_AUDIO = preload("res://audio/controllers/cab_audio_controller.gd")
+const ENVIRONMENT_AUDIO = preload("res://audio/controllers/environment_audio_controller.gd")
+const ANNOUNCER = preload("res://audio/metro_announcer.gd")
+const INFO = preload("res://audio/controllers/info_controller.gd")
 ## Opt-in independent audio module. Never registers autoload or modifies V106.
 var bank: MetroSoundBank
 var router: MetroAudioEventRouter
@@ -12,38 +21,38 @@ var announcer: MetroAnnouncer
 var info: MetroInfoController
 
 func _ready() -> void:
-    bank = MetroSoundBank.new()
+    bank = BANK.new()
     bank.name = "SoundBank"
     add_child(bank)
-    router = MetroAudioEventRouter.new()
+    router = ROUTER.new()
     router.name = "EventRouter"
     router.bank = bank
     add_child(router)
-    train_audio = MetroTrainAudioController.new()
+    train_audio = TRAIN_AUDIO.new()
     train_audio.name = "TrainAudio"
     train_audio.router = router
     add_child(train_audio)
-    rail_audio = MetroRailJointAudioController.new()
+    rail_audio = RAIL_AUDIO.new()
     rail_audio.name = "RailJointAudio"
     rail_audio.router = router
     add_child(rail_audio)
-    door_audio = MetroDoorAudioController.new()
+    door_audio = DOOR_AUDIO.new()
     door_audio.name = "DoorAudio"
     door_audio.router = router
     add_child(door_audio)
-    cab_audio = MetroCabAudioController.new()
+    cab_audio = CAB_AUDIO.new()
     cab_audio.name = "CabAudio"
     cab_audio.router = router
     add_child(cab_audio)
-    environment_audio = MetroEnvironmentAudioController.new()
+    environment_audio = ENVIRONMENT_AUDIO.new()
     environment_audio.name = "EnvironmentAudio"
     environment_audio.router = router
     add_child(environment_audio)
-    announcer = MetroAnnouncer.new()
+    announcer = ANNOUNCER.new()
     announcer.name = "Announcer"
     announcer.bank = bank
     add_child(announcer)
-    info = MetroInfoController.new()
+    info = INFO.new()
     info.name = "InfoController"
     add_child(info)
     info.bind(announcer)

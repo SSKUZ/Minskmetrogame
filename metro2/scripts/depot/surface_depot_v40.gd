@@ -223,6 +223,8 @@ func _zoom_view(ratio: float) -> void:
         super._zoom_view(ratio)
 
 func passenger_information() -> Dictionary:
+    if is_instance_valid(info_binding):
+        return info_binding.call("passenger_information")
     var station_name := "УРУЧЧА"
     if is_instance_valid(_station):
         station_name = str(_station.get_meta("passenger_name",station_name))
