@@ -5,11 +5,12 @@ const FY := 1.1805
 const ZA := -12.888
 const ZB := 92.112
 const MID := 39.612
+var construction_group := "Architecture"
 var batches: Dictionary = {}
 var surfaces: Dictionary = {}
 var white: StandardMaterial3D
-var metal: StandardMaterial3D
-var brass: StandardMaterial3D
+var metal: Material
+var brass: Material
 var black: StandardMaterial3D
 var marble: ShaderMaterial
 var granite: ShaderMaterial
@@ -77,8 +78,8 @@ func sphere(size: Vector3,p: Vector3,mat: Material) -> void:
     batch("sphere",mat,Transform3D(Basis.from_scale(size),p))
 
 func batch(kind: String,mat: Material,pose: Transform3D) -> void:
-    var key := kind+str(mat.get_instance_id())
-    if not batches.has(key):batches[key]={"kind":kind,"mat":mat,"poses":[]}
+    var key := construction_group+kind+str(mat.get_instance_id())
+    if not batches.has(key):batches[key]={"group":construction_group,"kind":kind,"mat":mat,"poses":[]}
     batches[key].poses.append(pose)
 
 func rod(a: Vector3,b: Vector3,r: float,mat: Material) -> void:
@@ -89,11 +90,11 @@ func rod(a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     batch("cylinder",mat,Transform3D(basis*Basis.from_scale(Vector3(r*2,a.distance_to(b),r*2)),(a+b)*0.5))
 
 func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
-    var key := str(mat.get_instance_id())
+    var key := construction_group+str(mat.get_instance_id())
     if not surfaces.has(key):
         var new_surface := SurfaceTool.new()
         new_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-        surfaces[key]={"surface":new_surface,"mat":mat}
+        surfaces[key]={"group":construction_group,"surface":new_surface,"mat":mat}
     var st: SurfaceTool=surfaces[key].surface
     for i in range(points.size()-1):
         var a: Vector2=points[i]
@@ -108,7 +109,7 @@ func flush() -> void:
             mesh=data.mesh
         elif data.kind=="cylinder":
             var c := CylinderMesh.new()
-            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=16
+            c.top_radius=0.5;c.bottom_radius=0.5;c.height=1.0;c.radial_segments=8 if data.group=="PlatformFinish" else 16
             mesh=c
         elif data.kind=="sphere":
             var s := SphereMesh.new()
@@ -125,8 +126,9 @@ func flush() -> void:
         for i in range(mm.instance_count):mm.set_instance_transform(i,data.poses[i])
         var n := MultiMeshInstance3D.new()
         n.name="Repeated"+str(data.kind)
+        n.set_meta("portable_role",data.group)
         n.multimesh=mm
-        add_child(n)
+        _construction_root(data.group).add_child(n)
     for key in surfaces:
         var data: Dictionary=surfaces[key]
         var st: SurfaceTool=data.surface
@@ -136,8 +138,8 @@ func flush() -> void:
         if mat is BaseMaterial3D:(mat as BaseMaterial3D).cull_mode=BaseMaterial3D.CULL_DISABLED
         mesh.surface_set_material(0,mat)
         var n := MeshInstance3D.new()
-        n.name="VaultSections";n.mesh=mesh
-        add_child(n)
+        n.name="Surface";n.mesh=mesh
+        _construction_root(data.group).add_child(n)
     batches.clear();surfaces.clear()
 
 func picture(file: String,size: Vector2,p: Vector3,yaw: float,cutout: bool=false) -> void:
@@ -151,8 +153,9 @@ func picture(file: String,size: Vector2,p: Vector3,yaw: float,cutout: bool=false
     q.size=size;q.material=m
     var n := MeshInstance3D.new()
     n.mesh=q;n.position=p;n.rotation.y=yaw
+    n.name=file.get_basename()
     n.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    add_child(n)
+    _construction_root(construction_group).add_child(n)
 
 func board(file: String,p: Vector3,size: Vector2) -> void:
     box(Vector3(size.x+0.09,size.y+0.08,0.09),p,metal)
@@ -235,10 +238,14 @@ func bench(p: Vector3,yaw: float=0.0) -> void:
 
 # Closed cross-section extrusion with rounded corners and proper end caps.
 func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> void:
+    var winding := 0.0
+    for i in range(points.size()):winding+=points[i].cross(points[(i+1)%points.size()])
     for i in range(points.size()):
         var a: Vector2=points[i]
         var b: Vector2=points[(i+1)%points.size()]
-        quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat)
+        var outward := Vector3(b.y-a.y,a.x-b.x,0)
+        if winding<0.0:outward=-outward
+        quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,outward)
     var indices := Geometry2D.triangulate_polygon(points)
     for face in [-1.0,1.0]:
         var z: float=z0 if face<0.0 else z1
@@ -249,18 +256,21 @@ func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> 
             triangle(Vector3(a.x,a.y,z),Vector3(b.x,b.y,z),Vector3(c.x,c.y,z),mat,Vector3(0,0,face))
 
 func triangle(a: Vector3,b: Vector3,c: Vector3,mat: Material,hint: Vector3=Vector3.ZERO) -> void:
-    var key := str(mat.get_instance_id())
+    var key := construction_group+str(mat.get_instance_id())
     if not surfaces.has(key):
         var surface := SurfaceTool.new()
         surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-        surfaces[key]={"surface":surface,"mat":mat}
+        surfaces[key]={"group":construction_group,"surface":surface,"mat":mat}
     var st: SurfaceTool=surfaces[key].surface
     var normal := (b-a).cross(c-a).normalized()
     var reverse: bool=hint!=Vector3.ZERO and normal.dot(hint)<0.0
     if reverse:normal=-normal
-    for p in [a,c if reverse else b,b if reverse else c]:
+    # Godot front faces use CLOCKWISE winding. Normals still point into the hall.
+    for p in [a,b if reverse else c,c if reverse else b]:
         st.set_normal(normal)
-        st.set_uv(Vector2(p.x,p.z))
+        if absf(normal.x)>0.6:st.set_uv(Vector2(p.z,p.y))
+        elif absf(normal.y)>0.6:st.set_uv(Vector2(p.x,p.z))
+        else:st.set_uv(Vector2(p.x,p.y))
         st.add_vertex(p)
 
 func quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,mat: Material,hint: Vector3=Vector3.ZERO) -> void:
@@ -268,7 +278,8 @@ func quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,mat: Material,hint: Vector
     triangle(a,c,d,mat,hint)
 
 func arc_point(side: float,a: float,y0: float,height: float,inset: float=0.0) -> Vector2:
-    return Vector2(CX+side*(8.98*cos(a)-inset),y0+height*sin(a)-inset*0.4)
+    var outward := Vector2(side*cos(a)/8.98,sin(a)/height).normalized()
+    return Vector2(CX+side*8.98*cos(a),y0+height*sin(a))-outward*inset
 
 func curved_band(side: float,a0: float,a1: float,z0: float,z1: float,y0: float,height: float,inset: float,mat: Material) -> void:
     for j in range(32):
@@ -358,9 +369,10 @@ func vestibule(direction: float,start: float,kind: String) -> void:
         box(Vector3(1.41,2.21,0.04),Vector3(CX+float(x),floor_y+1.175,z+direction*4.15),metal)
         box(Vector3(0.025,0.40,0.10),Vector3(CX+float(x)+0.48,floor_y+1.1,z+direction*4.10),black)
 
-func instance_mesh(label: String,mesh: Mesh,p: Vector3) -> void:
-    if not batches.has(label):batches[label]={"kind":"custom","mesh":mesh,"mat":mesh.surface_get_material(0),"poses":[]}
-    batches[label].poses.append(Transform3D(Basis.IDENTITY,p))
+func instance_mesh(label: String,mesh: Mesh,p: Vector3,basis: Basis=Basis.IDENTITY) -> void:
+    var key := construction_group+label
+    if not batches.has(key):batches[key]={"group":construction_group,"kind":label,"mesh":mesh,"mat":mesh.surface_get_material(0),"poses":[]}
+    batches[key].poses.append(Transform3D(basis,p))
 
 func stair_cheek(direction: float,start: float,width: float) -> void:
     var offsets := [Vector2(-0.15,0),Vector2(4.05,2.03),Vector2(5.25,2.03),Vector2(9.45,4.06)]
@@ -374,11 +386,12 @@ func stair_cheek(direction: float,start: float,width: float) -> void:
             quad(Vector3(x-0.11,FY+a.y+0.87,start+direction*a.x),Vector3(x+0.11,FY+a.y+0.87,start+direction*a.x),Vector3(x+0.11,FY+b.y+0.87,start+direction*b.x),Vector3(x-0.11,FY+b.y+0.87,start+direction*b.x),marble,Vector3.UP)
 
 func wood_material() -> ShaderMaterial:
-    var shader := Shader.new()
-    shader.code="""shader_type spatial;
-varying vec3 p;
-void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
-void fragment(){float w=sin(p.z*47.0+sin(p.x*2.3+p.y*4.0)*3.0);float fine=sin(p.z*290.0+sin(p.x*8.0)*4.0);float grain=pow(abs(w),4.0)*0.45+fine*0.06;
-ALBEDO=mix(vec3(0.29,0.15,0.055),vec3(0.58,0.36,0.15),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
-"""
-    var mat := ShaderMaterial.new();mat.shader=shader;return mat
+    var mat := ShaderMaterial.new()
+    mat.shader=preload("res://modules/stations/park_chelyuskintsev/materials/timber.gdshader")
+    mat.resource_name="BenchTimber"
+    return mat
+
+func _construction_root(label: String) -> Node3D:
+    var existing := get_node_or_null(NodePath(label)) as Node3D
+    if existing!=null:return existing
+    var root := Node3D.new();root.name=label;add_child(root);return root

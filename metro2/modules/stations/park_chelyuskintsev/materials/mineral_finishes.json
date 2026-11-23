@@ -1,0 +1,62 @@
+{
+  "stair_tread": {
+    "photo_detail_amount": 0.0,
+    "grain_contrast": 0.04,
+    "veining_amount": 0.0,
+    "surface_roughness": 0.64,
+    "joints": false,
+    "staggered": false,
+    "slab_m": [
+      0.9,
+      0.6
+    ],
+    "detail_texture": "vault_plaster.jpg",
+    "base_colour": "#b6b5af",
+    "reference": "Owner stair photos 7804/7805/7828/7829; neutral small-grain grey, no narrow-strip image repeat."
+  },
+  "stair_wall": {
+    "photo_detail_amount": 0.04,
+    "grain_contrast": 0.025,
+    "veining_amount": 0.028,
+    "surface_roughness": 0.52,
+    "joints": true,
+    "staggered": false,
+    "slab_m": [
+      0.9,
+      0.6
+    ],
+    "detail_texture": "stair_side_marble.jpg",
+    "base_colour": "#d2d0c6",
+    "reference": "Owner stair photos 7804/7805/7828/7829; pale marble. Darkening comes from actual light and shadow."
+  },
+  "wall_lower": {
+    "photo_detail_amount": 0.18,
+    "grain_contrast": 0.06,
+    "veining_amount": 0.0,
+    "surface_roughness": 0.49,
+    "joints": true,
+    "staggered": true,
+    "slab_m": [
+      0.83,
+      0.43
+    ],
+    "detail_texture": "wall_dark_granite.jpg",
+    "base_colour": "#736355",
+    "reference": "Owner photos 7816/7819/7820/7825, and requested warm brown correction; retain slab layout without black photographic exposure."
+  },
+  "platform_edge": {
+    "photo_detail_amount": 0.0,
+    "grain_contrast": 0.035,
+    "veining_amount": 0.0,
+    "surface_roughness": 0.62,
+    "joints": true,
+    "staggered": false,
+    "slab_m": [
+      0.43,
+      0.6
+    ],
+    "detail_texture": "vault_plaster.jpg",
+    "base_colour": "#b9b5aa",
+    "reference": "Owner edge photo 7808 and stair view 7804; light warm-grey coping outside the yellow line."
+  }
+}

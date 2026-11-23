@@ -1,0 +1,262 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "oktyabrskaya",
+    "type": "station",
+    "scene": "res://modules/stations/oktyabrskaya/oktyabrskaya.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "oktyabrskaya_geometry",
+      "kind": "generator",
+      "path": "res://modules/stations/oktyabrskaya/oktyabrskaya.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "functions": [
+          "_column_profile",
+          "_capital_prong",
+          "_lantern",
+          "_glass_triangle",
+          "_transfer",
+          "_escalator_infill"
+        ],
+        "lighting_profile": "res://modules/stations/oktyabrskaya/architecture_profile.json",
+        "output": [
+          "ArrayMesh",
+          "MultiMesh"
+        ],
+        "column_origins": {
+          "first_z_m": -1.2,
+          "pitch_m": 4.8,
+          "row_offset_x_m": 2.55,
+          "count_per_row_before_clearance": 18
+        },
+        "column_clearance_function": "_column_is_clear",
+        "retained_columns": 30,
+        "removed_columns": [
+          {
+            "row": "right",
+            "z_m": 37.2
+          },
+          {
+            "row": "right",
+            "z_m": 42
+          },
+          {
+            "row": "left",
+            "z_m": -1.2
+          },
+          {
+            "row": "right",
+            "z_m": -1.2
+          },
+          {
+            "row": "left",
+            "z_m": 80.4
+          },
+          {
+            "row": "right",
+            "z_m": 80.4
+          }
+        ],
+        "glass_uv": "One [0,1] square per curved basket quadrant; eight by eight glass sections; retain UVs during mesh conversion.",
+        "station_names": "Custom heavy stamp-cut glyphs; actual native TextMesh cap measurement normalized to 0.40m, 0.065m physical depth. Uniform XY scale preserves stroke/counter proportions in both languages."
+      }
+    },
+    {
+      "id": "uruchye_style_trackwork",
+      "kind": "generator",
+      "path": "res://modules/stations/oktyabrskaya/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "source_path": "metro2/scripts/station/uruchye_tracks_v68.gd",
+        "source_commit": "3bf8ffae121ba484cae7f7d9e058691201ca9202",
+        "bound_source": "parent.track_min_z / parent.track_max_z",
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65,
+        "rail_top_m": 0,
+        "output": [
+          "MultiMesh"
+        ]
+      }
+    },
+    {
+      "id": "bronze_station_glyphs",
+      "kind": "generator",
+      "path": "res://modules/stations/oktyabrskaya/art/bronze_letter_shapes.json",
+      "requires_initialization": false,
+      "status": "unassessed",
+      "parameters": {
+        "font": "res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf",
+        "generator_function": "_name_letters",
+        "outline_units_per_cap_height": 1000,
+        "cap_height_m": 0.4,
+        "extrusion_depth_m": 0.065,
+        "wall_clearance_m": 0.012,
+        "reference_images": [
+          "8275.jpg",
+          "8274.jpg",
+          "8253.jpg",
+          "8248.jpg"
+        ],
+        "output": [
+          "TextMesh",
+          "closed vector contours"
+        ],
+        "textmesh_font_size": 127,
+        "textmesh_pixel_size": 0.01,
+        "scale_method": "cap_height_m / actual TextMesh.get_aabb().size.y for glyph Н; depth axis remains 1"
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "amber_glass",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/oktyabrskaya/lantern_glass.gdshader",
+      "shader": {
+        "path": "res://modules/stations/oktyabrskaya/lantern_glass.gdshader",
+        "parameters": {
+          "amber_tint": [
+            1,
+            0.73,
+            0.07,
+            1
+          ],
+          "emission_strength": 1.7,
+          "grid_count": [
+            8,
+            8
+          ]
+        },
+        "adaptation": "required"
+      },
+      "texture_bindings": {
+        "glass_photo": "owner_amber_sample"
+      }
+    },
+    {
+      "id": "ceiling_wash",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/oktyabrskaya/ceiling_wash.gdshader",
+      "shader": {
+        "path": "res://modules/stations/oktyabrskaya/ceiling_wash.gdshader",
+        "parameters": {
+          "station_center_x": -5.37,
+          "column_x": 2.55,
+          "column_pitch": 4.8,
+          "transfer_mid_z": 39.612
+        },
+        "adaptation": "required"
+      },
+      "texture_bindings": {
+        "paint": "ceiling_paint"
+      }
+    },
+    {
+      "id": "cast_bronze_letters",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/oktyabrskaya/bronze_letters.gdshader",
+      "shader": {
+        "path": "res://modules/stations/oktyabrskaya/bronze_letters.gdshader",
+        "parameters": {
+          "bronze_face": [
+            0.79,
+            0.66,
+            0.36,
+            1
+          ],
+          "bronze_side": [
+            0.33,
+            0.24,
+            0.1,
+            1
+          ]
+        },
+        "adaptation": "required"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "owner_amber_sample",
+      "source": "file",
+      "path": "res://modules/stations/oktyabrskaya/art/amber_glass.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "ceiling_paint",
+      "source": "file",
+      "path": "res://modules/stations/oktyabrskaya/art/ceiling_paint.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "monitor_advertising",
+      "source": "file",
+      "path": "res://modules/stations/oktyabrskaya/art/monitor_ad.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [],
+  "zones": [],
+  "data": {
+    "parameters": [],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "lantern_dimensions",
+        "purpose": "equipment",
+        "path": "res://modules/stations/oktyabrskaya/architecture_profile.json",
+        "format": "json",
+        "notes": "Metres and native material emission parameters. Photo 8292.jpg is the owner reference."
+      },
+      {
+        "id": "station_name_font",
+        "purpose": "other",
+        "path": "res://modules/stations/oktyabrskaya/art/bronze_station_letters.ttf",
+        "format": "ttf",
+        "notes": "Dedicated heavy glyph outlines manually reconstructed from owner reference photos. Contours and metric parameters retained in bronze_letter_shapes.json."
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "godot_shaders",
+      "detail": "Retain all source textures and continuous UVs. Amber emission, pressed-glass normals and static ceiling caustics/prong-shadow fields require baking or platform adaptation. Native OmniLight3D/SpotLight3D settings require separate adaptation."
+    },
+    {
+      "code": "geometry_scope",
+      "detail": "Geometry revised by reading construction coordinates. Existing station dimensions, track connection markers, transfer anchors and camera controls remain in source. No runtime, visual, GLB-export or Roblox-import verification performed."
+    },
+    {
+      "code": "monitor_content",
+      "detail": "Advertising uses the project's existing static landscape artwork. No video or external network feed is introduced."
+    },
+    {
+      "code": "bronze_letter_portability",
+      "detail": "Keep custom TTF, closed contour/counter data and initialized TextMesh geometry. Shader grain and separate face/side bronze finishes need baking or material adaptation. Glyph geometry is inferred from photos; no game, visual or export checks performed."
+    }
+  ]
+}

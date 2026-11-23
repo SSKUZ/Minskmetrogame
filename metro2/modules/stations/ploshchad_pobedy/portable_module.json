@@ -1,0 +1,273 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "ploshchad_pobedy",
+    "type": "station",
+    "scene": "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "folded_capital_luminaires",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "functions": [
+          "_lamp_point",
+          "_lamp_wing",
+          "_lamp_corner_seam",
+          "_axial_lamp_point",
+          "_axial_lamp",
+          "_portal_shell",
+          "_escalator_wall_infill",
+          "_glass_quad",
+          "_portal_z",
+          "_gate_concourse",
+          "_concourse_material"
+        ],
+        "profile": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
+        "output": [
+          "ArrayMesh",
+          "MultiMesh"
+        ],
+        "fixture_layout": "four joined two-face corner trays plus four long axial rectangular compartments per existing capital",
+        "glass_uv": "U spans the common diffuser; V is 0 at its base, 1 at the top, up to 1.12 on the crown. No repeating cell UVs."
+      }
+    },
+    {
+      "id": "uruchye_style_trackwork",
+      "kind": "generator",
+      "path": "res://modules/stations/ploshchad_pobedy/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "source_path": "metro2/scripts/station/uruchye_tracks_v68.gd",
+        "source_commit": "47222a79d57dda035ce2713f70b91d6abc0f13b1",
+        "bound_source": "parent.track_min_z / parent.track_max_z",
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65,
+        "rail_top_m": 0,
+        "station_parent": "direct parent",
+        "output": [
+          "MultiMesh"
+        ]
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "silver_reflector",
+      "source_class": "StandardMaterial3D",
+      "albedo": [
+        0.803921568627451,
+        0.7333333333333333,
+        0.6039215686274509,
+        1
+      ],
+      "metallic": 0.72,
+      "roughness": 0.28
+    },
+    {
+      "id": "ceiling_bounce",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader",
+        "parameters": {
+          "station_center_x": -5.37,
+          "column_x": 2.55,
+          "column_pitch": 4.8,
+          "first_column_z": -1.2,
+          "last_column_z": 80.4,
+          "pool_radius": 1.55
+        },
+        "adaptation": "required"
+      },
+      "texture_bindings": {
+        "paint": "ceiling_paint"
+      }
+    },
+    {
+      "id": "continuous_amber_glass",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader",
+        "parameters": {
+          "emission_strength": 1.25,
+          "upper_light_fraction": 0.13,
+          "prism_lanes": 6,
+          "white_center": [
+            1,
+            0.96,
+            0.85,
+            1
+          ],
+          "amber_edge": [
+            1,
+            0.65,
+            0.22,
+            1
+          ]
+        },
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "concourse_fade",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/ploshchad_pobedy/concourse_fade.gdshader",
+      "shader": {
+        "path": "res://modules/stations/ploshchad_pobedy/concourse_fade.gdshader",
+        "parameters": {
+          "fade_start_m": 8,
+          "fade_finish_m": 23,
+          "branch_start_x": 4.65,
+          "branch_finish_x": 12.6
+        },
+        "adaptation": "required"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "ceiling_paint",
+      "source": "file",
+      "path": "res://modules/stations/ploshchad_pobedy/art/ceiling_paint.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "NorthFareControl",
+      "role": "equipment",
+      "node_path": "NorthFareControl",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        5.8205,
+        -23.35,
+        1
+      ],
+      "properties": {
+        "turnstile_lanes": 4,
+        "controller_booth": true,
+        "implementation": "static geometry; passenger validation and payment logic not connected"
+      }
+    },
+    {
+      "id": "SouthFareControl",
+      "role": "equipment",
+      "node_path": "SouthFareControl",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        6.6325,
+        104.25,
+        1
+      ],
+      "properties": {
+        "turnstile_lanes": 4,
+        "controller_booth": true,
+        "implementation": "static geometry; passenger validation and payment logic not connected"
+      }
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [
+      {
+        "id": "driver_eye_offset_z_m",
+        "value": -8.6,
+        "unit": "m",
+        "source": {
+          "path": "metro2/scripts/cab_v106_adapter.gd",
+          "symbol": "CAB_EYE.z"
+        }
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "lighting_profile",
+        "purpose": "equipment",
+        "path": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
+        "format": "json",
+        "notes": "Original fixture geometry, emission and local light parameters; local dimensions in metres."
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "lighting_scope",
+      "detail": "Metadata covers revised lighting, end-wall shell, escalator infill and driver equipment; all other existing station anchors and dimensions remain in the scene and catalog."
+    },
+    {
+      "code": "godot_shader",
+      "detail": "Ceiling bounce is an analytic static illumination field. Preserve shader and parameters; bake to texture or reimplement for Roblox. Local OmniLight3D settings and distance fades require platform adaptation."
+    },
+    {
+      "code": "unverified_export",
+      "detail": "Mesh sources are retained; no GLB export, Roblox import or runtime verification performed."
+    },
+    {
+      "code": "glass_emission_bake",
+      "detail": "Retain continuous UVs and lamp_glass.gdshader; bake amber perimeter, white centre and dim upper half for other renderers."
+    },
+    {
+      "code": "rear_camera_pending",
+      "detail": "RearPlatformMonitorTrack1/2 and RearPlatformCameraTrack1/2 markers reserve feed connection points. Monitors retain the existing static imagery; live camera connection is deferred."
+    },
+    {
+      "code": "concourse_layout_inferred",
+      "detail": "Concourse equipment dimensions follow the existing Uruchye upper hall. Exact upper vestibule plan for Pobedy is inferred. Geometry is static; ticketing and gate animation are not implemented."
+    },
+    {
+      "code": "concourse_shader",
+      "detail": "Upper corridors use surface UV projection and distance darkening. Preserve concourse_fade.gdshader and source textures for future baking."
+    }
+  ]
+}

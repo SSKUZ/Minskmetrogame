@@ -1,0 +1,467 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "institut_kultury",
+    "type": "station",
+    "scene": "res://modules/stations/institut_kultury/institut_kultury.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "station_architecture",
+      "kind": "generator",
+      "path": "res://modules/stations/institut_kultury/institut_kultury.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "platform_width_m": 10,
+        "platform_length_m": 105,
+        "platform_top_y_m": 1.1805,
+        "arch_radius_x_m": 8.9,
+        "arch_radius_y_m": 4.25,
+        "vault_spring_y_m": 3.15,
+        "stained_arches": 13,
+        "arch_pitch_m": 7.2,
+        "first_arch_z_m": -3.6
+      }
+    },
+    {
+      "id": "construction_helpers",
+      "kind": "generator",
+      "path": "res://modules/stations/institut_kultury/station_builder.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "uruchye_profile_tracks",
+      "kind": "generator",
+      "path": "res://modules/stations/institut_kultury/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "start_z_m": -22.888,
+        "finish_z_m": 102.112,
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65
+      }
+    },
+    {
+      "id": "station_base",
+      "kind": "generator",
+      "path": "res://modules/stations/institut_kultury/station_base.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    }
+  ],
+  "materials": [
+    {
+      "id": "plaster",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/institut_kultury/plaster.gdshader",
+      "shader": {
+        "path": "res://modules/stations/institut_kultury/plaster.gdshader",
+        "adaptation": "required",
+        "parameters": {
+          "arch_first_z": -3.6,
+          "arch_pitch": 7.2
+        }
+      }
+    },
+    {
+      "id": "stained_glass",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/institut_kultury/institut_kultury.gd",
+      "metallic": 0.18,
+      "roughness": 0.28,
+      "emission_energy": 0.09
+    },
+    {
+      "id": "photographic_granite",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/institut_kultury/institut_kultury.gd",
+      "roughness": 0.39,
+      "uv_transform": {
+        "world_triplanar": true,
+        "scale": [
+          1.0526315789473684,
+          1.8181818181818181,
+          1.0526315789473684
+        ]
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "advert",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/advert.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_surazhskaya",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/exit_surazhskaya.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_tolstogo",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/exit_tolstogo.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_light",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/floor_light.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_russet",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/floor_russet.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_taupe",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/floor_taupe.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "glass_builder",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/glass_builder.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "glass_musician",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/glass_musician.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "glass_player",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/glass_player.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "glass_reader",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/glass_reader.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_exits",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/pylon_exits.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "pylon_routes",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/pylon_routes.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "sos",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/sos.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_granite",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/stair_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "vault_plaster",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/vault_plaster.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "vestibule_marble",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/vestibule_marble.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_granite",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/wall_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/wall_route.svg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "node_path": "Connections/Entry",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ]
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "node_path": "Connections/Exit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ]
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "node_path": "Connections/Track2Entry",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ]
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "node_path": "Connections/Track2Exit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ]
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/PlatformCentre",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ]
+    },
+    {
+      "id": "NorthExit",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/NorthExit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        -7.5,
+        1
+      ]
+    },
+    {
+      "id": "SouthExit",
+      "role": "waypoint",
+      "node_path": "PassengerAnchors/SouthExit",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        86.7,
+        1
+      ]
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [
+      {
+        "id": "head_equipment",
+        "value": [
+          "Track1Portal1Clock",
+          "Track2Portal2Clock"
+        ],
+        "unit": "node_names"
+      },
+      {
+        "id": "stair_rise",
+        "value": 0.15,
+        "unit": "m"
+      },
+      {
+        "id": "stair_tread",
+        "value": 0.3,
+        "unit": "m"
+      },
+      {
+        "id": "steps_per_exit",
+        "value": 36,
+        "unit": "steps"
+      },
+      {
+        "id": "station_names",
+        "value": [
+          "ИНСТИТУТ КУЛЬТУРЫ",
+          "ІНСТЫТУТ КУЛЬТУРЫ"
+        ],
+        "unit": "text"
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "owner_artwork_provenance",
+        "purpose": "other",
+        "path": "res://modules/stations/institut_kultury/art/owner_sources.json",
+        "format": "json",
+        "notes": "110 owner photographs, all reviewed; archive contains no video. Four isolated stained-glass figure variants; no complete source photograph is republished."
+      },
+      {
+        "id": "native_material_and_furniture_sources",
+        "purpose": "other",
+        "path": "res://modules/stations/institut_kultury/institut_kultury.gd",
+        "format": "gdscript"
+      },
+      {
+        "id": "driver_mirror",
+        "purpose": "equipment",
+        "path": "res://modules/stations/institut_kultury/driver_mirrors.gd",
+        "format": "gdscript"
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "photo_scaled_architecture",
+      "detail": "Vault proportions, 13 repeated arches, vestibule depth and furniture spacing are photo-scaled estimates. Station Base platform/gauge/connection dimensions are retained; no survey or exact spatial scan is claimed."
+    },
+    {
+      "code": "material_adaptation",
+      "detail": "Procedural grain and plaster, world-space texture coordinates, native TextMesh font generation and live SubViewport mirror imagery require adaptation/baking for future export. Native meshes/MultiMeshes, textures and font outlines remain accessible."
+    },
+    {
+      "code": "vestibule_continuations",
+      "detail": "Visible stairs and upper gate halls are represented; unphotographed side corridors continue into dim space. No surrounding city or railway platform is invented."
+    },
+    {
+      "code": "transfer_not_exported",
+      "detail": "No Roblox implementation, mass export or game execution has been performed."
+    }
+  ]
+}

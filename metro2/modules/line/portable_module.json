@@ -1,0 +1,96 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "full_line",
+    "type": "other",
+    "scene": "res://modules/line/full_line.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1.0,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "-Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "assembled_line",
+      "kind": "scene",
+      "path": "res://modules/line/full_line.tscn",
+      "requires_initialization": true,
+      "status": "adaptation_required"
+    },
+    {
+      "id": "curved_detailed_tunnel",
+      "kind": "generator",
+      "path": "res://modules/line/line_tunnel.gd",
+      "requires_initialization": true,
+      "status": "declared"
+    }
+  ],
+  "materials": [],
+  "textures": [],
+  "points": [],
+  "zones": [],
+  "data": {
+    "parameters": [],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "line_layout",
+        "purpose": "physics",
+        "path": "res://modules/line/route_layout.json",
+        "format": "json",
+        "notes": "Existing module datums plus authored interstation span lengths/curvature"
+      },
+      {
+        "id": "info_mapping",
+        "purpose": "equipment",
+        "path": "res://audio/data/route_stations.json",
+        "format": "json"
+      },
+      {
+        "id": "original_seats",
+        "purpose": "seats",
+        "path": "res://modules/passengers/v106_seats.json",
+        "format": "json"
+      }
+    ]
+  },
+  "adapter_hints": [
+    {
+      "id": "scene_adapter",
+      "reason": "Inspect original station/V106 scenes and standard warped ArrayMesh/MultiMesh geometry after initialization; preserve their source materials and local functional markers."
+    }
+  ],
+  "limitations": [
+    {
+      "code": "luau",
+      "detail": "Godot train, INFO and passenger logic require a later Luau implementation."
+    },
+    {
+      "code": "materials",
+      "detail": "Shader and SubViewport materials require later baking or adaptation."
+    },
+    {
+      "code": "alignment",
+      "detail": "Interstation alignment is authored simulation geometry; it is not a surveyed Minsk track plan."
+    },
+    {
+      "code": "unconfirmed_export",
+      "detail": "No Roblox export, mass conversion or runtime compatibility confirmation was performed."
+    }
+  ]
+}

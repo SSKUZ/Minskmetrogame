@@ -18,13 +18,17 @@ var dark: StandardMaterial3D
 var gold: StandardMaterial3D
 var yellow: StandardMaterial3D
 var glass: StandardMaterial3D
+var vault_plaster: ShaderMaterial
+var advert_material: ShaderMaterial
+var advert_index: int=0
 
 func _ready() -> void:
     super._ready();begin_station()
     for child in get_children():
         if child is OmniLight3D:child.queue_free()
     white=_photo("ceiling_paint.jpg",Vector2(1.4,1.4),0.87)
-    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_paint_normal.png");white.normal_scale=0.10
+    white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_paint_normal.png");white.normal_scale=0.18
+    vault_plaster=ShaderMaterial.new();vault_plaster.shader=preload("res://modules/stations/ploshchad_lenina/cement_plaster.gdshader");vault_plaster.set_shader_parameter("paint",load(ART+"ceiling_paint.jpg"))
     wall_stone=_photo("wall_breccia.jpg",Vector2(1.15,0.58),0.41)
     pale=_photo("white_marble.jpg",Vector2(1.10,0.58),0.44)
     stair_stone=_photo("stair_granite.jpg",Vector2(1.2,0.18),0.63)
@@ -34,6 +38,7 @@ func _ready() -> void:
     granite=dark;yellow=_material(Color("#d6b341"),0,0.68)
     gold=_material(Color("#ac8c4e"),0.72,0.33)
     glass=_material(Color(0.78,0.87,0.84,0.25),0.12,0.12);glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
+    _setup_advertising()
     _platform();_walls();_vault();_lower_interchange();_order_pylon()
     _exit(-1.0,NORTH,false);_exit(1.0,SOUTH,true)
     _track_details();_portal_equipment();_fittings()
@@ -110,9 +115,10 @@ func _walls() -> void:
             var z: float=2.8+float(j)*18.3
             box(Vector3(0.023,2.10,4.2),Vector3(x-side*0.165,2.38,z),pale)
             if side<0.0:picture("name_ru.jpg",Vector2(4.2,2.10),Vector3(x-side*0.18,2.38,z),-side*PI/2.0)
-            else:_name_be(Vector3(x-side*0.19,2.87,z),-side*PI/2.0)
+            else:_name_be(Vector3(x-side*0.19,2.38,z),-side*PI/2.0)
             picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.70,0.745),Vector3(x-side*0.18,2.72,z+7.5),-side*PI/2.0,true)
-        for i in range(7):
+        for i in range(1,6):
+            # Omit the two end bays on each wall: four tunnel-side projections removed.
             var z: float=ZA+8.3+float(i)*14.0
             _raised_sign_bay(side,z,"platform_track1.svg" if side>0 else "platform_track2.svg")
 
@@ -140,21 +146,15 @@ func _raised_sign_bay(side: float,z: float,file: String) -> void:
     picture(file,Vector2(4.40,0.712),Vector3(front-side*0.065,4.335,z),-side*PI/2.0)
 
 func _name_be(p: Vector3,yaw: float) -> void:
-    var root := Node3D.new();root.name="BronzeBelarusianStationLetters";root.position=p;root.rotation.y=yaw;add_child(root)
-    for row in range(2):
-        for face in range(3):
-            var m := TextMesh.new();m.font=load(ART+"station_letters.ttf");m.text="ПЛОШЧА" if row==0 else "ЛЕНІНА";m.font_size=80
-            m.pixel_size=0.0036 if row==0 else 0.0056;m.depth=0.023 if face==0 else 0.004;m.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
-            m.material=black if face==0 else gold if face==1 else pale
-            var n := MeshInstance3D.new();n.mesh=m;n.position=Vector3(0,-float(row)*0.42,float(face)*0.015)
-            var k: float=1.02 if face==0 else 1.0 if face==1 else 0.86;n.scale=Vector3(k,k,1);root.add_child(n)
+    var root := preload("res://modules/stations/ploshchad_lenina/contour_letters.gd").new()
+    root.name="BronzeBelarusianStationLetters";root.position=p;root.rotation.y=yaw;add_child(root)
 
 func _vault() -> void:
     # Continuous low ellipse, with shallow construction joints; cove light bays form the visible scalloped wash.
     var length: float=SOUTH-NORTH
     for bay in range(26):
         var z0: float=NORTH+float(bay)*length/26.0;var z1: float=NORTH+float(bay+1)*length/26.0
-        var mat: Material=white.duplicate()
+        var mat: Material=vault_plaster
         for j in range(72):
             var a0: float=float(j)*PI/72.0;var a1: float=float(j+1)*PI/72.0
             var a := Vector3(CX+VAULT_RADIUS*cos(a0),VAULT_SPRING+VAULT_RISE*sin(a0),z0)
@@ -237,24 +237,7 @@ func _lower_interchange() -> void:
     box(Vector3(4.12,0.93,0.018),Vector3(CX,FY+0.77,WELL_BACK),glass)
     for y in [0.54,1.24]:rod(Vector3(CX-2.1,FY+float(y),WELL_BACK),Vector3(CX+2.1,FY+float(y),WELL_BACK),0.026,metal)
     for x in [-1.95,0.0,1.95]:rod(Vector3(CX+float(x),FY+0.24,WELL_BACK),Vector3(CX+float(x),FY+1.25,WELL_BACK),0.023,metal)
-    # Two descending flights with a real intermediate landing, individual stone steps and three handrail lines.
-    for flight in range(2):
-        var zstart: float=WELL_TOP-float(flight)*6.60
-        for i in range(18):
-            var y: float=FY-float(flight)*2.70-float(i+1)*0.15
-            var z: float=zstart-(float(i)+0.5)*0.30
-            _solid_box(Vector3(3.98,0.16,0.30),Vector3(CX,y-0.08,z),stair_stone)
-            box(Vector3(3.96,0.005,0.045),Vector3(CX,y+0.004,z+0.122),yellow if i in [0,17] else metal)
-        for x in [-1.84,0.0,1.84]:
-            for h in [0.67,0.96]:
-                var a := Vector3(CX+float(x),FY-float(flight)*2.70+float(h),zstart+0.12)
-                var b := Vector3(CX+float(x),FY-float(flight+1)*2.70+float(h),zstart-5.4)
-                rod(a,b,0.025,metal)
-                for i in range(6):
-                    var p: Vector3=a.lerp(b,float(i)/5.0)
-                    if h==0.96:rod(p,p-Vector3.UP*0.91,0.020,metal)
-                if flight==0:rod(b,b-Vector3(0,0,1.20),0.025,metal)
-        if flight==0:_solid_box(Vector3(4.0,0.20,1.20),Vector3(CX,FY-2.80,zstart-6.0),grey)
+    _lower_escalators()
     _solid_box(Vector3(4.0,0.20,6.5),Vector3(CX,LOWER-0.10,WELL_BACK-3.25),grey)
     # The far upper return wall hangs above the lower corridor rather than sealing its mouth.
     box(Vector3(4.0,1.85,0.18),Vector3(CX,FY-0.925,WELL_BACK),white)
@@ -269,7 +252,7 @@ func _lower_interchange() -> void:
     box(Vector3(4.0,3.1,0.08),Vector3(CX,LOWER+1.55,WELL_BACK-6.5),dark)
     for name in ["LowerTransferEntrance","LowerTransferLanding","TransferToVakzalnaya","BypassLeft","BypassRight"]:
         var p := Vector3(CX,FY,WELL_TOP+0.8)
-        if name=="LowerTransferLanding":p=Vector3(CX,FY-2.70,WELL_TOP-6.0)
+        if name=="LowerTransferLanding":p=Vector3(CX,LOWER,WELL_BACK-0.6)
         elif name=="TransferToVakzalnaya":p=Vector3(CX,LOWER,WELL_BACK-6.2)
         elif name=="BypassLeft":p=Vector3(CX-3.1,FY,(WELL_TOP+WELL_BACK)*0.5)
         elif name=="BypassRight":p=Vector3(CX+3.1,FY,(WELL_TOP+WELL_BACK)*0.5)
@@ -281,6 +264,73 @@ func _floor_sign(file: String,p: Vector3,size: Vector2) -> void:
     var m := StandardMaterial3D.new();m.albedo_texture=load(ART+file);m.roughness=0.65
     var q := QuadMesh.new();q.size=size;q.material=m;var n := MeshInstance3D.new();n.mesh=q;n.rotation.x=-PI/2.0;n.position=p;add_child(n)
 
+func _lower_escalators() -> void:
+    var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"lower_escalators.json"))
+    var run: float=data.run_m
+    var flat: float=data.flat_m
+    var incline: float=run-flat*2.0
+    var angle: float=atan2(float(data.rise_m),incline)
+    var steel := _material(Color("#9fa8a7"),0.76,0.38)
+    var skirt := _material(Color("#697170"),0.68,0.48)
+    var rubber := _material(Color("#171b1b"),0.08,0.72)
+    var comb := _material(Color("#bbb49a"),0.68,0.48)
+    for lane in range(2):
+        var x: float=CX+float(data.lane_centres_x_m[lane])
+        var moving := preload("res://modules/stations/ploshchad_lenina/escalator_steps.gd").new()
+        moving.name="LowerEscalator"+str(lane+1);moving.position=Vector3(x,FY,WELL_TOP)
+        moving.parameters=data;moving.direction=float(data.lane_directions[lane]);add_child(moving)
+        # Walkable inclined support and flat comb landings replace every old stone stair collider.
+        _solid_box(Vector3(float(data.tread_width_m),0.12,sqrt(incline*incline+float(data.rise_m)*float(data.rise_m))),
+            Vector3(x,(FY+LOWER)*0.5-0.09,(WELL_TOP+WELL_BACK)*0.5),skirt,Basis(Vector3.RIGHT,-angle))
+        for distance in [flat*0.5,run-flat*0.5]:
+            var y: float=FY-_escalator_drop(float(distance),data)
+            _solid_box(Vector3(float(data.tread_width_m),0.12,flat),Vector3(x,y-0.06,WELL_TOP-float(distance)),skirt)
+        for distance in [0.04,run-0.04]:
+            var y: float=FY-_escalator_drop(float(distance),data)
+            box(Vector3(float(data.tread_width_m)+0.04,0.022,0.26),Vector3(x,y+0.012,WELL_TOP-float(distance)),comb)
+            for tooth in range(40):
+                var xx: float=x-float(data.tread_width_m)*0.48+float(tooth)*float(data.tread_width_m)*0.96/39.0
+                box(Vector3(0.010,0.013,0.085),Vector3(xx,y+0.026,WELL_TOP-float(distance)+(0.15 if distance>run*0.5 else -0.15)),metal)
+        for side in [-1.0,1.0]:
+            var inner: float=x+side*float(data.skirt_inner_x_m)
+            var outer: float=x+side*float(data.skirt_outer_x_m)
+            var stations: Array[float]=[0.05,0.20,0.40,flat,run-flat,run-0.40,run-0.20,run-0.05]
+            var tops: Array[float]=[0.40,0.66,0.78,0.80,0.80,0.78,0.66,0.40]
+            for j in range(stations.size()-1):
+                var a: float=stations[j];var b: float=stations[j+1]
+                var ya: float=FY-_escalator_drop(a,data)
+                var yb: float=FY-_escalator_drop(b,data)
+                var za: float=WELL_TOP-a;var zb: float=WELL_TOP-b
+                quad(Vector3(inner,ya-0.27,za),Vector3(inner,yb-0.27,zb),Vector3(inner,yb+tops[j+1],zb),Vector3(inner,ya+tops[j],za),steel,Vector3(-side,0,0))
+                quad(Vector3(outer,ya-0.27,za),Vector3(outer,ya+tops[j],za),Vector3(outer,yb+tops[j+1],zb),Vector3(outer,yb-0.27,zb),steel,Vector3(side,0,0))
+                quad(Vector3(inner,ya+tops[j],za),Vector3(inner,yb+tops[j+1],zb),Vector3(outer,yb+tops[j+1],zb),Vector3(outer,ya+tops[j],za),steel,Vector3.UP)
+                rod(Vector3(inner,ya+0.07,za),Vector3(inner,yb+0.07,zb),0.018,metal)
+            for distance in [stations[0],stations[-1]]:
+                var y: float=FY-_escalator_drop(float(distance),data);var z: float=WELL_TOP-float(distance)
+                quad(Vector3(inner,y-0.27,z),Vector3(outer,y-0.27,z),Vector3(outer,y+0.40,z),Vector3(inner,y+0.40,z),steel,Vector3(0,0,1 if distance<run*0.5 else -1))
+            var rail_x: float=x+side*float(data.handrail_x_m)
+            var path: Array[float]=[0.40,flat,run-flat,run-0.40]
+            for j in range(path.size()-1):
+                var a: float=path[j];var b: float=path[j+1]
+                for h in [float(data.handrail_height_m),0.10]:
+                    rod(Vector3(rail_x,FY-_escalator_drop(a,data)+float(h),WELL_TOP-a),Vector3(rail_x,FY-_escalator_drop(b,data)+float(h),WELL_TOP-b),0.046,rubber)
+            for end in range(2):
+                var centre_s: float=0.40 if end==0 else run-0.40
+                var y: float=FY if end==0 else LOWER
+                for j in range(16):
+                    var a: float=float(j)*PI/16.0;var b: float=float(j+1)*PI/16.0
+                    var sign: float=-1.0 if end==0 else 1.0
+                    rod(Vector3(rail_x,y+0.50+0.40*cos(a),WELL_TOP-centre_s-sign*0.40*sin(a)),
+                        Vector3(rail_x,y+0.50+0.40*cos(b),WELL_TOP-centre_s-sign*0.40*sin(b)),0.046,rubber)
+        for lower in [false,true]:
+            var marker := Marker3D.new();marker.name="Escalator"+str(lane+1)+("Lower" if lower else "Upper")
+            marker.position=Vector3(x,LOWER if lower else FY,WELL_BACK-0.35 if lower else WELL_TOP+0.35)
+            get_node("PassengerAnchors").add_child(marker)
+
+func _escalator_drop(distance: float,data: Dictionary) -> float:
+    return clampf((distance-float(data.flat_m))/(float(data.run_m)-2.0*float(data.flat_m)),0.0,1.0)*float(data.rise_m)
+
+
 func _stair_pole(z: float) -> void:
     cylinder(0.105,0.045,Vector3(CX,FY+0.022,z),metal)
     cylinder(0.065,4.65,Vector3(CX,FY+2.325,z),metal)
@@ -291,10 +341,14 @@ func _stair_pole(z: float) -> void:
         for i in range(25):
             var a: float=float(i)*PI/24.0;pts.append(Vector3(CX+0.17*cos(a),FY+float(h),z+0.29*sin(a)))
         for i in range(pts.size()-1):rod(pts[i],pts[i+1],0.026,metal)
-    board("no_entrance.svg",Vector3(CX,FY+3.48,z-0.11),Vector2(0.98,0.327))
+    # Front (+Z) faces the approach shown by the owner. The reverse is a plain metal back.
+    var sign := Vector3(CX,FY+3.48,z+0.16)
+    box(Vector3(1.07,0.407,0.09),sign,metal)
+    picture("no_entrance.svg",Vector2(0.98,0.327),sign+Vector3(0,0,0.052),0)
+    for dx in [-0.43,0.43]:
+        rod(sign+Vector3(float(dx),0.205,0),Vector3(CX+float(dx),FY+3.64,z),0.016,metal)
     for side in [-1.0,1.0]:
         rod(Vector3(CX,FY+3.64,z),Vector3(CX+side*1.6,FY+3.64,z),0.011,metal)
-    picture("transfer.svg",Vector2(1.6,0.352),Vector3(CX,FY+2.60,z+0.09),0)
 
 func _order_pylon() -> void:
     var z := 24.2
@@ -334,7 +388,7 @@ func _order_pylon() -> void:
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*1.65,FY+4.27,z)
         box(Vector3(1.38,0.86,0.10),p,black)
-        for face in [-1.0,1.0]:box(Vector3(1.29,0.77,0.008),p+Vector3(0,0,face*0.058),_material(Color("#101418"),0.25,0.20))
+        for face in [-1.0,1.0]:_advert_screen(Vector2(1.29,0.77),p+Vector3(0,0,face*0.058),0.0 if face>0.0 else PI)
         rod(p+Vector3(0,0.44,0),Vector3(p.x,7.42,z),0.014,metal)
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*0.62,FY,z)
@@ -382,8 +436,8 @@ func _exit(direction: float,start: float,portrait: bool) -> void:
                 if flight==0:rod(b,b+Vector3(0,0,direction*1.2),0.026,metal)
     _solid_box(Vector3(width,0.20,4.5),Vector3(CX,FY+4.10,start+direction*11.85),grey)
     for side in [-1.0,1.0]:
-        box(Vector3(0.28,8.70-FY,14.6),Vector3(CX+side*3.74,(FY+8.70)*0.5,start+direction*7.0),pale)
-        for i in range(8):box(Vector3(0.02,0.003,14.1),Vector3(CX+side*3.585,FY+float(i)*0.6,start+direction*7.0),dark)
+        box(Vector3(0.28,8.70-FY,12.8),Vector3(CX+side*3.74,(FY+8.70)*0.5,start+direction*6.1),pale)
+        for i in range(8):box(Vector3(0.02,0.003,12.8),Vector3(CX+side*3.585,FY+float(i)*0.6,start+direction*6.1),dark)
     box(Vector3(width+0.64,0.22,14.6),Vector3(CX,8.65,start+direction*7.0),white)
     for i in range(9):
         var z: float=start+direction*float(i)*1.55
@@ -392,7 +446,7 @@ func _exit(direction: float,start: float,portrait: bool) -> void:
     _vault_end(direction,start)
     board("exit_south.svg" if portrait else "exit_north.svg",Vector3(CX,4.66,start-direction*0.4),Vector2(5.8,0.918))
     var landing_top: float=FY+4.20
-    box(Vector3(width+0.60,8.70-landing_top,0.24),Vector3(CX,(landing_top+8.70)*0.5,start+direction*14.1),pale)
+    _side_exit_corridors(direction,start,landing_top)
     if portrait:
         var z: float=start+direction*13.9
         box(Vector3(3.1,1.8,0.12),Vector3(CX,FY+5.15,z),wall_stone)
@@ -400,9 +454,7 @@ func _exit(direction: float,start: float,portrait: bool) -> void:
     for side in [-1.0,1.0]:
         var p := Vector3(CX+side*2.24,5.48,start-direction*0.30)
         box(Vector3(1.45,0.82,0.09),p,black)
-        # The side screens in the owner's end views display changing colour advertisements.
-        var screen := _material(Color("#8c9b9d"),0.05,0.38);screen.emission_enabled=true;screen.emission=Color(0.20,0.24,0.22);screen.emission_energy_multiplier=0.28
-        box(Vector3(1.35,0.73,0.008),p+Vector3(0,0,-direction*0.051),screen)
+        _advert_screen(Vector2(1.35,0.73),p+Vector3(0,0,-direction*0.051),0.0 if direction<0.0 else PI)
 
 func _fittings() -> void:
     for z in [11.0,31.0,59.0,74.0]:
@@ -414,22 +466,63 @@ func _fittings() -> void:
         box(Vector3(0.31,0.018,0.43),Vector3(CX+0.12,FY+0.050,float(z)+1.2),dark)
         for i in range(9):box(Vector3(0.25,0.021,0.017),Vector3(CX+0.12,FY+0.057,float(z)+1.03+float(i)*0.04),metal)
 
+func _corridor_material(base: StandardMaterial3D) -> ShaderMaterial:
+    # Local distance falloff conceals the far return without a visible flat end wall.
+    var shader := Shader.new()
+    shader.code="""shader_type spatial;
+render_mode cull_disabled;
+uniform sampler2D stone : source_color,filter_linear_mipmap_anisotropic,repeat_enable;
+uniform float centre_x;
+varying vec3 p;varying vec3 n;
+void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;n=abs(MODEL_NORMAL_MATRIX*NORMAL);}
+void fragment(){
+vec3 w=pow(n,vec3(6.0));w/=max(dot(w,vec3(1.0)),0.001);
+vec3 c=texture(stone,p.zy/vec2(1.1,0.58)).rgb*w.x+texture(stone,p.xz/0.6).rgb*w.y+texture(stone,p.xy/vec2(1.1,0.58)).rgb*w.z;
+float fade=1.0-smoothstep(4.4,11.5,abs(p.x-centre_x));
+ALBEDO=c*fade;ROUGHNESS=0.82;SPECULAR=0.22;EMISSION=c*fade*0.012;
+}
+"""
+    var mat := ShaderMaterial.new();mat.shader=shader;mat.set_shader_parameter("stone",base.albedo_texture);mat.set_shader_parameter("centre_x",CX);return mat
+
+func _side_exit_corridors(direction: float,start: float,floor_y: float) -> void:
+    var wall := _corridor_material(pale)
+    var floor_mat := _corridor_material(grey)
+    var roof := _corridor_material(white)
+    var height: float=8.54-floor_y
+    # A central pier, including the retained Lenin portrait at the south end, separates two real openings.
+    _solid_box(Vector3(3.10,height,0.30),Vector3(CX,floor_y+height*0.5,start+direction*14.12),pale)
+    # The original landing reaches d=14.10; only the additional area receives new floor and roof.
+    _solid_box(Vector3(24.0,0.20,3.20),Vector3(CX,floor_y-0.10,start+direction*15.70),floor_mat)
+    box(Vector3(24.0,0.22,3.0),Vector3(CX,8.65,start+direction*15.80),roof)
+    _solid_box(Vector3(24.0,height,0.24),Vector3(CX,floor_y+height*0.5,start+direction*17.42),wall)
+    for side in [-1.0,1.0]:
+        var x: float=CX+side*7.8
+        _solid_box(Vector3(8.4,0.20,1.60),Vector3(x,floor_y-0.10,start+direction*13.30),floor_mat)
+        box(Vector3(8.08,0.22,1.80),Vector3(CX+side*7.96,8.65,start+direction*13.40),roof)
+        _solid_box(Vector3(8.4,height,0.24),Vector3(x,floor_y+height*0.5,start+direction*12.38),wall)
+        # At full darkness the corridor continues beyond the represented, unmeasured vestibule.
+        box(Vector3(0.20,height,4.8),Vector3(CX+side*12.1,floor_y+height*0.5,start+direction*14.9),black)
+        rod(Vector3(CX+side*3.9,floor_y+0.95,start+direction*12.52),Vector3(CX+side*9.5,floor_y+0.95,start+direction*12.52),0.025,metal)
+        for j in range(2):
+            var lamp_x: float=CX+side*(4.1+float(j)*2.8)
+            box(Vector3(1.25,0.035,0.09),Vector3(lamp_x,8.48,start+direction*14.9),glow)
+            var light := OmniLight3D.new();light.position=Vector3(lamp_x,7.8,start+direction*14.9);light.omni_range=3.8;light.light_energy=0.50 if j==0 else 0.12;light.light_color=Color(1.0,0.96,0.85);add_child(light)
+        var anchor := Marker3D.new();anchor.name=("South" if direction>0 else "North")+("Right" if side>0 else "Left")+"VestibuleContinuation";anchor.position=Vector3(CX+side*9.5,floor_y,start+direction*14.9)
+        get_node("PassengerAnchors").add_child(anchor)
+
+
 func _track_details() -> void:
-    for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
-        var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
+    # Local copy of Uruchye track construction; no dependency on another station module.
+    var detail := preload("res://modules/stations/ploshchad_lenina/track_detail.gd").new()
+    detail.name="DetailedStationTracks";detail.start_z=track_min_z;detail.finish_z=track_max_z;add_child(detail)
+    for x in [0.992,-11.732]:
         for direction in [-1.0,1.0]:
             var end: float=NORTH if direction<0.0 else SOUTH
-            box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
+            box(Vector3(3.78,0.20,8.0),Vector3(float(x),4.90,end+direction*3.9),wall_stone)
             for side in [-1.0,1.0]:
-                box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
-                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
-            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
+                box(Vector3(0.14,4.60,8.0),Vector3(float(x)+side*1.94,2.12,end+direction*3.9),wall_stone)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(float(x)+side*1.84,float(h),end),Vector3(float(x)+side*1.84,float(h),end+direction*7.8),0.015,black)
+            box(Vector3(3.85,4.65,0.10),Vector3(float(x),2.13,end+direction*8.0),black)
 
 func _portal_equipment() -> void:
     var infra := get_node("StationInfrastructure")
@@ -439,13 +532,23 @@ func _portal_equipment() -> void:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
         if node is Node3D and "Portal" in str(node.name):
-            node.position.y=4.22;node.position.z=NORTH if node.position.z<MID else SOUTH
+            var north_end: bool=node.position.z<MID
+            var direction: float=-1.0 if north_end else 1.0
+            node.position.y=4.22
+            node.position.z=(NORTH if north_end else SOUTH)-direction*0.55
+            # Track 1 heads north (-Z), Track 2 south (+Z). Keep array indices for the live clock system.
+            node.visible=str(node.name) in ["Track1Portal1Clock","Track2Portal2Clock"]
     for direction in [-1.0,1.0]:
         var end: float=NORTH if direction<0.0 else SOUTH
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
             box(Vector3(3.90,0.48,0.25),Vector3(tx,4.33,end),wall_stone)
+            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
+            box(Vector3(0.72,0.46,0.08),p,black)
+            picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
+            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
+            if direction!=-side:continue
             var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
             var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/ploshchad_lenina/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
             var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
@@ -458,10 +561,6 @@ func _portal_equipment() -> void:
             _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
             for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
             _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
-            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
-            box(Vector3(0.72,0.46,0.08),p,black)
-            picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
-            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
 
 func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     var mesh := CylinderMesh.new();mesh.top_radius=r;mesh.bottom_radius=r;mesh.height=a.distance_to(b);mesh.radial_segments=10;mesh.material=mat
@@ -477,3 +576,26 @@ func _camera_box(p: Vector3,yaw: float) -> void:
     sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
     rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
 
+
+func _setup_advertising() -> void:
+    var playlist: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"police_playlist.json"))
+    advert_material=ShaderMaterial.new()
+    advert_material.shader=preload("res://modules/stations/ploshchad_lenina/advertising_screen.gdshader")
+    for i in range(3):
+        advert_material.set_shader_parameter(["poster_a","poster_b","poster_c"][i],load(ART+str(playlist.slides[i].file)))
+    advert_material.set_shader_parameter("slide_seconds",float(playlist.slide_seconds))
+    advert_material.set_shader_parameter("crossfade_seconds",float(playlist.crossfade_seconds))
+    advert_material.set_shader_parameter("poster_aspect",float(playlist.poster_aspect))
+
+func _advert_screen(size: Vector2,p: Vector3,yaw: float) -> void:
+    var material := advert_material.duplicate() as ShaderMaterial
+    material.set_shader_parameter("screen_aspect",size.x/size.y)
+    material.set_shader_parameter("phase_offset",float(advert_index)*2.4)
+    advert_index+=1
+    var mesh := QuadMesh.new();mesh.size=size;mesh.material=material
+    var screen := MeshInstance3D.new();screen.name="PoliceAdvertisingScreen"+str(advert_index)
+    screen.mesh=mesh;screen.position=p;screen.rotation.y=yaw
+    screen.transform=construction_transform*screen.transform
+    screen.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    screen.set_meta("playlist","res://modules/stations/ploshchad_lenina/art/police_playlist.json")
+    add_child(screen)

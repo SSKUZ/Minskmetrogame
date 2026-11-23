@@ -47,5 +47,5 @@
     "kastrychnitskaya": "Кастрычніцкая",
     "ploshcha_lenina": "Плошча Леніна"
   },
-  "world_layout_status": "The specified source branch has a depot-to-Uruchye scene and nine independent station modules, not a placed ten-station world. Bindings discover each actual station instance; absent placements remain absent and passenger automation cannot drive into them."
+  "world_layout_status": "TZ55 full_line instantiates all ten route stations using their saved Station Base STOP_Z and Connection markers; depot and both travel directions are integrated separately from station announcement IDs."
 }

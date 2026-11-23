@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "units": "metres",
+  "axis": "forward decreases world Z",
+  "layout_basis": "Existing depot ramp and Station Base connection/STOP_Z datums. Interstation spans are authored simulation distances, not surveyed Minsk track geometry.",
+  "first_station_root_z": -220.112,
+  "station_module_ids": [
+    "uruchye",
+    "borisovsky_trakt",
+    "vostok",
+    "moskovskaya",
+    "park_chelyuskintsev",
+    "akademiya_nauk",
+    "yakuba_kolasa",
+    "ploshchad_pobedy",
+    "oktyabrskaya",
+    "ploshchad_lenina"
+  ],
+  "tunnel_lengths_m": [
+    1536,
+    1408,
+    1024,
+    1024,
+    768,
+    1024,
+    768,
+    896,
+    896
+  ],
+  "tunnel_bends_m": [
+    12,
+    -10,
+    8,
+    -8,
+    6,
+    -6,
+    7,
+    -7,
+    6
+  ],
+  "dwell_seconds": 12,
+  "passengers_per_platform": 18,
+  "boarding_per_platform": 12,
+  "stop_tolerance_m": 0.5,
+  "segment_boundary": "ploshchad_lenina",
+  "excluded_from_line": [
+    "institut_kultury",
+    "grushevka"
+  ],
+  "source_versions": {
+    "borisovsky_trakt": "eac2331ae930b760c4d9931f58da9b45610f6078",
+    "vostok": "dee1f12841cc6d221cd470b522ffac9711745a22",
+    "moskovskaya": "886cbbc0f6fbf1a0798bbebe25e4eb06f221d74e",
+    "park_chelyuskintsev": "bdf45142d8edc396df6c09a6604b18e0cb663f5d",
+    "akademiya_nauk": "bd3cdc47ba8d5e173fdaa1af02369fab00730ec0",
+    "yakuba_kolasa": "be32933767459d31fc1daa1a7a93bcf5714e58a7",
+    "ploshchad_pobedy": "2e38db3b8d40eb84b11d864edf751667190163cf",
+    "oktyabrskaya": "e05e29b0cd5ae63aeb69b330d1a83696bb4bb43f",
+    "ploshchad_lenina": "fab8b9299170e063365f0f95473e8c852622ba67",
+    "uruchye": "96cfe7201462db515213287375f921afbbf3e59c",
+    "v106_info": "96cfe7201462db515213287375f921afbbf3e59c",
+    "passenger_assets": "5c205137999c5b8359e1234fa8f26d89554e9464"
+  }
+}

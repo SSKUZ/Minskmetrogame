@@ -44,7 +44,8 @@
     "assets/saloon_": "v106",
     "scripts/passengers/": "integration",
     "scripts/depot/": "depot",
-    "scripts/tunnel": "tunnel_16m"
+    "scripts/tunnel": "tunnel_16m",
+    "assets/passengers/": "full_line"
   },
   "excluded_segments": [
     "tests",
@@ -65,5 +66,26 @@
     ".uid",
     ".import"
   ],
-  "chunk_bytes": 8388608
+  "chunk_bytes": 8388608,
+  "module_dependencies": {
+    "full_line": [
+      "v106",
+      "depot",
+      "uruchye",
+      "tunnel_16m",
+      "borisovsky_trakt",
+      "vostok",
+      "moskovskaya",
+      "park_chelyuskintsev",
+      "akademiya_nauk",
+      "yakuba_kolasa",
+      "ploshchad_pobedy",
+      "oktyabrskaya",
+      "ploshchad_lenina"
+    ]
+  },
+  "boot_class_sources": [
+    "audio/audio_system.gd",
+    "audio/controllers/station_position_tracker.gd"
+  ]
 }

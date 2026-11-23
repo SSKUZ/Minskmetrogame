@@ -8,6 +8,12 @@ const FY := 1.1805
 const Z0 := -12.888
 const Z1 := 92.112
 const MID := 39.612
+# +X edge: +Z west/Vostok/centre (route 2). -X edge: -Z east/Uruchye (route 1).
+# One binding supplies both wall maps and every face of the hanging boards.
+const PLATFORM_ROUTES := {
+    -1: {"wall": "wall_toward_uruchye.svg", "board": "direction_1.svg"},
+    1: {"wall": "wall_toward_malinovka.svg", "board": "direction_2.svg"}
+}
 var floor_dark: StandardMaterial3D
 var stairs: StandardMaterial3D
 var bronze: StandardMaterial3D
@@ -193,10 +199,12 @@ func _walls() -> void:
         for z in [12.0,66.0]:
             _wall_name(side,x,float(z))
         for z in [35.0,82.0]:
-            var asset := "wall_toward_uruchye.svg" if side>0.0 else "wall_toward_malinovka.svg"
-            _picture("MoscowLineWallDiagram",asset,Vector2(5.35,1.12),Vector3(x-side*0.145,2.73,float(z)),-side*PI/2.0)
-        for z in [-7.5,39.0,87.0]:
+            var asset: String = PLATFORM_ROUTES[int(side)]["wall"]
+            _picture("MoscowLineWallDiagram",asset,Vector2(5.35,0.973),Vector3(x-side*0.145,2.73,float(z)),-side*PI/2.0,true)
+        # Leave clear breaks around the two wall diagrams.
+        for z in [-7.5,44.0]:
             _wall_ornament(side,x,float(z),8.3)
+        _wall_ornament(side,x,88.7,6.5)
 
 func _wall_name(side: float,x: float,z: float) -> void:
     var root := Node3D.new();root.name="RaisedBelarusianStationName"
@@ -214,14 +222,13 @@ func _wall_name(side: float,x: float,z: float) -> void:
     _wall_ornament(side,x,z,9.7)
 
 func _wall_ornament(side: float,x: float,z: float,length: float) -> void:
-    # Three projecting blades, staggered ends and an inclined rising return.
+    # Photo 6726: straight, parallel polished strips; no stagger or bent-up tips.
     var face := x-side*0.15
     for j in range(3):
         var y := 2.43+float(j)*0.047
-        var a := Vector3(face-side*float(j)*0.016,y,z-length*0.5+float(j)*0.14)
-        var b := Vector3(a.x,y,z+length*0.5-float(j)*0.12)
+        var a := Vector3(face,y,z-length*0.5)
+        var b := Vector3(face,y,z+length*0.5)
         _beam("InterruptedMetalWallBlade",a,b,0.028,0.023,steel)
-        _beam("InclinedBladeEnd",b,b+Vector3(0,0.19,0.95),0.028,0.023,steel)
 
 func _profile(label: String, profile: Array[Vector2], z0: float,z1: float,mat: Material) -> void:
     var key := label+str(mat.get_instance_id())
@@ -335,9 +342,8 @@ func _supports() -> void:
     for z in [4.0,34.0,64.0]:
         for side in [-1.0,1.0]:
             var x: float = CX+side*2.55
-            var file := "direction_1.svg" if side>0.0 else "direction_2.svg"
-            var ratio := 5.0 if side>0.0 else 4.15
-            var size := Vector2(3.45,3.45/ratio)
+            var file: String = PLATFORM_ROUTES[int(side)]["board"]
+            var size := Vector2(3.45,0.712)
             _b("DirectionBoardSteelCase",Vector3(size.x+0.08,size.y+0.08,0.075),Vector3(x,4.30,float(z)),steel)
             for face in [-1.0,1.0]:
                 _picture("BilingualDirectionBoard",file,size,Vector3(x,4.30,float(z)+face*0.043),0.0 if face>0.0 else PI)
@@ -365,9 +371,8 @@ func _picture(label: String,file: String,size: Vector2,p: Vector3,yaw: float,tra
     var mat := _material(Color.WHITE,0.0,0.8)
     mat.albedo_texture = load((ART if file.ends_with(".svg") else DIR)+file)
     mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     if transparent: mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-    else:
-        mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     var quad := QuadMesh.new()
     quad.size = size
     var node := _mesh(label,quad,p,mat)
@@ -384,40 +389,10 @@ func _ends() -> void:
         if i in [0,14,29]:
             _b("YellowStairNosing",Vector3(7.2,0.025,0.05),Vector3(-5.37,1.20+height,z-0.14),_material(Color(0.95,0.68,0.08)))
     _b("IntermediateStairLanding",Vector3(7.2,0.16,landing),Vector3(-5.37,1.1805+15.0*0.145-0.08,start+14.5*0.31+landing*0.5),stairs)
-    for x in [-9.12,-6.60,-1.62]:
-        for offset in [0.72,1.06]:
-            var y: float=1.1805+float(offset)
-            var a := Vector3(x,y,start-0.2)
-            var b := Vector3(x,y+2.175,start+14.5*0.31)
-            var c := b+Vector3(0,0,landing)
-            var d := Vector3(x,y+4.35,start+29.5*0.31+landing)
-            _rod(a,b,0.025,steel)
-            _rod(b,c,0.025,steel)
-            _rod(c,d,0.025,steel)
-            _rod(a-Vector3(0,0,0.4),a,0.025,steel)
-        for i in range(9):
-            var u := float(i)/8.0
-            var z: float=start+u*(9.3+landing)
-            var rise: float=clampf((z-start)/0.31,0.0,15.0)*0.145 if z<start+14.5*0.31 else 2.175 if z<start+14.5*0.31+landing else 2.175+(z-start-14.5*0.31-landing)*0.145/0.31
-            _rod(Vector3(x,1.1805+rise,z),Vector3(x,2.2805+rise,z),0.026,steel)
-    for side in [-1,1]:
-        _b("StairSideMarble",Vector3(0.25,6.94,14.3),Vector3(-5.37+float(side)*3.8,4.65,91.95),stone)
-        _b("StairSideRedGranite",Vector3(0.27,1.2,14.3),Vector3(-5.37+float(side)*3.8,1.78,91.95),brown)
-    _picture("WestExitDestinations","exit.svg",Vector2(7.05,0.793),Vector3(-5.37,4.1,84.65),PI)
-    _b("WestVestibuleFloor",Vector3(7.2,0.2,4),Vector3(-5.37,5.53,96.3),stairs)
-    _b("WestVestibuleBack",Vector3(7.5,3.0,0.2),Vector3(-5.37,7.1,98.4),stone)
-    # East vestibule is closed: the documented curved screen stops below ceiling.
-    var screen: Array[Vector2] = []
-    for i in range(21):
-        var a := PI*float(i)/20.0
-        screen.append(Vector2(-5.37+3.4*cos(a),-10.7-1.6*sin(a)))
-    for i in range(screen.size()-1):
-        var a := screen[i]
-        var b := screen[i+1]
-        var mesh := BoxMesh.new()
-        mesh.size = Vector3(a.distance_to(b)+0.015,3.1,0.12)
-        var n := _mesh("ClosedEastVestibuleScreen",mesh,Vector3((a.x+b.x)*0.5,2.73,(a.y+b.y)*0.5),white)
-        n.rotation.y = -atan2(b.y-a.y,b.x-a.x)
+    _west_stair_railings(start,landing)
+    _picture("WestExitDestinations","exit.svg",Vector2(7.05,0.793),Vector3(CX,4.1,84.65),PI)
+    _west_exit_control_area(start+29.0*0.31+landing)
+    _closed_east_screen()
     for x in [0.992,-11.732]:
         for z in [-16.9,96.1]:
             _b("ShortTunnelRoof",Vector3(4.6,0.3,8),Vector3(x,4.05,z),dark)
@@ -444,9 +419,7 @@ func _equipment() -> void:
     for x in [-9.5,-1.25]:
         _b("CCTVBody",Vector3(0.16,0.15,0.35),Vector3(x,4.26,83.2),white)
         _b("CCTVBracket",Vector3(0.04,0.3,0.04),Vector3(x,4.45,83.3),steel)
-    # Dark existing information screens, no invented advertising or service text.
-    for z in [22.0,58.0]:
-        _b("InformationMonitor",Vector3(1.2,0.7,0.12),Vector3(-2.5,4.1,z),dark)
+    _information_monitors()
     for x in [-9.1,-1.65]:
         _b("EmergencyCallPanel",Vector3(0.24,0.45,0.05),Vector3(x,2.27,84.0),_material(Color(0.95,0.77,0.12)))
         _b("SOSButton",Vector3(0.08,0.10,0.065),Vector3(x,2.27,83.97),_material(Color(0.75,0.08,0.04)))
@@ -484,5 +457,189 @@ func _finish_details() -> void:
         var x: float = CX+side*4.8
         for i in range(70):
             _b("GlobeFixturePlate",Vector3(0.16,0.16,0.025),Vector3(x,4.93,-12.0+float(i)*1.5),steel)
-    for x in [-9.12,-6.60,-1.62]:
-        _b("StairRailFootPlate",Vector3(0.16,0.018,0.18),Vector3(float(x),1.197,85.0),steel)
+
+func _information_monitors() -> void:
+    # Reuse the existing local artwork: static illuminated ads on both faces.
+    # Two rods, a mounting plate, fixings and a rear crossmember form a continuous
+    # connection from each monitor case to the actual side ceiling at y=5.65.
+    for i in range(2):
+        var z := 22.0+float(i)*36.0
+        var p := Vector3(-2.5,4.1,z)
+        _b("InformationMonitor",Vector3(1.2,0.7,0.12),p,dark)
+        _b("MonitorMountCrossmember",Vector3(0.94,0.05,0.09),p+Vector3(0,0.32,0),steel)
+        for dx in [-0.42,0.42]:
+            var x: float=p.x+float(dx)
+            _rod(Vector3(x,4.40,z),Vector3(x,5.63,z),0.019,steel)
+            _b("MonitorCeilingPlate",Vector3(0.16,0.035,0.18),Vector3(x,5.64,z),steel)
+            for dz in [-0.055,0.055]:
+                _cylinder("MonitorMountBolt",0.013,0.012,Vector3(x,5.618,z+float(dz)),dark)
+            _b("MonitorCaseClamp",Vector3(0.09,0.10,0.14),Vector3(x,4.43,z),steel)
+        # The cable is visibly secured alongside the suspension, not floating.
+        _rod(Vector3(p.x+0.445,4.42,z+0.025),Vector3(p.x+0.445,5.62,z+0.025),0.006,dark)
+        for face in [-1.0,1.0]:
+            _picture("StaticAdvertisingScreen","ad_%d.svg" % i,Vector2(1.10,1.10*680.0/1200.0),p+Vector3(0,0,face*0.062),0.0 if face>0.0 else PI)
+
+func _stair_tread_height(z: float,start: float,landing: float) -> float:
+    var first_end := start+14.5*0.31
+    if z<first_end:
+        return FY+clampf(floorf((z-start+0.155)/0.31)+1.0,1.0,15.0)*0.145
+    if z<first_end+landing:return FY+15.0*0.145
+    return FY+clampf(floorf((z-start-landing+0.155)/0.31)+1.0,16.0,30.0)*0.145
+
+func _west_stair_railings(start: float,landing: float) -> void:
+    # Open stainless balustrades replace both tall solid side walls. Posts sit
+    # on the actual treads; the upper side guards continue along the landing.
+    var first_end := start+14.5*0.31
+    var second_start := first_end+landing
+    var top := start+29.5*0.31+landing
+    for index in range(3):
+        var x: float=[CX-3.42,-6.60,CX+3.42][index]
+        var path: Array[Vector2]=[
+            Vector2(start-0.155,FY+0.145),
+            Vector2(first_end,FY+2.175),
+            Vector2(second_start,FY+2.175),
+            Vector2(top,FY+4.35)
+        ]
+        if index!=1:path.append(Vector2(98.90,FY+4.35))
+        for segment in range(path.size()-1):
+            var a: Vector2=path[segment]
+            var b: Vector2=path[segment+1]
+            for height in [0.18,0.64,1.10]:
+                _rod(Vector3(x,a.y+float(height),a.x),Vector3(x,b.y+float(height),b.x),0.025 if height==1.10 else 0.018,steel)
+            var count := maxi(1,ceili((b.x-a.x)/0.72))
+            for j in range(count):
+                var t := float(j)/float(count)
+                var z := lerpf(a.x,b.x,t)
+                var y := _stair_tread_height(z,start,landing)
+                var rail_y := lerpf(a.y,b.y,t)+1.10
+                _rod(Vector3(x,y,z),Vector3(x,rail_y,z),0.022,steel)
+                _b("StairRailFootPlate",Vector3(0.13,0.014,0.14),Vector3(x,y+0.007,z),steel)
+        var end: Vector2=path[-1]
+        _rod(Vector3(x,end.y,end.x),Vector3(x,end.y+1.10,end.x),0.022,steel)
+        _b("StairTopPostFoot",Vector3(0.13,0.014,0.14),Vector3(x,end.y+0.007,end.x),steel)
+
+func _west_exit_control_area(top_step_z: float) -> void:
+    var floor_y := FY+4.35
+    # The landing starts flush with the final tread and ends under the existing
+    # high exit roof. Furniture remains behind the stair approach.
+    var length := 3.80
+    _b("WestVestibuleFloor",Vector3(7.2,0.20,length),Vector3(CX,floor_y-0.10,top_step_z+length*0.5),stairs)
+    _b("WestVestibuleBack",Vector3(7.5,2.42,0.16),Vector3(CX,floor_y+1.21,99.0),stone)
+    var reader := _material(Color("#18252c"),0.28,0.28)
+    var indicator := _material(Color("#46c892"),0.0,0.65)
+    indicator.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+    # Six cabinets form five visible lanes to the left of the attendant cabin.
+    for i in range(6):
+        var x := CX-3.05+float(i)*0.90
+        var z := 97.05
+        _b("TurnstileFoot",Vector3(0.29,0.055,1.12),Vector3(x,floor_y+0.0275,z),dark)
+        _b("TurnstileCabinet",Vector3(0.22,0.94,1.08),Vector3(x,floor_y+0.525,z),steel)
+        _b("TurnstileTop",Vector3(0.26,0.06,1.12),Vector3(x,floor_y+1.025,z),steel)
+        _b("FareCardReader",Vector3(0.17,0.035,0.25),Vector3(x,floor_y+1.072,z-0.29),reader)
+        _b("TurnstileLaneIndicator",Vector3(0.08,0.035,0.016),Vector3(x,floor_y+0.89,z-0.549),indicator)
+        if i<5:
+            var pivot := Vector3(x+0.15,floor_y+0.73,z)
+            _b("TurnstileRotor",Vector3(0.12,0.16,0.16),pivot,steel)
+            for arm in range(3):
+                var angle := float(arm)*TAU/3.0
+                _rod(pivot,pivot+Vector3(0.60,0.23*sin(angle),0.23*cos(angle)),0.022,steel)
+    # A glazed booth with a solid lower panel, metal mullions and an interior
+    # desk is visible above the stairs rather than hidden behind a high wall.
+    var bx := CX+2.55
+    var front := 96.48
+    var back := 98.23
+    var shell := _material(Color("#788b89"),0.38,0.48)
+    var frame := _material(Color("#4a6061"),0.62,0.31)
+    var glass := _material(Color(0.40,0.57,0.58,0.24),0.05,0.17)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+    _b("ControlBoothLowerFront",Vector3(1.60,0.90,0.07),Vector3(bx,floor_y+0.45,front),shell)
+    _b("ControlBoothCounter",Vector3(1.64,0.07,0.25),Vector3(bx,floor_y+0.94,front+0.06),steel)
+    for side in [-1.0,1.0]:
+        var x: float=bx+side*0.80
+        _b("ControlBoothLowerSide",Vector3(0.07,0.90,back-front),Vector3(x,floor_y+0.45,(front+back)*0.5),shell)
+        _b("ControlBoothSideGlass",Vector3(0.025,1.19,back-front-0.08),Vector3(x,floor_y+1.545,(front+back)*0.5),glass)
+        for z in [front,back]:
+            _b("ControlBoothCornerPost",Vector3(0.06,2.20,0.06),Vector3(x,floor_y+1.10,float(z)),frame)
+    for dx in [-0.41,0.41]:
+        _b("ControlBoothFrontGlass",Vector3(0.75,1.19,0.025),Vector3(bx+float(dx),floor_y+1.545,front),glass)
+    _b("ControlBoothFrontMullion",Vector3(0.045,1.24,0.06),Vector3(bx,floor_y+1.55,front),frame)
+    _b("ControlBoothHeader",Vector3(1.65,0.095,0.08),Vector3(bx,floor_y+2.18,front),frame)
+    _b("ControlBoothRoof",Vector3(1.76,0.09,1.91),Vector3(bx,floor_y+2.245,(front+back)*0.5),shell)
+    _b("ControlBoothRearPanel",Vector3(1.60,2.12,0.07),Vector3(bx,floor_y+1.06,back),shell)
+    _b("ControlBoothDesk",Vector3(1.24,0.055,0.48),Vector3(bx,floor_y+0.82,front+0.43),wood)
+    _b("ControlBoothConsole",Vector3(0.34,0.25,0.055),Vector3(bx+0.27,floor_y+1.01,front+0.43),dark)
+    _b("ControlBoothConsoleScreen",Vector3(0.29,0.20,0.01),Vector3(bx+0.27,floor_y+1.01,front+0.398),reader)
+
+
+func _gypsum_material() -> ShaderMaterial:
+    var shader := Shader.new()
+    shader.code="""shader_type spatial;
+render_mode cull_disabled;
+varying vec3 p;
+void vertex(){p=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
+float hash_p(vec3 q){return fract(sin(dot(q,vec3(127.1,311.7,74.7)))*43758.5453);}
+float cloud(vec3 q){
+    vec3 i=floor(q),f=fract(q);f=f*f*(3.0-2.0*f);
+    float a=mix(mix(hash_p(i),hash_p(i+vec3(1,0,0)),f.x),mix(hash_p(i+vec3(0,1,0)),hash_p(i+vec3(1,1,0)),f.x),f.y);
+    float b=mix(mix(hash_p(i+vec3(0,0,1)),hash_p(i+vec3(1,0,1)),f.x),mix(hash_p(i+vec3(0,1,1)),hash_p(i+vec3(1,1,1)),f.x),f.y);
+    return mix(a,b,f.z);
+}
+void fragment(){
+    float coating=cloud(p*3.8);
+    float grain=hash_p(floor(p*175.0));
+    ALBEDO=mix(vec3(0.86,0.87,0.84),vec3(0.92,0.925,0.90),coating)+vec3((grain-0.5)*0.008);
+    ROUGHNESS=0.88+grain*0.06;SPECULAR=0.22;
+}
+"""
+    var mat := ShaderMaterial.new()
+    mat.shader=shader
+    return mat
+
+func _screen_collision(node: MeshInstance3D,size: Vector3) -> void:
+    var body := StaticBody3D.new()
+    body.name="SolidPartition"
+    var shape := BoxShape3D.new()
+    shape.size=size
+    var collider := CollisionShape3D.new()
+    collider.shape=shape
+    body.add_child(collider)
+    node.add_child(body)
+
+func _screen_wall(label: String,size: Vector3,p: Vector3,mat: Material) -> void:
+    var mesh := BoxMesh.new()
+    mesh.size=size
+    var node := _mesh(label,mesh,p,mat)
+    _screen_collision(node,size)
+
+func _closed_east_screen() -> void:
+    var gypsum := _gypsum_material()
+    var joint := _material(Color("#ced0c8"),0.0,0.95)
+    var cap := _material(Color("#daddd5"),0.10,0.67)
+    # A solid end wall fills the whole platform width and meets both the floor
+    # and the existing ceiling. Returns close the sides behind the curved face.
+    # There is no opening into the unmodelled space, even beside the screen.
+    var height := 4.65
+    var y := FY-0.02+height*0.5
+    _screen_wall("ClosedVestibuleRearWall",Vector3(10.0,height,0.35),Vector3(CX,y,Z0-0.155),gypsum)
+    var room_front := -10.50
+    var room_back := Z0-0.30
+    for side in [-1.0,1.0]:
+        _screen_wall("ClosedVestibuleSideReturn",Vector3(0.12,height,room_front-room_back),Vector3(CX+side*4.94,y,(room_front+room_back)*0.5),gypsum)
+    var screen: Array[Vector2]=[]
+    for i in range(21):
+        var angle := PI*float(i)/20.0
+        screen.append(Vector2(CX+3.4*cos(angle),-10.7-1.6*sin(angle)))
+    for i in range(screen.size()-1):
+        var a: Vector2=screen[i]
+        var b: Vector2=screen[i+1]
+        var mesh := BoxMesh.new()
+        mesh.size=Vector3(a.distance_to(b)+0.010,3.10,0.14)
+        var node := _mesh("PaintedGypsumScreenPanel",mesh,Vector3((a.x+b.x)*0.5,FY+1.55,(a.y+b.y)*0.5),gypsum)
+        node.rotation.y=-atan2(b.y-a.y,b.x-a.x)
+        _screen_collision(node,mesh.size)
+        _beam("GypsumScreenTopCap",Vector3(a.x,FY+3.11,a.y),Vector3(b.x,FY+3.11,b.y),0.16,0.025,cap)
+        _beam("GypsumScreenSkirting",Vector3(a.x,FY+0.04,a.y),Vector3(b.x,FY+0.04,b.y),0.16,0.08,cap)
+        if i>0:
+            var tangent := (b-a).normalized()
+            var face := Vector3(tangent.y,0,-tangent.x)*0.076
+            _rod(Vector3(a.x,FY+0.09,a.y)+face,Vector3(a.x,FY+3.07,a.y)+face,0.003,joint)

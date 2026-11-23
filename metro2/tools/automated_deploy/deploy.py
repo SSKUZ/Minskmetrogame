@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Changed-pack planning, native resource packaging and atomic publication. No game execution."""
 from pathlib import Path, PurePosixPath
-import argparse, base64, fnmatch, hashlib, json, os, re, shutil, subprocess
+import argparse, base64, fnmatch, hashlib, json, os, posixpath, re, shutil, struct, subprocess
 
 ROOT=Path(__file__).resolve().parents[2]
 REPO=ROOT.parent
@@ -54,7 +54,19 @@ def ignored(name):
     return p.suffix.lower() in POLICY['excluded_suffixes'] or any(v in POLICY['excluded_segments'] or v.startswith('references_') for v in p.parts)
 
 def references(name):
+    # Catalog entries describe optional packages, not eager resource dependencies.
+    if name==POLICY['catalog']:return []
     p=ROOT/name
+    if p.is_file() and p.suffix in {'.glb','.gltf'}:
+        if p.suffix=='.glb':
+            with p.open('rb') as model:
+                header=model.read(20)
+                if len(header)!=20 or header[:4]!=b'glTF' or header[16:20]!=b'JSON':return []
+                document=json.loads(model.read(struct.unpack_from('<I',header,12)[0]))
+        else:document=json.loads(p.read_text())
+        return [posixpath.normpath(posixpath.join(str(PurePosixPath(name).parent),v['uri']))
+                for v in document.get('images',[])+document.get('buffers',[])
+                if v.get('uri') and not v['uri'].startswith(('data:','http:','https:'))]
     if not p.is_file() or p.suffix not in TEXT:return []
     return re.findall(r'''res://([^"'\s]+)''',p.read_text(errors='replace'))
 
@@ -72,7 +84,7 @@ def closure(seeds):
     return seen
 
 def static_boot_sources():
-    todo=list(POLICY['boot_sources']);seen=set()
+    todo=list(POLICY['boot_sources'])+list(POLICY.get('boot_class_sources',[]));seen=set()
     while todo:
         name=todo.pop()
         if name in seen:continue
@@ -173,8 +185,20 @@ def plan():
         else:
             guard(key,manifest,state,head)
             entry=entries.get(key);own=sources.get(key,set());deps=[]
+            previous=state.get('modules',{}).get(key)
+            if previous and own:
+                # Integration borrows current station source trees as well as their
+                # ancestry. Reuse a published pack when all its actual sources match.
+                source_delta=git('diff','--name-only',previous['source_commit'],head,'--',*sorted('metro2/'+s for s in own))
+                if not source_delta.strip():continue
             for requirement in manifest['modules'].get(key,[]):
                 if requirement!=key and requirement not in deps:deps.append(requirement)
+            # Composed routes declare existing package dependencies. Preserve each
+            # dependency's real transitive pack order from the live registry.
+            for requirement in POLICY.get('module_dependencies',{}).get(key,[]):
+                if requirement not in manifest['packs']:raise RuntimeError('Missing route dependency '+requirement)
+                for dep in manifest['modules'].get(requirement,[requirement]):
+                    if dep!=key and dep not in deps:deps.append(dep)
             title=manifest.get('names',{}).get(key,names.get(key,key));category='station' if '/stations/' in (entry or '') else 'train' if key=='v106' else 'module'
             if key not in manifest['packs']:
                 if not entry or key not in names:raise RuntimeError('New module must be registered in both existing scene catalog and viewer menu: '+key)
@@ -299,7 +323,7 @@ def publish():
                 old=cfg['mainPack'];cfg['mainPack']=entry['file'];cfg.setdefault('fileSizes',{}).pop(old,None);cfg['fileSizes'][entry['file']]=entry['bytes']
                 state['boot']={'source_commit':head,'file':entry['file']};continue
             manifest['packs'][key]=entry
-            manifest.setdefault('modules',{}).setdefault(key,spec['dependencies']+[key])
+            manifest.setdefault('modules',{})[key]=spec['dependencies']+[key]
             manifest.setdefault('names',{}).setdefault(key,spec['name'])
             report.setdefault('resources',{})[key]=json.loads((folder/'resources.json').read_text())
             if spec['scene']:report.setdefault('entries',{})[key]=spec['scene']

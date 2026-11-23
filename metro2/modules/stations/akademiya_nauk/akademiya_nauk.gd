@@ -5,6 +5,14 @@ const NORTH := -2.80
 const SOUTH := 82.024
 const PITCH := 4.35
 const COL_X := 2.55
+# Metres from the stair/escalator threshold toward its tunnel end. Base connections stay fixed.
+const PORTAL_GAP := 1.75
+const ESCALATOR_PITCH := 2.05
+const ESCALATOR_STEP_WIDTH := 1.30
+const GIRDER_START := -1.50+PITCH-0.43
+const GIRDER_END := -1.50+18.0*PITCH+0.43
+const UPPER_HALL_LENGTH := 19.40
+const UPPER_GATE_DISTANCE := 15.20
 var wall_stone: StandardMaterial3D
 var column_stones: Array[StandardMaterial3D]=[]
 var stair_stone: StandardMaterial3D
@@ -13,6 +21,7 @@ var yellow: StandardMaterial3D
 var floor_stone: StandardMaterial3D
 var floor_dark: StandardMaterial3D
 var lettering: StandardMaterial3D
+var bench_oak: StandardMaterial3D
 
 func _ready() -> void:
     super._ready()
@@ -26,12 +35,16 @@ func _ready() -> void:
     floor_dark=_photo("floor_dark.jpg",Vector2(1.20,0.15),0.36)
     floor_dark.albedo_color=Color(0.42,0.45,0.43)
     trim=_material(Color("#bdb9a8"),0.15,0.42)
-    lettering=_material(Color("#d0cbc0"),0.55,0.29)
+    lettering=_photo("ceiling_paint.jpg",Vector2(0.09,0.09),0.38)
+    lettering.albedo_color=Color("#bdb8a9");lettering.metallic=0.78
+    lettering.normal_enabled=true;lettering.normal_texture=load(ART+"ceiling_normal.png");lettering.normal_scale=0.14
     yellow=_material(Color("#d9ac37"),0.0,0.68)
     for i in range(4):
         var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.82,2.65),0.26)
         m.uv1_offset=Vector3(0.0,float(i)*0.26,0.0)
         column_stones.append(m)
+    bench_oak=_photo("bench_oak.jpg",Vector2(0.48,0.60),0.40)
+    bench_oak.albedo_color=Color(0.99,0.92,0.77)
     _floor()
     _walls()
     _columns_and_girders()
@@ -40,6 +53,9 @@ func _ready() -> void:
     _escalators(SOUTH)
     _signs()
     _track_details()
+    var trackwork := preload("res://modules/stations/akademiya_nauk/trackwork.gd").new()
+    trackwork.name="DetailedTrackwork";add_child(trackwork)
+    _close_end_joints()
     _portal_equipment()
     _floor_fittings()
     for z in [14.0,43.0,70.5]:_television(float(z),z==43.0)
@@ -117,18 +133,20 @@ func _walls() -> void:
             if j%2==0:picture("route_track1.svg" if side>0.0 else "route_track2.svg",Vector2(4.6,0.92),Vector3(x-side*0.20,2.55,z),-side*PI/2.0,true)
 
 func _name(value: String,p: Vector3,yaw: float) -> void:
-    var font: Font=load(ART+"station_letters.ttf")
+    var font := FontVariation.new()
+    font.base_font=load(ART+"station_letters.ttf");font.variation_embolden=1.10
     var frame := Node3D.new();frame.name="OutlinedMetalStationLetters";frame.position=p;frame.rotation.y=yaw;add_child(frame)
     var size := 0.0048
-    var total: float=font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size+float(value.length())*0.035
+    var total: float=float(maxi(value.length()-1,0))*0.035
+    for letter in value:total+=font.get_string_size(letter,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size
     var cursor: float=-total*0.5
     for letter in value:
         var advance: float=font.get_string_size(letter,HORIZONTAL_ALIGNMENT_LEFT,-1,72).x*size
         for face in range(2):
             var mesh := TextMesh.new();mesh.font=font;mesh.text=letter;mesh.font_size=72;mesh.pixel_size=size;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
-            mesh.depth=0.033 if face==0 else 0.004;mesh.material=black if face==0 else lettering
-            var node := MeshInstance3D.new();node.mesh=mesh;node.position=Vector3(cursor+advance*0.5,0,0.0 if face==0 else 0.019)
-            if face==1:node.scale=Vector3(0.84,0.84,1.0)
+            mesh.depth=0.045 if face==0 else 0.007;mesh.material=black if face==0 else lettering
+            var node := MeshInstance3D.new();node.mesh=mesh;node.position=Vector3(cursor+advance*0.5,0,0.0 if face==0 else 0.026)
+            if face==1:node.scale=Vector3(0.98,0.98,1.0)
             frame.add_child(node)
         cursor+=advance+0.035
 
@@ -137,8 +155,9 @@ func _columns_and_girders() -> void:
     var capital := FY+2.70
     for side in [-1.0,1.0]:
         var x: float=CX+side*COL_X
-        box(Vector3(0.86,0.53,86.6),Vector3(x,5.385,39.7),white)
-        for i in range(20):
+        box(Vector3(0.86,0.53,GIRDER_END-GIRDER_START),Vector3(x,5.385,(GIRDER_START+GIRDER_END)*0.5),white)
+        # Omit exactly the first/last column in each row: four columns in total.
+        for i in range(1,19):
             var z: float=-1.50+float(i)*PITCH
             # Solid opaque core; four closed stone faces, no transparent column shader.
             box(Vector3(0.84,capital-bottom,0.84),Vector3(x,(capital+bottom)*0.5,z),column_stones[i%4])
@@ -157,7 +176,7 @@ func _columns_and_girders() -> void:
                     box(Vector3(0.027,3.84,0.018),Vector3(x+float(dx),FY+1.98,z+face*0.43),metal)
                     box(Vector3(0.018,3.84,0.027),Vector3(x+face*0.43,FY+1.98,z+float(dx)),metal)
             for h in [FY+0.91,FY+1.78]:box(Vector3(0.842,0.002,0.842),Vector3(x,float(h),z),_material(Color("#656962"),0.0,0.6))
-            if i<19:
+            if i<18:
                 _haunch(x,z+0.42,1.0)
                 _haunch(x,z+PITCH-0.42,-1.0)
                 var center: float=z+PITCH*0.5
@@ -180,17 +199,43 @@ func _haunch(x: float,z: float,direction: float) -> void:
         quad(Vector3(x-0.43,a.y,a.x),Vector3(x+0.43,a.y,a.x),Vector3(x+0.43,b.y,b.x),Vector3(x-0.43,b.y,b.x),white)
 
 func _ceilings() -> void:
-    box(Vector3(5.12,0.12,86.8),Vector3(CX,6.04,39.7),white)
-    for side in [-1.0,1.0]:box(Vector3(6.43,0.12,105),Vector3(CX+side*5.73,5.73,MID),white)
+    # Existing photographic paint and relief stay separate from column/wall finishes.
+    var plaster := _photo("ceiling_paint.jpg",Vector2(0.72,0.72),0.96)
+    plaster.albedo_color=Color(0.98,0.976,0.96)
+    plaster.normal_enabled=true;plaster.normal_texture=load(ART+"ceiling_normal.png");plaster.normal_scale=0.42
+    var rib_paint := plaster.duplicate() as StandardMaterial3D
+    rib_paint.albedo_color=Color(0.955,0.95,0.93)
+    box(Vector3(5.12,0.12,SOUTH-NORTH-0.20),Vector3(CX,6.04,(NORTH+SOUTH)*0.5),plaster)
+    for side in [-1.0,1.0]:
+        # Outer strip reaches the tunnel header; inner strip ends before either ascent.
+        var outer_length: float=_portal_z(1.0)-_portal_z(-1.0)+0.20
+        box(Vector3(5.40,0.12,outer_length),Vector3(CX+side*6.25,5.73,(NORTH+SOUTH)*0.5),plaster)
+        box(Vector3(1.045,0.12,SOUTH-NORTH-0.20),Vector3(CX+side*3.0325,5.73,(NORTH+SOUTH)*0.5),plaster)
+        # Narrow projecting cornices give the longitudinal edges a readable profile.
+        box(Vector3(0.105,0.075,GIRDER_END-GIRDER_START),Vector3(CX+side*2.18,5.645,(GIRDER_START+GIRDER_END)*0.5),rib_paint)
     for i in range(59):
         var z: float=ZA+0.35+float(i)*1.80
-        if z>NORTH and z<SOUTH:box(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),white)
-        for side in [-1.0,1.0]:box(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),white)
+        if z>NORTH and z<SOUTH:
+            _rounded_ceiling_rib(Vector3(4.35,0.34,0.16),Vector3(CX,5.80,z),rib_paint)
+        for side in [-1.0,1.0]:
+            if z>NORTH and z<SOUTH:
+                _rounded_ceiling_rib(Vector3(6.40,0.34,0.14),Vector3(CX+side*5.73,5.50,z),rib_paint)
+            elif z>_portal_z(-1.0) and z<_portal_z(1.0):
+                _rounded_ceiling_rib(Vector3(5.38,0.34,0.14),Vector3(CX+side*6.24,5.50,z),rib_paint)
     for child in get_children():
         if child is OmniLight3D:
-            child.position.y=5.45;child.light_energy=1.45;child.light_color=Color(1.0,0.98,0.94)
+            child.position.y=5.45;child.light_energy=1.30;child.light_color=Color(1.0,0.98,0.94)
     for z in [7.0,33.0,61.0,84.0]:
         var light := OmniLight3D.new();light.position=Vector3(CX,5.74,float(z));light.light_energy=0.45;light.omni_range=14.0;light.shadow_enabled=false;add_child(light)
+    # Gentle upward light makes the physical ribs cast onto the ceiling.
+    # Existing diffuse lamps keep their unshadowed fill; avoid cube-map omni shadows.
+    for z in [20.762,40.562,60.362]:
+        var light := SpotLight3D.new()
+        light.name="CeilingRibUplight";light.position=Vector3(CX+0.55,5.32,float(z));light.rotation.x=PI/2.0
+        light.light_color=Color(1.0,0.98,0.94);light.light_energy=0.28
+        light.spot_range=8.0;light.spot_angle=80.0
+        light.shadow_enabled=true;light.shadow_bias=0.06;light.shadow_normal_bias=1.0
+        add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
     var width := 7.1
@@ -206,7 +251,7 @@ func _stairs(direction: float,start: float) -> void:
     box(Vector3(width,0.18,landing),Vector3(CX,FY+20*rise-0.09,start+direction*6.30),stair_stone)
     var finish: float=start+direction*(35*run+landing+run*0.5)
     box(Vector3(width,0.20,3.8),Vector3(CX,top-0.10,finish+direction*1.8),floor_stone)
-    _exit_hall(direction,start,width,top,14.8)
+    _exit_hall(direction,start,width,top,UPPER_HALL_LENGTH)
     for side in [-1.0,1.0]:
         var x: float=CX+side*(width*0.5-0.045)
         var points := [Vector2(-0.30,0),Vector2(5.85,20*rise),Vector2(6.75,20*rise),Vector2(11.55,36*rise)]
@@ -221,56 +266,73 @@ func _escalators(start: float) -> void:
     var width := 7.10
     var rise := 4.65
     var run := 9.20
-    var lower := 1.2
+    var lower := 1.20
     var tan := _material(Color("#9a8060"),0.25,0.38)
     var rubber := _material(Color("#20241f"),0.05,0.60)
     var stepmat := _material(Color("#5d625b"),0.45,0.50)
-    _exit_hall(1.0,start,width,FY+rise,14.7)
+    var half_step: float=ESCALATOR_STEP_WIDTH*0.5
+    var half_case: float=ESCALATOR_PITCH*0.5
+    var side_width: float=half_case-half_step
+    _exit_hall(1.0,start,width,FY+rise,UPPER_HALL_LENGTH)
+    # Full lower slab and full-height upper landing close the machine pit and rear view.
+    box(Vector3(width+0.04,0.16,14.9),Vector3(CX,FY-0.08,start+7.25),floor_stone)
+    box(Vector3(width+0.04,rise+0.05,4.40),Vector3(CX,FY+(rise-0.05)*0.5,start+12.5),floor_stone)
+    var body := PackedVector2Array([Vector2(-0.18,0.025),Vector2(lower,0.025),Vector2(lower+run,rise-0.16),Vector2(12.30,rise-0.16)])
+    var casing := PackedVector2Array([Vector2(-0.16,0.76),Vector2(lower,0.76),Vector2(lower+run,rise+0.76),Vector2(12.25,rise+0.76)])
+    # Three complete housings touch at their sides. There is no open trench between lanes.
     for lane in range(3):
-        var x: float=CX+(float(lane)-1.0)*2.05
+        var x: float=CX+(float(lane)-1.0)*ESCALATOR_PITCH
+        _closed_ramp_strip(x-half_case-0.006,x+half_case+0.006,start,body,tan)
         for i in range(49):
             var t: float=float(i)/48.0
             var z: float=start+lower+t*run
-            box(Vector3(1.05,0.18+rise*t,0.205),Vector3(x,FY+(0.18+rise*t)*0.5,z),stepmat)
-            for groove in range(11):box(Vector3(0.006,0.007,0.185),Vector3(x-0.47+float(groove)*0.094,FY+0.185+rise*t,z),black)
-        box(Vector3(1.05,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
+            var h: float=maxf(0.045,rise*t)
+            box(Vector3(ESCALATOR_STEP_WIDTH,h,0.205),Vector3(x,FY+h*0.5,z),stepmat)
+            for groove in range(14):
+                box(Vector3(0.006,0.007,0.185),Vector3(x-half_step+0.05+float(groove)*(ESCALATOR_STEP_WIDTH-0.10)/13.0,FY+h+0.004,z),black)
+        box(Vector3(ESCALATOR_STEP_WIDTH,0.04,1.25),Vector3(x,FY+0.02,start+0.48),stepmat)
         for side in [-1.0,1.0]:
-            var bx: float=x+side*0.69
-            var offsets := [Vector2(0.0,0.0),Vector2(1.2,0.0),Vector2(10.4,rise),Vector2(12.2,rise)]
+            var x0: float=x+side*half_step
+            var x1: float=x+side*half_case
+            _closed_ramp_strip(minf(x0,x1)-0.006,maxf(x0,x1)+0.006,start,casing,tan)
+            var bx: float=x+side*(half_step+side_width*0.5)
+            var offsets := [Vector2(0.0,0.0),Vector2(lower,0.0),Vector2(lower+run,rise),Vector2(12.20,rise)]
             for i in range(offsets.size()-1):
-                var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
-                var slope: float=atan2(b.y-a.y,b.x-a.x)
-                var length: float=a.distance_to(b)
-                box(Vector3(0.30,0.76,length),Vector3(bx,FY+(a.y+b.y)*0.5+0.38,start+(a.x+b.x)*0.5),tan,Basis(Vector3.RIGHT,-slope))
-                rod(Vector3(bx,FY+a.y+0.82,start+a.x),Vector3(bx,FY+b.y+0.82,start+b.x),0.045,rubber)
-                rod(Vector3(bx-side*0.16,FY+a.y+0.70,start+a.x),Vector3(bx-side*0.16,FY+b.y+0.70,start+b.x),0.022,metal)
+                var p0: Vector2=offsets[i];var p1: Vector2=offsets[i+1]
+                rod(Vector3(bx,FY+p0.y+0.82,start+p0.x),Vector3(bx,FY+p1.y+0.82,start+p1.x),0.045,rubber)
+                rod(Vector3(x0,FY+p0.y+0.70,start+p0.x),Vector3(x0,FY+p1.y+0.70,start+p1.x),0.022,metal)
             cylinder(0.085,0.57,Vector3(bx,FY+0.285,start+0.06),metal)
             picture("escalator_warning.svg",Vector2(0.22,0.25),Vector3(bx,FY+0.31,start-0.05),PI)
             box(Vector3(0.15,0.68,0.26),Vector3(bx,FY+0.34,start-0.10),metal)
-        box(Vector3(1.05,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
+        box(Vector3(ESCALATOR_STEP_WIDTH,0.012,0.06),Vector3(x,FY+0.047,start+0.03),yellow)
         var indicator := _material(Color("#0f9d57") if lane==0 else Color("#bc274a"),0,0.4)
         indicator.emission_enabled=true;indicator.emission=indicator.albedo_color
-        box(Vector3(0.08,0.10,0.02),Vector3(x-0.69,FY+0.58,start-0.245),indicator)
-    box(Vector3(width,0.22,4.2),Vector3(CX,FY+rise-0.11,start+12.5),floor_stone)
+        box(Vector3(0.08,0.10,0.02),Vector3(x-half_step-side_width*0.5,FY+0.58,start-0.245),indicator)
+    # Marble cheeks meet the outer housings and overlap the existing hall walls.
+    for side in [-1.0,1.0]:
+        var x0: float=CX+side*ESCALATOR_PITCH*1.5
+        var x1: float=CX+side*(width*0.5+0.025)
+        _closed_ramp_strip(minf(x0,x1)-0.006,maxf(x0,x1)+0.006,start,casing,wall_stone)
     board("exit_escalators.jpg",Vector3(CX,4.71,start-0.48),Vector2(5.75,0.84))
     foot_grille(start-0.46,7.25)
 
 func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
+    var roof_y: float=top+2.90
     for side in [-1.0,1.0]:
         var x: float=CX+side*(width*0.5+0.14)
-        box(Vector3(0.28,7.9-FY,length),Vector3(x,(7.9+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
+        box(Vector3(0.28,roof_y+0.10-FY,length),Vector3(x,(roof_y+0.10+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
         box(Vector3(0.29,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
         picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.46),0.0 if direction<0 else PI)
         picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.462),0.0 if direction<0 else PI)
         _camera_box(Vector3(x-side*0.16,4.92,start-direction*0.5),0.0 if direction<0 else PI)
-    box(Vector3(width+0.55,0.20,length),Vector3(CX,7.95,start+direction*(length*0.5-0.3)),white)
-    box(Vector3(width+0.55,2.56,0.40),Vector3(CX,6.62,start-direction*0.36),white)
-    for i in range(10):
+    box(Vector3(width+0.55,0.20,length),Vector3(CX,roof_y,start+direction*(length*0.5-0.30)),white)
+    box(Vector3(width+0.55,roof_y+0.10-5.34,0.40),Vector3(CX,(roof_y+0.10+5.34)*0.5,start-direction*0.36),white)
+    for i in range(14):
         var z: float=start+direction*float(i)*1.4
-        box(Vector3(width+0.1,0.20,0.16),Vector3(CX,7.75,z),white)
-        if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,7.62,z),glow)
-    # Upper landing is deliberately limited to the photographed approach.
-    box(Vector3(width+0.55,2.2,0.20),Vector3(CX,top+1.10,start+direction*(length-0.45)),wall_stone)
+        box(Vector3(width+0.1,0.20,0.16),Vector3(CX,roof_y-0.20,z),white)
+        if i%2==0:box(Vector3(5.60,0.035,0.07),Vector3(CX,roof_y-0.33,z),glow)
+    box(Vector3(width+0.55,roof_y+0.10-FY,0.24),Vector3(CX,(roof_y+0.10+FY)*0.5,start+direction*(length-0.45)),wall_stone)
+    _upper_landing(direction,start,width,top,length)
 
 func _signs() -> void:
     # Clear opening = 4.35 - .84 = 3.51 m; framed signs = 3.23 m.
@@ -284,9 +346,13 @@ func _signs() -> void:
             for dz in [-1.40,1.40]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,5.12,z+float(dz)),0.022,metal)
 
 func _bench(p: Vector3) -> void:
-    var timbermat := _material(Color("#aa8956"),0.0,0.47)
-    for i in range(5):box(Vector3(0.51,0.055,2.15),p+Vector3(-0.22+float(i)*0.11,0.48,0),timbermat)
-    for dz in [-0.78,0.78]:box(Vector3(0.45,0.43,0.10),p+Vector3(0,0.23,float(dz)),black)
+    var brown := _material(Color("#514339"),0.25,0.61)
+    box(Vector3(0.60,0.38,2.45),p+Vector3(0,0.19,0),brown)
+    for i in range(5):
+        var z: float=p.z-0.98+float(i)*0.49
+        _rounded_bench_box(Vector3(0.63,0.10,0.46),Vector3(p.x,p.y+0.43,z),bench_oak,0.025)
+        for dx in [-0.14,0.14]:box(Vector3(0.009,0.008,0.455),Vector3(p.x+float(dx),p.y+0.485,z),brown)
+        if i<4:box(Vector3(0.68,0.065,0.037),Vector3(p.x,p.y+0.46,z+0.244),brown)
 
 func _television(z: float,event: bool) -> void:
     var p := Vector3(CX,4.65,z)
@@ -306,21 +372,17 @@ func _floor_fittings() -> void:
         for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
 
 func _track_details() -> void:
-    for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
-        var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
+    for x in [0.992,-11.732]:
         for direction in [-1.0,1.0]:
-            var end: float=ZA if direction<0.0 else ZB
-            box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
+            var end: float=_portal_z(direction)
+            var far: float=ZA-8.0 if direction<0.0 else ZB+8.0
+            var length: float=absf(far-end)
+            var center: float=(far+end)*0.5
+            box(Vector3(3.92,0.20,length+0.12),Vector3(x,4.90,center),wall_stone)
             for side in [-1.0,1.0]:
-                box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
-                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
-            box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
+                box(Vector3(0.14,5.02,length+0.12),Vector3(x+side*1.94,2.31,center),wall_stone)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),far-direction*0.20),0.015,black)
+            box(Vector3(4.04,5.45,0.14),Vector3(x,2.275,far),black)
 
 func _portal_equipment() -> void:
     var infra := get_node("StationInfrastructure")
@@ -329,25 +391,29 @@ func _portal_equipment() -> void:
     for display in displays:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
-        if node is Node3D and "Portal" in str(node.name):node.position.y=4.68
+        if node is Node3D and "Portal" in str(node.name):
+            node.position.y=4.68
+            node.position.z=_portal_z(-1.0)+0.20 if "Portal1Clock" in str(node.name) else _portal_z(1.0)-0.20
+            # Track 1 runs toward decreasing Z; Track 2 has the opposite leading end.
+            node.visible=str(node.name)=="Track1Portal1Clock" or str(node.name)=="Track2Portal2Clock"
     for direction in [-1.0,1.0]:
-        var end: float=ZA if direction<0.0 else ZB
+        var end: float=_portal_z(direction)
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
-            box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
-            var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
-            var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
-            var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
-            var pts: Array[Vector3]=[]
-            for corner in range(4):
-                var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
-                for j in range(9):
-                    var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
-            for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
-            _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
-            for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
-            _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
+            if side==-direction:
+                var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
+                var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/akademiya_nauk/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
+                var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
+                var pts: Array[Vector3]=[]
+                for corner in range(4):
+                    var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
+                    for j in range(9):
+                        var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
+                for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
+                _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
+                for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
+                _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
             var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
             box(Vector3(0.72,0.46,0.08),p,black)
             picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
@@ -367,3 +433,123 @@ func _camera_box(p: Vector3,yaw: float) -> void:
     sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
     rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
 
+
+func _portal_z(direction: float) -> float:
+    return NORTH-PORTAL_GAP if direction<0.0 else SOUTH+PORTAL_GAP
+
+func _close_end_joints() -> void:
+    # Overlap opaque native wall/roof meshes so the tunnel mouths form one closed shell.
+    for direction in [-1.0,1.0]:
+        var start: float=NORTH if direction<0.0 else SOUTH
+        var end: float=_portal_z(direction)
+        for side in [-1.0,1.0]:
+            box(Vector3(3.94,1.40,0.32),Vector3(CX+side*6.362,5.14,end),wall_stone)
+            box(Vector3(0.94,5.84-FY,PORTAL_GAP+0.60),Vector3(CX+side*4.01,(5.84+FY)*0.5,(start+end)*0.5),wall_stone)
+            box(Vector3(0.66,6.29,0.32),Vector3(CX+side*8.57,2.695,end),wall_stone)
+    # Close the raised roof's exposed edges without changing its lighting/materials.
+    for side in [-1.0,1.0]:
+        box(Vector3(0.18,0.58,SOUTH-NORTH-0.20),Vector3(CX+side*2.55,5.83,(NORTH+SOUTH)*0.5),white)
+
+func _closed_ramp_strip(x0: float,x1: float,start: float,points: PackedVector2Array,mat: Material) -> void:
+    # Closed six-face segments, including the floor and both end caps; standard mesh surfaces.
+    var bottom: float=FY-0.06
+    for i in range(points.size()-1):
+        var a: Vector2=points[i];var b: Vector2=points[i+1]
+        var z0: float=start+a.x;var z1: float=start+b.x
+        var y0: float=FY+a.y;var y1: float=FY+b.y
+        quad(Vector3(x0,bottom,z0),Vector3(x1,bottom,z0),Vector3(x1,bottom,z1),Vector3(x0,bottom,z1),mat,Vector3.DOWN)
+        quad(Vector3(x0,y0,z0),Vector3(x0,y1,z1),Vector3(x1,y1,z1),Vector3(x1,y0,z0),mat,Vector3.UP)
+        quad(Vector3(x0,bottom,z0),Vector3(x0,bottom,z1),Vector3(x0,y1,z1),Vector3(x0,y0,z0),mat,Vector3.LEFT)
+        quad(Vector3(x1,bottom,z0),Vector3(x1,y0,z0),Vector3(x1,y1,z1),Vector3(x1,bottom,z1),mat,Vector3.RIGHT)
+        if i==0:
+            quad(Vector3(x0,bottom,z0),Vector3(x0,y0,z0),Vector3(x1,y0,z0),Vector3(x1,bottom,z0),mat,Vector3.FORWARD)
+        if i==points.size()-2:
+            quad(Vector3(x0,bottom,z1),Vector3(x1,bottom,z1),Vector3(x1,y1,z1),Vector3(x0,y1,z1),mat,Vector3.BACK)
+
+# Local copy of the Moscow bench profile; no dependency on the other station package.
+func _rounded_bench_box(size: Vector3,p: Vector3,mat: Material,radius: float=0.03) -> void:
+    var r: float=minf(radius,minf(size.x,size.y)*0.49)
+    var pts := PackedVector2Array()
+    for corner in range(4):
+        var center := Vector2(p.x+(size.x*0.5-r)*(1.0 if corner in [0,3] else -1.0),p.y+(size.y*0.5-r)*(1.0 if corner in [0,1] else -1.0))
+        for j in range(7):
+            var a: float=float(corner)*PI/2.0+float(j)*PI/12.0;pts.append(center+Vector2(cos(a),sin(a))*r)
+    extrusion(pts,p.z-size.z*0.5,p.z+size.z*0.5,mat)
+
+func _rounded_ceiling_rib(size: Vector3,p: Vector3,mat: Material) -> void:
+    # Closed native cross-section along X: eased lower edges, solid end caps.
+    var radius := 0.022
+    var points := PackedVector2Array()
+    for corner in range(4):
+        var center := Vector2((size.y*0.5-radius)*(1.0 if corner in [0,3] else -1.0),(size.z*0.5-radius)*(1.0 if corner in [0,1] else -1.0))
+        for j in range(5):
+            var angle: float=float(corner)*PI/2.0+float(j)*PI/8.0
+            points.append(center+Vector2(cos(angle),sin(angle))*radius)
+    var x0: float=p.x-size.x*0.5
+    var x1: float=p.x+size.x*0.5
+    for i in range(points.size()):
+        var a: Vector2=points[i];var b: Vector2=points[(i+1)%points.size()]
+        var hint := Vector3(0,(a.x+b.x)*0.5,(a.y+b.y)*0.5)
+        quad(Vector3(x0,p.y+a.x,p.z+a.y),Vector3(x1,p.y+a.x,p.z+a.y),Vector3(x1,p.y+b.x,p.z+b.y),Vector3(x0,p.y+b.x,p.z+b.y),mat,hint)
+    var caps := Geometry2D.triangulate_polygon(points)
+    for face in [-1.0,1.0]:
+        var x: float=x0 if face<0.0 else x1
+        for i in range(0,caps.size(),3):
+            var a: Vector2=points[caps[i]];var b: Vector2=points[caps[i+1]];var c: Vector2=points[caps[i+2]]
+            triangle(Vector3(x,p.y+a.x,p.z+a.y),Vector3(x,p.y+b.x,p.z+b.y),Vector3(x,p.y+c.x,p.z+c.y),mat,Vector3(face,0,0))
+
+func _upper_landing(direction: float,start: float,width: float,top: float,length: float) -> void:
+    # Native, station-local architecture. Distances and named nodes remain extractable in metres.
+    var root := Node3D.new();root.name="NorthUpperLanding" if direction<0.0 else "SouthUpperLanding"
+    root.position=Vector3(CX,top,start);root.rotation.y=PI if direction<0.0 else 0.0
+    root.set_meta("metres_per_unit",1.0);add_child(root)
+    var front := 11.35 if direction<0.0 else 10.35
+    box(Vector3(width+0.02,top-FY+0.04,length-front-0.20),Vector3(CX,(top+FY)*0.5-0.02,start+direction*(front+length-0.20)*0.5),floor_stone)
+    var arrival := Marker3D.new();arrival.name="Arrival";arrival.position=Vector3(0,0,12.20)
+    arrival.set_meta("role","waypoint");root.add_child(arrival)
+    var steel := _material(Color("#a8aeac"),0.80,0.33)
+    var dark := _material(Color("#263438"),0.15,0.24)
+    var green := _material(Color("#249d65"),0.0,0.5)
+    green.emission_enabled=true;green.emission=Color("#249d65");green.emission_energy_multiplier=0.40
+    for i in range(4):
+        var gate := Node3D.new();gate.name="Turnstile%02d" % (i+1)
+        gate.position=Vector3(-2.65+float(i)*1.10,0,UPPER_GATE_DISTANCE)
+        gate.set_meta("role","equipment");gate.set_meta("static_architecture",true);root.add_child(gate)
+        _landing_box(gate,"Pedestal",Vector3(0.23,0.93,1.05),Vector3(0,0.465,0),steel)
+        _landing_box(gate,"Top",Vector3(0.27,0.065,1.10),Vector3(0,0.9625,0),metal)
+        _landing_box(gate,"Reader",Vector3(0.17,0.025,0.24),Vector3(0,1.01,-0.31),dark)
+        _landing_box(gate,"FrontPanel",Vector3(0.15,0.33,0.018),Vector3(0,0.67,-0.535),dark)
+        _landing_box(gate,"Indicator",Vector3(0.055,0.055,0.014),Vector3(0,0.78,-0.55),green)
+        _local_rod(gate,Vector3(0.10,0.64,0),Vector3(0.22,0.64,0),0.09,steel)
+        for angle in [0.0,TAU/3.0,2.0*TAU/3.0]:
+            _local_rod(gate,Vector3(0.18,0.64,0),Vector3(0.77,0.64+0.27*sin(float(angle)),0.27*cos(float(angle))),0.018,steel)
+        for z in [-0.35,0.35]:
+            _landing_box(gate,"BasePlate",Vector3(0.33,0.022,0.23),Vector3(0,0.011,float(z)),steel)
+    var booth := Node3D.new();booth.name="ControllerBooth";booth.position=Vector3(2.55,0,UPPER_GATE_DISTANCE+0.90)
+    booth.set_meta("role","equipment");booth.set_meta("static_architecture",true);root.add_child(booth)
+    var glass := _material(Color(0.64,0.77,0.79,0.26),0.05,0.17)
+    glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA;glass.cull_mode=BaseMaterial3D.CULL_DISABLED
+    _landing_box(booth,"Floor",Vector3(1.43,0.045,1.80),Vector3(0,0.0225,0),steel)
+    _landing_box(booth,"FrontApron",Vector3(1.42,0.80,0.055),Vector3(0,0.40,-0.875),wall_stone)
+    for x in [-0.69,0.69]:
+        _landing_box(booth,"SideApron",Vector3(0.055,0.80,1.75),Vector3(float(x),0.40,0),wall_stone)
+        _landing_box(booth,"SideWindow",Vector3(0.018,1.26,1.68),Vector3(float(x),1.47,0),glass)
+        for z in [-0.875,0.875]:
+            _landing_box(booth,"CornerPost",Vector3(0.045,2.16,0.045),Vector3(float(x),1.10,float(z)),steel)
+        _landing_box(booth,"WindowRail",Vector3(0.04,0.045,1.79),Vector3(float(x),0.83,0),steel)
+    _landing_box(booth,"FrontWindow",Vector3(1.34,1.26,0.018),Vector3(0,1.47,-0.875),glass)
+    _landing_box(booth,"Door",Vector3(1.32,2.02,0.022),Vector3(0,1.07,0.875),glass)
+    for x in [-0.64,0.64]:
+        _landing_box(booth,"DoorFrame",Vector3(0.035,2.10,0.04),Vector3(float(x),1.09,0.89),steel)
+    _local_rod(booth,Vector3(-0.42,0.95,0.915),Vector3(-0.42,1.16,0.915),0.012,steel)
+    _landing_box(booth,"Roof",Vector3(1.49,0.10,1.87),Vector3(0,2.20,0),steel)
+    _landing_box(booth,"Desk",Vector3(1.23,0.055,0.55),Vector3(0,0.82,-0.31),trim)
+    _landing_box(booth,"Monitor",Vector3(0.37,0.27,0.045),Vector3(0,1.02,-0.36),dark)
+    _landing_box(booth,"MonitorStand",Vector3(0.05,0.13,0.10),Vector3(0,0.91,-0.36),steel)
+    var light := OmniLight3D.new();light.name="LandingLight"
+    light.position=Vector3(0,2.42,UPPER_GATE_DISTANCE-1.30);light.light_color=Color(1.0,0.98,0.94)
+    light.light_energy=0.60;light.omni_range=7.0;light.shadow_enabled=false;root.add_child(light)
+
+func _landing_box(parent: Node3D,label: String,size: Vector3,p: Vector3,mat: Material) -> void:
+    var mesh := BoxMesh.new();mesh.size=size;mesh.material=mat
+    var node := MeshInstance3D.new();node.name=label;node.mesh=mesh;node.position=p;parent.add_child(node)

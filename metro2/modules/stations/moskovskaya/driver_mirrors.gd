@@ -25,7 +25,7 @@ func _process(delta: float) -> void:
     if viewer==null:return
     var eye := viewer.global_position
     var closest: Node3D=null
-    var nearest := 32.0*32.0
+    var nearest := 40.0*40.0
     for item in get_tree().get_nodes_in_group("moskovskaya_driver_mirrors"):
         var candidate := item as Node3D
         if not candidate.is_visible_in_tree():continue
@@ -53,14 +53,14 @@ func _process(delta: float) -> void:
 func _create_reflection(viewer: Camera3D) -> void:
     _view=SubViewport.new()
     _view.name="NearestMirrorReflection"
-    _view.size=Vector2i(192,512)
+    _view.size=Vector2i(256,640)
     _view.world_3d=get_viewport().world_3d
     _view.handle_input_locally=false
     _view.render_target_update_mode=SubViewport.UPDATE_DISABLED
     add_child(_view)
     _camera=Camera3D.new()
     _camera.keep_aspect=Camera3D.KEEP_HEIGHT
-    _camera.cull_mask=viewer.cull_mask & ~MIRROR_LAYER
+    _camera.cull_mask=viewer.cull_mask & ~(MIRROR_LAYER | (1 << 18))
     _camera.environment=viewer.environment
     _view.add_child(_camera)
     _camera.current=true

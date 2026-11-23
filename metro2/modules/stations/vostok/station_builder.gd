@@ -16,6 +16,7 @@ var granite: ShaderMaterial
 var redstone: ShaderMaterial
 var glow: StandardMaterial3D
 var timber: ShaderMaterial
+var _mineral_normal: NoiseTexture2D
 
 func begin_station() -> void:
     white=_material(Color("#eeeee8"),0.0,0.75)
@@ -36,8 +37,8 @@ func begin_station() -> void:
         if child is OmniLight3D:
             child.position.y=5.4
             child.light_color=Color(1.0,0.97,0.90)
-            child.light_energy=1.65
-            child.omni_range=19.0
+            child.light_energy=1.05
+            child.omni_range=16.5
             child.omni_attenuation=0.65
 
 func stone(tint: Color,veined: bool) -> ShaderMaterial:
@@ -70,6 +71,33 @@ ALBEDO=(veined?marble:granite)-vec3(joint*0.035);ROUGHNESS=(veined?0.27:0.40)+cr
 func box(size: Vector3,p: Vector3,mat: Material,basis: Basis=Basis.IDENTITY) -> void:
     batch("box",mat,Transform3D(basis*Basis.from_scale(size),p))
 
+func sampled_stone(file: String,tint: Color,roughness: float,scale_uv: float=1.5) -> StandardMaterial3D:
+    # Existing owner-photo mineral samples, with world metre scale rather than
+    # stretching one small photograph over an entire platform or wall.
+    var m := _material(tint,0.0,roughness)
+    m.albedo_texture=load("res://modules/stations/vostok/art/"+file)
+    m.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    m.uv1_triplanar=true
+    m.uv1_world_triplanar=true
+    m.uv1_scale=Vector3.ONE*scale_uv
+    m.metallic_specular=0.52
+    return m
+
+func mineral_normal() -> NoiseTexture2D:
+    if _mineral_normal==null:
+        var noise := FastNoiseLite.new()
+        noise.seed=122
+        noise.frequency=0.15
+        noise.fractal_octaves=3
+        _mineral_normal=NoiseTexture2D.new()
+        _mineral_normal.width=128
+        _mineral_normal.height=128
+        _mineral_normal.seamless=true
+        _mineral_normal.as_normal_map=true
+        _mineral_normal.bump_strength=0.5
+        _mineral_normal.noise=noise
+    return _mineral_normal
+
 func cylinder(radius: float,height: float,p: Vector3,mat: Material) -> void:
     batch("cylinder",mat,Transform3D(Basis.from_scale(Vector3(radius*2,height,radius*2)),p))
 
@@ -77,7 +105,11 @@ func sphere(size: Vector3,p: Vector3,mat: Material) -> void:
     batch("sphere",mat,Transform3D(Basis.from_scale(size),p))
 
 func batch(kind: String,mat: Material,pose: Transform3D) -> void:
-    var key := kind+str(mat.get_instance_id())
+    # Compatibility renderer selects a bounded number of lights per object.
+    # Keep material batching local so one 105 m object does not lose the lamps
+    # illuminating its far end. Station geometry/coordinates are unchanged.
+    var section := clampi(floori((pose.origin.z-ZA)/10.5),0,9)
+    var key := kind+str(mat.get_instance_id())+"_"+str(section)
     if not batches.has(key):batches[key]={"kind":kind,"mat":mat,"poses":[]}
     batches[key].poses.append(pose)
 
@@ -89,16 +121,14 @@ func rod(a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     batch("cylinder",mat,Transform3D(basis*Basis.from_scale(Vector3(r*2,a.distance_to(b),r*2)),(a+b)*0.5))
 
 func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
-    var key := str(mat.get_instance_id())
-    if not surfaces.has(key):
-        var new_surface := SurfaceTool.new()
-        new_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-        surfaces[key]={"surface":new_surface,"mat":mat}
-    var st: SurfaceTool=surfaces[key].surface
-    for i in range(points.size()-1):
-        var a: Vector2=points[i]
-        var b: Vector2=points[i+1]
-        quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
+    var spans := maxi(1,ceili((z1-z0)/10.5))
+    for span in range(spans):
+        var za := lerpf(z0,z1,float(span)/float(spans))
+        var zb := lerpf(z0,z1,float(span+1)/float(spans))
+        for i in range(points.size()-1):
+            var a: Vector2=points[i]
+            var b: Vector2=points[i+1]
+            quad(Vector3(a.x,a.y,za),Vector3(b.x,b.y,za),Vector3(b.x,b.y,zb),Vector3(a.x,a.y,zb),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func flush() -> void:
     for key in batches:
@@ -249,7 +279,8 @@ func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> 
             triangle(Vector3(a.x,a.y,z),Vector3(b.x,b.y,z),Vector3(c.x,c.y,z),mat,Vector3(0,0,face))
 
 func triangle(a: Vector3,b: Vector3,c: Vector3,mat: Material,hint: Vector3=Vector3.ZERO) -> void:
-    var key := str(mat.get_instance_id())
+    var section := clampi(floori(((a.z+b.z+c.z)/3.0-ZA)/10.5),0,9)
+    var key := str(mat.get_instance_id())+"_"+str(section)
     if not surfaces.has(key):
         var surface := SurfaceTool.new()
         surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -271,10 +302,14 @@ func arc_point(side: float,a: float,y0: float,height: float,inset: float=0.0) ->
     return Vector2(CX+side*(8.98*cos(a)-inset),y0+height*sin(a)-inset*0.4)
 
 func curved_band(side: float,a0: float,a1: float,z0: float,z1: float,y0: float,height: float,inset: float,mat: Material) -> void:
-    for j in range(32):
-        var a: Vector2=arc_point(side,lerpf(a0,a1,float(j)/32.0),y0,height,inset)
-        var b: Vector2=arc_point(side,lerpf(a0,a1,float(j+1)/32.0),y0,height,inset)
-        quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
+    var spans := maxi(1,ceili((z1-z0)/10.5))
+    for span in range(spans):
+        var za := lerpf(z0,z1,float(span)/float(spans))
+        var zb := lerpf(z0,z1,float(span+1)/float(spans))
+        for j in range(32):
+            var a: Vector2=arc_point(side,lerpf(a0,a1,float(j)/32.0),y0,height,inset)
+            var b: Vector2=arc_point(side,lerpf(a0,a1,float(j+1)/32.0),y0,height,inset)
+            quad(Vector3(a.x,a.y,za),Vector3(b.x,b.y,za),Vector3(b.x,b.y,zb),Vector3(a.x,a.y,zb),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func annulus(center: Vector3,r0: float,r1: float,y0: float,y1: float,mat: Material,segments: int=96) -> void:
     for j in range(segments):

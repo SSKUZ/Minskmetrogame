@@ -17,12 +17,12 @@
           "to_s": 5.9
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.49
         },
         {
           "from_s": 5.9,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.41,
@@ -128,12 +128,12 @@
           "to_s": 5.07
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 2.73
         },
         {
           "from_s": 5.07,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.34,
@@ -179,12 +179,12 @@
           "to_s": 5.22
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 2.66
         },
         {
           "from_s": 5.22,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.56,
@@ -220,12 +220,12 @@
           "to_s": 5.57
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.27
         },
         {
           "from_s": 5.57,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.3,
@@ -251,12 +251,12 @@
           "to_s": 6.18
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.86
         },
         {
           "from_s": 6.18,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.32,
@@ -292,12 +292,12 @@
           "to_s": 5.45
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.25
         },
         {
           "from_s": 5.45,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.2,
@@ -373,12 +373,12 @@
           "to_s": 5.64
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.24
         },
         {
           "from_s": 5.64,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.4,
@@ -414,12 +414,12 @@
           "to_s": 6.09
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.06
         },
         {
           "from_s": 6.09,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 3.03,
@@ -515,12 +515,12 @@
           "to_s": 5.56
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.23
         },
         {
           "from_s": 5.56,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.33,
@@ -606,12 +606,12 @@
           "to_s": 6.81
         },
         {
-          "from_s": 0.0,
+          "from_s": 0,
           "to_s": 3.83
         },
         {
           "from_s": 6.81,
-          "to_s": -1.0
+          "to_s": -1
         }
       ],
       "warning_seconds": 2.98,
@@ -1001,6 +1001,29 @@
       "source_file": "sharedassets3_009.wav",
       "identification_status": "machine_provisional",
       "content_description_ru": "Объявление конечной «Кавальская Слабада»: поезд дальше не идёт; просьба покинуть вагоны и не забывать вещи. Историческая конфигурация маршрута в записи, не подтверждение текущего движения.",
+      "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
+    },
+    {
+      "event_id": "line_doors_warning",
+      "resource": "res://audio/resources/tz54/sharedassets1_084.ogg",
+      "category": "announcer",
+      "verified": true,
+      "source_file": "sharedassets1_084.wav",
+      "identification_status": "machine_provisional",
+      "content_description_ru": "Только исходный записанный фрагмент предупреждения о закрытии дверей; без названия следующей станции.",
+      "playback_segments": [
+        {
+          "from_s": 3.23,
+          "to_s": 5.56
+        }
+      ],
+      "warning_seconds": 2.33,
+      "sequence_basis": {
+        "source_file": "sharedassets1_084.wav",
+        "evidence": "identification_tz54_1/asr_small.jsonl",
+        "operation": "Use only the original warning segment for depot departure; no synthesized or invented depot announcement.",
+        "boundary_status": "ASR phrase boundaries; listening verification outstanding"
+      },
       "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
     }
   ],

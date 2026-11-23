@@ -1,0 +1,398 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "grushevka",
+    "type": "station",
+    "scene": "res://modules/stations/grushevka/grushevka.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "station_architecture",
+      "kind": "generator",
+      "path": "res://modules/stations/grushevka/grushevka.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "platform_length_m": 105,
+        "platform_width_m": 10,
+        "platform_top_y_m": 1.1805,
+        "column_radius_m": 0.62,
+        "column_count": 9,
+        "column_first_z_m": -0.8,
+        "column_pitch_m": 10.2,
+        "crown_radius_m": 3.57,
+        "lattice_pitch_m": 0.12,
+        "ceiling_y_m": 5.45,
+        "public_stair_exits": 1,
+        "stair_rise_m": 0.15,
+        "stair_tread_m": 0.3,
+        "stairs_per_flight": 16
+      }
+    },
+    {
+      "id": "native_construction",
+      "kind": "generator",
+      "path": "res://modules/stations/grushevka/station_builder.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "uruchye_profile_tracks",
+      "kind": "generator",
+      "path": "res://modules/stations/grushevka/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65,
+        "start_z_m": -22.888,
+        "finish_z_m": 102.112
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "yellow_metal_ceramic",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/grushevka/grushevka.gd",
+      "metallic": 0.22,
+      "roughness": 0.24
+    },
+    {
+      "id": "green_roof",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/grushevka/grushevka.gd",
+      "metallic": 0.58,
+      "roughness": 0.28
+    },
+    {
+      "id": "native_grain",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/grushevka/track_detail.gd",
+      "shader": {
+        "adaptation": "required"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "id": "advert",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/advert.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/exit.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_dark",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/floor_dark.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_light",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/floor_light.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "marble",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/marble.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "nameplate",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/nameplate.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "plinth_green",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/plinth_green.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "seat_wood",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/seat_wood.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "service_door",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/service_door.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "service_stone",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/service_stone.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "sos",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/sos.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_granite",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/stair_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/wall_route.svg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Entry"
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Exit"
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Track2Entry"
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Track2Exit"
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/PlatformCentre"
+    },
+    {
+      "id": "NorthExit",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        -7.5,
+        1
+      ],
+      "node_path": "PassengerAnchors/NorthExit"
+    },
+    {
+      "id": "ServiceApproach",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        86.7,
+        1
+      ],
+      "node_path": "PassengerAnchors/ServiceApproach"
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "owner_reference_provenance",
+        "purpose": "other",
+        "path": "res://modules/stations/grushevka/art/owner_sources.json",
+        "format": "json",
+        "notes": "145 owner photographs, all reviewed; no video in archive."
+      },
+      {
+        "id": "pear_relief_source",
+        "purpose": "other",
+        "path": "res://modules/stations/grushevka/art/pear_relief_paths.json",
+        "format": "json",
+        "notes": "Branch outlines and fruit positions consumed by native procedural geometry."
+      },
+      {
+        "id": "station_lettering_relief",
+        "purpose": "other",
+        "path": "res://modules/stations/grushevka/art/name_relief.json",
+        "format": "json",
+        "notes": "Photo-isolated raised lettering, retaining the pear-shaped breve in ГРУШАЎКА; native height mesh shared between name boards."
+      },
+      {
+        "id": "driver_mirror",
+        "purpose": "equipment",
+        "path": "res://modules/stations/grushevka/driver_mirrors.gd",
+        "format": "gdscript"
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "photo_scaled_architecture",
+      "detail": "Column count/spacing, ceiling modules and vestibule depth are photo-scaled estimates, not a measured survey. Original Station Base connection axes, island and rail datum are retained."
+    },
+    {
+      "code": "sculptural_inference",
+      "detail": "Pear volume and branch depth are inferred from photos. Occluded tree paths are reconstructed symmetrically; no people are baked into the panel. Letter depth is inferred from photo color masks, not a scan."
+    },
+    {
+      "code": "upper_circulation",
+      "detail": "Single public stair exit and opposite rounded service core follow the supplied views. Fare-control side passages beyond the photographed gallery are approximated and terminate in dim continuation."
+    },
+    {
+      "code": "future_engine_adaptation",
+      "detail": "Mirror SubViewport, procedural wood/track grains and world-space material coordinates need future adaptation/baking. Native mesh/MultiMesh geometry, image assets, relief paths and dimensions are retained; no Roblox build or export is claimed."
+    }
+  ]
+}

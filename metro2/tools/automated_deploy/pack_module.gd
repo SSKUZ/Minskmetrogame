@@ -54,6 +54,9 @@ func _pack() -> void:
         if FileAccess.file_exists(path):files[path]=path
     for item in control.sources:
         if not _expand("res://"+str(item)):return
+    if bool(control.boot) and FileAccess.file_exists("res://.godot/global_script_class_cache.cfg"):
+        # Keep optional-pack class_name registrations in the actual boot cache.
+        files["res://.godot/global_script_class_cache.cfg"]="res://.godot/global_script_class_cache.cfg"
     # Unchanged dependencies stay in their existing required pack.
     for path in files.keys():
         if foreign.has(path) and not owned.has(path):files.erase(path)
