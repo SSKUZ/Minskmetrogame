@@ -50,7 +50,7 @@
           "count_per_row_before_clearance": 18
         },
         "column_clearance_function": "_column_is_clear",
-        "retained_columns": 34,
+        "retained_columns": 30,
         "removed_columns": [
           {
             "row": "right",
@@ -59,9 +59,44 @@
           {
             "row": "right",
             "z_m": 42
+          },
+          {
+            "row": "left",
+            "z_m": -1.2
+          },
+          {
+            "row": "right",
+            "z_m": -1.2
+          },
+          {
+            "row": "left",
+            "z_m": 80.4
+          },
+          {
+            "row": "right",
+            "z_m": 80.4
           }
         ],
-        "glass_uv": "One [0,1] square per curved basket quadrant; eight by eight glass sections; retain UVs during mesh conversion."
+        "glass_uv": "One [0,1] square per curved basket quadrant; eight by eight glass sections; retain UVs during mesh conversion.",
+        "station_names": "Native TextMesh, 18mm extrusion; one straight baseline; local station_letters.ttf retained."
+      }
+    },
+    {
+      "id": "uruchye_style_trackwork",
+      "kind": "generator",
+      "path": "res://modules/stations/oktyabrskaya/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "source_path": "metro2/scripts/station/uruchye_tracks_v68.gd",
+        "source_commit": "3bf8ffae121ba484cae7f7d9e058691201ca9202",
+        "bound_source": "parent.track_min_z / parent.track_max_z",
+        "gauge_half_m": 0.8075,
+        "sleeper_pitch_m": 0.65,
+        "rail_top_m": 0,
+        "output": [
+          "MultiMesh"
+        ]
       }
     }
   ],
@@ -122,6 +157,12 @@
       "source": "file",
       "path": "res://modules/stations/oktyabrskaya/art/ceiling_paint.jpg",
       "usage": "albedo"
+    },
+    {
+      "id": "monitor_advertising",
+      "source": "file",
+      "path": "res://modules/stations/oktyabrskaya/art/monitor_ad.jpg",
+      "usage": "albedo"
     }
   ],
   "points": [],
@@ -138,6 +179,13 @@
         "path": "res://modules/stations/oktyabrskaya/architecture_profile.json",
         "format": "json",
         "notes": "Metres and native material emission parameters. Photo 8292.jpg is the owner reference."
+      },
+      {
+        "id": "station_name_font",
+        "purpose": "other",
+        "path": "res://modules/stations/oktyabrskaya/art/station_letters.ttf",
+        "format": "ttf",
+        "notes": "Native TextMesh glyphs for КАСТРЫЧНІЦКАЯ and ОКТЯБРЬСКАЯ; extract initialized mesh geometry for future export."
       }
     ]
   },
@@ -150,6 +198,14 @@
     {
       "code": "geometry_scope",
       "detail": "Geometry revised by reading construction coordinates. Existing station dimensions, track connection markers, transfer anchors and camera controls remain in source. No runtime, visual, GLB-export or Roblox-import verification performed."
+    },
+    {
+      "code": "monitor_content",
+      "detail": "Advertising uses the project's existing static landscape artwork. No video or external network feed is introduced."
+    },
+    {
+      "code": "textmesh_export",
+      "detail": "Station names are native extruded TextMesh primitives. Retain font and generated meshes; no Roblox or GLB export performed."
     }
   ]
 }

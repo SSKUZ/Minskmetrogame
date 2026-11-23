@@ -54,7 +54,7 @@ func _ready() -> void:
     _floor();_walls();_columns();_ceiling();_transfer()
     _escalators(SOUTH);_end_art(SOUTH,"south")
     construction_transform=Transform3D(Basis(Vector3.UP,PI),Vector3(2.0*CX,0,ZA+ZB))
-    _escalators(SOUTH);_end_art(SOUTH,"north");_maintenance_barrier(SOUTH)
+    _escalators(SOUTH);_end_art(SOUTH,"north")
     construction_transform=Transform3D.IDENTITY
     _signs();_track_details();_portal_equipment();_floor_fittings()
     for side in [-1.0,1.0]:
@@ -114,15 +114,25 @@ func _walls() -> void:
         for h in [3.55,4.02]:rod(Vector3(x-side*0.18,float(h),ZA),Vector3(x-side*0.18,float(h),ZB),0.009,metal)
         for j in range(5):
             var z: float=2.5+float(j)*18.5
-            picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.7,0.744),Vector3(x-side*0.18,2.68,z+7.4),-side*PI/2.0,true)
-            _name_letters("name_be.png" if side>0 else "name_ru.png",Vector3(x-side*0.18,3.24,z),-side*PI/2.0)
+            # Only draw complete route boards inside the platform wall; no cropped fragment at the portal.
+            if z+7.4+2.35<SOUTH-0.30:
+                picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.7,0.744),Vector3(x-side*0.18,2.68,z+7.4),-side*PI/2.0,true)
+            _name_letters("КАСТРЫЧНІЦКАЯ" if side>0 else "ОКТЯБРЬСКАЯ",Vector3(x-side*0.18,3.24,z),-side*PI/2.0)
 
-func _name_letters(file: String,p: Vector3,yaw: float) -> void:
-    var mat := StandardMaterial3D.new();mat.albedo_texture=load(ART+file);mat.roughness=0.39;mat.metallic=0.30
-    mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR;mat.alpha_scissor_threshold=0.40
-    mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-    var q := QuadMesh.new();q.size=Vector2(4.65,0.38);q.material=mat
-    var n := MeshInstance3D.new();n.name="PhotographedRaisedGoldName";n.mesh=q;n.position=p;n.rotation.y=yaw;add_child(n)
+func _name_letters(text: String,p: Vector3,yaw: float) -> void:
+    # Native extruded letters share one baseline; no photographed background or perspective warp.
+    var mesh := TextMesh.new()
+    mesh.font=preload("res://modules/stations/oktyabrskaya/art/station_letters.ttf")
+    mesh.text=text;mesh.font_size=128;mesh.pixel_size=0.01;mesh.depth=0.018
+    mesh.material=_material(Color("#c6a464"),0.40,0.36)
+    var bounds: AABB=mesh.get_aabb()
+    var scale_x: float=4.65/maxf(bounds.size.x,0.001)
+    var scale_y: float=0.38/maxf(bounds.size.y,0.001)
+    var node := MeshInstance3D.new();node.name="StraightRaisedStationName"
+    node.mesh=mesh
+    node.basis=Basis(Vector3.UP,yaw)*Basis.from_scale(Vector3(scale_x,scale_y,1.0))
+    node.position=p-node.basis*(bounds.position+bounds.size*0.5)
+    node.set_meta("station_text",text);add_child(node)
 
 func _column_profile() -> PackedVector2Array:
     var p := PackedVector2Array()
@@ -147,7 +157,9 @@ func _vertical_profile(points: PackedVector2Array,p: Vector3,y0: float,y1: float
         for y in [y0,y1]:triangle(p+Vector3(a.x,float(y),a.y),p+Vector3(b.x,float(y),b.y),p+Vector3(c.x,float(y),c.y),mat,Vector3.DOWN if y==y0 else Vector3.UP)
 
 func _column_is_clear(side: float,z: float) -> bool:
-    # Only two right-row columns intersect the transfer deck/parapet envelope.
+    # Keep the entrance bays open: remove the nearest pair at each escalator end.
+    if z<-1.1 or z>80.3:return false
+    # Retain the earlier clearance around the transfer deck.
     return not (side>0.0 and absf(z-MID)<2.10+0.46)
 
 func _columns() -> void:
@@ -563,11 +575,10 @@ func _monitor(z: float) -> void:
     var p := Vector3(CX,5.45,z)
     box(Vector3(1.55,0.94,0.13),p,charcoal)
     for side in [-1.0,1.0]:
-        box(Vector3(1.45,0.84,0.008),p+Vector3(0,0,side*0.074),_material(Color("#101315"),0.25,0.19))
-    for dx in [-0.46,0.46]:rod(p+Vector3(float(dx),0.49,0),Vector3(CX+float(dx),6.88,z),0.014,metal)
-    for side in [-1.0,1.0]:
-        box(Vector3(0.32,1.05,0.055),p+Vector3(side*0.98,0.12,0),metal)
-        for row in range(13):box(Vector3(0.28,0.050,0.062),p+Vector3(side*0.98,0.56-float(row)*0.075,0),_material(Color("#8d2835") if row%3==0 else Color("#c6bdb0"),0,0.65))
+        # Existing project advertising artwork, displayed on both sides of each monitor.
+        picture("monitor_ad.jpg",Vector2(1.45,0.84),p+Vector3(0,0,side*0.074),0.0 if side>0.0 else PI)
+    for dx in [-0.46,0.46]:
+        rod(p+Vector3(float(dx),0.49,0),Vector3(CX+float(dx),6.88,z),0.014,metal)
 
 func _floor_fittings() -> void:
     for z in [11.0,MID,65.0]:
@@ -578,14 +589,11 @@ func _floor_fittings() -> void:
         for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,hatch_z-0.14+float(i)*0.036),black)
 
 func _track_details() -> void:
+    var detail := preload("res://modules/stations/oktyabrskaya/track_detail.gd").new()
+    detail.name="UruchyeStyleTrackwork"
+    detail.start_z=track_min_z;detail.finish_z=track_max_z;add_child(detail)
     for name in ["Track1","Track2"]:
-        var root := get_node(name)
-        (root.get_node("Beds") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#34322c"),0.0,0.92)
-        (root.get_node("Sleepers") as MultiMeshInstance3D).multimesh.mesh.material=_material(Color("#3b3730"),0.0,0.91)
         var x: float=0.992 if name=="Track1" else -11.732
-        for i in range(161):
-            var z: float=ZA+float(i)*0.65
-            for dx in [-0.8075,0.8075]:box(Vector3(0.21,0.025,0.15),Vector3(x+float(dx),-0.11,z),black)
         for direction in [-1.0,1.0]:
             var end: float=NORTH if direction<0.0 else SOUTH
             box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
@@ -602,13 +610,25 @@ func _portal_equipment() -> void:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
         if node is Node3D and "Portal" in str(node.name):
-            node.position.y=4.56;node.position.z=NORTH if node.position.z<MID else SOUTH
+            var at_north: bool="Portal1" in str(node.name)
+            var direction: float=-1.0 if at_north else 1.0
+            var end: float=NORTH if at_north else SOUTH
+            node.position.y=4.56
+            node.position.z=end-direction*0.55
+            # Hide tail-end panels locally while preserving the shared clock update arrays.
+            node.visible=str(node.name) in ["Track1Portal1Clock","Track2Portal2Clock"]
     for direction in [-1.0,1.0]:
         var end: float=NORTH if direction<0.0 else SOUTH
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
             box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
+            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
+            box(Vector3(0.72,0.46,0.08),p,black)
+            picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
+            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
+            # Keep driver mirrors only at the departure end of each track.
+            if direction!=-side:continue
             var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
             var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/oktyabrskaya/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
             var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
@@ -621,10 +641,6 @@ func _portal_equipment() -> void:
             _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
             for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
             _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
-            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
-            box(Vector3(0.72,0.46,0.08),p,black)
-            picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
-            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
 
 func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     var mesh := CylinderMesh.new();mesh.top_radius=r;mesh.bottom_radius=r;mesh.height=a.distance_to(b);mesh.radial_segments=10;mesh.material=mat

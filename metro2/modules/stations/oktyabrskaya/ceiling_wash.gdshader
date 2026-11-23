@@ -24,7 +24,7 @@ void fragment() {
     float light_sum=0.0;
     for(int row=-1;row<=1;row++) {
         float index=nearest+float(row);
-        if(index<0.0 || index>17.0) continue;
+        if(index<1.0 || index>16.0) continue;
         float z=-1.2+index*column_pitch;
         light_sum+=halo(vec2(x+column_x,world_point.z-z));
         // Omitted right-row balcony columns have no phantom ceiling light.
@@ -32,6 +32,10 @@ void fragment() {
             light_sum+=halo(vec2(x-column_x,world_point.z-z));
     }
     float light_level=clamp(light_sum,0.0,1.15);
-    vec3 tint=mix(vec3(0.78,0.76,0.71),vec3(1.0,0.99,0.94),clamp(light_level,0.0,1.0));
-    ALBEDO=texture(paint,world_point.xz/1.2).rgb*tint*(0.29+light_level*0.82);
+    // The ceiling paint has one neutral hue; shadows affect brightness alone.
+    vec3 sample_color=texture(paint,world_point.xz/1.2).rgb;
+    float paint_value=dot(sample_color,vec3(0.2126,0.7152,0.0722));
+    vec3 neutral_paint=vec3(paint_value);
+    float illumination=clamp(0.58+light_level*0.43,0.58,1.02);
+    ALBEDO=neutral_paint*illumination;
 }
