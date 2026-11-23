@@ -7,7 +7,7 @@ const CAB_MATERIAL = preload("res://scripts/cab_r36_material.gdshader")
 const POSITION := Vector3(0,0.8975,-10.15)
 const EYE := Vector3(0.0,1.82,2.235)
 const CONTROL_IDS := ["cabLight","headlights","sandLeft","sandRight","wiperLeft","wiperRight","lampTest","reset","ars","open","close","doorBlock","mode","reserve","master","brake1","brake2","ept","release","service","emergency","horn","brake","volume","info","radioTalk","radioReset","radioCall","radioLine","radioClear","radioPgs","radioDsp","radioReserve","carriage","platform","forward","mirrorLeft","mirrorRight","heatLeft","heatRight"]
-const CONTROL_TITLES := {"cabLight": "Освещение кабины", "headlights": "Фары", "sandLeft": "Песок слева", "sandRight": "Песок справа", "wiperLeft": "Левый дворник", "wiperRight": "Правый дворник", "lampTest": "Проверка ламп", "reset": "Сброс", "ars": "Контроль скорости АРС", "open": "Открыть выбранную сторону", "close": "Закрыть двери", "doorBlock": "Блокировка открывания дверей", "mode": "Поддержание скорости", "reserve": "Резервная тяга", "master": "Контроллер: нейтраль", "brake1": "Тормозной кран 1", "brake2": "Тормозной кран 2", "ept": "Электропневматический тормоз", "release": "Отпуск тормоза", "service": "Служебный тормоз", "emergency": "Экстренный тормоз", "horn": "Звуковой сигнал", "brake": "Тормозной кран", "volume": "Громкость", "info": "Информация о составе", "radioTalk": "Радио: передача", "radioReset": "Радио: сброс", "radioCall": "Радио: вызов", "radioLine": "Радио: линейный канал", "radioClear": "Радио: отбой", "radioPgs": "Радио: ПГС", "radioDsp": "Радио: ДСП", "radioReserve": "Радио: резервный канал", "carriage": "Камера: салон", "platform": "Камера: платформа", "forward": "Камера: путь", "mirrorLeft": "Левое зеркало", "mirrorRight": "Правое зеркало", "heatLeft": "Обогрев левого стекла", "heatRight": "Обогрев правого стекла"}
+const CONTROL_TITLES := {"cabLight": "Освещение кабины", "headlights": "Фары", "sandLeft": "Песок слева", "sandRight": "Песок справа", "wiperLeft": "Левый дворник", "wiperRight": "Правый дворник", "lampTest": "Проверка ламп", "reset": "Сброс", "ars": "Контроль скорости АРС", "open": "Открыть выбранную сторону", "close": "Закрыть двери", "doorBlock": "Блокировка открывания дверей", "mode": "Поддержание скорости", "reserve": "Резервная тяга", "master": "Контроллер: нейтраль", "brake1": "Тормозной кран 1", "brake2": "Тормозной кран 2", "ept": "Электропневматический тормоз", "release": "Отпуск тормоза", "service": "Служебный тормоз", "emergency": "Экстренный тормоз", "horn": "Звуковой сигнал", "brake": "Тормозной кран", "volume": "Громкость", "info": "Информатор INFO", "radioTalk": "Радио: передача", "radioReset": "Радио: сброс", "radioCall": "Радио: вызов", "radioLine": "Радио: линейный канал", "radioClear": "Радио: отбой", "radioPgs": "Радио: ПГС", "radioDsp": "Радио: ДСП", "radioReserve": "Радио: резервный канал", "carriage": "Камера: салон", "platform": "Камера: платформа", "forward": "Камера: путь", "mirrorLeft": "Левое зеркало", "mirrorRight": "Правое зеркало", "heatLeft": "Обогрев левого стекла", "heatRight": "Обогрев правого стекла"}
 const ROTARIES := ["cabLight","headlights","wiperLeft","wiperRight","mode","reserve","brake1","brake2","ept","volume","mirrorLeft","mirrorRight","heatLeft","heatRight"]
 const PICK_MASK := 1 << 12
 var game: Node3D
@@ -59,7 +59,6 @@ var _cab_light: SpotLight3D
 var _cab_fill: OmniLight3D
 var _cab_light_button: Button
 var _horn: AudioStreamPlayer
-var _info_arrival_played := false
 var _radio: AudioStreamPlayer
 var _radio_readout: Label3D
 var _readout: Label3D
@@ -566,7 +565,7 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
             radio_tx = not release
             if not release:
                 notice = "Игровая радиопередача · "+radio_channel
-                _radio.play()
+                if _radio.stream != null: _radio.play()
         "radioReset","radioClear":
             if not release:
                 radio_tx = false
@@ -575,7 +574,7 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
         "radioCall":
             if not release:
                 radio_call = not radio_call
-                _radio.play()
+                if _radio.stream != null: _radio.play()
         "radioLine","radioPgs","radioDsp","radioReserve":
             if not release:
                 radio_channel = {"radioLine":"ЛИНИЯ","radioPgs":"ПГС","radioDsp":"ДСП","radioReserve":"РЕЗЕРВ"}[id]

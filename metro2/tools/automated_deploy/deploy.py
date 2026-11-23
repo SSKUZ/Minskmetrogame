@@ -118,7 +118,7 @@ def plan():
     if not before or set(before)=={'0'}:before=POLICY['integration_base_commit']
     git('fetch','--filter=blob:none','--depth=1','origin',before)
     changed=git('diff','--name-only',before,head).decode().splitlines()
-    runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/')) and not ignored(p) and '/parts/' not in p]
+    runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/','metro2/audio/')) and not ignored(p) and '/parts/' not in p and '/identification_tz54_1/' not in p and not p.startswith('metro2/audio/tools/')]
     part_changes=[p[7:] for p in changed if p.startswith('metro2/assets/') and '/parts/' in p]
     runtime+=part_changes
     if not runtime:

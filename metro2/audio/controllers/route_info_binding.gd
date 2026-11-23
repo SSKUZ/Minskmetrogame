@@ -3,7 +3,6 @@ extends Node
 ## Only actually instantiated station modules supply coordinates. Never invent a route layout.
 const AudioSystem = preload("res://audio/audio_system.gd")
 const Tracker = preload("res://audio/controllers/station_position_tracker.gd")
-const StationBase = preload("res://scripts/station_base_static.gd")
 var game: Node3D
 var route_root: Node
 var audio: MetroAudioSystem
@@ -90,11 +89,23 @@ func _register_station(station: Node3D, id: String) -> void:
         if not _markers.has(existing):
             _markers.append(existing)
         return
+    var script: Script = station.get_script()
+    var stop_z: float = NAN
+    while script != null:
+        var values: Dictionary = script.get_script_constant_map()
+        if values.has("STOP_Z"):
+            stop_z = float(values["STOP_Z"])
+            break
+        script = script.get_base_script()
+    if not is_finite(stop_z):
+        push_warning("INFO: station has no authored train stop datum: " + id)
+        return
     var point := Marker3D.new()
     point.name = "InfoTrainReferenceStop"
     point.set_meta("station_id", id)
     # The existing four-car root stop datum, not the nose, platform centre or GPS.
-    point.position = Vector3(0.992, 0.22, StationBase.STOP_Z)
+    var entry := station.get_node_or_null("Connections/Entry") as Node3D
+    point.position = Vector3(entry.position.x if entry != null else 0.992, 0.22, stop_z)
     station.add_child(point)
     _markers.append(point)
 
@@ -113,9 +124,12 @@ func _register_added_stations() -> void:
 
 func _refresh_markers() -> void:
     var points: Array[Dictionary] = []
+    var remaining: Array[Node3D] = []
     for marker in _markers:
         if is_instance_valid(marker):
+            remaining.append(marker)
             points.append({"id": str(marker.get_meta("station_id")), "position": marker.global_position, "side": -1})
+    _markers = remaining
     tracker.configure(points, tracker.direction)
 
 func press_info() -> String:
@@ -164,6 +178,8 @@ func _update_context() -> void:
     audio.info.update_train_state(towards and float(game.get("speed")) > 0.05, stopped, open, bool(doors.call("can_move")))
 
 func _physics_process(_delta: float) -> void:
+    if _markers.any(func(point: Node3D) -> bool: return not is_instance_valid(point)):
+        _refresh_markers()
     _update_context()
     if not passenger_mode:
         return
