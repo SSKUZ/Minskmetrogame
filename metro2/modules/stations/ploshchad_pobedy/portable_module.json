@@ -33,14 +33,18 @@
         "functions": [
           "_lamp_point",
           "_lamp_wing",
-          "_lamp_corner_seam"
+          "_lamp_corner_seam",
+          "_axial_lamp_point",
+          "_axial_lamp",
+          "_portal_shell",
+          "_escalator_wall_infill"
         ],
         "profile": "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
         "output": [
           "ArrayMesh",
           "MultiMesh"
         ],
-        "fixture_layout": "four joined two-face corner trays on each existing capital"
+        "fixture_layout": "four joined two-face corner trays plus four long axial rectangular compartments per existing capital"
       }
     }
   ],
@@ -49,23 +53,23 @@
       "id": "silver_reflector",
       "source_class": "StandardMaterial3D",
       "albedo": [
-        0.855,
-        0.859,
-        0.835,
+        0.803921568627451,
+        0.7333333333333333,
+        0.6039215686274509,
         1.0
       ],
       "metallic": 0.72,
-      "roughness": 0.24
+      "roughness": 0.28
     },
     {
       "id": "opal_diffuser",
       "source_class": "StandardMaterial3D",
       "emission": [
         1.0,
-        0.9,
-        0.69
+        0.87,
+        0.63
       ],
-      "emission_energy": 2.1,
+      "emission_energy": 1.9,
       "roughness": 0.29
     },
     {
@@ -76,7 +80,7 @@
         0.96,
         0.85
       ],
-      "emission_energy": 3.2,
+      "emission_energy": 2.9,
       "roughness": 0.22
     },
     {
@@ -111,7 +115,17 @@
   "points": [],
   "zones": [],
   "data": {
-    "parameters": [],
+    "parameters": [
+      {
+        "id": "driver_eye_offset_z_m",
+        "value": -8.6,
+        "unit": "m",
+        "source": {
+          "path": "metro2/scripts/cab_v106_adapter.gd",
+          "symbol": "CAB_EYE.z"
+        }
+      }
+    ],
     "routes": [],
     "equipment_states": [],
     "animations": [],
@@ -129,7 +143,7 @@
   "limitations": [
     {
       "code": "lighting_scope",
-      "detail": "Metadata describes the revised lighting only. Existing station anchors and dimensions remain in the scene and catalog."
+      "detail": "Metadata covers revised lighting, end-wall shell, escalator infill and driver equipment; all other existing station anchors and dimensions remain in the scene and catalog."
     },
     {
       "code": "godot_shader",

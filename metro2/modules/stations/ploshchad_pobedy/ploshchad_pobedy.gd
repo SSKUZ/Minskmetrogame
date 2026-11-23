@@ -38,11 +38,11 @@ func _ready() -> void:
     trim=_material(Color("#a6a493"),0.12,0.52)
     brass=_material(Color("#8d6b38"),0.50,0.37)
     bronze=_material(Color("#6f4c2d"),0.38,0.43)
-    lamp_silver=_material(Color("#dadbd5"),0.72,0.24)
-    lamp_bead=_material(Color("#ead5a2"),0.52,0.18)
-    lamp_bead.emission_enabled=true;lamp_bead.emission=Color(1.0,0.79,0.40);lamp_bead.emission_energy_multiplier=0.38
+    lamp_silver=_material(Color("#cdbb9a"),0.72,0.28)
+    lamp_bead=_material(Color("#dfc188"),0.56,0.22)
+    lamp_bead.emission_enabled=true;lamp_bead.emission=Color(1.0,0.79,0.40);lamp_bead.emission_energy_multiplier=0.24
     lamp_tube=_material(Color("#fff4d9"),0.0,0.29)
-    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(1.0,0.90,0.69)
+    lamp_tube.emission_enabled=true;lamp_tube.emission=Color(1.0,0.87,0.63)
     lamp_tube.emission_energy_multiplier=float(lighting["diffuser_emission"])
     lamp_core=_material(Color("#fffdf3"),0.0,0.22)
     lamp_core.emission_enabled=true;lamp_core.emission=Color(1.0,0.96,0.85)
@@ -74,6 +74,7 @@ func _ready() -> void:
     _escalators(SOUTH)
     _signs()
     _track_details()
+    _portal_shell()
     _portal_equipment()
     _floor_fittings()
     for z in [12.0,39.6,67.0]:_television(float(z),true)
@@ -213,6 +214,7 @@ func _columns_and_girders() -> void:
                 # Each positive face edge joins the next face's negative edge exactly.
                 # Four folded corner fixtures share one continuous casing per corner.
                 _lamp_corner_seam(o,face)
+                _axial_lamp(o,face)
                 var corner: Vector3=(radial+tangent).normalized()*0.597
                 rod(o+corner+Vector3.UP*3.61,o+corner+Vector3.UP*4.58,0.012,brass)
             box(Vector3(2.80,0.14,2.80),Vector3(x,6.17,z),white)
@@ -250,7 +252,7 @@ func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
             triangle(a,b,inset,reflector,radial-Vector3.UP)
             triangle(b,c,inset,lamp_bead,radial-Vector3.UP)
             triangle(c,d,inset,reflector,radial-Vector3.UP)
-            triangle(d,a,inset,lamp_silver,radial-Vector3.UP)
+            triangle(d,a,inset,brass,radial-Vector3.UP)
             # Ivory edges remain visible around the brighter white central strip.
             var half_width: float=0.19/float(lanes)
             quad(_lamp_point(o,face,wing,t0+0.009,um-half_width,0.074),_lamp_point(o,face,wing,t0+0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um+half_width,0.074),_lamp_point(o,face,wing,t1-0.009,um-half_width,0.074),lamp_tube,radial-Vector3.UP)
@@ -277,6 +279,42 @@ func _lamp_corner_seam(o: Vector3,face: int) -> void:
     for row in range(rows):
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
         rod(_lamp_point(o,face,1.0,t0,1.0,0.084),_lamp_point(o,face,1.0,t1,1.0,0.084),0.011,brass)
+
+func _axial_lamp_point(o: Vector3,face: int,t: float,u: float,depth: float) -> Vector3:
+    var level: float=float(lighting["axial_t_start"])+t*float(lighting["axial_t_span"])
+    return _capital_point(o,face,level,u,depth)
+
+func _axial_lamp(o: Vector3,face: int) -> void:
+    # One long rectangular compartment in EACH of the four white ribs between corner fans.
+    var radial := Vector3(sin(float(face)*PI/2.0),0,cos(float(face)*PI/2.0))
+    var half: float=float(lighting["axial_width_m"])*0.5
+    var rows := 16
+    for row in range(rows):
+        var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
+        quad(_axial_lamp_point(o,face,t0,-half,0.032),_axial_lamp_point(o,face,t0,half,0.032),_axial_lamp_point(o,face,t1,half,0.032),_axial_lamp_point(o,face,t1,-half,0.032),bronze,radial-Vector3.UP)
+        for edge in [-1.0,1.0]:
+            var u: float=float(edge)*half
+            quad(_axial_lamp_point(o,face,t0,u,0.032),_axial_lamp_point(o,face,t1,u,0.032),_axial_lamp_point(o,face,t1,u,0.092),_axial_lamp_point(o,face,t0,u,0.092),brass)
+            rod(_axial_lamp_point(o,face,t0,u,0.094),_axial_lamp_point(o,face,t1,u,0.094),0.007,brass)
+        # The short upper housing stays metallic; the recessed long lens emits warm white.
+        if row<rows-1:
+            var lens: float=half*0.57
+            quad(_axial_lamp_point(o,face,t0+0.004,-lens,0.078),_axial_lamp_point(o,face,t0+0.004,lens,0.078),_axial_lamp_point(o,face,t1-0.004,lens,0.078),_axial_lamp_point(o,face,t1-0.004,-lens,0.078),lamp_tube,radial-Vector3.UP)
+            rod(_axial_lamp_point(o,face,t0+0.006,0,0.083),_axial_lamp_point(o,face,t1-0.006,0,0.083),0.005,lamp_core)
+            for edge in [-1.0,1.0]:
+                var u: float=float(edge)*half*0.80
+                var a: Vector3=_axial_lamp_point(o,face,t0,u,0.084)
+                var b: Vector3=_axial_lamp_point(o,face,t1,u,0.084)
+                rod(a,b,0.004,lamp_silver)
+                sphere(Vector3(0.018,0.018,0.018),a.lerp(b,0.5),lamp_bead)
+        else:
+            quad(_axial_lamp_point(o,face,t0,-half,0.092),_axial_lamp_point(o,face,t0,half,0.092),_axial_lamp_point(o,face,t1,half,0.092),_axial_lamp_point(o,face,t1,-half,0.092),lamp_silver,radial)
+        if row%4==0:rod(_axial_lamp_point(o,face,t0,-half,0.095),_axial_lamp_point(o,face,t0,half,0.095),0.004,brass)
+    for t in [0.0,1.0]:
+        quad(_axial_lamp_point(o,face,float(t),-half,0.032),_axial_lamp_point(o,face,float(t),half,0.032),_axial_lamp_point(o,face,float(t),half,0.092),_axial_lamp_point(o,face,float(t),-half,0.092),brass)
+    # Joined bronze stem continues down onto the marble, as in 9897.jpg.
+    rod(o+radial*0.434+Vector3.UP*3.64,o+radial*0.434+Vector3.UP*4.12,0.014,brass)
+    rod(o+radial*0.434+Vector3.UP*4.12,_axial_lamp_point(o,face,0.0,0,0.094),0.014,brass)
 
 func _ceilings() -> void:
     # Solid white soffit, recessed panel fields and narrow panel joints instead of repeated Academy ribs.
@@ -365,6 +403,7 @@ func _escalators(start: float) -> void:
     var stepmat := _material(Color("#555a54"),0.55,0.46)
     var casing := _photo("escalator_oak.jpg",Vector2(0.65,0.80),0.47)
     _exit_hall(1.0,start,width,FY+5.452,16.5)
+    _escalator_wall_infill(start,width)
     _landing(start+0.18,7.12,1.60)
     for lane in range(3):
         var x: float=CX+(float(lane)-1.0)*2.0
@@ -412,6 +451,27 @@ func _escalators(start: float) -> void:
             box(Vector3(0.071,0.12,0.008),Vector3(x,FY+1.52,start-0.673),status)
     box(Vector3(width,0.16,3.1),Vector3(CX,FY+5.452-0.08,start+14.5),floor_stone)
     board("exit_escalators.svg",Vector3(CX,4.66,start-0.88),Vector2(5.90,0.959))
+
+func _escalator_wall_infill(start: float,width: float) -> void:
+    # Close the two 31cm side slots with solid shaped stone cheeks, joined to the
+    # outer balustrades and hall walls. Preserve all three moving-step lane widths.
+    var outline := PackedVector2Array()
+    outline.append(Vector2(-0.42,-0.08))
+    for i in range(77):
+        var distance: float=-0.42+float(i)*(14.0/76.0)
+        outline.append(Vector2(distance,_escalator_height(maxf(distance,0.0))+0.14))
+    outline.append(Vector2(13.58,-0.08))
+    for side in [-1.0,1.0]:
+        var inner: float=CX+float(side)*3.25
+        var outer: float=CX+float(side)*(width*0.5+0.04)
+        _side_panel(outline,minf(inner,outer),maxf(inner,outer),start,wall_stone)
+    # Solid machine bed also closes the underside and meets the upper landing.
+    var bed := PackedVector2Array([Vector2(-0.42,-0.12)])
+    for i in range(77):
+        var distance: float=-0.42+float(i)*(14.0/76.0)
+        bed.append(Vector2(distance,_escalator_height(maxf(distance,0.0))-0.025))
+    bed.append(Vector2(13.58,-0.12))
+    _side_panel(bed,CX-3.26,CX+3.26,start,granite)
 
 func _side_panel(points: PackedVector2Array,x0: float,x1: float,z0: float,mat: Material) -> void:
     var caps := Geometry2D.triangulate_polygon(points)
@@ -519,6 +579,25 @@ func _track_details() -> void:
                 for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
             box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
 
+func _portal_shell() -> void:
+    # Continuous end-wall returns around four clear tunnel mouths. Top joins the
+    # existing soffit; side jambs overlap the tunnel lining and exit-hall walls.
+    var top := 6.24
+    var opening_top := 4.80
+    var inner_edge := 3.86
+    var outer_edge := 8.94
+    for direction in [-1.0,1.0]:
+        var end: float=ZA if direction<0.0 else ZB
+        for side in [-1.0,1.0]:
+            var track: float=CX+float(side)*6.362
+            var mouth_inner := 6.362-1.89
+            var mouth_outer := 6.362+1.89
+            box(Vector3(outer_edge-inner_edge,top-opening_top,0.46),Vector3(CX+float(side)*(outer_edge+inner_edge)*0.5,(top+opening_top)*0.5,end),wall_stone)
+            box(Vector3(mouth_inner-inner_edge,opening_top+0.35,0.46),Vector3(CX+float(side)*(mouth_inner+inner_edge)*0.5,(opening_top-0.35)*0.5,end),wall_stone)
+            box(Vector3(outer_edge-mouth_outer,opening_top+0.35,0.46),Vector3(CX+float(side)*(mouth_outer+outer_edge)*0.5,(opening_top-0.35)*0.5,end),wall_stone)
+            # Solid fascia down to the original tunnel roof, no strip of sky behind clocks.
+            box(Vector3(3.78,top-4.80,0.32),Vector3(track,(top+4.80)*0.5,end+float(direction)*0.26),white)
+
 func _portal_equipment() -> void:
     var infra := get_node("StationInfrastructure")
     infra.set("_amber",Color(1.0,0.13,0.055))
@@ -526,14 +605,27 @@ func _portal_equipment() -> void:
     for display in displays:
         for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
-        if node is Node3D and "Portal" in str(node.name):node.position.y=4.68
+        if node is Node3D and "Portal" in str(node.name):
+            node.position.y=4.68
+            # Keep the shared clock arrays intact, hide only the two tail-end panels locally.
+            node.visible=str(node.name) in ["Track1Portal1Clock","Track2Portal2Clock"]
     for direction in [-1.0,1.0]:
         var end: float=ZA if direction<0.0 else ZB
         for side in [-1.0,1.0]:
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
             box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
-            var root := Node3D.new();root.name="WhiteDriverMirror";root.position=Vector3(CX+side*4.58,FY+1.42,end-direction*2.6);root.rotation.y=yaw-side*0.12;add_child(root)
+            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
+            # Track 1 departs toward -Z, track 2 toward +Z: no mirror/monitor at a tail.
+            if direction!=-side:continue
+            var eye_z: float=STOP_Z+float(lighting["driver_eye_offset_z_m"])
+            if side<0.0:eye_z=2.0*MID-eye_z
+            var mirror_z: float=eye_z+direction*float(lighting["mirror_ahead_of_eye_m"])
+            var root := Node3D.new();root.name="WhiteDriverMirrorTrack%d" % (1 if side>0.0 else 2)
+            root.position=Vector3(CX+side*4.58,FY+1.42,mirror_z)
+            root.rotation.y=yaw+0.20;add_child(root)
+            root.set_meta("driver_stop_eye_z",eye_z)
+            root.set_meta("track",1 if side>0.0 else 2)
             var mirror := MeshInstance3D.new();mirror.set_script(preload("res://modules/stations/ploshchad_pobedy/driver_mirrors.gd"));mirror.name="ReflectingSurface";mirror.position.z=0.016
             var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
             var pts: Array[Vector3]=[]
@@ -545,10 +637,11 @@ func _portal_equipment() -> void:
             _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
             for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
             _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
-            var p := Vector3(tx-side*1.42,4.68,end-direction*0.16)
+            var p := Vector3(tx-side*1.42,4.10,mirror_z+direction*0.18)
             box(Vector3(0.72,0.46,0.08),p,black)
             picture("platform_cctv.jpg",Vector2(0.66,0.371),p+Vector3(0,0,-direction*0.048),yaw)
-            _camera_box(Vector3(CX+side*3.95,4.56,end-direction*0.35),yaw)
+            # The monitor is now beside the driver's stop, with a physical support.
+            rod(Vector3(p.x,FY, p.z),p-Vector3(0,0.23,0),0.028,metal)
 
 func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     var mesh := CylinderMesh.new();mesh.top_radius=r;mesh.bottom_radius=r;mesh.height=a.distance_to(b);mesh.radial_segments=10;mesh.material=mat
