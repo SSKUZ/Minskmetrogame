@@ -5,6 +5,7 @@ const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
 const DOOR_CONTROLLER = preload("res://scripts/v106_door_controller.gd")
 const CAB_ADAPTER = preload("res://scripts/cab_v106_adapter.gd")
 const AUDIO_SYSTEM = preload("res://audio/audio_system.gd")
+const STATION_TRACKER = preload("res://audio/controllers/station_position_tracker.gd")
 const MAX_SPEED_MPS := 25.0
 const ROUTE_END_Z := 9.603
 const STOP_EPSILON := 0.02
@@ -59,6 +60,7 @@ var _auto_door_close_at_ms: int = -1
 var cab_adapter: Node3D
 var door_button: Button
 var announcer: MetroAudioSystem
+var station_tracker: MetroStationPositionTracker
 var arrival_announced := false
 const PLATFORM_VIEW_Z := 112.0
 ## Set explicitly in the scene after confirming the station geometry and route.
@@ -90,7 +92,9 @@ func _ready() -> void:
     announcer.announcer.set_speakers(info_speakers)
     announcer.info.set_mode("manual")
     # Route IDs must come from verified route triggers, not a guessed preview mapping.
-    # First playable is explicitly the depot-to-Uruchye segment.
+    # First playable contains one authored station stop. Do not invent positions for other stations.
+    station_tracker = STATION_TRACKER.new()
+    station_tracker.configure([{"id": info_station_id, "position": Vector3(initial_train_position.x, initial_train_position.y, STATION_STOP_Z)}], info_direction)
     announcer.info.set_route_context(info_station_id, info_next_station_id, info_direction, "first_playable_01")
     _initialize_car_followers()
     _make_controls()
@@ -439,6 +443,16 @@ func _update_info_train_state() -> void:
         return
     var at_station: bool = absf(train.position.z - STATION_STOP_Z) <= DOOR_STOP_TOLERANCE
     var approaching: bool = train.position.z <= PLATFORM_VIEW_Z and train.position.z > STATION_STOP_Z + DOOR_STOP_TOLERANCE and speed_mps > 0.05
+    if station_tracker != null:
+        var station_state: Dictionary = station_tracker.update(Vector3(initial_train_position.x, initial_train_position.y, train.position.z))
+        if not station_state.is_empty():
+            # A single-station preview has an explicit next station supplied by its scene.
+            var next_id: String = str(station_state["next_station_id"])
+            if next_id == "" and station_tracker.stations.size() == 1:
+                next_id = info_next_station_id
+            announcer.info.set_route_context(str(station_state["station_id"]), next_id, str(station_state["direction"]), str(station_state["visit_id"]))
+            at_station = bool(station_state["at_station"])
+            approaching = bool(station_state["approaching"]) and speed_mps > 0.05
     var open_requested: bool = bool(door_system.get("target_open"))
     var openness: float = float(door_system.get("openness"))
     var doors_open: bool = open_requested or openness > 0.001
