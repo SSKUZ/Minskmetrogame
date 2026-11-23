@@ -498,10 +498,38 @@
       ]
     },
     "ploshchad_lenina": {
-      "file": "ploshchad_lenina-8379d3e9c0440df60a38.pck",
-      "sha256": "8379d3e9c0440df60a3853c7ebb42553a421fd7ba0a95091ae320fe47b68f9f8",
-      "bytes": 4408400,
-      "warmup": []
+      "file": "ploshchad_lenina-a44a2d1028b50ae77ce8.pck",
+      "sha256": "a44a2d1028b50ae77ce8eb8ed888289678da7f7598516d599139cfd11f669a8d",
+      "bytes": 3162880,
+      "warmup": [
+        "res://modules/stations/ploshchad_lenina/art/ceiling_paint.jpg",
+        "res://modules/stations/ploshchad_lenina/art/ceiling_paint_normal.png",
+        "res://modules/stations/ploshchad_lenina/art/exit_north.svg",
+        "res://modules/stations/ploshchad_lenina/art/exit_south.svg",
+        "res://modules/stations/ploshchad_lenina/art/floor_dark.jpg",
+        "res://modules/stations/ploshchad_lenina/art/floor_grey.jpg",
+        "res://modules/stations/ploshchad_lenina/art/floor_grey_normal.png",
+        "res://modules/stations/ploshchad_lenina/art/floor_veined.jpg",
+        "res://modules/stations/ploshchad_lenina/art/lenin_relief.jpg",
+        "res://modules/stations/ploshchad_lenina/art/lenin_relief.png",
+        "res://modules/stations/ploshchad_lenina/art/name_ru.jpg",
+        "res://modules/stations/ploshchad_lenina/art/no_entrance.svg",
+        "res://modules/stations/ploshchad_lenina/art/no_entrance_floor.svg",
+        "res://modules/stations/ploshchad_lenina/art/no_smoking.svg",
+        "res://modules/stations/ploshchad_lenina/art/order_face.jpg",
+        "res://modules/stations/ploshchad_lenina/art/order_face.png",
+        "res://modules/stations/ploshchad_lenina/art/platform_cctv.jpg",
+        "res://modules/stations/ploshchad_lenina/art/platform_track1.svg",
+        "res://modules/stations/ploshchad_lenina/art/platform_track2.svg",
+        "res://modules/stations/ploshchad_lenina/art/route_track1.svg",
+        "res://modules/stations/ploshchad_lenina/art/route_track2.svg",
+        "res://modules/stations/ploshchad_lenina/art/sos_info.svg",
+        "res://modules/stations/ploshchad_lenina/art/stair_granite.jpg",
+        "res://modules/stations/ploshchad_lenina/art/transfer.svg",
+        "res://modules/stations/ploshchad_lenina/art/wall_breccia.jpg",
+        "res://modules/stations/ploshchad_lenina/art/wall_breccia_alt.jpg",
+        "res://modules/stations/ploshchad_lenina/art/white_marble.jpg"
+      ]
     }
   },
   "source_commit": "b27fb2e0b7f78901433ee99eeeeb621f1b81b813",

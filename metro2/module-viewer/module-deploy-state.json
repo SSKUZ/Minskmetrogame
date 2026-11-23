@@ -56,6 +56,13 @@
       "category": "station",
       "scene": "modules/stations/oktyabrskaya/oktyabrskaya.tscn",
       "dependencies": []
+    },
+    "ploshchad_lenina": {
+      "source_commit": "87402311f32e653881d8b51f9478c3f947803d53",
+      "pack_sha256": "a44a2d1028b50ae77ce8eb8ed888289678da7f7598516d599139cfd11f669a8d",
+      "category": "station",
+      "scene": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn",
+      "dependencies": []
     }
   }
 }
