@@ -44,8 +44,8 @@
       "dependencies": []
     },
     "ploshchad_pobedy": {
-      "source_commit": "9d0eec8331f62c13635414462b7cd5f5f829334e",
-      "pack_sha256": "543aa279024be6ff39d49f772bf617ff7cc297e3ca0bbc8a0cb7b243f154dfd3",
+      "source_commit": "47222a79d57dda035ce2713f70b91d6abc0f13b1",
+      "pack_sha256": "daede7a5748ed70fe9d8a0e8a09a151472021c165c9ab1166b7fb4c87903a594",
       "category": "station",
       "scene": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
       "dependencies": []

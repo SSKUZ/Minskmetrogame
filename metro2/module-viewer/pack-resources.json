@@ -1154,6 +1154,7 @@
       "res://modules/stations/ploshchad_pobedy/art/wall_marble_alt.jpg.remap",
       "res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader",
       "res://modules/stations/ploshchad_pobedy/driver_mirrors.gd",
+      "res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader",
       "res://modules/stations/ploshchad_pobedy/lighting_profile.json",
       "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.gd",
       "res://modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",

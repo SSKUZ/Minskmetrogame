@@ -421,9 +421,9 @@
       ]
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-543aa279024be6ff39d4.pck",
-      "sha256": "543aa279024be6ff39d49f772bf617ff7cc297e3ca0bbc8a0cb7b243f154dfd3",
-      "bytes": 5127584,
+      "file": "ploshchad_pobedy-daede7a5748ed70fe9d8.pck",
+      "sha256": "daede7a5748ed70fe9d8a0e8a09a151472021c165c9ab1166b7fb4c87903a594",
+      "bytes": 5131840,
       "warmup": [
         "res://modules/stations/ploshchad_pobedy/art/bench_oak.jpg",
         "res://modules/stations/ploshchad_pobedy/art/burger_ad.jpg",
