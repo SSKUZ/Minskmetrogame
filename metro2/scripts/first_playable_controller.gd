@@ -51,7 +51,7 @@ var platform_button: Button
 var info_button: Button
 var cab_adapter: Node3D
 var door_button: Button
-var announcer: Node
+var announcer: MetroAudioSystem
 var arrival_announced := false
 const PLATFORM_VIEW_Z := 112.0
 ## Set explicitly in the scene after confirming the station geometry and route.
