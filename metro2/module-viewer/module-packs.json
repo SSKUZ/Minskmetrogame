@@ -458,9 +458,9 @@
       ]
     },
     "oktyabrskaya": {
-      "file": "oktyabrskaya-312f472dc8e605ad204f.pck",
-      "sha256": "312f472dc8e605ad204ffb40101294134a7c7e2f214b7fe58543dd11a815dfc7",
-      "bytes": 6508576,
+      "file": "oktyabrskaya-2b4f15874bfb2c3a05c2.pck",
+      "sha256": "2b4f15874bfb2c3a05c26e5b369bf224b7c767b2c793651f36afc716bbae4c5c",
+      "bytes": 9561952,
       "warmup": [
         "res://modules/stations/oktyabrskaya/art/amber_glass.jpg",
         "res://modules/stations/oktyabrskaya/art/bench_oak.jpg",
@@ -480,6 +480,7 @@
         "res://modules/stations/oktyabrskaya/art/frieze_south_center.jpg",
         "res://modules/stations/oktyabrskaya/art/frieze_south_left.jpg",
         "res://modules/stations/oktyabrskaya/art/frieze_south_right.jpg",
+        "res://modules/stations/oktyabrskaya/art/monitor_ad.jpg",
         "res://modules/stations/oktyabrskaya/art/name_be.png",
         "res://modules/stations/oktyabrskaya/art/name_ru.png",
         "res://modules/stations/oktyabrskaya/art/no_smoking.svg",
