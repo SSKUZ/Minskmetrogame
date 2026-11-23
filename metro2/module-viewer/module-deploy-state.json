@@ -58,8 +58,8 @@
       "dependencies": []
     },
     "ploshchad_lenina": {
-      "source_commit": "5342695e9d535582cfc011352ada5790fd4604f1",
-      "pack_sha256": "7c8ed79fd34d65341935831df73503a3d0e760a5ac62caab4ea7aa45382b7b68",
+      "source_commit": "fab8b9299170e063365f0f95473e8c852622ba67",
+      "pack_sha256": "51b3fb3dce7c32daad6cccff381a0a7852665308b596cc576b53a148be395fe0",
       "category": "station",
       "scene": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn",
       "dependencies": []
