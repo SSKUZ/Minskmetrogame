@@ -2,13 +2,25 @@ extends Node
 ## Content-addressed optional packs. Browser HTTP caching handles reuse across visits.
 signal progress(message: String)
 var _manifest: Dictionary = {}
-var _mounted: Dictionary = {}
+var _mounted: Dictionary = {} # Godot 4.3 has no PCK unmount API.
+var _loading_module := false
 var _textures: Dictionary = {}
 var _base_url := ""
 var error_message := ""
 
 func ensure_module(key: String, consumer: Node = null) -> bool:
     var consumer_ref: WeakRef=weakref(consumer) if consumer!=null else null
+    # Serialize viewer switches and station requests, including shared pack files.
+    while _loading_module:
+        if not _consumer_alive(consumer_ref): return false
+        await get_tree().process_frame
+    if not _consumer_alive(consumer_ref): return false
+    _loading_module=true
+    var result: bool=await _ensure_module(key,consumer_ref)
+    _loading_module=false
+    return result
+
+func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
     error_message = ""
     if not OS.has_feature("web"):
         return true
@@ -66,6 +78,8 @@ func ensure_module(key: String, consumer: Node = null) -> bool:
 func release_module_resources(key: String) -> void:
     # Dropping our strong references does not free resources still owned by a
     # train, station or another scene. Godot's Resource cache itself is weak.
+    # Mounted PCK files are retained by Godot 4.3. This releases decoded Resource
+    # references, not the browser's mounted pack storage or HTTP cache.
     if not _manifest.get("modules",{}).has(key): return
     for id in _manifest.modules[key]:
         for path in _manifest.packs[id].get("warmup",[]):

@@ -148,6 +148,8 @@ func open_module(key: String) -> void:
         return
     busy = true
     _set_status("Загрузка: " + key)
+    # Cancels an in-flight streamed station before the next viewer request.
+    if active_key=="full_line": await unload_module()
     if not await _pack_loader.ensure_module(key):
         busy = false
         _menu.show()
