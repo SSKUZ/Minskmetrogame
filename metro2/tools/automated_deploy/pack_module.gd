@@ -4,13 +4,43 @@ var control: Dictionary
 var files: Dictionary = {}
 var owned: Dictionary = {}
 var foreign: Dictionary = {}
+var import_texture_cache: Array[Resource] = []
 
 func _initialize() -> void:
     control=JSON.parse_string(FileAccess.get_file_as_string(OS.get_environment("METRO_DEPLOY_CONTROL")))
     if control.mode=="unpack":
         _unpack()
+    elif control.mode=="prepare":
+        if _prepare_imported_scenes(): quit(0)
     else:
         _pack()
+
+func _prepare_imported_scenes() -> bool:
+    # Resource conversion only: never instantiate a scene or run gameplay.
+    # Godot 4.3's compressed-texture loader accepts CompressedTexture2D, while
+    # historical imported GLBs name their external images as generic Texture2D.
+    # Warm the exact exported image paths, then let ResourceSaver write concrete
+    # external resource types into the same imported PackedScene artifacts.
+    var paths: Array[String] = []
+    _walk("res://",paths)
+    for path in paths:
+        if not path.ends_with(".ctex"): continue
+        var texture := ResourceLoader.load(path,"CompressedTexture2D") as CompressedTexture2D
+        if texture==null: return _fail("Cannot prepare saved compressed texture "+path)
+        import_texture_cache.append(texture)
+    for path in paths:
+        if not path.ends_with(".remap"): continue
+        var source := path.trim_suffix(".remap")
+        if source.get_extension().to_lower() not in ["png","jpg","jpeg","webp","svg"]: continue
+        var texture := ResourceLoader.load(source) as Texture2D
+        if texture==null: return _fail("Cannot resolve saved image mapping "+source)
+        import_texture_cache.append(texture)
+    for path in paths:
+        if not path.begins_with("res://.godot/imported/") or not path.ends_with(".scn"): continue
+        var scene := ResourceLoader.load(path,"PackedScene") as PackedScene
+        if scene==null: return _fail("Cannot prepare saved model scene "+path)
+        if ResourceSaver.save(scene,path)!=OK: return _fail("Cannot retain corrected model resource types "+path)
+    return true
 
 func _unpack() -> void:
     if not ProjectSettings.load_resource_pack(str(control.pack),true):
@@ -37,6 +67,7 @@ func _unpack() -> void:
     quit(0)
 
 func _pack() -> void:
+    if not _prepare_imported_scenes(): return
     for item in control.base_files:owned[str(item)]=true
     for item in control.foreign_files:foreign[str(item)]=true
     var removed: Dictionary={}

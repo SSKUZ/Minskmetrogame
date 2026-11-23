@@ -17,7 +17,12 @@ void vertex() {
 void fragment() {
     float distance_out=(world_point.z-origin_z)*outward_direction;
     float illumination=0.76*(1.0-smoothstep(fade_start_m,fade_finish_m,distance_out));
-    vec2 coord=world_normal.y>0.5?world_point.xz:world_normal.x>0.5?world_point.zy:world_point.xy;
+    vec2 coord=world_point.xy;
+    if (world_normal.y>0.5) {
+        coord=world_point.xz;
+    } else if (world_normal.x>0.5) {
+        coord=world_point.zy;
+    }
     float side_turn=1.0-smoothstep(branch_start_x,branch_finish_x,world_point.x-station_center_x);
     ALBEDO=texture(surface_texture,coord).rgb*illumination*side_turn;
 }

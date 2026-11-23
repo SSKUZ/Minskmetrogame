@@ -220,7 +220,12 @@ def plan():
         deleted=[p for p in runtime if p in owners and key in owners[p] and not (ROOT/p).exists()]
         relevant_parts=[p for p in part_changes if any(p.startswith(h) and (v==key or v=='integration') for h,v in POLICY['category_hints'].items())]
         expected=cfg['mainPack'] if key=='boot' else manifest['packs'].get(key,{}).get('sha256')
-        modules[key]={'id':key,'name':title,'category':category,'source_path':roots.get(key,''),'scene':entry,'dependencies':deps,'publication_path':PREFIX,'sources':sorted(own),'deleted':deleted,'part_changes':relevant_parts,'expected':expected,'existing':key=='boot' or key in manifest['packs']}
+        build_deps=[]
+        for requirement in POLICY.get('build_support_dependencies',{}).get(key,[]):
+            if requirement not in manifest['packs']:raise RuntimeError('Missing build support pack '+requirement)
+            for dep in manifest['modules'].get(requirement,[requirement]):
+                if dep!=key and dep not in deps and dep not in build_deps:build_deps.append(dep)
+        modules[key]={'id':key,'name':title,'category':category,'source_path':roots.get(key,''),'scene':entry,'dependencies':deps,'build_dependencies':build_deps,'publication_path':PREFIX,'sources':sorted(own),'deleted':deleted,'part_changes':relevant_parts,'expected':expected,'existing':key=='boot' or key in manifest['packs']}
     result={'active':bool(modules),'head':head,'before':before,'branch':branch,'pages_base':ref,'boot_file':cfg['mainPack'],'modules':modules,'pack_versions':{k:v['sha256'] for k,v in manifest['packs'].items()}}
     write(PLAN,result);output('active',str(bool(modules)).lower());output('matrix',json.dumps({'include':[{'module':k} for k in modules]},separators=(',',':')))
 
@@ -234,7 +239,7 @@ def driver(data,stage,log):
     control=CI/'controls'/log;write(control.with_suffix('.json'),data)
     runner=CI/'packer';runner.mkdir(exist_ok=True);(runner/'project.godot').write_text('config_version=5\n')
     env=dict(os.environ,METRO_DEPLOY_CONTROL=str(control.with_suffix('.json')))
-    native(['--path',str(stage if data['mode']=='pack' else runner),'--script',str(ROOT/'tools/automated_deploy/pack_module.gd')],CI/'logs'/(log+'.log'),env)
+    native(['--path',str(stage if data['mode'] in {'pack','prepare'} else runner),'--script',str(ROOT/'tools/automated_deploy/pack_module.gd')],CI/'logs'/(log+'.log'),env)
 
 def pack_file(ref,name,target):
     target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(git('show',ref+':'+PREFIX+name));return target
@@ -262,7 +267,7 @@ def restore_parts(spec,stage):
 def build(key):
     p=json.loads(PLAN.read_text());spec=p['modules'][key];stage=CI/'stage'/key;stage.mkdir(parents=True,exist_ok=True)
     ref=p['pages_base'];manifest=published(ref,'module-packs.json');own=[];foreign=set()
-    pack_ids=['boot']+spec['dependencies']+([key] if key!='boot' and spec['existing'] else [])
+    pack_ids=['boot']+spec['dependencies']+spec.get('build_dependencies',[])+([key] if key!='boot' and spec['existing'] else [])
     for dep in dict.fromkeys(pack_ids):
         name=p['boot_file'] if dep=='boot' else manifest['packs'][dep]['file']
         # Old publications can be chunked; combine them only for the needed native resource pack.
@@ -298,6 +303,7 @@ def build(key):
         if path.suffix.lower() in {'.png','.jpg','.jpeg','.webp','.svg'}:
             side=Path(str(path)+'.import')
             if side.exists():side.write_text(side.read_text().replace('mipmaps/generate=false','mipmaps/generate=true'))
+    driver({'mode':'prepare'},stage,key+'-prepare-saved-models')
     native(['--editor','--path',str(stage),'--import'],CI/'logs'/(key+'-import.log'))
     bundle=CI/'bundles'/key;bundle.mkdir(parents=True,exist_ok=True)
     control={'mode':'pack','destination':str(stage),'output':str(bundle/'module.pck'),'base_files':own,'sources':copied,'deleted':spec['deleted'],'foreign_files':sorted(foreign),'resources':str(bundle/'resources.json'),'boot':key=='boot'}
@@ -329,7 +335,7 @@ def publish():
         live_versions={k:v['sha256'] for k,v in manifest['packs'].items()}
         for key,(folder,data) in bundles.items():
             spec=data['module'];entry=data['entry']
-            for dep in spec['dependencies']:
+            for dep in spec['dependencies']+spec.get('build_dependencies',[]):
                 if live_versions.get(dep)!=plan_data['pack_versions'].get(dep):raise RuntimeError('A required dependency changed during build: '+dep)
             actual=cfg['mainPack'] if key=='boot' else manifest['packs'].get(key,{}).get('sha256')
             if actual!=spec['expected']:raise RuntimeError('Publication moved for '+key+'; refuse stale replacement, retain build artifacts')

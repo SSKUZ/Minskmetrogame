@@ -96,5 +96,10 @@
   ],
   "optional_media_prefixes": [
     "audio/resources/tz54/"
-  ]
+  ],
+  "build_support_dependencies": {
+    "v106": [
+      "uruchye"
+    ]
+  }
 }
