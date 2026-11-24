@@ -23,7 +23,7 @@ static func shared(consumer: Node) -> Node:
     return service
 
 func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
-    var reference := weakref(consumer)
+    var reference: WeakRef=weakref(consumer)
     var reserved: Array[String]=[]
     for file in description.files+description.get("textures",[]):
         var path: String=str(file.path)

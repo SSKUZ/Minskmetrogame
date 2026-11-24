@@ -79,7 +79,7 @@ def prepare_speech(root, stage, key, copied):
             # An unavailable original is not replaced by invented or silent audio.
             continue
         segments = entry.get('playback_segments') or [{'from_s':0,'to_s':-1}]
-        signature = hashlib.sha256(source.read_bytes()+json.dumps(segments,sort_keys=True).encode()).hexdigest()
+        signature = hashlib.sha256(b'pcm-framecount-v2\0'+source.read_bytes()+json.dumps(segments,sort_keys=True).encode()).hexdigest()
         cache = stage.parents[1]/'static-cache'/key/'speech'/f'{signature}.wav'
         if not cache.is_file():
             # Decode and concatenate only original PCM ranges, on sample boundaries.
@@ -96,8 +96,18 @@ def prepare_speech(root, stage, key, copied):
                 end = frames if end_seconds < 0 else max(start,min(frames,round(end_seconds*params.framerate)))
                 pieces.append(pcm[start*frame_bytes:end*frame_bytes])
             cache.parent.mkdir(parents=True,exist_ok=True)
-            with wave.open(str(cache),'wb') as audio:
-                audio.setparams(params); audio.writeframes(b''.join(pieces))
+            payload = b''.join(pieces)
+            # FFmpeg's stdout WAV header has an unknown-length sentinel. Use the
+            # actual concatenated PCM frame count, never the input header count.
+            temporary = cache.with_suffix('.wav.partial')
+            try:
+                with wave.open(str(temporary),'wb') as audio:
+                    audio.setparams((params.nchannels, params.sampwidth, params.framerate,
+                                     len(payload)//frame_bytes, params.comptype, params.compname))
+                    audio.writeframes(payload)
+                temporary.replace(cache)
+            finally:
+                temporary.unlink(missing_ok=True)
         relative = 'audio/prebuilt/'+entry['event_id']+'.wav'
         target = stage/relative; target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copy2(cache,target)
