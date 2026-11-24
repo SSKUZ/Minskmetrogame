@@ -47,9 +47,9 @@
       "warmup": []
     },
     "uruchye": {
-      "file": "uruchye-805478cbdb8e35711513.pck",
-      "bytes": 1747936,
-      "sha256": "805478cbdb8e357115133387be3f843317673a955edfdc00f524c80a2b5e1f53",
+      "file": "uruchye-cb4ade3dfc36d3879702.pck",
+      "sha256": "cb4ade3dfc36d38797026204bdf64ea85e31eac832c77983a112da74309611bc",
+      "bytes": 1151072,
       "warmup": [
         "res://assets/signage_v54/uruchye_name.svg",
         "res://assets/signage_v63/uruchye_route.svg",
@@ -59,6 +59,7 @@
         "res://assets/station/photo_reference/exit_a.png",
         "res://assets/station/photo_reference/exit_b.png",
         "res://assets/station/photo_reference/no_boarding.png",
+        "res://assets/station/photo_reference/route.png",
         "res://assets/station/uruchye_granite.png",
         "res://assets/station/uruchye_v68/route_arrived.svg",
         "res://assets/station/uruchye_v68/security.svg",
@@ -66,9 +67,9 @@
       ]
     },
     "v106": {
-      "file": "v106-e1ade28b9ddc107cfe7c.pck",
-      "sha256": "e1ade28b9ddc107cfe7c4210eb68cae416dff74a56cfee0f41c20f45cb7409b5",
-      "bytes": 134169568,
+      "file": "v106-346372ddaa2e0df4c974.pck",
+      "sha256": "346372ddaa2e0df4c974a16da1b544d7507ff957597947bebaa1a26e1350d762",
+      "bytes": 134174048,
       "warmup": [
         "res://assets/cab_r21/cab_r21_0.png",
         "res://assets/cab_r21/cab_r21_1.png",
@@ -169,29 +170,29 @@
       ],
       "chunks": [
         {
-          "file": "v106-part-a249a34cc1f60e617ad3.bin",
+          "file": "v106-part-569c007896295725aaf5.bin",
           "bytes": 8388608,
-          "sha256": "a249a34cc1f60e617ad3289a23fd70bf86faf85844f5c5a122755da267a594a8"
+          "sha256": "569c007896295725aaf50d713fb4ad5cd9780a452f74ae2a185d955d34553efa"
         },
         {
-          "file": "v106-part-b17c77f706a03274a92f.bin",
+          "file": "v106-part-7c545568c05ff8d4a349.bin",
           "bytes": 8388608,
-          "sha256": "b17c77f706a03274a92fb62e5cc9e25a5fc75f8e2faef4160d33ec82e2ec8c04"
+          "sha256": "7c545568c05ff8d4a3496270fef235f87a99f1988caef2e23790d3f8c7aace85"
         },
         {
-          "file": "v106-part-7bed7c5504167b57e64d.bin",
+          "file": "v106-part-cfbaf4177d84c08e2c11.bin",
           "bytes": 8388608,
-          "sha256": "7bed7c5504167b57e64dac6a3f4dd6587dab5c55f19bb7afe8c54397e74d80e7"
+          "sha256": "cfbaf4177d84c08e2c119812a1fa97656c06ae4e77b08fe2e1c22002e94e6f57"
         },
         {
-          "file": "v106-part-e61e43e2a7b6d058fb6a.bin",
+          "file": "v106-part-50dda36056158da6f869.bin",
           "bytes": 8388608,
-          "sha256": "e61e43e2a7b6d058fb6aa40bf0e04d81effa885c5bd7e50d25ce16390ffd17b8"
+          "sha256": "50dda36056158da6f869a41e7dce8eb08d604136138c756f82f11358b037403c"
         },
         {
-          "file": "v106-part-66bc41eb7bf92f77f30a.bin",
+          "file": "v106-part-c1643f6862ec8f8fadd9.bin",
           "bytes": 8388608,
-          "sha256": "66bc41eb7bf92f77f30a309fdf28e8e3e6ad21d1a8ca665ddc36dedb75b04b36"
+          "sha256": "c1643f6862ec8f8fadd9ce486a51a1576f8d16f4eb51a65fbf1fb47f66e05fd8"
         },
         {
           "file": "v106-part-219be59815d8656d7246.bin",
@@ -244,16 +245,16 @@
           "sha256": "b8494fb781e09f9de9bfae27ac7315db75fd18ff0633c409f1b7928c4e7ba7f4"
         },
         {
-          "file": "v106-part-24c3f1d483e4942da339.bin",
-          "bytes": 8340448,
-          "sha256": "24c3f1d483e4942da339de9418858583206098b94d016e47f2c20979f71a9a99"
+          "file": "v106-part-9686b3e713ce5be54f54.bin",
+          "bytes": 8344928,
+          "sha256": "9686b3e713ce5be54f54404ae7be565ad43c819cc278ec7175d99631fda60352"
         }
       ]
     },
     "borisovsky_trakt": {
-      "file": "borisovsky_trakt-7b9d1592770a2a2a5852.pck",
-      "sha256": "7b9d1592770a2a2a5852aec996385d3a2f5b8d6d9921c843f3efcece0d433e48",
-      "bytes": 3150816,
+      "file": "borisovsky_trakt-63f78eac1e94662af939.pck",
+      "sha256": "63f78eac1e94662af93996b92718702cf78c6e7ef4199d2db64e362342ad9b03",
+      "bytes": 3157760,
       "warmup": [
         "res://modules/stations/borisovsky_trakt/art_v69/ad_0.svg",
         "res://modules/stations/borisovsky_trakt/art_v69/ad_1.svg",
@@ -282,9 +283,9 @@
       ]
     },
     "vostok": {
-      "file": "vostok-e5d4c27173cd76c1cb76.pck",
-      "sha256": "e5d4c27173cd76c1cb7612e048aa4fc18b458f846cb967363bb4b628cf551736",
-      "bytes": 3525312,
+      "file": "vostok-eb2cc146ed0e7e73700d.pck",
+      "sha256": "eb2cc146ed0e7e73700d5ab402e8d25d0f6b5356e5bdfd8b1c7d2a7042437ea3",
+      "bytes": 3533824,
       "warmup": [
         "res://modules/stations/vostok/art/direction_north.svg",
         "res://modules/stations/vostok/art/direction_south.svg",
@@ -309,9 +310,9 @@
       ]
     },
     "moskovskaya": {
-      "file": "moskovskaya-c8e87f75b5fce895df95.pck",
-      "sha256": "c8e87f75b5fce895df95d38bded29e4f7d7684ed5e975375557d7eabbca60343",
-      "bytes": 30527680,
+      "file": "moskovskaya-0c3acefdce6942989e53.pck",
+      "sha256": "0c3acefdce6942989e5382eb2ae77a2acf59cb4225334a3e5bf7eace49307497",
+      "bytes": 30536480,
       "warmup": [
         "res://modules/stations/moskovskaya/art/advert_atlas.svg",
         "res://modules/stations/moskovskaya/art/bench_oak.jpg",
@@ -367,9 +368,9 @@
       ]
     },
     "park_chelyuskintsev": {
-      "file": "park_chelyuskintsev-4332b69778c7288847b5.pck",
-      "sha256": "4332b69778c7288847b562bcd7c9619d8000e14756f77a631f8be7e47b35fe27",
-      "bytes": 5243040,
+      "file": "park_chelyuskintsev-459239aa5696f483f228.pck",
+      "sha256": "459239aa5696f483f228a59c4f81556079ce8c1149f9f93f0b6d4c73de7824fb",
+      "bytes": 5253536,
       "warmup": [
         "res://modules/stations/park_chelyuskintsev/art/advert_atlas.svg",
         "res://modules/stations/park_chelyuskintsev/art/bronze_name_be.png",
@@ -403,9 +404,9 @@
       ]
     },
     "akademiya_nauk": {
-      "file": "akademiya_nauk-7ee47020600b3483363c.pck",
-      "sha256": "7ee47020600b3483363c457466784683be44ee484ad7492236e0fbb10891c7c9",
-      "bytes": 4959808,
+      "file": "akademiya_nauk-ed7bc9b7666044f4f564.pck",
+      "sha256": "ed7bc9b7666044f4f56476c607a4778005272f7305b0ac3d14885de46399c5c6",
+      "bytes": 4968576,
       "warmup": [
         "res://modules/stations/akademiya_nauk/art/bench_oak.jpg",
         "res://modules/stations/akademiya_nauk/art/ceiling_normal.png",
@@ -432,9 +433,9 @@
       ]
     },
     "yakuba_kolasa": {
-      "file": "yakuba_kolasa-d42310a3b9ac20caa549.pck",
-      "sha256": "d42310a3b9ac20caa549388540132e8d5679b939c79de8b8ea9fec71fab27d4e",
-      "bytes": 19043872,
+      "file": "yakuba_kolasa-4073849ab9a912659567.pck",
+      "sha256": "4073849ab9a9126595678de54bbef48a7743fade1a247aefd0b503c232b153f2",
+      "bytes": 19052448,
       "warmup": [
         "res://modules/stations/yakuba_kolasa/art/base_marble.jpg",
         "res://modules/stations/yakuba_kolasa/art/bench_oak.jpg",
@@ -490,9 +491,9 @@
       ]
     },
     "ploshchad_pobedy": {
-      "file": "ploshchad_pobedy-ca96e3dfdb1bcb980bc6.pck",
-      "sha256": "ca96e3dfdb1bcb980bc616fbad6faedb86617aa99f366ee13f046284770d2291",
-      "bytes": 5159616,
+      "file": "ploshchad_pobedy-3921fc6d8d714a09ecab.pck",
+      "sha256": "3921fc6d8d714a09ecab360cc954395b56e70cd7d4165a3547b1a4d321de82d8",
+      "bytes": 5184448,
       "warmup": [
         "res://modules/stations/ploshchad_pobedy/art/bench_oak.jpg",
         "res://modules/stations/ploshchad_pobedy/art/burger_ad.jpg",
@@ -528,9 +529,9 @@
       ]
     },
     "oktyabrskaya": {
-      "file": "oktyabrskaya-29fbca04f991b4fb546c.pck",
-      "sha256": "29fbca04f991b4fb546c05b31d159381c041cee31b315c925e093319e8d7e334",
-      "bytes": 9837440,
+      "file": "oktyabrskaya-6a3848ed21a8dcc56e07.pck",
+      "sha256": "6a3848ed21a8dcc56e07710d1d781d989755a6e0b2602c93a8a5cdfc1f2e516c",
+      "bytes": 9847488,
       "warmup": [
         "res://modules/stations/oktyabrskaya/art/amber_glass.jpg",
         "res://modules/stations/oktyabrskaya/art/bench_oak.jpg",
@@ -568,9 +569,9 @@
       ]
     },
     "ploshchad_lenina": {
-      "file": "ploshchad_lenina-51b3fb3dce7c32daad6c.pck",
-      "sha256": "51b3fb3dce7c32daad6cccff381a0a7852665308b596cc576b53a148be395fe0",
-      "bytes": 7031456,
+      "file": "ploshchad_lenina-807eefdd651a63d6140a.pck",
+      "sha256": "807eefdd651a63d6140a0d1d7a0dddbf69f05fcc43f7bb9c597a02145b4bd63c",
+      "bytes": 8225408,
       "warmup": [
         "res://modules/stations/ploshchad_lenina/art/ceiling_paint.jpg",
         "res://modules/stations/ploshchad_lenina/art/ceiling_paint_normal.png",
@@ -652,9 +653,9 @@
       ]
     },
     "full_line": {
-      "file": "full_line-9f5b6840f09ca4ee9c6e.pck",
-      "sha256": "9f5b6840f09ca4ee9c6e3c0c64fa976ed4ef78ab68539ab55ba9a47b07109eb7",
-      "bytes": 45242560,
+      "file": "full_line-9adfbe7840728ef82491.pck",
+      "sha256": "9adfbe7840728ef82491945b16cd41db343be105c1931c508afed06d077efa80",
+      "bytes": 45262080,
       "warmup": [
         "res://assets/passengers/textures/0033a27e6e9498d0.png",
         "res://assets/passengers/textures/0850a16e07b06dfc.jpg",
@@ -726,34 +727,34 @@
       ],
       "chunks": [
         {
-          "file": "full_line-part-ebae729cec71caee0661.bin",
+          "file": "full_line-part-c1075868291e0ba7d4af.bin",
           "bytes": 8388608,
-          "sha256": "ebae729cec71caee06610b19a7ae17c6a55fac007a86906c62c5ceb77f0e7d5a"
+          "sha256": "c1075868291e0ba7d4af635c61bca138d07a778c754ecdf0d82c154962a1a279"
         },
         {
-          "file": "full_line-part-65b3d52d6ddf7b4b09a3.bin",
+          "file": "full_line-part-e6de2382893b99c11ad8.bin",
           "bytes": 8388608,
-          "sha256": "65b3d52d6ddf7b4b09a3e22462366ba6c8b37c2db4ce0ed2b36b161477b931b1"
+          "sha256": "e6de2382893b99c11ad877b6916528d7ab1ae1646deede716f4c7da92c1ced9d"
         },
         {
-          "file": "full_line-part-4112a077e2845f35a06a.bin",
+          "file": "full_line-part-3ebebc172102cb858532.bin",
           "bytes": 8388608,
-          "sha256": "4112a077e2845f35a06aaec267b078298b28e2d5722dfdd70ebf9a4c29bd5174"
+          "sha256": "3ebebc172102cb858532bbb22664785716aac1479efda179bc29cbd43206f0ef"
         },
         {
-          "file": "full_line-part-64663b34ce3ff4f1c184.bin",
+          "file": "full_line-part-0dd8f834385bfe63bab0.bin",
           "bytes": 8388608,
-          "sha256": "64663b34ce3ff4f1c18427f06523162ccc91530e5fac1a94d328f95fe92ac387"
+          "sha256": "0dd8f834385bfe63bab0ac85bdb2c4145d9a880488b3c700b659c881173f3a6d"
         },
         {
-          "file": "full_line-part-0b51b0f63b164f2752ab.bin",
+          "file": "full_line-part-ae7a12c970e32d040748.bin",
           "bytes": 8388608,
-          "sha256": "0b51b0f63b164f2752ab179c8ca8e5e26115955f8d45bdf66842ec7b28ce768e"
+          "sha256": "ae7a12c970e32d0407487812da181388ec15df1c105605f629c31b4a0e09e5ef"
         },
         {
-          "file": "full_line-part-d8dcb5d3d812899398d1.bin",
-          "bytes": 3299520,
-          "sha256": "d8dcb5d3d812899398d1a5b0addd17a05fb728fc8ed6273e3c29db74120559d6"
+          "file": "full_line-part-0d074217f57f475f4f9f.bin",
+          "bytes": 3319040,
+          "sha256": "0d074217f57f475f4f9fe75fd63fee4dc2364ebda59437d3368f55e3a34e834f"
         }
       ]
     }
