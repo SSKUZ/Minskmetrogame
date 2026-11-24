@@ -91,6 +91,11 @@ func _process(_delta: float) -> void:
     if _current_id == "":
         _advance()
         return
+    var nearest: Node3D=_nearest_speaker()
+    for voice in _active:
+        if is_instance_valid(voice) and is_instance_valid(nearest) and voice.get_parent()!=nearest:
+            voice.reparent(nearest,false)
+            voice.position=Vector3.ZERO
     var any_playing: bool = false
     var end_seconds: float = float(_segments[_segment_index].get("to_s", -1.0)) if not _segments.is_empty() else -1.0
     for player in _active:
@@ -130,12 +135,24 @@ func _advance() -> void:
 
 func _start_segment() -> bool:
     var start_seconds: float = float(_segments[_segment_index].get("from_s", 0.0)) if not _segments.is_empty() else 0.0
-    for origin in speaker_origins:
-        if is_instance_valid(origin):
-            var player: AudioStreamPlayer3D = bank.play_at(_current_id, origin, Vector3.ZERO, 0.0, false, start_seconds)
-            if player != null:
-                # A clip can finish during a slow scene-instantiation frame.
-                # Completion also proves it progressed, without a wall-clock guess.
-                player.finished.connect(_mark_audio_started.bind(_current_id))
-                _active.append(player)
+    var origin: Node3D=_nearest_speaker()
+    if is_instance_valid(origin):
+        var player: AudioStreamPlayer3D = bank.play_at(_current_id, origin, Vector3.ZERO, 0.0, false, start_seconds)
+        if player != null:
+            # A clip can finish during a slow scene-instantiation frame.
+            # Completion also proves it progressed, without a wall-clock guess.
+            player.finished.connect(_mark_audio_started.bind(_current_id))
+            _active.append(player)
     return not _active.is_empty()
+
+func _nearest_speaker() -> Node3D:
+    var camera: Camera3D=get_viewport().get_camera_3d()
+    var nearest: Node3D
+    var distance: float=INF
+    for speaker in speaker_origins:
+        if not is_instance_valid(speaker): continue
+        var d: float=speaker.global_position.distance_squared_to(camera.global_position) if camera!=null else 0.0
+        if d<distance:
+            distance=d
+            nearest=speaker
+    return nearest

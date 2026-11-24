@@ -31,14 +31,20 @@ func configure_layers(layer_events: Dictionary, profiles: Dictionary = {}) -> vo
     _profiles=profiles.duplicate(true)
 
 func _start_layer(layer: String) -> void:
-    if router==null or router.bank==null or _layers.has(layer): return
+    if router==null or router.bank==null: return
+    if _layers.has(layer):
+        for existing in _layers[layer]:
+            if is_instance_valid(existing): existing.stream_paused=false
+        return
     var event_id: String=str(_events.get(layer,""))
     if event_id.is_empty() or not router.bank.has_event(event_id): return
     var sources: Array[Node3D]=origins.duplicate()
     if sources.is_empty() and is_instance_valid(origin): sources.append(origin)
     var players: Array[AudioStreamPlayer3D]=[]
-    for source in sources:
-        if not is_instance_valid(source): continue
+    # Identical recordings from four cars need one audible nearest source.
+    # Keep all physical origins; retarget without restarting the stream.
+    var source: Node3D=_nearest_origin(sources)
+    if is_instance_valid(source):
         var player: AudioStreamPlayer3D=router.bank.play_at(event_id,source,Vector3.ZERO,-60.0,true)
         if player!=null: players.append(player)
     if not players.is_empty(): _layers[layer]=players
@@ -56,7 +62,8 @@ func _process(delta: float) -> void:
         if float(_mix[layer])>0.003: _start_layer(str(layer))
         if not _layers.has(layer): continue
         if float(_mix[layer])<0.002 and float(targets[layer])==0.0:
-            _stop_layer(str(layer))
+            for sleeping in _layers[layer]:
+                if is_instance_valid(sleeping): sleeping.stream_paused=true
             continue
         var profile: Dictionary=_profiles.get(layer,{})
         var ratio: float=clampf(speed_mps/22.0,0.0,1.0)
@@ -65,8 +72,25 @@ func _process(delta: float) -> void:
         var perspective: float=float(router.perspective_gain_db[router.listener_mode].get(category,0.0))
         for player in _layers[layer]:
             if not is_instance_valid(player): continue
-            player.pitch_scale=pitch
+            var nearest: Node3D=_nearest_origin(origins)
+            if is_instance_valid(nearest) and player.get_parent()!=nearest:
+                player.reparent(nearest,false)
+                player.position=Vector3.ZERO
+            if player.pitch_scale!=pitch: player.pitch_scale=pitch
             router.bank.set_player_gain(player,linear_to_db(maxf(0.00001,float(_mix[layer])))+perspective)
+
+func _nearest_origin(sources: Array[Node3D]) -> Node3D:
+    var nearest: Node3D=origin
+    var camera: Camera3D=get_viewport().get_camera_3d()
+    if camera==null: return nearest
+    var distance: float=INF
+    for source in sources:
+        if not is_instance_valid(source): continue
+        var d: float=source.global_position.distance_squared_to(camera.global_position)
+        if d<distance:
+            distance=d
+            nearest=source
+    return nearest
 
 func _stop_layer(layer: String) -> void:
     for player in _layers.get(layer,[]):
