@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Existing recorded announcements from TZ54 and the project's already-assigned train motion recordings. Original WAV/Ogg sources and explicit direction-neutral station mappings retained; no invented mechanical sample bindings.",
+  "description": "TZ57 simple native audio: one continuous non-spatial announcer, four original MP3 train states with two-player crossfade and fixed minimal effects. Original recordings and route mappings retained.",
   "rights_verified": true,
   "assets": [
     {
@@ -1081,6 +1081,72 @@
       "verification_basis": "Existing index.html metroRecordings/initMetroAudio/updateMetroAudio explicitly use this recorded file for this state; original bytes retained.",
       "source_repository_path": "audio/idle.mp3",
       "source_blob_sha": "48185399eb2715a0ea4c50762bb19ae1147f4f57"
+    },
+    {
+      "event_id": "cab.button",
+      "resource": "res://audio/resources/tz54/sharedassets0_006.ogg",
+      "category": "cab",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -22.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
+    },
+    {
+      "event_id": "cab.switch",
+      "resource": "res://audio/resources/tz54/sharedassets0_004.ogg",
+      "category": "cab",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -23.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
+    },
+    {
+      "event_id": "cab.controller",
+      "resource": "res://audio/resources/tz54/sharedassets0_004.ogg",
+      "category": "cab",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -20.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
+    },
+    {
+      "event_id": "door.opening",
+      "resource": "res://audio/resources/tz54/sharedassets1_098.ogg",
+      "category": "doors",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -19.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
+    },
+    {
+      "event_id": "door.closing",
+      "resource": "res://audio/resources/tz54/sharedassets1_016.ogg",
+      "category": "doors",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -19.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
+    },
+    {
+      "event_id": "passenger.footstep",
+      "resource": "res://audio/resources/tz54/sharedassets1_025.ogg",
+      "category": "footsteps",
+      "enabled": true,
+      "verified": false,
+      "gain_db": -31.0,
+      "identification_status": "functional_reuse_machine_provisional",
+      "assignment_basis": "TZ57 functional reuse from the existing individual catalogue. No listening verification; source identity retained.",
+      "identification_catalog": "audio/data/identification_tz54_1/individual_catalog.json"
     }
   ],
   "route_events": {
@@ -1161,9 +1227,50 @@
   },
   "rail_joint_event": "",
   "unassigned_effects": {
-    "door": "TZ54 individual catalog marks door samples as provisional; no random recording assigned.",
+    "door": "Functional reuse of provisional catalogue recordings for TZ57; not listening verified.",
     "rail_joint": "No confirmed isolated joint recording. Mixed rolling record is retained without relabelling its individual impacts.",
-    "cab": "No confirmed controller/button/equipment recording assigned.",
-    "environment": "No confirmed station/depot ambience assigned."
+    "cab": "Functional reuse of short recorded clicks for TZ57; not listening verified.",
+    "environment": "No confirmed station/depot ambience assigned.",
+    "footsteps": "Low-volume functional reuse of the existing footsteps candidate; not listening verified."
+  },
+  "simple_audio": {
+    "schema_version": 1,
+    "player_backend": "Godot AudioStreamPlayer; native Web Sample and native Android Stream",
+    "crossfade_seconds": 0.35,
+    "train_states": {
+      "idle": "train.idle",
+      "acceleration": "train.traction",
+      "cruise": "train.rolling",
+      "braking": "train.brake"
+    },
+    "effects": {
+      "cab.button": "cab.button",
+      "cab.switch": "cab.switch",
+      "cab.controller": "cab.controller",
+      "door.opening": "door.opening",
+      "door.closing": "door.closing",
+      "passenger.footstep": "passenger.footstep"
+    },
+    "perspectives": {
+      "cab": {
+        "train_db": -3.0
+      },
+      "salon": {
+        "train_db": -1.0
+      },
+      "platform": {
+        "train_db": 1.0
+      }
+    },
+    "announcer": {
+      "players": 1,
+      "spatial": false,
+      "camera_gain_db": 0.0,
+      "continuous_recordings": "CI-prepared original PCM ranges; no runtime phrase assembly"
+    },
+    "portability": {
+      "events": "Stable event_id strings and original resource paths; timings in seconds and gains in dB",
+      "runtime": "Audio logic needs a Luau adapter; no Roblox compatibility claim"
+    }
   }
 }

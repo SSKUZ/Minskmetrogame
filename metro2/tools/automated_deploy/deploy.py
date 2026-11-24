@@ -369,7 +369,7 @@ def build(key):
         if not catalog_path.is_file():raise RuntimeError('Missing runtime audio catalogue for '+key)
         catalogue=json.loads(catalog_path.read_text())
         missing=[a['event_id']+': '+a.get('resource','') for a in catalogue.get('assets',[])
-                 if a.get('verified') is True and a.get('resource','') not in available
+                 if (a.get('verified') is True or a.get('enabled') is True) and a.get('resource','') not in available
                  and a.get('resource','')+'.remap' not in available]
         for asset in catalogue.get('assets',[]):
             prepared=asset.get('prepared_resource')

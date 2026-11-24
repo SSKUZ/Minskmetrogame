@@ -1,7 +1,7 @@
 extends Node
 class_name MetroDoorAudioController
 ## Each door reports actual openness [0..1]; no timer-based fake movements.
-var router: MetroAudioEventRouter
+var effects: Node
 var _doors: Dictionary = {}
 signal motion_state_changed(door_id: String, direction: int, openness: float)
 @export var movement_epsilon: float = 0.002
@@ -35,6 +35,5 @@ func update_openness(door_id: String, openness: float) -> void:
     door["direction"] = direction
     _doors[door_id] = door
 
-func _emit(event_id: String, origin: Node3D) -> void:
-    if router != null and is_instance_valid(origin):
-        router.dispatch(event_id, origin)
+func _emit(event_id: String, _origin: Node3D) -> void:
+    if is_instance_valid(effects): effects.play_event(event_id)

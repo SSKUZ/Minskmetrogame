@@ -73,6 +73,13 @@
         "path": "res://modules/line/prebuilt/tunnels.json",
         "format": "json",
         "notes": "CI-produced native scene/resource archives with SHA-256, transforms and original route spans; generated resources retain Mesh/ArrayMesh/MultiMesh access."
+      },
+      {
+        "id": "simple_audio_events",
+        "purpose": "equipment",
+        "path": "res://audio/data/audio_catalog.json",
+        "format": "json",
+        "notes": "TZ57: original recordings, station/direction mappings, four train states, crossfade seconds, gains in dB and provisional minimal effects. Godot playback logic needs adaptation for Luau."
       }
     ]
   },

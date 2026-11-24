@@ -1,15 +1,16 @@
 extends Node
 class_name MetroCabAudioController
-## Explicit cab state transitions. No automatic substitute samples.
-var router: MetroAudioEventRouter
+## Actual control transitions feed one fixed effect player.
+var effects: Node
 var origin: Node3D
 var _switches: Dictionary = {}
 var _controller_notch: int = 0
 var _horn_active: bool = false
 
-func sync_switches(snapshot: Dictionary) -> void:
+func sync_switches(snapshot: Dictionary, notch: int=0) -> void:
     # Initial state is not a physical toggle event.
     _switches=snapshot.duplicate()
+    _controller_notch=notch
 
 func set_controller_notch(notch: int) -> void:
     if notch == _controller_notch:
@@ -39,5 +40,4 @@ func external_event(event_id: String) -> void:
         _emit(event_id)
 
 func _emit(event_id: String) -> void:
-    if router != null and is_instance_valid(origin):
-        router.dispatch(event_id, origin)
+    if is_instance_valid(effects): effects.play_event(event_id)

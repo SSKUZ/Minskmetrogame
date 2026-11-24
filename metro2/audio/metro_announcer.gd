@@ -1,175 +1,117 @@
 extends Node
 class_name MetroAnnouncer
-## Explicit, ordered announcements. Never invent text or station-to-audio mappings.
+## One permanent, non-spatial voice. Route, camera and geometry never stop it.
 signal announcement_started(event_id: String)
 signal announcement_finished(event_id: String)
-var bank: MetroSoundBank
-var speaker_origins: Array[Node3D] = []
-var route_events: Dictionary = {}
-var _queue: Array[Dictionary] = []
-var _seen_visits: Dictionary = {}
-var _active: Array[AudioStreamPlayer3D] = []
-var _current_id: String = ""
-var _started_event: String = ""
-var _segments: Array = []
-var _segment_index: int = 0
-var _prepare_ids: Array[String]=[]
-@export var max_queue: int = 8
+var bank: MetroAudioResources
+var route_events: Dictionary={}
+var _player: AudioStreamPlayer
+var _queue: Array[Dictionary]=[]
+var _seen_visits: Dictionary={}
+var _current_id: String=""
+var _started_event: String=""
+@export var max_queue: int=8
 
 func _ready() -> void:
     process_priority=-100
+    _player=AudioStreamPlayer.new()
+    _player.name="ContinuousAnnouncer"
+    _player.max_polyphony=1
+    # Godot's native Web sample backend continues independently of scene work.
+    # No HTMLAudioElement and no playback-position polling in Sample mode.
+    _player.playback_type=AudioServer.PLAYBACK_TYPE_SAMPLE if OS.has_feature("web") else AudioServer.PLAYBACK_TYPE_STREAM
+    add_child(_player)
+    _player.finished.connect(_on_finished)
 
-func prepare_route(current_id: String, following_id: String, direction: String) -> void:
-    _prepare_ids.clear()
-    for key in [current_id+"|arrival|"+direction,following_id+"|next_station|"+direction,following_id+"|arrival|"+direction]:
-        var event: String=str(route_events.get(key,""))
-        if event!="" and bank!=null and bank.has_event(event) and not _prepare_ids.has(event): _prepare_ids.append(event)
+func configure_routes(mapping: Dictionary) -> void:
+    route_events=mapping.duplicate()
+
+func prepare_route(_current: String, _following: String, _direction: String) -> void:
+    pass # All required recordings were prepared by load_catalog before service.
+
+func set_speakers(_origins: Array[Node3D]) -> void:
+    pass # Compatibility only; speech has no physical emitters.
 
 func clear_pending() -> void:
     _queue.clear()
 
-func configure_routes(mapping: Dictionary) -> void:
-    route_events = mapping.duplicate(true)
+func route_announcement(station: String, phase: String, direction: String, visit: String) -> void:
+    if station.is_empty() or visit.is_empty(): return
+    var key: String="%s|%s|%s|%s" % [station,phase,direction,visit]
+    if _seen_visits.has(key): return
+    var id: String=str(route_events.get("%s|%s|%s" % [station,phase,direction],""))
+    if bank==null or not bank.has_event(id): return
+    if _seen_visits.size()>=64: _seen_visits.clear()
+    _seen_visits[key]=true
+    enqueue(id)
 
-func set_speakers(origins: Array[Node3D]) -> void:
-    speaker_origins = origins.duplicate()
-
-func route_announcement(station_id: String, phase: String, direction: String, visit_id: String) -> void:
-    if station_id == "" or visit_id == "":
-        return
-    var key: String = "%s|%s|%s|%s" % [station_id, phase, direction, visit_id]
-    if _seen_visits.has(key):
-        return
-    var event_id: String = str(route_events.get("%s|%s|%s" % [station_id, phase, direction], ""))
-    if event_id == "" or bank == null or not bank.has_event(event_id):
-        return
-    _seen_visits[key] = true
-    enqueue(event_id, 0)
-
-func enqueue(event_id: String, priority: int = 0) -> void:
-    if bank == null or not bank.has_event(event_id):
-        return
-    if _queue.size() >= max_queue:
-        if priority <= int(_queue[-1].get("priority", 0)):
-            return
+func enqueue(id: String, priority: int=0) -> void:
+    if bank==null or not bank.has_event(id): return
+    if _queue.size()>=max_queue:
+        if priority<=int(_queue[-1].priority): return
         _queue.pop_back()
-    var item: Dictionary = {"id": event_id, "priority": priority}
-    var index: int = 0
-    while index < _queue.size() and int(_queue[index]["priority"]) >= priority:
-        index += 1
-    bank.prepare_event(event_id)
-    _queue.insert(index, item)
+    var index: int=0
+    while index<_queue.size() and int(_queue[index].priority)>=priority: index+=1
+    _queue.insert(index,{"id":id,"priority":priority})
     _advance()
 
-func manual_play(event_id: String) -> void:
-    enqueue(event_id, 10)
+func manual_play(id: String) -> void:
+    enqueue(id,10)
 
 func repeat_current() -> void:
-    if _current_id != "":
-        enqueue(_current_id, 10)
-
-func stop_all() -> void:
-    _queue.clear()
-    _started_event=""
-    var interrupted: String = _current_id
-    _release_active()
-    _segments.clear()
-    _current_id = ""
-    if interrupted != "":
-        announcement_finished.emit(interrupted)
-
-func is_busy() -> bool:
-    return _current_id != "" or not _queue.is_empty()
-
-func has_audio_started(event_id: String) -> bool:
-    # Reset for every new playback, retained on completion for a delayed door
-    # clearance. A queued/scheduled player alone is not proof of audio progress.
-    return event_id!="" and _started_event==event_id
-
-func _mark_audio_started(event_id: String) -> void:
-    if _current_id==event_id: _started_event=event_id
+    if not _current_id.is_empty(): enqueue(_current_id,10)
 
 func current_event() -> String:
     return _current_id
 
-func _release_active() -> void:
-    for player in _active:
-        if is_instance_valid(player):
-            bank.release_player(player)
-    _active.clear()
+func is_busy() -> bool:
+    return not _current_id.is_empty() or not _queue.is_empty()
+
+func has_audio_started(id: String) -> bool:
+    return not id.is_empty() and _started_event==id
 
 func reset_visit_history() -> void:
     _seen_visits.clear()
 
-func _process(_delta: float) -> void:
-    if _current_id == "":
-        if _queue.is_empty() and not _prepare_ids.is_empty(): bank.prepare_event(_prepare_ids.pop_front())
-        _advance()
-        return
-    var nearest: Node3D=_nearest_speaker()
-    for voice in _active:
-        if is_instance_valid(voice) and is_instance_valid(nearest) and voice.global_position!=nearest.global_position:
-            voice.global_position=nearest.global_position
-    var any_playing: bool = false
-    var end_seconds: float = float(_segments[_segment_index].get("to_s", -1.0)) if not _segments.is_empty() else -1.0
-    for player in _active:
-        if is_instance_valid(player) and player.playing:
-            var start_seconds: float=float(_segments[_segment_index].get("from_s",0.0)) if not _segments.is_empty() else 0.0
-            if player.get_playback_position()>start_seconds+0.01: _mark_audio_started(_current_id)
-            if end_seconds < 0.0 or player.get_playback_position() < end_seconds:
-                any_playing = true
-    if not any_playing:
-        _release_active()
-        if _segment_index + 1 < _segments.size():
-            _segment_index += 1
-            if _start_segment():
-                return
-        var completed: String = _current_id
-        _current_id = ""
-        _segments.clear()
-        announcement_finished.emit(completed)
-        _advance()
+func set_master_volume(value: float) -> void:
+    var gain: float=float(bank.event_data(_current_id).get("gain_db",0.0)) if bank!=null else 0.0
+    _player.volume_db=gain+linear_to_db(maxf(value,0.00001))
 
 func _advance() -> void:
-    if _current_id != "" or _queue.is_empty() or bank == null:
-        return
-    var item: Dictionary = _queue.pop_front()
-    var event_id: String = str(item["id"])
-    if not bank.has_event(event_id):
-        return
-    _current_id = event_id
+    if not _current_id.is_empty() or _queue.is_empty() or bank==null: return
+    var item: Dictionary=_queue.pop_front()
+    var id: String=str(item.id)
+    var stream: AudioStream=bank.stream_for(id)
+    if stream==null: return
+    _current_id=id
     _started_event=""
-    var entry: Dictionary=bank.event_data(event_id)
-    # CI already concatenated the original recorded ranges. One stream, one
-    # player, no per-frame segment cut/seek or mixer restart between phrases.
-    _segments = [] if entry.has("prepared_resource") else entry.get("playback_segments", [])
-    _segment_index = 0
-    if not _start_segment():
-        _current_id = ""
-        _segments.clear()
-        return
-    announcement_started.emit(event_id)
+    _player.stream=stream
+    set_master_volume(bank.master_volume)
+    _player.play()
+    announcement_started.emit(id)
 
-func _start_segment() -> bool:
-    var start_seconds: float = float(_segments[_segment_index].get("from_s", 0.0)) if not _segments.is_empty() else 0.0
-    var origin: Node3D=_nearest_speaker()
-    if is_instance_valid(origin):
-        var player: AudioStreamPlayer3D = bank.play_at(_current_id, origin, Vector3.ZERO, 0.0, false, start_seconds)
-        if player != null:
-            # A clip can finish during a slow scene-instantiation frame.
-            # Completion also proves it progressed, without a wall-clock guess.
-            player.finished.connect(_mark_audio_started.bind(_current_id))
-            _active.append(player)
-    return not _active.is_empty()
+func _process(_delta: float) -> void:
+    if _current_id.is_empty():
+        _advance()
+    elif _player.playing:
+        # Used by the existing door-warning interlock. Do not seek/poll Sample
+        # playback_position; only the single player's real playback state is read.
+        _started_event=_current_id
 
-func _nearest_speaker() -> Node3D:
-    var camera: Camera3D=get_viewport().get_camera_3d()
-    var nearest: Node3D
-    var distance: float=INF
-    for speaker in speaker_origins:
-        if not is_instance_valid(speaker): continue
-        var d: float=speaker.global_position.distance_squared_to(camera.global_position) if camera!=null else 0.0
-        if d<distance:
-            distance=d
-            nearest=speaker
-    return nearest
+func _on_finished() -> void:
+    var completed: String=_current_id
+    if completed.is_empty(): return
+    _started_event=completed
+    _current_id=""
+    _player.stream=null
+    announcement_finished.emit(completed)
+    _advance()
+
+func stop_all() -> void:
+    _queue.clear()
+    _player.stop()
+    _player.stream=null
+    var interrupted: String=_current_id
+    _current_id=""
+    _started_event=""
+    if not interrupted.is_empty(): announcement_finished.emit(interrupted)

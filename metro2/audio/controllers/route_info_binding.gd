@@ -33,21 +33,7 @@ func initialize(owner_game: Node3D, world: Node) -> void:
     audio.name = "RouteAudioSystem"
     add_child(audio)
     audio.load_catalog("res://audio/data/audio_catalog.json")
-    var speakers: Array[Node3D] = []
-    var consist: Node3D = game.get("train")
-    for car in consist.get_children():
-        if car is Node3D and str(car.name).begins_with("OriginalV106Car"):
-            var speaker := car.get_node_or_null("InfoSpeaker") as Marker3D
-            if speaker==null:
-                speaker=Marker3D.new()
-                speaker.name = "InfoSpeaker"
-                car.add_child(speaker)
-            var bounds: AABB = game.call("_get_model_bounds", car)
-            speaker.position = bounds.get_center()
-            speakers.append(speaker)
-    if speakers.is_empty():
-        speakers.append(consist)
-    audio.announcer.set_speakers(speakers)
+    audio.bind_game(owner_game,world)
     audio.info.departure_started.connect(_on_departure_started)
     get_tree().node_added.connect(_on_node_added)
     _discover(route_root)
