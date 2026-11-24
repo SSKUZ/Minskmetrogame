@@ -1,11 +1,16 @@
 extends Node3D
 ## Native grooved tread mesh and MultiMesh poses. The lower opening has two parallel escalators.
-var parameters: Dictionary
-var direction: float=1.0
+@export var parameters: Dictionary
+@export var direction: float=1.0
 var steps: MultiMesh
 var phase: float=0.0
 
 func _ready() -> void:
+    var prepared := get_node_or_null("MovingGroovedTreads") as MultiMeshInstance3D
+    if prepared!=null:
+        steps=prepared.multimesh.duplicate() as MultiMesh
+        prepared.multimesh=steps
+        return
     var mesh := ArrayMesh.new()
     var dark := _material(Color("#42494b"),0.66,0.52)
     var steel := _material(Color("#a8afb0"),0.78,0.30)

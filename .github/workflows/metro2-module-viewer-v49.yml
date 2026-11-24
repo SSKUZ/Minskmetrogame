@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           apt-get update -qq
-          apt-get install -y -qq python3
+          apt-get install -y -qq python3 ffmpeg xvfb xauth libgl1 libgl1-mesa-dri libxrandr2 libxinerama1 libxcursor1 libxi6
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config remote.origin.promisor true
           git config remote.origin.partialclonefilter blob:none
@@ -88,7 +88,13 @@ jobs:
           key: metro2-import-godot43-web-${{ runner.os }}-${{ matrix.module }}-${{ hashFiles('metro2/config/module_deploy_manifest.json') }}-${{ hashFiles('.metro2-ci/plan.json') }}
           restore-keys: |
             metro2-import-godot43-web-${{ runner.os }}-${{ matrix.module }}-${{ hashFiles('metro2/config/module_deploy_manifest.json') }}-
-      - name: Mandatory resource import and one native Web pack export
+      - uses: actions/cache@v4
+        with:
+          path: .metro2-ci/static-cache/${{ matrix.module }}
+          key: metro2-static-godot43-${{ matrix.module }}-${{ hashFiles('metro2/tools/automated_deploy/static_world/**', 'metro2/modules/line/**', 'metro2/modules/stations/**', 'metro2/scripts/tunnel*', 'metro2/scripts/station/**', 'metro2/audio/data/audio_catalog.json', 'metro2/audio/resources/tz54/**') }}
+          restore-keys: |
+            metro2-static-godot43-${{ matrix.module }}-
+      - name: Prepare static world, import resources and package changed Web modules
         shell: bash
         env:
           MODULE_ID: ${{ matrix.module }}

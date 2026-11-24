@@ -61,7 +61,10 @@ func set_route_context(current_id: String, following_id: String, route_direction
         return
     if visit_id != unique_visit_id or direction != route_direction or station_id != current_id or next_station_id != following_id:
         if is_instance_valid(announcer):
-            announcer.stop_all()
+            # A route-context transition must not cut off a recording already
+            # playing. Drop only obsolete queued messages; explicit stop remains.
+            announcer.clear_pending()
+            announcer.prepare_route(current_id,following_id,route_direction)
         _arrival_used = false
         _departure_used = false
         _service_used = false

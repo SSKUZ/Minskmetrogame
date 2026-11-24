@@ -17,6 +17,7 @@ var passengers: Node3D
 var stations: Array[Dictionary] = []
 var ready_for_service := false
 var layout: Dictionary
+var tunnels: Array[Node3D]=[]
 var _sun: DirectionalLight3D
 var _environment: Environment
 
@@ -49,13 +50,16 @@ func _ready() -> void:
     train.line=self
     train.consist_ready.connect(_consist_ready)
     add_child(train)
-    var tunnel_geometry: Dictionary={"data":{},"order":[],"pending":{}}
+    var tunnel_index: Dictionary={}
+    if FileAccess.file_exists(LineTunnel.INDEX):
+        tunnel_index=JSON.parse_string(FileAccess.get_file_as_string(LineTunnel.INDEX))
     for track_x in [0.992,-11.732]:
         var tunnel := LineTunnel.new()
         tunnel.path=path
-        tunnel.geometry_cache=tunnel_geometry
+        tunnel.prepared_spans=tunnel_index.get("spans",{})
         tunnel.center_x=float(track_x)
         add_child(tunnel)
+        tunnels.append(tunnel)
         tunnel.configure(train.train,train._train_bounds,train.camera)
         if float(track_x)>0.0: train.bind_tunnel(tunnel)
 

@@ -177,6 +177,15 @@ func open_module(key: String) -> void:
     active_key = key
     if key=="full_line": active_module.set("pack_loader",_pack_loader)
     add_child(active_module)
+    if active_module.has_method("static_loading_complete"):
+        while is_instance_valid(active_module) and not bool(active_module.call("static_loading_complete")):
+            await get_tree().process_frame
+        if not is_instance_valid(active_module) or bool(active_module.get("static_failed")):
+            await unload_module()
+            _menu.show()
+            _set_status("Не удалось загрузить геометрию станции. Можно повторить выбор.")
+            busy=false
+            return
     if key=="full_line":
         _pack_loader.release_module_resources(key)
         rig.enabled=false

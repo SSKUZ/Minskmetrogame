@@ -64,6 +64,7 @@ func refresh() -> void:
     var braking: float=_speed*_speed/(2.0*float(_settings.braking_deceleration_mps2))
     var lead: float=maxf(float(_settings.prefetch_min_m),
         _speed*(_load_seconds+float(_settings.load_margin_seconds))+braking+120.0)
+    lead=minf(lead,2400.0)
     for record in line.stations:
         var index: int=int(record.index)
         var ahead: float=(_z-float(record.stop_z))*float(_direction)
@@ -135,9 +136,13 @@ func _load_station(index: int) -> bool:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         _loading_id=""
         return true
+    var prepared_data: Dictionary=Catalog.prepared_station_data(id)
+    var prepared: bool=not prepared_data.is_empty()
     var scene_path: String=str(Catalog.SCENES[id])
     var scene: PackedScene
-    if not OS.has_feature("web"):
+    if prepared:
+        pass # Prepared fragments are decoded one at a time below.
+    elif not OS.has_feature("web"):
         # Godot 4.3 single-thread Web export has no worker loader. Native targets
         # can decode resources off-thread; instantiate/_ready stay here.
         var error: Error=ResourceLoader.load_threaded_request(scene_path,"PackedScene",false,ResourceLoader.CACHE_MODE_REUSE)
@@ -155,7 +160,7 @@ func _load_station(index: int) -> bool:
         # procedural construction below is cooperatively budgeted, not faked by
         # a yield immediately before one synchronous scene _ready().
         scene=ResourceLoader.load(scene_path,"PackedScene",ResourceLoader.CACHE_MODE_REUSE) as PackedScene
-    if scene==null:
+    if scene==null and not prepared:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         loading_changed.emit("Не удалось прочитать станцию: "+id+"; повтор загрузки через 15 с")
         _loading_id=""
@@ -167,7 +172,7 @@ func _load_station(index: int) -> bool:
         _loading_id=""
         return true
     await get_tree().process_frame
-    var node: Node3D=scene.instantiate() as Node3D
+    var node: Node3D=Catalog.create_module(id,prepared_data) if prepared else scene.instantiate() as Node3D
     scene=null
     if node==null:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
@@ -175,8 +180,11 @@ func _load_station(index: int) -> bool:
         return false
     node.position.z=float(record.root_z)
     node.name="LineStation_"+id
-    node.set("track_min_z",float(record.exit_local_z))
-    node.set("track_max_z",float(record.entry_local_z))
+    if prepared:
+        node.set("line_open",true)
+    else:
+        node.set("track_min_z",float(record.exit_local_z))
+        node.set("track_max_z",float(record.entry_local_z))
     var budget=BuildBudget.new(self,2000)
     _building_budget=budget
     node.set_meta("metro_line_work",budget)
@@ -196,7 +204,15 @@ func _load_station(index: int) -> bool:
             if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
             _loading_id=""
             return true
-    await Connections.open_connections(node,budget)
+    if prepared and bool(node.get("static_failed")):
+        budget.cancel()
+        await _dispose_station(node)
+        _building_budget=null
+        if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
+        loading_changed.emit("Не удалось загрузить готовую геометрию: "+id)
+        _loading_id=""
+        return false
+    if not prepared: await Connections.open_connections(node,budget)
     if not _wanted.has(index):
         budget.cancel()
         await _dispose_station(node)
@@ -220,6 +236,7 @@ func _load_station(index: int) -> bool:
     return true
 
 func _dispose_station(root: Node3D) -> void:
+    if root.has_method("release_static_resources"): root.call("release_static_resources")
     root.hide()
     root.process_mode=Node.PROCESS_MODE_DISABLED
     var budget=BuildBudget.new(self,2000)

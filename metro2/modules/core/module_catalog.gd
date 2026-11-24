@@ -19,11 +19,25 @@ const SCENES := {
     "tunnel_16m":"res://modules/tunnels/tunnel_section_16m.tscn",
     "depot":"res://modules/depot/depot.tscn",
 }
+const StaticStation = preload("res://modules/line/static_station.gd")
 const METRES_PER_UNIT := 1.0
 const TRAIN_BODY_OFFSET := Vector3(0,0.22,0)
 
-static func create_module(id: String) -> Node3D:
+static func prepared_station_data(id: String) -> Dictionary:
+    var path := "res://modules/stations/"+id+"/prebuilt/index.json"
+    if not FileAccess.file_exists(path): return {}
+    var data: Variant=JSON.parse_string(FileAccess.get_file_as_string(path))
+    if not data is Dictionary or bool(data.get("legacy",false)): return {}
+    return data
+
+static func create_module(id: String, prepared_data: Dictionary = {}) -> Node3D:
     assert(SCENES.has(id),"Unknown module: " + id)
+    var prepared: Dictionary=prepared_data if not prepared_data.is_empty() else prepared_station_data(id)
+    if not prepared.is_empty():
+        var station := StaticStation.new()
+        station.name=id+"Module"
+        station.manifest=prepared
+        return station
     var scene := load(SCENES[id]) as PackedScene
     assert(scene != null,"Module scene failed to load: " + id)
     return scene.instantiate() as Node3D

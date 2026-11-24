@@ -13,7 +13,20 @@ var _current_id: String = ""
 var _started_event: String = ""
 var _segments: Array = []
 var _segment_index: int = 0
+var _prepare_ids: Array[String]=[]
 @export var max_queue: int = 8
+
+func _ready() -> void:
+    process_priority=-100
+
+func prepare_route(current_id: String, following_id: String, direction: String) -> void:
+    _prepare_ids.clear()
+    for key in [current_id+"|arrival|"+direction,following_id+"|next_station|"+direction,following_id+"|arrival|"+direction]:
+        var event: String=str(route_events.get(key,""))
+        if event!="" and bank!=null and bank.has_event(event) and not _prepare_ids.has(event): _prepare_ids.append(event)
+
+func clear_pending() -> void:
+    _queue.clear()
 
 func configure_routes(mapping: Dictionary) -> void:
     route_events = mapping.duplicate(true)
@@ -44,6 +57,7 @@ func enqueue(event_id: String, priority: int = 0) -> void:
     var index: int = 0
     while index < _queue.size() and int(_queue[index]["priority"]) >= priority:
         index += 1
+    bank.prepare_event(event_id)
     _queue.insert(index, item)
     _advance()
 
@@ -89,6 +103,7 @@ func reset_visit_history() -> void:
 
 func _process(_delta: float) -> void:
     if _current_id == "":
+        if _queue.is_empty() and not _prepare_ids.is_empty(): bank.prepare_event(_prepare_ids.pop_front())
         _advance()
         return
     var nearest: Node3D=_nearest_speaker()
@@ -124,7 +139,10 @@ func _advance() -> void:
         return
     _current_id = event_id
     _started_event=""
-    _segments = bank.event_data(event_id).get("playback_segments", [])
+    var entry: Dictionary=bank.event_data(event_id)
+    # CI already concatenated the original recorded ranges. One stream, one
+    # player, no per-frame segment cut/seek or mixer restart between phrases.
+    _segments = [] if entry.has("prepared_resource") else entry.get("playback_segments", [])
     _segment_index = 0
     if not _start_segment():
         _current_id = ""

@@ -133,7 +133,8 @@ def plan():
     planner_inputs={'metro2/config/module_deploy_manifest.json',
                     'metro2/tools/automated_deploy/deploy.py',
                     'metro2/tools/automated_deploy/pack_module.gd'}
-    if planner_inputs.intersection(changed):
+    compiler_changed=any(p.startswith('metro2/tools/automated_deploy/static_world/') for p in changed)
+    if planner_inputs.intersection(changed) or compiler_changed:
         # A planner repair must include runtime changes from a failed previous
         # push, even when this push changes only deployment code/configuration.
         before=POLICY['integration_base_commit']
@@ -142,7 +143,7 @@ def plan():
     runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/','metro2/audio/')) and not ignored(p) and '/parts/' not in p and '/identification_tz54_1/' not in p and not p.startswith('metro2/audio/tools/')]
     part_changes=[p[7:] for p in changed if p.startswith('metro2/assets/') and '/parts/' in p]
     runtime+=part_changes
-    if not runtime:
+    if not runtime and not compiler_changed:
         write(PLAN,{'active':False,'head':head,'modules':{},'reason':'No runtime module changes; no Godot import/export/publication'})
         output('active','false');output('matrix','{"include":[]}');return
     ref=fetch_pages();manifest=published(ref,'module-packs.json');report=published(ref,'pack-resources.json')
@@ -187,6 +188,16 @@ def plan():
     if 'shared' in chosen:
         for deps in manifest['modules'].values():
             if 'shared' in deps:chosen.update(deps)
+    # Architecture compiler changes rebuild only the registered integrated line
+    # stations, using the same ancestry guards and atomic publication as before.
+    static_inputs = any(p.startswith('metro2/tools/automated_deploy/static_world/') or
+                        p in {'metro2/modules/line/static_station.gd', 'metro2/modules/line/static_resource_store.gd'}
+                        for p in changed)
+    static_modules = set()
+    if static_inputs:
+        static_modules = set(json.loads((ROOT/'modules/line/route_layout.json').read_text())['station_module_ids'])
+        chosen.update(static_modules)
+        chosen.add('full_line')
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
     if not branch.startswith(POLICY['branch_prefix']) and branch!=POLICY['source_branch']:raise RuntimeError('Branch is not opted into automatic publication')
     if scope!='integration' and direct-{scope}:raise RuntimeError('Cross-module source change requires an integration branch: '+','.join(sorted(direct)))
@@ -201,14 +212,16 @@ def plan():
         if key=='boot':
             own=static_boot_sources();entry='viewers/module_viewer.tscn';deps=[];title='Универсальный просмотрщик';category='viewer'
         else:
-            guard(key,manifest,state,head)
             entry=entries.get(key);own=sources.get(key,set());deps=[]
             previous=state.get('modules',{}).get(key)
             if previous and own:
                 # Integration borrows current station source trees as well as their
                 # ancestry. Reuse a published pack when all its actual sources match.
                 source_delta=git('diff','--name-only',previous['source_commit'],head,'--',*sorted('metro2/'+s for s in own))
-                if not source_delta.strip():continue
+                if not source_delta.strip() and key not in static_modules and not (static_inputs and key=='full_line'):continue
+            # Unchanged modules above are reused verbatim. Every package we
+            # actually rebuild still passes the original publication guard.
+            guard(key,manifest,state,head)
             # Streaming routes explicitly replace their former eager dependency
             # list. Their station packs are build support and runtime requests.
             inherited=[] if key in POLICY.get('streamed_module_dependencies',{}) else manifest['modules'].get(key,[])
@@ -238,7 +251,17 @@ def plan():
 
 def native(args,log,env=None):
     log.parent.mkdir(parents=True,exist_ok=True)
-    with log.open('w') as f:p=subprocess.run(['godot','--headless',*args],cwd=REPO,env=env,stdout=f,stderr=subprocess.STDOUT)
+    command=['godot','--headless',*args]
+    if env and env.get('METRO_STATIC_CONTROL'):
+        # Mesh/MultiMesh readback needs real resource storage. Headless dummy
+        # RenderingServer is unsuitable for compiling these native surfaces.
+        # Software OpenGL initializes storage only: no rendering, scene playback,
+        # screenshots or game main scene. Everything stays within the CI job.
+        command=['xvfb-run','-a','godot','--display-driver','x11',
+                 '--rendering-method','gl_compatibility','--rendering-driver','opengl3',
+                 '--audio-driver','Dummy','--disable-render-loop',*args]
+        env=dict(env,LIBGL_ALWAYS_SOFTWARE='1')
+    with log.open('w') as f:p=subprocess.run(command,cwd=REPO,env=env,stdout=f,stderr=subprocess.STDOUT)
     data=log.read_text(errors='replace')
     if p.returncode or any(v in data for v in ['SCRIPT ERROR','Parse Error','Failed to load','ERROR:']):raise RuntimeError(data[-18000:])
 
@@ -303,6 +326,15 @@ def build(key):
     for name in spec['deleted']:
         (stage/name).unlink(missing_ok=True);Path(str(stage/name)+'.remap').unlink(missing_ok=True)
         if name.endswith('.gd'):(stage/name).with_suffix('.gdc').unlink(missing_ok=True)
+    from static_world.prepare import source_files
+    route_ids=json.loads((ROOT/'modules/line/route_layout.json').read_text())['station_module_ids']
+    if key=='full_line' or key in route_ids:
+        for name in source_files(ROOT,key):
+            target=stage/name;target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(ROOT/name,target)
+            Path(str(target)+'.remap').unlink(missing_ok=True)
+            target.with_suffix('.gdc').unlink(missing_ok=True)
+            if name not in copied:copied.append(name)
     (stage/'project.godot').write_text('config_version=5\n[rendering]\nrenderer/rendering_method="gl_compatibility"\ntextures/vram_compression/import_s3tc_bptc=true\n[importer_defaults]\ntexture={"mipmaps/generate": true}\n')
     # Set import options before the sole mandatory editor import, including new media.
     for name in copied:
@@ -310,10 +342,16 @@ def build(key):
         if path.suffix.lower() in {'.png','.jpg','.jpeg','.webp','.svg'}:
             side=Path(str(path)+'.import')
             if side.exists():side.write_text(side.read_text().replace('mipmaps/generate=false','mipmaps/generate=true'))
+    from static_world.prepare import prepare_speech, compile_world
+    prepare_speech(ROOT,stage,key,copied)
     driver({'mode':'prepare'},stage,key+'-prepare-saved-models')
     native(['--editor','--path',str(stage),'--import'],CI/'logs'/(key+'-import.log'))
     bundle=CI/'bundles'/key;bundle.mkdir(parents=True,exist_ok=True)
+    compile_world(ROOT,CI,stage,bundle,spec,p,copied,native)
     control={'mode':'pack','destination':str(stage),'output':str(bundle/'module.pck'),'base_files':own,'sources':copied,'deleted':spec['deleted'],'foreign_files':sorted(foreign),'resources':str(bundle/'resources.json'),'boot':key=='boot'}
+    # Compiler entry points are build tools, not runtime dependencies.
+    control['sources']=[name for name in control['sources'] if name not in {
+        'tools/automated_deploy/static_world/prebuild.gd','modules/line/line_tunnel_generator.gd'}]
     driver(control,stage,key+'-pack')
     pack=bundle/'module.pck';digest=hashlib.sha256(pack.read_bytes()).hexdigest();size=pack.stat().st_size;name=key+'-'+digest[:20]+'.pck'
     resources=json.loads((bundle/'resources.json').read_text())
@@ -330,6 +368,10 @@ def build(key):
         missing=[a['event_id']+': '+a.get('resource','') for a in catalogue.get('assets',[])
                  if a.get('verified') is True and a.get('resource','') not in available
                  and a.get('resource','')+'.remap' not in available]
+        for asset in catalogue.get('assets',[]):
+            prepared=asset.get('prepared_resource')
+            if prepared and prepared not in available and prepared+'.remap' not in available:
+                missing.append(asset['event_id']+': '+prepared)
         if missing:raise RuntimeError('Required audio omitted from runtime packs: '+', '.join(missing))
     exported=set(resources)
     # Import settings can survive native staging after a dependency's exported

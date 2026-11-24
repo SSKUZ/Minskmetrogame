@@ -60,7 +60,15 @@ func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
             if not await _download_pack(str(pack_id), str(_manifest.names[id]), consumer_ref):
                 release_module_resources(id)
                 return false
+    # Prepared station fragments resolve only their own material dependencies.
+    # Eagerly warming every decorative texture defeats geometry-first streaming.
+    var prepared_station := false
+    var prepared_index := "res://modules/stations/"+id+"/prebuilt/index.json"
+    if FileAccess.file_exists(prepared_index):
+        var data: Variant=JSON.parse_string(FileAccess.get_file_as_string(prepared_index))
+        prepared_station=data is Dictionary and not bool(data.get("legacy",false))
     for pack_id in _manifest.modules[id]:
+        if prepared_station: continue
         # Godot 4.3 imported GLTF scenes can use a generic Texture2D hint for
         # compressed image dependencies. Resolve their real texture type first.
         var warmup: Array = _manifest.packs[pack_id].get("warmup", [])

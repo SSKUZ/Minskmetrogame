@@ -44,7 +44,7 @@ func _stream(event_id: String) -> AudioStream:
         return _cache[event_id]
     if not _entries.has(event_id):
         return null
-    var path: String = str(_entries[event_id].get("resource", ""))
+    var path: String = str(_entries[event_id].get("prepared_resource", _entries[event_id].get("resource", "")))
     if not ResourceLoader.exists(path):
         _report_missing(event_id,path)
         return null
@@ -58,6 +58,9 @@ func _stream(event_id: String) -> AudioStream:
         var evicted: String = _order.pop_front()
         _cache.erase(evicted)
     return resource
+
+func prepare_event(event_id: String) -> void:
+    _stream(event_id)
 
 func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3.ZERO, volume_db: float = 0.0, looped: bool = false, start_seconds: float = 0.0) -> AudioStreamPlayer3D:
     if not is_instance_valid(parent):

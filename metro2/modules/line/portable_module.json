@@ -33,7 +33,7 @@
     {
       "id": "curved_detailed_tunnel",
       "kind": "generator",
-      "path": "res://modules/line/line_tunnel.gd",
+      "path": "res://modules/line/line_tunnel_generator.gd",
       "requires_initialization": true,
       "status": "declared"
     }
@@ -66,13 +66,20 @@
         "purpose": "seats",
         "path": "res://modules/passengers/v106_seats.json",
         "format": "json"
+      },
+      {
+        "id": "prepared_tunnel_resources",
+        "purpose": "physics",
+        "path": "res://modules/line/prebuilt/tunnels.json",
+        "format": "json",
+        "notes": "CI-produced native scene/resource archives with SHA-256, transforms and original route spans; generated resources retain Mesh/ArrayMesh/MultiMesh access."
       }
     ]
   },
   "adapter_hints": [
     {
       "id": "scene_adapter",
-      "reason": "Inspect original station/V106 scenes and standard warped ArrayMesh/MultiMesh geometry after initialization; preserve their source materials and local functional markers."
+      "reason": "Use the CI-prepared native scene/resource archives or the original station/V106 sources. Preserve hierarchy, materials, functional markers and route_layout.json. Godot shaders and live viewport materials still need adaptation."
     }
   ],
   "limitations": [
