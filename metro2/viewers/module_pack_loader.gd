@@ -49,13 +49,18 @@ func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
     var id := "v106" if key == "v106" or key.begins_with("car") else key
     if not _manifest.modules.has(id):
         return _fail("Модуль отсутствует в списке: " + id)
+    # Mount the selected module's complete dependency set before resolving any
+    # image mappings. A later required pack may own an earlier pack's texture.
+    # Streaming stations remain separate requests, outside this dependency set.
     for pack_id in _manifest.modules[id]:
         if not _consumer_alive(consumer_ref):
             release_module_resources(id)
             return false
         if not _mounted.has(pack_id):
             if not await _download_pack(str(pack_id), str(_manifest.names[id]), consumer_ref):
+                release_module_resources(id)
                 return false
+    for pack_id in _manifest.modules[id]:
         # Godot 4.3 imported GLTF scenes can use a generic Texture2D hint for
         # compressed image dependencies. Resolve their real texture type first.
         var warmup: Array = _manifest.packs[pack_id].get("warmup", [])
@@ -66,14 +71,25 @@ func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
                 return false
             prepared += 1
             if _textures.has(path): continue
+            var texture_path: String=str(path)
+            # Older manifests also listed .import settings copied into a pack
+            # for CI. A sidecar without its exported source/.remap is not an
+            # owned runtime image (e.g. V106's optional Uruchye artwork).
+            # Do not load a remote station just to warm its unrelated texture.
+            if _import_settings_only(texture_path): continue
             progress.emit("Текстуры «%s»: %d/%d…" % [str(_manifest.names[id]), prepared, warmup.size()])
-            var texture := load(str(path)) as Texture2D
-            if texture == null: return _fail("Не удалось прочитать текстуру выбранного модуля")
+            var texture := ResourceLoader.load(texture_path) as Texture2D
+            if texture == null:
+                release_module_resources(id)
+                return _fail("Не удалось прочитать текстуру: %s · пакет %s" % [texture_path,str(pack_id)])
             _textures[path] = texture
             await get_tree().process_frame
     progress.emit("Подготовка модуля «%s»…" % str(_manifest.names[id]))
     await get_tree().process_frame
     return true
+
+func _import_settings_only(path: String) -> bool:
+    return FileAccess.file_exists(path+".import") and not FileAccess.file_exists(path) and not FileAccess.file_exists(path+".remap")
 
 func release_module_resources(key: String) -> void:
     # Dropping our strong references does not free resources still owned by a

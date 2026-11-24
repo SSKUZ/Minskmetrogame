@@ -312,7 +312,16 @@ def build(key):
     control={'mode':'pack','destination':str(stage),'output':str(bundle/'module.pck'),'base_files':own,'sources':copied,'deleted':spec['deleted'],'foreign_files':sorted(foreign),'resources':str(bundle/'resources.json'),'boot':key=='boot'}
     driver(control,stage,key+'-pack')
     pack=bundle/'module.pck';digest=hashlib.sha256(pack.read_bytes()).hexdigest();size=pack.stat().st_size;name=key+'-'+digest[:20]+'.pck'
-    resources=json.loads((bundle/'resources.json').read_text());textures=sorted({source_name(s) for s in resources if source_name(s).lower().endswith(('.png','.jpg','.jpeg','.webp','.svg')) and not source_name(s).startswith('.godot/')})
+    resources=json.loads((bundle/'resources.json').read_text())
+    exported=set(resources)
+    # Import settings can survive native staging after a dependency's exported
+    # mapping is filtered out. Only an actual source or exported .remap owns a
+    # runtime warmup entry; .import metadata alone must not force optional packs.
+    textures=sorted({source_name(s) for s in resources
+                     if source_name(s).lower().endswith(('.png','.jpg','.jpeg','.webp','.svg'))
+                     and not source_name(s).startswith('.godot/')
+                     and ('res://'+source_name(s) in exported or
+                          'res://'+source_name(s)+'.remap' in exported)})
     entry={'file':name,'sha256':digest,'bytes':size,'warmup':['res://'+s for s in textures]}
     if key!='boot' and size>32*1024*1024:
         chunks=[]
