@@ -1,0 +1,722 @@
+bal_position = _tunnel.call("constrain_camera",desired) if is_instance_valid(_tunnel) else desired
+        if cabin:
+            camera.global_basis = train.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
+        else:
+            camera.rotation = Vector3(-orbit_pitch,orbit_yaw,0)
+
+func _configure_tunnel() -> void:
+    _train_bounds = _get_model_bounds(train)
+    _car_centers.clear()
+    for child in train.get_children():
+        if str(child.name).begins_with("OriginalV106Car"):
+            _car_centers.append(child.position+_get_model_bounds(child).get_center())
+    _focused_car = mini(_focused_car,_car_centers.size()-1)
+    wagon_center = _car_centers[_focused_car]
+    if is_instance_valid(_tunnel) and camera != null:
+        _tunnel.call("configure",train,_train_bounds,camera)
+
+func _add_headlight() -> void:
+    var lead := train.get_node("OriginalV106Car01") as Node3D
+    _illuminate_headlamp_lenses(lead)
+    # Use the actual outer lamp nodes of the preserved V106 GLB.
+    for index in range(2):
+        var lamp := lead.find_child("headlamp-0" if index == 0 else "headlamp-5",true,false) as Node3D
+        if lamp == null:
+            push_error("V106 headlamp attachment node missing")
+            continue
+        var headlight := SpotLight3D.new()
+        headlight.name = "TrainHeadlightLeft" if index == 0 else "TrainHeadlightRight"
+        lead.add_child(headlight)
+        headlight.position = lead.to_local(lamp.global_position)+Vector3(0,0,-0.07)
+        headlight.rotation = Vector3(deg_to_rad(-1.5),deg_to_rad(1.8 if index == 0 else -1.8),0)
+        headlight.light_color = Color(1.0,0.94,0.82)
+        headlight.light_energy = 3.5
+        headlight.spot_range = 105.0
+        headlight.spot_angle = 32.0
+        headlight.spot_attenuation = 1.2
+        headlight.spot_angle_attenuation = 1.5
+        headlight.shadow_enabled = true
+
+
+func _illuminate_headlamp_lenses(lead: Node3D) -> void:
+    # Emission changes only the existing front glass surfaces. Shared GLB
+    # materials, lamp housings and the two lighting beams remain untouched.
+    var glowing_lens: BaseMaterial3D
+    var lit_lamps := 0
+    for index in range(6):
+        var lamp := lead.find_child("headlamp-%d" % index,true,false) as Node3D
+        if lamp == null:
+            push_error("V106 headlamp lens node missing")
+            continue
+        var lit := false
+        for child in lamp.find_children("*","MeshInstance3D",true,false):
+            var lens := child as MeshInstance3D
+            if lens.mesh == null:
+                continue
+            for surface in range(lens.mesh.get_surface_count()):
+                var original := lens.get_active_material(surface) as BaseMaterial3D
+                if original == null or original.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED or original.albedo_color.a >= 0.5:
+                    continue
+                if glowing_lens == null:
+                    glowing_lens = original.duplicate() as BaseMaterial3D
+                    glowing_lens.albedo_color = Color(0.65,0.60,0.49,1.0)
+                    glowing_lens.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+                    glowing_lens.emission_enabled = true
+                    glowing_lens.emission = Color(1.0,0.94,0.82)
+                    glowing_lens.emission_energy_multiplier = 1.5
+                lens.set_surface_override_material(surface,glowing_lens)
+                lit = true
+        if lit:
+            lit_lamps += 1
+    if lit_lamps != 6:
+        push_error("V106: expected six illuminated headlamp lenses, found %d" % lit_lamps)
+
+func _set_camera_mode(mode: String) -> void:
+    camera_mode = mode
+    camera.fov = _cab_fov if mode == "cabin" else 75.0
+    if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
+    _focused_car = 0
+    if not _car_centers.is_empty():
+        wagon_center = _car_centers[0]
+    camera_pan = Vector3.ZERO
+    orbit_radius = 8.0
+    orbit_yaw = 0.35 if mode == "external" else 0.0
+    orbit_pitch = 0.10 if mode == "external" else 0.0
+    _update_camera()
+    _publish_diagnostics()
+    print("CAMERA_MODE ",mode)
+
+func _add_view_modes(ui: CanvasLayer) -> void:
+    var row := HBoxContainer.new()
+    row.name = "ViewModes"
+    row.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    row.offset_top = -145
+    row.offset_bottom = -97
+    ui.add_child(row)
+    for entry in [["СНАРУЖИ","external"],["КАБИНА","cabin"],["САЛОН","salon"]]:
+        var button := Button.new()
+        button.text = entry[0]
+        button.custom_minimum_size = Vector2(150,48)
+        button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        row.add_child(button)
+        var mode: String = entry[1]
+        button.pressed.connect(func(): _set_camera_mode(mode))
+
+# A station is attached once, before entering the 150 m approach zone.
+# StationBase can be supplied by the route scene without duplicating its assets.
+func attach_station(scene: PackedScene, placement: Transform3D, stop_z: float) -> void:
+    if is_instance_valid(_station):
+        _station.queue_free()
+    _station = scene.instantiate() as Node3D
+    assert(_station != null,"Station root must be Node3D")
+    add_child(_station)
+    _station.global_transform = placement
+    _station_stop_z = stop_z
+
+func station_illumination(distance_m: float) -> float:
+    return 1.0 - smoothstep(30.0,150.0,distance_m)
+
+func diagnostic_state() -> Dictionary:
+    var cars := 0
+    for child in train.get_children():
+        if str(child.name).begins_with("OriginalV106Car"):
+            cars += 1
+    return {
+        "cab_loaded":is_instance_valid(cab_runtime) and bool(cab_runtime.get("ready_for_play")),
+        "cab_version":"cab-r2.1-v39-r2",
+        "cab_cleanup_ready":bool(cab_runtime.get("cleanup_ready")) if is_instance_valid(cab_runtime) else false,
+        "saloon_lights":get_node("TrainInteriorLighting").get("lights").size() if has_node("TrainInteriorLighting") else 0,
+        "saloon_cars":int(get_node("TrainInteriorLighting").get("cars_lit")) if has_node("TrainInteriorLighting") else 0,
+        "cab_textures_verified":int(cab_runtime.get("_source_recipe").get("verified_nonempty_images",0)) if is_instance_valid(cab_runtime) else 0,
+        "door_system_ready":is_instance_valid(door_system) and bool(door_system.get("validated")),
+        "tunnel_visible":is_instance_valid(_tunnel) and _tunnel.is_visible_in_tree(),"train_visible":train.is_visible_in_tree(),
+        "cars":cars,"focused_car":_focused_car+1,"speed":speed,"distance":distance,"view":camera_mode,
+        "length":_train_bounds.size.z,
+        "modules":_tunnel.call("active_module_count") if is_instance_valid(_tunnel) else 0,
+        "recycles":_tunnel.get("recycle_count") if is_instance_valid(_tunnel) else 0,
+        "coverage":_tunnel.call("coverage_is_valid") if is_instance_valid(_tunnel) else false,
+        "headlights":train.get_node("OriginalV106Car01").find_children("TrainHeadlight*","SpotLight3D",true,false).size()
+    }
+
+func _publish_diagnostics() -> void:
+    if _diagnostics_enabled:
+        JavaScriptBridge.eval("window.metro2Diagnostics = "+JSON.stringify(diagnostic_state())+"; null",true)
+
+func _cycle_car_focus(direction: int) -> void:
+    if _car_centers.is_empty():
+        return
+    var next := posmod(_focused_car+direction,_car_centers.size())
+    _set_camera_mode("external")
+    _focused_car = next
+    wagon_center = _car_centers[_focused_car]
+    _update_camera()
+    _publish_diagnostics()
+
+
+
+# Composition hooks: legacy defaults are preserved; modules may supply a route/world.
+func _create_world_environment() -> void:
+    var world := WorldEnvironment.new()
+    var env := Environment.new()
+    env.background_mode = Environment.BG_COLOR
+    env.background_color = Color(0.006, 0.008, 0.012)
+    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+    env.ambient_light_color = Color(0.50, 0.49, 0.46)
+    env.ambient_light_energy = 0.085
+    _environment = env
+    env.fog_enabled = true
+    env.fog_mode = Environment.FOG_MODE_DEPTH
+    env.fog_depth_begin = 60.0
+    env.fog_depth_end = 120.0
+    env.fog_depth_curve = 1.2
+    env.fog_density = 1.0
+    env.fog_light_color = Color(0.006,0.008,0.012)
+    env.fog_light_energy = 0.025
+    env.fog_sun_scatter = 0.0
+    world.environment = env
+    add_child(world)
+    var light := DirectionalLight3D.new()
+    light.rotation_degrees = Vector3(-40, -25, 0)
+    light.light_energy = 0.025
+    add_child(light)
+
+func _create_route_tunnel() -> void:
+    # Lightweight straight route, independent from legacy tunnel_v2.gd.
+    var tunnel := Node3D.new()
+    _tunnel = tunnel
+    tunnel.name = "LightweightStraightTunnel"
+    tunnel.set_script(tunnel_script if tunnel_script != null else load("res://scripts/tunnel_lightweight_straight.gd"))
+    add_child(tunnel)
+
+# Viewer-only subclasses can isolate failing decorators without changing gameplay.
+func _decorate_consist() -> void:
+    preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
+    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
+    _report_saloon_artwork_v46()
+                              extends RefCounted
+## Rebuild exactly two fixed-body caution signs per door opening.
+## Imported warning quads are never reused: their positions may overlap doors.
+const WARNING = preload("res://assets/v106_warning/v106_warning_caution.png")
+const SIGN_WIDTH := 0.16
+const SIGN_HEIGHT := 0.115
+const SIGN_Y := 1.28
+const EDGE_MARGIN := 0.10
+const SURFACE_OFFSET := 0.008
+
+static func restore(train: Node3D, door_system: Node) -> void:
+    var material := StandardMaterial3D.new()
+    material.albedo_texture = WARNING
+    material.albedo_color = Color.WHITE
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+    material.alpha_scissor_threshold = 0.025
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    material.render_priority = 2
+    var all_leaves: Array = door_system.get("leaves")
+    for car in train.get_children():
+        if not car is Node3D or not str(car.name).begins_with("OriginalV106Car"):
+            continue
+        # Imported GLB warning meshes are the cause of overlapping decals.
+        # Hide ALL of them, including those nested under moving door leaves.
+        for node in car.find_children("passenger-door-caution*", "MeshInstance3D", true, false):
+            (node as MeshInstance3D).hide()
+        var old := car.get_node_or_null("FixedBodyWarningSigns")
+        if old != null:
+            old.queue_free()
+        var holder := Node3D.new()
+        holder.name = "FixedBodyWarningSigns"
+        car.add_child(holder)
+        var side_leaves: Array = [[], []]
+        for leaf in all_leaves:
+            var part: Dictionary = leaf
+            var piece: Dictionary = part["parts"][0]
+            var root := piece["node"] as Node3D
+            if root == null or not car.is_ancestor_of(root):
+                continue
+            var center: Vector3 = part["center"]
+            side_leaves[0 if center.x < 0.0 else 1].append(part)
+        var created := 0
+        for side in side_leaves:
+            side.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+                var ac: Vector3 = a["center"]
+                var bc: Vector3 = b["center"]
+                return ac.z < bc.z
+            )
+            if side.size() != 8:
+                push_warning("Warning signs: expected 8 door leaves per side on " + str(car.name) + ", got " + str(side.size()))
+                continue
+            for pair in range(4):
+                var first: Dictionary = side[pair * 2]
+                var second: Dictionary = side[pair * 2 + 1]
+                var a: AABB = first["parts"][0]["bounds"]
+                var b: AABB = second["parts"][0]["bounds"]
+                var side_x: float = (first["center"] as Vector3).x
+                var direction := -1.0 if side_x < 0.0 else 1.0
+                var outer_face_x := maxf(maxf(absf(a.position.x), absf(a.end.x)), maxf(absf(b.position.x), absf(b.end.x)))
+                var x := direction * (outer_face_x + SURFACE_OFFSET)
+                var start_z := minf(a.position.z, b.position.z) - EDGE_MARGIN - SIGN_WIDTH * 0.5
+                var end_z := maxf(a.end.z, b.end.z) + EDGE_MARGIN + SIGN_WIDTH * 0.5
+                _make_sign(holder, material, Vector3(_body_surface_x(car, direction, SIGN_Y, start_z, x), SIGN_Y, start_z), pair, "A")
+                _make_sign(holder, material, Vector3(_body_surface_x(car, direction, SIGN_Y, end_z, x), SIGN_Y, end_z), pair, "B")
+                created += 2
+        print("V106_WARNING_FIXED ", car.name, " signs=", created)
+
+static func _make_sign(holder: Node3D, material: Material, pos: Vector3, pair: int, edge: String) -> void:
+    var sign := MeshInstance3D.new()
+    sign.name = "BodyCaution_%d_%s" % [pair, edge]
+    var quad := QuadMesh.new()
+    quad.size = Vector2(SIGN_WIDTH, SIGN_HEIGHT)
+    sign.mesh = quad
+    sign.material_override = material
+    sign.position = pos
+    sign.rotation.y = -PI * 0.5 if pos.x < 0.0 else PI * 0.5
+    sign.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    holder.add_child(sign)
+
+## Find the ACTUAL body skin at the sign position by ray/triangle intersection.
+## AABB and door-panel centers are not body-surface coordinates.
+static func _body_surface_x(car: Node3D, side: float, y: float, z: float, fallback: float) -> float:
+    var from := Vector3(side * 2.5, y, z)
+    var ray := Vector3(-side, 0.0, 0.0)
+    var nearest := INF
+    var hit_x := fallback
+    for node in car.find_children("*", "MeshInstance3D", true, false):
+        var mesh_node := node as MeshInstance3D
+        if mesh_node.mesh == null or not mesh_node.visible:
+            continue
+        var name_lower := str(mesh_node.name).to_lower()
+        if name_lower.begins_with("passenger-door") or name_lower.begins_with("bodycaution") or name_lower.begins_with("minskdoor"):
+            continue
+        var pose: Transform3D = car.global_transform.affine_inverse() * mesh_node.global_transform
+        var box: AABB = pose * mesh_node.get_aabb()
+        if y < box.position.y or y > box.end.y or z < box.position.z or z > box.end.z:
+            continue
+        for surface in range(mesh_node.mesh.get_surface_count()):
+            if mesh_node.mesh.surface_get_primitive_type(surface) != Mesh.PRIMITIVE_TRIANGLES:
+                continue
+            var arrays := mesh_node.mesh.surface_get_arrays(surface)
+            var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+            var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+            var count := indices.size() if not indices.is_empty() else verts.size()
+            for i in range(0, count - 2, 3):
+                var ia := indices[i] if not indices.is_empty() else i
+                var ib := indices[i + 1] if not indices.is_empty() else i + 1
+                var ic := indices[i + 2] if not indices.is_empty() else i + 2
+                var a: Vector3 = pose * verts[ia]
+                var b: Vector3 = pose * verts[ib]
+                var cc: Vector3 = pose * verts[ic]
+                var hit = Geometry3D.ray_intersects_triangle(from, ray, a, b, cc)
+                if hit is Vector3:
+                    var distance: float = from.distance_to(hit)
+                    if distance < nearest:
+                        nearest = distance
+                        hit_x = hit.x + side * SURFACE_OFFSET
+    return hit_x
+               extends Node
+## Door leaves discovered by their imported mesh bounds; GLB originals stay untouched.
+## Existing leaf parents move all child meshes together with their caution decal.
+signal ready_count(count: int)
+var leaves: Array[Dictionary] = []
+var openness: float = 0.0
+var target_open: bool = false
+var validated: bool = false
+var side_targets := {-1:false,1:false}
+var side_open := {-1:0.0,1:0.0}
+const SLIDE_METERS := 0.56
+const ANIMATION_SECONDS := 1.3
+
+func setup(consist: Node3D) -> void:
+    leaves.clear()
+    validated = false
+    for car in consist.get_children():
+        if not str(car.name).begins_with("OriginalV106Car"):
+            continue
+        var panels: Array[Dictionary] = []
+        var decals: Array[Dictionary] = []
+        _scan(car, car, panels, decals)
+        var grouped: Dictionary = {}
+        for item in panels:
+            var center: Vector3 = item["center"]
+            var key := "%s:%s" % [roundi(center.x * 10.0), roundi(center.z * 100.0)]
+            if not grouped.has(key):
+                grouped[key] = []
+            grouped[key].append(item)
+        var car_leaves: Array[Dictionary] = []
+        for key in grouped:
+            var group: Array = grouped[key]
+            if group.size() != 1:
+                continue
+            var center: Vector3 = group[0]["center"]
+            car_leaves.append({"parts": group, "center": center, "decals": []})
+        for decal in decals:
+            var decal_center: Vector3 = decal["center"]
+            var best_distance := 0.65
+            var best_index := -1
+            for i in range(car_leaves.size()):
+                var center: Vector3 = car_leaves[i]["center"]
+                var distance := absf(center.z - decal_center.z) + absf(center.x - decal_center.x) * 0.05
+                if signf(center.x) == signf(decal_center.x) and distance < best_distance:
+                    best_distance = distance
+                    best_index = i
+            if best_index >= 0:
+                car_leaves[best_index]["decals"].append(decal)
+        if car_leaves.size() != 16:
+            push_error("V106 door discovery: %s found %d/16 leaves" % [car.name, car_leaves.size()])
+            leaves.clear()
+            ready_count.emit(0)
+            return
+        for leaf in car_leaves:
+            if leaf["decals"].size() != 1:
+                push_error("V106 door decal mismatch in %s" % car.name)
+                leaves.clear()
+                ready_count.emit(0)
+                return
+        # Require one and only one matching leaf within the same car.
+        for i in range(car_leaves.size()):
+            var center: Vector3 = car_leaves[i]["center"]
+            var partners: Array[int] = []
+            for j in range(car_leaves.size()):
+                if i == j:
+                    continue
+                var other: Vector3 = car_leaves[j]["center"]
+                var distance := absf(other.z - center.z)
+                if absf(other.x - center.x) < 0.2 and distance > 0.60 and distance < 0.80:
+                    partners.append(j)
+            if partners.size() != 1:
+                push_error("Ambiguous door pairing in %s, leaf %d" % [car.name, i])
+                leaves.clear()
+                ready_count.emit(0)
+                return
+            var partner: Vector3 = car_leaves[partners[0]]["center"]
+            car_leaves[i]["direction"] = signf(center.z - partner.z)
+            car_leaves[i]["seam"] = (center.z+partner.z)*0.5
+        _attach_stationary_leaf_details(car,car_leaves)
+        _restore_door_stripes(car,car_leaves)
+        leaves.append_array(car_leaves)
+    validated = leaves.size() == 64
+    ready_count.emit(leaves.size())
+    if leaves.size() != 64:
+        push_warning("Door controller expected 64 leaves; found %d. Animation disabled." % leaves.size())
+
+func _scan(root: Node, car: Node3D, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
+    if root is MeshInstance3D and root.mesh != null:
+        var bounds: AABB = root.get_aabb()
+        var size: Vector3 = bounds.size
+        var to_car: Transform3D = car.global_transform.affine_inverse() * root.global_transform
+        var center: Vector3 = to_car * bounds.get_center()
+        if str(root.name).begins_with("passenger-door-caution"):
+            decals.append({"node": root, "center": center, "origin": root.position,
+                "slide_axis": root.get_parent().global_basis.inverse() * car.global_basis.z})
+        elif size.x > 0.67 and size.x < 0.70 and size.y > 2.0 and size.y < 2.1 and size.z > 0.02 and size.z < 0.04 and absf(center.x) > 1.0 and absf(center.x) < 1.4:
+            # Move the existing leaf parent, including skin, glass and trim.
+            var leaf: Node3D = root.get_parent()
+            panels.append({"node": leaf, "center": center, "bounds":to_car*bounds, "origin": leaf.position,
+                "slide_axis": leaf.get_parent().global_basis.inverse() * car.global_basis.z})
+    for child in root.get_children():
+        _scan(child, car, panels, decals)
+
+func _restore_door_stripes(car: Node3D, car_leaves: Array[Dictionary]) -> void:
+    # Read the existing waist stripe so the door paint meets its actual height
+    # and colour on both the original and LOD1 cars. No GLB is rewritten.
+    var top := 1.9425
+    var width := 0.105
+    var paint := StandardMaterial3D.new()
+    paint.albedo_color = Color(0.91,0.87,0.75)
+    paint.roughness = 0.55
+    for child in car.find_children("*","MeshInstance3D",true,false):
+        var source := child as MeshInstance3D
+        if source.mesh == null or source.mesh.get_surface_count() == 0: continue
+        var bounds: AABB = car.global_transform.affine_inverse()*source.global_transform*source.get_aabb()
+        if bounds.size.z < 4.0 or bounds.size.x < 2.3 or bounds.size.y < 0.07 or bounds.size.y > 0.15: continue
+        if absf(bounds.get_center().y-1.89) > 0.08: continue
+        var material := source.get_active_material(0) as BaseMaterial3D
+        if material == null or material.albedo_color.r < 0.6 or material.albedo_color.g < 0.6: continue
+        paint.albedo_color = material.albedo_color
+        paint.roughness = material.roughness
+        paint.metallic = material.metallic
+        top = bounds.end.y
+        width = bounds.size.y
+        break
+    paint.resource_name = "MinskDoorStripePaint"
+    paint.cull_mode = BaseMaterial3D.CULL_DISABLED
+    for leaf in car_leaves:
+        var item: Dictionary = leaf["parts"][0]
+        var parent := item["node"] as Node3D
+        if parent.has_node("MinskDoorStripe"): continue
+        var bounds: AABB = item["bounds"]
+        var direction: float = leaf["direction"]
+        var seam: float = leaf["seam"]
+        var side := signf((leaf["center"] as Vector3).x)
+        var outer := absf((bounds.end.z if direction > 0.0 else bounds.position.z)-seam)
+        var inner := maxf(0.008,absf((bounds.position.z if direction > 0.0 else bounds.end.z)-seam))
+        var bottom := bounds.position.y+0.035
+        var knee := bottom+(top-bottom)*0.28
+        # Photo reference: long inward diagonal, low waist, short outward foot.
+        # Each half stays on its own leaf and stops at the black centre seal.
+        var outline := PackedVector2Array([
+            Vector2(outer,top),Vector2(outer-width*1.4,top),
+            Vector2(inner,knee),Vector2(outer-width*2.7,bottom),
+            Vector2(outer,bottom),Vector2(inner+width*1.65,knee),
+            Vector2(outer,top-width)])
+        var indices := Geometry2D.triangulate_polygon(outline)
+        if indices.is_empty():
+            push_error("Door stripe triangulation failed in "+str(car.name))
+            continue
+        var x := (bounds.end.x if side > 0.0 else bounds.position.x)+side*0.003
+        var local := parent.global_transform.affine_inverse()*car.global_transform
+        var normal := (local.basis.inverse().transposed()*Vector3(side,0,0)).normalized()
+        var tool := SurfaceTool.new()
+        tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+        tool.set_material(paint)
+        for index in indices:
+            var point := outline[index]
+            tool.set_normal(normal)
+            tool.add_vertex(local*Vector3(x,point.y,seam+direction*point.x))
+        var stripe := MeshInstance3D.new()
+        stripe.name = "MinskDoorStripe"
+        stripe.mesh = tool.commit()
+        stripe.mesh.resource_name = "MinskDoorChevron"
+        stripe.layers = (parent.get_child(0) as MeshInstance3D).layers
+        stripe.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        stripe.set_meta("reference","Minsk 81-717: waist stripe, low chevron and outward foot")
+        stripe.set_meta("passenger_door_livery",true)
+        parent.add_child(stripe)
+
+func _half(poly: Array, axis: int, edge: float, greater: bool) -> Array:
+    var result: Array = []
+    for i in range(poly.size()):
+        var a: Array = poly[i]
+        var b: Array = poly[(i+1)%poly.size()]
+        var av: float = a[0][axis]
+        var bv: float = b[0][axis]
+        var ai: bool = av >= edge if greater else av <= edge
+        var bi: bool = bv >= edge if greater else bv <= edge
+        if ai: result.append(a)
+        if ai != bi:
+            var t := (edge-av)/(bv-av)
+            result.append([a[0].lerp(b[0],t),a[1].lerp(b[1],t),a[2].lerp(b[2],t),a[3].lerp(b[3],t)])
+    return result
+
+func _partition(poly: Array, volume: AABB) -> Dictionary:
+    var outside: Array = []
+    var inside: Array = poly
+    for axis in range(3):
+        for upper in [false,true]:
+            var edge: float = volume.end[axis] if upper else volume.position[axis]
+            var piece := _half(inside,axis,edge,upper)
+            if piece.size() >= 3: outside.append(piece)
+            inside = _half(inside,axis,edge,not upper)
+            if inside.size() < 3: return {"outside":outside,"inside":[]}
+    return {"outside":outside,"inside":inside}
+
+func _emit_polygon(tool: SurfaceTool, poly: Array, inverse: Transform3D) -> int:
+    var count := 0
+    for k in range(1,poly.size()-1):
+        var a: Vector3 = poly[0][0]
+        var b: Vector3 = poly[k][0]
+        var c: Vector3 = poly[k+1][0]
+        if (b-a).cross(c-a).length_squared() < 0.000000000001: continue
+        for vertex in [poly[0],poly[k],poly[k+1]]:
+            tool.set_normal((inverse.basis.inverse().transposed()*vertex[1]).normalized())
+            tool.set_uv(vertex[2])
+            tool.set_color(vertex[3])
+            tool.add_vertex(inverse*vertex[0])
+            count += 1
+    return count
+
+func _attach_stationary_leaf_details(car: Node3D, car_leaves: Array[Dictionary]) -> void:
+    var openings: Array[Dictionary] = []
+    var details: Array[Dictionary] = []
+    var layers: Array[int] = []
+    for i in range(car_leaves.size()):
+        details.append({})
+        layers.append(0)
+        if float(car_leaves[i]["direction"]) > 0.0: continue
+        var left: Vector3 = car_leaves[i]["center"]
+        for j in range(car_leaves.size()):
+            var right: Vector3 = car_leaves[j]["center"]
+            if float(car_leaves[j]["direction"]) <= 0.0 or absf(left.x-right.x) > 0.2 or absf(absf(right.z-left.z)-0.69) > 0.10: continue
+            var center := (left+right)*0.5
+            var low_x := center.x-0.045 if center.x < 0.0 else center.x-0.080
+            # Inboard door trims only. Jambs lie outside this longitudinal
+            # interval, the sill below it, the fixed rail/header above it.
+            var volume := AABB(Vector3(low_x,1.033,center.z-0.65),Vector3(0.125,1.865,1.30))
+            openings.append({"volume":volume,"split":center.z,"negative":i,"positive":j})
+    var sources := car.find_children("*","MeshInstance3D",true,false)
+    for child in sources:
+        var source := child as MeshInstance3D
+        if source.mesh == null or not source.is_visible_in_tree(): continue
+        var moving_part := false
+        for leaf in car_leaves:
+            for item in leaf["parts"]:
+                var root := item["node"] as Node
+                if source == root or root.is_ancestor_of(source): moving_part = true
+        if moving_part: continue
+        var transform := car.global_transform.affine_inverse()*source.global_transform
+        var inverse := transform.affine_inverse()
+        var normal_basis := transform.basis.inverse().transposed()
+        var bounds: AABB = transform*source.get_aabb()
+        var relevant: Array[Dictionary] = []
+        for opening in openings:
+            if bounds.intersects(opening["volume"]): relevant.append(opening)
+        if relevant.is_empty(): continue
+        var replacement := ArrayMesh.new()
+        var changed := false
+        for surface in range(source.mesh.get_surface_count()):
+            var arrays: Array = source.mesh.surface_get_arrays(surface).duplicate(true)
+            var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+            var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL] if arrays[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
+            var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV] if arrays[Mesh.ARRAY_TEX_UV] != null else PackedVector2Array()
+            var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR] if arrays[Mesh.ARRAY_COLOR] != null else PackedColorArray()
+            var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+            if indices.is_empty():
+                indices.resize(vertices.size())
+                for i in range(vertices.size()): indices[i] = i
+            var material := source.get_active_material(surface)
+            var kept := PackedInt32Array()
+            var clipped := SurfaceTool.new()
+            clipped.begin(Mesh.PRIMITIVE_TRIANGLES)
+            var clipped_count := 0
+            for triangle in range(0,indices.size(),3):
+                var ids := [indices[triangle],indices[triangle+1],indices[triangle+2]]
+                var a: Vector3 = transform*vertices[ids[0]]
+                var b: Vector3 = transform*vertices[ids[1]]
+                var c: Vector3 = transform*vertices[ids[2]]
+                var low := a.min(b).min(c)
+                var tri_box := AABB(low,a.max(b).max(c)-low)
+                var candidates: Array[Dictionary] = []
+                for opening in relevant:
+                    if tri_box.intersects(opening["volume"]): candidates.append(opening)
+                if candidates.is_empty():
+                    kept.append_array(PackedInt32Array(ids))
+                    continue
+                var fallback := (b-a).cross(c-a).normalized()
+                var polygon: Array = []
+                for index in ids:
+                    polygon.append([transform*vertices[index],(normal_basis*normals[index]).normalized() if normals.size() == vertices.size() else fallback,uvs[index] if uvs.size() == vertices.size() else Vector2.ZERO,colors[index] if colors.size() == vertices.size() else Color.WHITE])
+                var remaining: Array = [polygon]
+                var extracted := false
+                for opening in candidates:
+                    var next: Array = []
+                    for piece in remaining:
+                        var partition := _partition(piece,opening["volume"])
+                        next.append_array(partition["outside"])
+                        var inside: Array = partition["inside"]
+                        if inside.size() < 3: continue
+                        for positive in [false,true]:
+                            var half := _half(inside,2,float(opening["split"]),positive)
+                            if half.size() < 3: continue
+                            var index: int = int(opening["positive"] if positive else opening["negative"])
+                            if not details[index].has(material):
+                                var builder := SurfaceTool.new()
+                                builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+                                builder.set_material(material)
+                                details[index][material] = {"tool":builder,"count":0}
+                            var record: Dictionary = details[index][material]
+                            var count := _emit_polygon(record["tool"],half,Transform3D.IDENTITY)
+                            record["count"] = int(record["count"])+count
+                            if count > 0:
+                                extracted = true
+                                layers[index] |= source.layers
+                    remaining = next
+                if not extracted:
+                    kept.append_array(PackedInt32Array(ids))
+                    continue
+                changed = true
+                for piece in remaining: clipped_count += _emit_polygon(clipped,piece,inverse)
+            if not kept.is_empty():
+                arrays[Mesh.ARRAY_INDEX] = kept
+                replacement.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+                replacement.surface_set_material(replacement.get_surface_count()-1,material)
+            if clipped_count > 0:
+                clipped.set_material(material)
+                clipped.commit(replacement)
+        if changed:
+            # Retain an empty instance mesh when fully extracted, so a later
+            # visibility pass cannot resurrect the old stationary geometry.
+            source.mesh = replacement
+            if replacement.get_surface_count() == 0: source.hide()
+            else:
+                for surface in range(replacement.get_surface_count()): source.set_surface_override_material(surface,null)
+    for i in range(car_leaves.size()):
+        var mesh := ArrayMesh.new()
+        for record in details[i].values():
+            if int(record["count"]) > 0: (record["tool"] as SurfaceTool).commit(mesh)
+        if mesh.get_surface_count() == 0: continue
+        var part := MeshInstance3D.new()
+        part.name = "AttachedOriginalDoorTrim%02d" % i
+        part.mesh = mesh
+        part.layers = layers[i]
+        car.add_child(part)
+        car_leaves[i]["parts"].append({"node":part,"origin":Vector3.ZERO,"slide_axis":Vector3(0,0,1)})
+
+func _process(delta: float) -> void:
+    if not validated:
+        return
+    for side in [-1,1]:
+        side_open[side] = move_toward(float(side_open[side]),1.0 if side_targets[side] else 0.0,delta/ANIMATION_SECONDS)
+    openness = maxf(float(side_open[-1]),float(side_open[1]))
+    target_open = bool(side_targets[-1]) or bool(side_targets[1])
+    for leaf in leaves:
+        var direction: float = leaf["direction"]
+        var amount: float = side_open[-1 if (leaf["center"] as Vector3).x < 0.0 else 1]
+        for item in leaf["parts"]:
+            var node: Node3D = item["node"]
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * amount
+        for item in leaf["decals"]:
+            var node: Node3D = item["node"]
+            node.position = item["origin"] + item["slide_axis"] * direction * SLIDE_METERS * amount
+
+func request_side(side: int, speed_mps: float) -> bool:
+    if absf(speed_mps) > 0.05 or not validated:
+        return false
+    side_targets[side] = true
+    target_open = true
+    return true
+
+func request_open(speed_mps: float) -> void:
+    request_side(-1,speed_mps)
+    request_side(1,speed_mps)
+
+func request_close() -> void:
+    side_targets[-1] = false
+    side_targets[1] = false
+    target_open = false
+
+func can_move() -> bool:
+    return not target_open and openness <= 0.001 and validated
+
+
+             extends "res://modules/trains/v106/v106_train.gd"
+## The original V47 train; V49 visual artwork/materials only.
+const ADVERTISING_STATUS := "ADVERTISING: ENABLED — V49 FIXED MOUNTS"
+
+func _decorate_consist() -> void:
+    # Keep the legacy body-sticker restoration isolated; no mechanical changes.
+    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
+    preload("res://scripts/depot/saloon_realism_v49.gd").apply(train,door_system)
+    preload("res://scripts/depot/goodmix_restore.gd").apply(train)
+
+func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
+    super._attach_fourth_car(third_car,third_bounds)
+    _ui_layer.hide()
+    camera.current = false
+    set_physics_process(false)
+    _disable_input(self)
+
+func _disable_input(node: Node) -> void:
+    node.set_process_input(false)
+    node.set_process_unhandled_input(false)
+    node.set_process_unhandled_key_input(false)
+    for child in node.get_children():
+        _disable_input(child)
+                [gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://modules/trains/v106/v106_train.tscn" id="1"]
+[ext_resource type="Script" path="res://viewers/v106_inspection.gd" id="2"]
+
+[node name="V106Inspection" instance=ExtResource("1")]
+script = ExtResource("2")
+spawn_z = 0.0
+                        
