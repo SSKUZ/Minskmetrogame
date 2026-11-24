@@ -10,6 +10,7 @@ var _pose_couplers: Array[Dictionary] = []
 var _pose_children := -1
 var _posed_distance := NAN
 var _in_motion_step := false
+var _platform_station: Node3D
 
 func _ready() -> void:
     spawn_z=430.0
@@ -59,7 +60,7 @@ func _physics_process(delta: float) -> void:
     if is_instance_valid(line.passengers):
         line.passengers.guard_doors(door_system)
     var direction: int=int(cab_runtime.direction)
-    var limit: float=line.streamer.approach_limit(distance,direction,_train_bounds) if direction!=0 else INF
+    var limit: float=-INF if direction>0 else INF
     for tunnel in line.tunnels:
         tunnel.update_motion(direction,speed)
         if direction==0: continue
@@ -69,8 +70,8 @@ func _physics_process(delta: float) -> void:
     var loading_hold: bool=is_finite(limit) and absf(distance-limit)<=1.0
     if is_finite(limit):
         var remaining: float=absf(distance-limit)
-        # Loading interlock leaves the selected mode and cab input intact. It
-        # limits movement only while the protected approach lacks a station.
+        # Only genuinely missing base track can constrain movement. Station
+        # architecture and decorative HTTP resources never enter this limit.
         var safe_speed: float=sqrt(2.0*float(line.layout.streaming.braking_deceleration_mps2)*maxf(0.0,remaining-1.0))
         speed=minf(speed,safe_speed)
     _in_motion_step=true
@@ -158,7 +159,11 @@ func _place_consist() -> void:
 func release_station(station: Node3D) -> void:
     if _station==station: _station=null
 
+func retained_platform_station() -> Node3D:
+    return _platform_station if camera_mode=="platform" and is_instance_valid(_platform_station) else null
+
 func platform_camera_available() -> bool:
+    if camera_mode=="platform" and is_instance_valid(_platform_station): return true
     return is_instance_valid(_station) and absf(distance-_station_stop_z)<180.0
 
 func _update_camera() -> void:
@@ -169,8 +174,8 @@ func _update_camera() -> void:
         camera.global_position=flight_position
         camera.global_basis=Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
         return
-    if camera_mode=="platform" and is_instance_valid(_station):
-        camera.global_position=_station.to_global(Vector3(-2.3,2.8,32.0))
+    if camera_mode=="platform" and is_instance_valid(_platform_station):
+        camera.global_position=_platform_station.to_global(Vector3(-2.3,2.8,32.0))
         camera.global_basis=Basis.from_euler(Vector3(-orbit_pitch,PI+orbit_yaw,0))
         return
     if camera_mode=="external" and _focused_car>=0 and _focused_car<_car_centers.size():
@@ -185,8 +190,13 @@ func _update_camera() -> void:
         camera.global_basis=car.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
 
 func _set_camera_mode(mode: String) -> void:
+    if mode=="platform" and camera_mode!="platform":
+        if not platform_camera_available(): return
+        _platform_station=_station
     if mode=="flight" and is_instance_valid(camera): flight_position=camera.global_position
     super._set_camera_mode(mode)
+    if camera_mode!="platform": _platform_station=null
+    if is_instance_valid(line) and is_instance_valid(line.streamer): line.streamer.refresh()
 
 func _publish_diagnostics() -> void:
     pass

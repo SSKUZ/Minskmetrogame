@@ -26,6 +26,12 @@ func _ready() -> void:
             static_failed=true
             break
         _leases.append(int(fragment.get_meta("static_resource_token",0)))
+        var target: Node=get_node_or_null(NodePath(str(chunk.get("attach_parent","."))))
+        if target==null:
+            static_failed=true
+            _store.release_chunk(fragment)
+            fragment.free()
+            break
         # Retain original parent/name paths. Only the temporary fragment wrapper
         # is extra; it stays empty and owns the resource lease until unloading.
         var children: Array[Node]=fragment.get_children()
@@ -33,7 +39,7 @@ func _ready() -> void:
         for child in children:
             _set_subtree_owner(child,null)
             fragment.remove_child(child)
-            add_child(child)
+            target.add_child(child)
             _set_subtree_owner(child,self)
             if not await work.checkpoint(): return
     work.finish(self)

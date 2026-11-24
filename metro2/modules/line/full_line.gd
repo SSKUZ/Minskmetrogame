@@ -53,9 +53,15 @@ func _ready() -> void:
     var tunnel_index: Dictionary={}
     if FileAccess.file_exists(LineTunnel.INDEX):
         tunnel_index=JSON.parse_string(FileAccess.get_file_as_string(LineTunnel.INDEX))
+    var base_cache: Dictionary={"data":{},"order":[]}
     for track_x in [0.992,-11.732]:
         var tunnel := LineTunnel.new()
         tunnel.path=path
+        tunnel.line=self
+        tunnel.base_spans=tunnel_index.get("base",{})
+        tunnel.base_part_kinds=tunnel_index.get("base_part_kinds",[])
+        tunnel.base_cache=base_cache
+        tunnel.base_prepared.connect(_start_service_if_ready)
         tunnel.prepared_spans=tunnel_index.get("spans",{})
         tunnel.center_x=float(track_x)
         add_child(tunnel)
@@ -67,16 +73,20 @@ func station_instance(index: int) -> Node3D:
     return streamer.station(index) if is_instance_valid(streamer) else null
 
 func _station_loaded(index: int, station: Node3D) -> void:
+    for tunnel in tunnels: tunnel.station_track_changed(index,true)
     if is_instance_valid(passengers): await passengers.add_platform(stations[index],station)
     _start_service_if_ready()
 
 func _station_unloading(index: int, station: Node3D) -> void:
+    for tunnel in tunnels: tunnel.station_track_changed(index,false)
     if is_instance_valid(passengers): passengers.remove_platform(index)
     if is_instance_valid(train): train.release_station(station)
 
 func _start_service_if_ready() -> void:
     if ready_for_service or not is_instance_valid(passengers) or not streamer.is_loaded(0): return
-    if not passengers.platform_ready(0): return
+    if not passengers.platform_ready(0) or tunnels.size()!=2: return
+    for tunnel in tunnels:
+        if not tunnel.base_ready: return
     ready_for_service=true
     train.service_ready=true
     train.camera.make_current()

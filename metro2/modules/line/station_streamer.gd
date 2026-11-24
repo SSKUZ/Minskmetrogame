@@ -21,6 +21,24 @@ var _direction := 1
 var _z := 430.0
 var _speed := 0.0
 var _settings: Dictionary = {}
+const TRAIN := 1
+const PLAYER := 2
+const CAMERA := 4
+var _retention: Dictionary = {}
+var _next_index := -1
+var _player: WeakRef
+
+func register_player(player: Node3D) -> void:
+    _player=weakref(player) if is_instance_valid(player) else null
+    refresh()
+
+func retention_reasons(index: int) -> PackedStringArray:
+    var result := PackedStringArray()
+    var reasons: int=int(_retention.get(index,0))
+    if reasons&TRAIN: result.append("TRAIN")
+    if reasons&PLAYER: result.append("PLAYER")
+    if reasons&CAMERA: result.append("CAMERA")
+    return result
 
 func configure(owner_line: Node3D, loader: Node) -> void:
     line=owner_line
@@ -54,30 +72,42 @@ func refresh() -> void:
         if is_instance_valid(line.train.cab_runtime) and int(line.train.cab_runtime.direction)!=0:
             _direction=int(line.train.cab_runtime.direction)
         if is_instance_valid(line.train.camera): camera_z=line.train.camera.global_position.z
-    var nearest: Dictionary=line.path.nearest_station(_z)
-    var centre: int=int(nearest.index)
     _wanted.clear()
-    # Both neighbours remain available for immediate direction reversal.
-    for offset in range(-int(_settings.retain_neighbours),int(_settings.retain_neighbours)+1):
-        var index: int=centre+offset
-        if index>=0 and index<line.stations.size(): _wanted[index]=true
-    var braking: float=_speed*_speed/(2.0*float(_settings.braking_deceleration_mps2))
-    var lead: float=maxf(float(_settings.prefetch_min_m),
-        _speed*(_load_seconds+float(_settings.load_margin_seconds))+braking+120.0)
-    lead=minf(lead,2400.0)
+    _retention.clear()
+    _next_index=-1
+    var bounds := AABB()
+    if is_instance_valid(line.train): bounds=line.train._train_bounds
+    var front: float=_z+(bounds.position.z if _direction>0 else bounds.end.z)
+    # First unpassed platform only. Direction reversal recomputes this selection.
+    var ordered: Array=line.stations.duplicate()
+    if _direction<0: ordered.reverse()
+    for record in ordered:
+        if (_direction>0 and front>float(record.low)) or (_direction<0 and front<float(record.high)):
+            _next_index=int(record.index)
+            _wanted[_next_index]=true
+            break
+    var player: Node3D=_player.get_ref() as Node3D if _player!=null else null
+    if not is_instance_valid(player):
+        player=get_tree().get_first_node_in_group("metro_player") as Node3D
+    # Current walking inspection uses the free camera as its physical anchor.
+    # A separate pedestrian controller can register its own independent anchor.
+    if not is_instance_valid(player) and is_instance_valid(line.train) and line.train.camera_mode=="flight":
+        player=line.train.camera
+    var platform: Node3D=line.train.retained_platform_station() if is_instance_valid(line.train) else null
     for record in line.stations:
         var index: int=int(record.index)
-        var ahead: float=(_z-float(record.stop_z))*float(_direction)
-        if ahead>=0.0 and ahead<lead: _wanted[index]=true
-        # A platform/free camera pins only the station actually in its view area.
-        if camera_z>=float(record.low)-float(_settings.camera_radius_m) and camera_z<=float(record.high)+float(_settings.camera_radius_m):
-            _wanted[index]=true
-        # Keep the entire consist and all doorway transactions inside a live module.
-        if is_instance_valid(line.train):
-            var bounds: AABB=line.train._train_bounds
-            if _z+bounds.end.z>=float(record.low)-60.0 and _z+bounds.position.z<=float(record.high)+60.0:
-                _wanted[index]=true
-        if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index):
+        var low: float=float(record.low)
+        var high: float=float(record.high)
+        var reasons: int=0
+        if is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
+            reasons|=TRAIN
+        if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): reasons|=TRAIN
+        if is_instance_valid(player) and player.global_position.z>=low-30.0 and player.global_position.z<=high+30.0:
+            reasons|=PLAYER
+        if (camera_z>=low-152.0 and camera_z<=high+152.0) or (is_instance_valid(platform) and platform==station(index)):
+            reasons|=CAMERA
+        if reasons!=0:
+            _retention[index]=reasons
             _wanted[index]=true
     if not _busy:
         _busy=true
@@ -89,6 +119,7 @@ func _pump() -> void:
     while is_inside_tree():
         for key in instances.keys():
             var index: int=int(key)
+            refresh() # Re-evaluate TRAIN/PLAYER/CAMERA after every awaited disposal.
             if _wanted.has(index): continue
             if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): continue
             var node: Node3D=station(index)
@@ -193,8 +224,8 @@ func _load_station(index: int) -> bool:
     node.process_mode=Node.PROCESS_MODE_DISABLED
     node.hide()
     line.add_child(node)
-    # _ready notifications may yield. Do not expose a partly built platform or
-    # admit the train until this root and all cooperative child builders finish.
+    # Publish the platform only after every cooperative child builder finishes.
+    # The independent prepared base path remains available during this work.
     while not budget.pending.is_empty():
         await get_tree().process_frame
         if not _wanted.has(index):
@@ -258,17 +289,6 @@ func _dispose_station(root: Node3D) -> void:
             await get_tree().process_frame
         elif not await budget.checkpoint():
             return
-
-func approach_limit(z: float, direction: int, bounds: AABB) -> float:
-    # Train-root coordinate of the first missing station's protected approach.
-    # The route/train/INFO keep working while an HTTP request is outstanding.
-    var limit: float=-INF if direction>0 else INF
-    for record in line.stations:
-        if is_loaded(int(record.index)): continue
-        var edge: float=float(record.high)-bounds.position.z+float(_settings.approach_guard_m) if direction>0 else float(record.low)-bounds.end.z-float(_settings.approach_guard_m)
-        if direction>0 and edge<=z: limit=maxf(limit,edge)
-        elif direction<0 and edge>=z: limit=minf(limit,edge)
-    return limit
 
 func _exit_tree() -> void:
     # Child instances are owned by the line, and freed with that subtree.

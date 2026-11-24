@@ -12,6 +12,7 @@ var _visiting: Dictionary={}
 var _serial := 0
 var _folder := ""
 var _unsupported := ""
+var _local_resources: Dictionary={}
 var _host: Node3D
 
 func _initialize() -> void:
@@ -126,34 +127,62 @@ func _runtime_script(script: Script) -> bool:
     return _runtime_script(base) if base!=null else false
 
 func _fragments(station: Node3D) -> Array:
+    return await _fragment_children(station,station)
+
+func _fragment_children(parent: Node, station: Node3D) -> Array:
     var result: Array=[]
+    var group: Array[Node]=[]
+    var count := 0
+    for child in parent.get_children():
+        var size: int=_count(child)
+        if size>64 and child.get_script()==null:
+            if not group.is_empty():
+                result.append(await _fragment_group(parent,station,group))
+                group.clear()
+                count=0
+            # Save the original parent first, then its children in bounded
+            # fragments. Keep the exact hierarchy, names and local transforms.
+            var descendants: Array[Node]=child.get_children()
+            for descendant in descendants:
+                _clear_owners(descendant)
+                child.remove_child(descendant)
+            result.append(await _fragment_group(parent,station,[child]))
+            for descendant in descendants:
+                child.add_child(descendant)
+                _owners(descendant,station)
+            result.append_array(await _fragment_children(child,station))
+        else:
+            if count>0 and count+size>64:
+                result.append(await _fragment_group(parent,station,group))
+                group.clear()
+                count=0
+            # Existing scripted runtime mechanisms remain atomic and unchanged.
+            group.append(child)
+            count+=size
+    if not group.is_empty(): result.append(await _fragment_group(parent,station,group))
+    return result
+
+func _fragment_group(parent: Node, station: Node3D, nodes: Array[Node]) -> Dictionary:
     var fragment := Node3D.new()
     fragment.name="PreparedArchitecture"
-    var moved: Array[Node]=[]
-    var count := 0
-    for child in station.get_children():
-        if count>0 and count+_count(child)>64:
-            result.append(await _fragment(fragment))
-            for previous in moved:
-                _clear_owners(previous)
-                fragment.remove_child(previous)
-                station.add_child(previous)
-                _owners(previous,station)
-            moved.clear()
-            count=0
+    var parent_path: String=str(station.get_path_to(parent))
+    var positions: Array[int]=[]
+    for child in nodes: positions.append(child.get_index())
+    for child in nodes:
         _clear_owners(child)
-        station.remove_child(child)
+        parent.remove_child(child)
         fragment.add_child(child)
-        moved.append(child)
-        count+=_count(child)
-    if count>0: result.append(await _fragment(fragment))
-    for child in moved:
+    var description: Dictionary=await _fragment(fragment)
+    description["attach_parent"]=parent_path
+    for i in range(nodes.size()):
+        var child: Node=nodes[i]
         _clear_owners(child)
         fragment.remove_child(child)
-        station.add_child(child)
+        parent.add_child(child)
+        parent.move_child(child,positions[i])
         _owners(child,station)
     fragment.free()
-    return result
+    return description
 
 func _count(node: Node) -> int:
     var count := 1
@@ -320,23 +349,124 @@ func _tunnels() -> void:
     _host.add_child(builder)
     var section: Node3D=builder._new_section()
     builder._remember_parts(section)
+    var base_nodes: Array[Node3D]=[]
+    for record in builder._source_parts[section]:
+        var node: Node3D=record.node
+        if record.has("mesh"):
+            var mesh: Mesh=record.mesh
+            if mesh==builder._shell or mesh==builder._floor or mesh==builder._rail or mesh in builder._contact_meshes:
+                base_nodes.append(node)
+        elif record.has("multi"):
+            if record.multi==builder._sleepers or record.multi==builder._insulators or record.multi==builder._rail_clips:
+                base_nodes.append(node)
     var spans: Dictionary={}
+    var base_spans: Dictionary={}
+    var part_kinds: Array[String]=[]
+    for node in base_nodes: part_kinds.append(node.get_class())
     for slot in range(floori(route.lower_z/16.0),ceili(96.0/16.0)):
-        for span in route.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):
+        var low: float=maxf(float(slot)*16.0,route.lower_z)
+        var high: float=minf(float(slot+1)*16.0,96.0)
+        if high-low<=0.001: continue
+        var cuts: Array[float]=[low,high]
+        for station in route.stations:
+            for edge in [float(station.low),float(station.high)]:
+                if edge>low and edge<high: cuts.append(edge)
+        cuts.sort()
+        for i in range(cuts.size()-1):
+            var span: Vector2=Vector2(cuts[i],cuts[i+1])
+            var station_index: int=-1
+            var middle: float=(span.x+span.y)*0.5
+            for station in route.stations:
+                if middle>=float(station.low) and middle<=float(station.high): station_index=int(station.index);break
             await builder._warp_section(section,span)
             section.position=Vector3.ZERO
             section.get_node("WallLight").visible=posmod(floori(span.x/16.0),2)==0
-            var description: Dictionary=await _fragment(section)
-            description["low"]=span.x
-            description["high"]=span.y
-            spans["%.4f:%.4f" % [span.x,span.y]]=description
-            # A subsequent deformation must retain the original source arrays,
-            # not the previous prepared resource paths.
+            var parts: Array=[]
+            for node in base_nodes:
+                var part: Dictionary={"kind":node.get_class(),"name":str(node.name),"transform":node.transform,
+                    "visible":node.visible and not (station_index>=0 and node.name=="ConcreteArch")}
+                if node is MeshInstance3D: part["mesh"]=(node as MeshInstance3D).mesh
+                else: part["multimesh"]=(node as MultiMeshInstance3D).multimesh
+                part["material"]=(node as GeometryInstance3D).material_override
+                parts.append(part)
+            var data := Resource.new()
+            data.set_meta("parts",parts)
+            var local: Resource=await _local_resource(data)
+            var key: String="%.4f:%.4f" % [span.x,span.y]
+            base_spans[key]={"path":local.resource_path,"low":span.x,"high":span.y,"station":station_index}
+            if station_index<0:
+                # All original details survive, independently from the local base.
+                for node in base_nodes:
+                    _clear_owners(node)
+                    section.remove_child(node)
+                var description: Dictionary=await _fragment(section)
+                description["low"]=span.x
+                description["high"]=span.y
+                spans[key]=description
+                for node in base_nodes: section.add_child(node)
             _resources.clear()
+            _local_resources.clear()
             await process_frame
-    _json(str(control.index),{"schema":1,"metres_per_unit":1.0,"source_commit":control.source_commit,
-        "source_route":"res://modules/line/route_layout.json","spans":spans})
+    _json(str(control.index),{"schema":2,"metres_per_unit":1.0,"source_commit":control.source_commit,
+        "source_route":"res://modules/line/route_layout.json","spans":spans,
+        "base":base_spans,"base_part_kinds":part_kinds})
     builder.free()
+
+func _local_resource(source: Resource) -> Resource:
+    # Base path resources live inside the existing full_line PCK. They never
+    # depend on HTTP archives or the decorative cache's memory budget.
+    if source is Script: return source
+    if source.resource_path.begins_with("res://") and "::" not in source.resource_path: return source
+    var id: int=source.get_instance_id()
+    if _local_resources.has(id): return _local_resources[id]
+    var resource: Resource=source.duplicate(false)
+    if source is PrimitiveMesh and not source is QuadMesh:
+        var mesh := ArrayMesh.new()
+        for surface in range((source as Mesh).get_surface_count()):
+            mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,(source as Mesh).surface_get_arrays(surface))
+            mesh.surface_set_material(surface,(source as Mesh).surface_get_material(surface))
+        resource=mesh
+    if source is NoiseTexture2D:
+        var image: Image=source.get_image()
+        if image==null:
+            await source.changed
+            image=source.get_image()
+        if image==null: _fail("Cannot prepare base path texture"); return resource
+        resource=ImageTexture.create_from_image(image)
+    _local_resources[id]=resource
+    for property in resource.get_property_list():
+        if (int(property.usage)&PROPERTY_USAGE_STORAGE)==0 or property.name in ["script","resource_path"]: continue
+        var value: Variant=resource.get(property.name)
+        if value is Resource or value is Array or value is Dictionary:
+            resource.set(property.name,await _local_value(value))
+    var directory: String="res://modules/line/prebuilt/base"
+    DirAccess.make_dir_recursive_absolute(directory)
+    var temporary: String=directory+"/pending.res"
+    if ResourceSaver.save(resource,temporary)!=OK: _fail("Cannot save base path resource"); return resource
+    var digest: String=FileAccess.get_sha256(temporary)
+    var target: String=directory+"/"+digest+".res"
+    if FileAccess.file_exists(target): DirAccess.remove_absolute(temporary)
+    elif DirAccess.rename_absolute(temporary,target)!=OK: _fail("Cannot retain base path resource"); return resource
+    resource.take_over_path(target)
+    # Optional detail archives reference these exact PCK materials/textures.
+    # The store need not decode a second copy under a different user:// path.
+    if source is Material or source is Texture2D or source is Shader: _resources[id]=resource
+    DirAccess.make_dir_recursive_absolute(_folder.path_join("base"))
+    if DirAccess.copy_absolute(target,_folder.path_join("base").path_join(digest+".res"))!=OK:
+        _fail("Cannot cache base path resource")
+    return resource
+
+func _local_value(value: Variant) -> Variant:
+    if value is Resource: return await _local_resource(value)
+    if value is Array:
+        var result: Array=value.duplicate()
+        for i in range(result.size()): result[i]=await _local_value(result[i])
+        return result
+    if value is Dictionary:
+        var result: Dictionary=value.duplicate()
+        for key in result: result[key]=await _local_value(result[key])
+        return result
+    return value
 
 func _json(path: String, data: Variant) -> void:
     DirAccess.make_dir_recursive_absolute(path.get_base_dir())

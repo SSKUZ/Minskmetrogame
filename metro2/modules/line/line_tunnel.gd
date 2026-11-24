@@ -1,10 +1,28 @@
 extends Node3D
 ## Runtime consumes prepared resources. All vertex deformation lives in the CI generator.
+const BuildBudget = preload("res://modules/line/build_budget.gd")
 const Store = preload("res://modules/line/static_resource_store.gd")
 const INDEX := "res://modules/line/prebuilt/tunnels.json"
 const VISIBLE_DISTANCE := 120.0
 const GUARD_DISTANCE := 32.0
 @export var center_x := 0.992
+signal base_prepared
+const BASE_POOL_SIZE := 128
+var base_spans: Dictionary={}
+var base_part_kinds: Array=[]
+var base_cache: Dictionary={"data":{},"order":[]}
+var base_ready := false
+var line: Node3D
+var _base_slots: Dictionary={}
+var _base_coverage: Dictionary={}
+var _base_active: Dictionary={}
+var _base_wanted: Dictionary={}
+var _base_required_slots: Dictionary={}
+var _base_pool: Array[Node3D]=[]
+var _base_busy := false
+var _pool_ready := false
+var _configured := false
+var _base_budget: RefCounted
 var path: RefCounted
 var _train: Node3D
 var _camera: Camera3D
@@ -21,10 +39,12 @@ var _speed := 0.0
 
 func _ready() -> void:
     _store=Store.shared(self)
-    if not prepared_spans.is_empty(): return
+    if not prepared_spans.is_empty() and not base_spans.is_empty(): return
     if FileAccess.file_exists(INDEX):
         var index: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(INDEX))
         prepared_spans=index.get("spans",{})
+        base_spans=index.get("base",{})
+        base_part_kinds=index.get("base_part_kinds",[])
     else:
         push_error("Нет подготовленного тоннеля: сборка ресурсов не завершена")
 
@@ -32,12 +52,20 @@ func configure(train: Node3D, bounds: AABB, camera: Camera3D) -> void:
     _train=train
     _train_bounds=bounds
     _camera=camera
+    if _configured:
+        sync_to_view()
+        return
+    _configured=true
+    _index_base()
     sync_to_view()
+    call_deferred("_prepare_pool")
 
 func update_motion(direction: int, speed: float) -> void:
     if direction!=0 and _direction!=direction: _refresh_clock=0.0
     if direction!=0: _direction=direction
     _speed=absf(speed)
+    # Bounds can change while the fourth car finishes attaching.
+    if is_instance_valid(line) and is_instance_valid(line.train): _train_bounds=line.train._train_bounds
 
 func _process(delta: float) -> void:
     _refresh_clock-=delta
@@ -61,6 +89,7 @@ func sync_to_view() -> void:
         for span in path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):
             var key: String="%.4f:%.4f" % [span.x,span.y]
             if prepared_spans.has(key): _wanted[key]=prepared_spans[key]
+    _sync_base(required)
     # Detach retired sections before reserving the next resource slice.
     for key in _route_active.keys():
         if _wanted.has(key): continue
@@ -102,23 +131,163 @@ func _pump() -> void:
         await get_tree().process_frame
     _busy=false
 
+func _index_base() -> void:
+    for key in base_spans:
+        var desc: Dictionary=base_spans[key]
+        var slot: int=floori((float(desc.low)+float(desc.high))*0.5/16.0)
+        if not _base_slots.has(slot): _base_slots[slot]=[]
+        _base_slots[slot].append(str(key))
+    for slot in _base_slots:
+        var keys: Array=_base_slots[slot]
+        keys.sort_custom(func(a: String,b: String): return float(base_spans[a].low)<float(base_spans[b].low))
+        var cursor: float=maxf(float(slot)*16.0,path.lower_z)
+        var complete := true
+        for key in keys:
+            var desc: Dictionary=base_spans[key]
+            if absf(float(desc.low)-cursor)>0.001: complete=false
+            cursor=float(desc.high)
+        _base_coverage[slot]=complete and absf(cursor-minf(float(slot+1)*16.0,96.0))<0.001
+    if base_spans.is_empty(): push_error("Отсутствует подготовленный базовый путь")
+
+func _prepare_pool() -> void:
+    if base_part_kinds.is_empty(): return
+    _base_budget=BuildBudget.new(self,1500)
+    # Allocate once before departure; movement only changes resource bindings.
+    for i in range(BASE_POOL_SIZE):
+        var root := Node3D.new()
+        root.name="BasePathPool%d" % i
+        root.hide()
+        add_child(root)
+        _base_pool.append(root)
+        for kind in base_part_kinds:
+            var part: GeometryInstance3D
+            if str(kind)=="MeshInstance3D": part=MeshInstance3D.new()
+            elif str(kind)=="MultiMeshInstance3D": part=MultiMeshInstance3D.new()
+            else:
+                push_error("Неизвестный тип базового пути: "+str(kind))
+                return
+            root.add_child(part)
+            if not await _base_budget.checkpoint(): return
+    _pool_ready=true
+    _request_base()
+
+func _release_base(root: Node3D) -> void:
+    root.hide()
+    for part in root.get_children():
+        if part is MeshInstance3D: part.mesh=null
+        elif part is MultiMeshInstance3D: part.multimesh=null
+        part.material_override=null
+    _base_pool.append(root)
+
+func _sync_base(required: Dictionary) -> void:
+    _base_wanted.clear()
+    _base_required_slots.clear()
+    for slot in required:
+        if float(slot)*16.0<96.0 and float(slot+1)*16.0>path.lower_z: _base_required_slots[slot]=true
+        for key in _base_slots.get(slot,[]): _base_wanted[key]=base_spans[key]
+    for key in _base_active.keys():
+        if _base_wanted.has(key):
+            _base_active[key].visible=not _station_has_track(base_spans[key])
+        else:
+            _release_base(_base_active[key])
+            _base_active.erase(key)
+    _request_base()
+
+func _station_has_track(desc: Dictionary) -> bool:
+    var index: int=int(desc.get("station",-1))
+    return index>=0 and is_instance_valid(line) and line.streamer.is_loaded(index)
+
+func station_track_changed(index: int, available: bool) -> void:
+    # Exchange station-owned rails and pooled rails without a blank frame.
+    for key in _base_active:
+        if int(base_spans[key].get("station",-1))==index: _base_active[key].visible=not available
+
+func _request_base() -> void:
+    if not _pool_ready or _base_busy: return
+    _base_busy=true
+    call_deferred("_pump_base")
+
+func _base_data(key: String) -> Resource:
+    if not base_cache.data.has(key):
+        var resource: Resource=ResourceLoader.load(str(base_spans[key].path),"Resource",ResourceLoader.CACHE_MODE_REUSE)
+        if resource==null or not resource.has_meta("parts"): return null
+        base_cache.data[key]=resource
+    base_cache.order.erase(key)
+    base_cache.order.append(key)
+    while base_cache.order.size()>BASE_POOL_SIZE:
+        base_cache.data.erase(base_cache.order.pop_front())
+    return base_cache.data[key]
+
+func _pump_base() -> void:
+    # Base resources are local to the full_line PCK, independent of HTTP detail
+    # downloads and their memory quota. Decode one tile, bind within a slice.
+    while is_inside_tree() and not _base_pool.is_empty():
+        var next := ""
+        var priority := INF
+        for key in _base_wanted:
+            if _base_active.has(key) or Time.get_ticks_msec()<int(_retry_at.get("base:"+str(key),0)): continue
+            var desc: Dictionary=base_spans[key]
+            var middle: float=(float(desc.low)+float(desc.high))*0.5
+            var distance: float=absf(middle-_train.global_position.z)
+            # Train's safety corridor always precedes a remote camera's tiles.
+            if distance>1536.0: distance+=10000.0
+            if distance<priority: next=str(key);priority=distance
+        if next.is_empty(): break
+        var data: Resource=_base_data(next)
+        var parts: Array=data.get_meta("parts",[]) if data!=null else []
+        if parts.size()!=base_part_kinds.size():
+            _retry_at["base:"+next]=Time.get_ticks_msec()+15000
+            continue
+        var root: Node3D=_base_pool.pop_back()
+        for i in range(parts.size()):
+            var part: GeometryInstance3D=root.get_child(i) as GeometryInstance3D
+            var payload: Dictionary=parts[i]
+            part.transform=payload.transform
+            part.visible=bool(payload.visible)
+            part.material_override=payload.get("material") as Material
+            if part is MeshInstance3D: part.mesh=payload.get("mesh") as Mesh
+            elif part is MultiMeshInstance3D: part.multimesh=payload.get("multimesh") as MultiMesh
+            if not await _base_budget.checkpoint(): return
+        if not _base_wanted.has(next):
+            _release_base(root)
+        else:
+            root.position=Vector3(center_x,0,float(base_spans[next].low))
+            root.visible=not _station_has_track(base_spans[next])
+            _base_active[next]=root
+        await get_tree().process_frame
+    _base_busy=false
+    if not base_ready and _pool_ready and _initial_base_complete():
+        base_ready=true
+        base_prepared.emit()
+
+func _initial_base_complete() -> bool:
+    for slot in _base_required_slots:
+        if not bool(_base_coverage.get(slot,false)): return false
+    for key in _base_wanted:
+        if not _base_active.has(key): return false
+    return not base_spans.is_empty()
+
 func approach_limit(z: float, direction: int, bounds: AABB) -> float:
     var limit: float=-INF if direction>0 else INF
     if path==null or direction==0: return limit
-    # Inspect every span in the braking horizon, not just the requested cache.
-    # Missing metadata is also a barrier; a failed bake never exposes empty space.
+    # Decorations and station architecture are deliberately absent here.
+    # Missing metadata, decode errors and pool exhaustion still protect the path.
     var lead: float=maxf(256.0,_speed*_speed/1.3+VISIBLE_DISTANCE+64.0)
-    var low: float=z+bounds.position.z-(lead if direction>0 else VISIBLE_DISTANCE)
-    var high: float=z+bounds.end.z+(lead if direction<0 else VISIBLE_DISTANCE)
-    for slot in range(floori(low/16.0),floori(high/16.0)+1):
-        for span in path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):
-            var key: String="%.4f:%.4f" % [span.x,span.y]
-            if _route_active.has(key): continue
+    var low: float=maxf(z+bounds.position.z-(lead if direction>0 else VISIBLE_DISTANCE),path.lower_z)
+    var high: float=minf(z+bounds.end.z+(lead if direction<0 else VISIBLE_DISTANCE),96.0)
+    if high<=low: return limit
+    for slot in range(floori(low/16.0),ceili(high/16.0)):
+        var missing: Array=[]
+        if not bool(_base_coverage.get(slot,false)):
+            missing.append(Vector2(maxf(float(slot)*16.0,path.lower_z),minf(float(slot+1)*16.0,96.0)))
+        else:
+            for key in _base_slots[slot]:
+                if not _base_active.has(key): missing.append(Vector2(float(base_spans[key].low),float(base_spans[key].high)))
+        for span in missing:
             var edge: float=span.y-bounds.position.z+GUARD_DISTANCE if direction>0 else span.x-bounds.end.z-GUARD_DISTANCE
             if direction>0 and edge<=z: limit=maxf(limit,edge)
             elif direction<0 and edge>=z: limit=minf(limit,edge)
-            elif z+bounds.end.z>=span.x and z+bounds.position.z<=span.y:
-                return z # Never move an incompletely protected consist.
+            elif z+bounds.end.z>=span.x and z+bounds.position.z<=span.y: return z
     return limit
 
 func constrain_camera(world_position: Vector3) -> Vector3:
@@ -132,6 +301,9 @@ func constrain_camera(world_position: Vector3) -> Vector3:
     return world_position
 
 func _exit_tree() -> void:
+    if _base_budget!=null: _base_budget.cancel()
+    _base_active.clear()
+    _base_pool.clear()
     if is_instance_valid(_store):
         for section in _route_active.values(): _store.release_chunk(section)
     _route_active.clear()

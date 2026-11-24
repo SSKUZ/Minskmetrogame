@@ -60,6 +60,13 @@ def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
     copied.append(index_name)
     if json.loads((cache/'index.json').read_text()).get('legacy'):
         return
+    if key == 'full_line':
+        for file in (cache/'base').glob('*.res'):
+            relative = 'modules/line/prebuilt/base/'+file.name
+            target = stage/relative
+            target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(file,target)
+            copied.append(relative)
     for file in cache.glob('world-*.bin'):
         shutil.copy2(file,bundle/file.name)
 
