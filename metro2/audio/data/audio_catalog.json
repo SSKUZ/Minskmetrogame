@@ -1025,6 +1025,62 @@
         "boundary_status": "ASR phrase boundaries; listening verification outstanding"
       },
       "verification_basis": "Source identity and station/message content matched to preserved ASR; not human-listening verified."
+    },
+    {
+      "event_id": "train.traction",
+      "resource": "res://audio/resources/train/acceleration.mp3",
+      "category": "traction",
+      "verified": true,
+      "identification_status": "existing_game_assignment",
+      "content_description_ru": "Разгон: ранее использовавшаяся запись движения, не изолированный тяговый двигатель.",
+      "gain_db": -12,
+      "unit_size_m": 4,
+      "max_distance_m": 100,
+      "verification_basis": "Existing index.html metroRecordings/initMetroAudio/updateMetroAudio explicitly use this recorded file for this state; original bytes retained.",
+      "source_repository_path": "audio/acceleration.mp3",
+      "source_blob_sha": "f5320c83d5d5eb762d27402822cd1f3f9a9f7e7a"
+    },
+    {
+      "event_id": "train.rolling",
+      "resource": "res://audio/resources/train/cruise.mp3",
+      "category": "rolling",
+      "verified": true,
+      "identification_status": "existing_game_assignment",
+      "content_description_ru": "Качение: ранее использовавшаяся смешанная запись движения.",
+      "gain_db": -12,
+      "unit_size_m": 4,
+      "max_distance_m": 100,
+      "verification_basis": "Existing index.html metroRecordings/initMetroAudio/updateMetroAudio explicitly use this recorded file for this state; original bytes retained.",
+      "source_repository_path": "audio/cruise.mp3",
+      "source_blob_sha": "87e5068507d4ef238806df862b5a69e5321b78d0"
+    },
+    {
+      "event_id": "train.brake",
+      "resource": "res://audio/resources/train/braking.mp3",
+      "category": "traction",
+      "verified": true,
+      "identification_status": "existing_game_assignment",
+      "content_description_ru": "Торможение: ранее использовавшаяся запись замедления, не изолированная пневматика.",
+      "gain_db": -12,
+      "unit_size_m": 4,
+      "max_distance_m": 100,
+      "verification_basis": "Existing index.html metroRecordings/initMetroAudio/updateMetroAudio explicitly use this recorded file for this state; original bytes retained.",
+      "source_repository_path": "audio/braking.mp3",
+      "source_blob_sha": "80f5f47334291fcef65a1e5497c74b321daf100e"
+    },
+    {
+      "event_id": "train.idle",
+      "resource": "res://audio/resources/train/idle.mp3",
+      "category": "traction",
+      "verified": true,
+      "identification_status": "existing_game_assignment",
+      "content_description_ru": "Стоянка: ранее использовавшаяся фоновая запись оборудования.",
+      "gain_db": -12,
+      "unit_size_m": 4,
+      "max_distance_m": 100,
+      "verification_basis": "Existing index.html metroRecordings/initMetroAudio/updateMetroAudio explicitly use this recorded file for this state; original bytes retained.",
+      "source_repository_path": "audio/idle.mp3",
+      "source_blob_sha": "48185399eb2715a0ea4c50762bb19ae1147f4f57"
     }
   ],
   "route_events": {
@@ -1077,7 +1133,37 @@
     "voice_1_077",
     "voice_1_091"
   ],
-  "loop_events": {},
+  "loop_events": {
+    "traction": "train.traction",
+    "rolling": "train.rolling",
+    "brake": "train.brake",
+    "idle": "train.idle"
+  },
   "zone_events": {},
-  "coverage_note": "20 station/phase recordings cover 10 stations in both directions; the same direction-neutral recording is shared explicitly. Unknown effects and unrelated/historical service recordings are not assigned to this route."
+  "coverage_note": "20 station/phase recordings cover 10 stations in both directions; the same direction-neutral recording is shared explicitly. Unknown effects and unrelated/historical service recordings are not assigned to this route.",
+  "loop_profiles": {
+    "traction": {
+      "pitch_min": 0.82,
+      "pitch_max": 1.2
+    },
+    "rolling": {
+      "pitch_min": 0.9,
+      "pitch_max": 1.12
+    },
+    "brake": {
+      "pitch_min": 0.9,
+      "pitch_max": 1.08
+    },
+    "idle": {
+      "pitch_min": 1,
+      "pitch_max": 1
+    }
+  },
+  "rail_joint_event": "",
+  "unassigned_effects": {
+    "door": "TZ54 individual catalog marks door samples as provisional; no random recording assigned.",
+    "rail_joint": "No confirmed isolated joint recording. Mixed rolling record is retained without relabelling its individual impacts.",
+    "cab": "No confirmed controller/button/equipment recording assigned.",
+    "environment": "No confirmed station/depot ambience assigned."
+  }
 }

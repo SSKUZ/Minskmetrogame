@@ -70,7 +70,8 @@ func load_catalog(path: String) -> bool:
         if item is String:
             notices.append(item)
     info.configure_service_events(notices)
-    train_audio.configure_layers(parsed.get("loop_events", {}))
+    train_audio.configure_layers(parsed.get("loop_events", {}),parsed.get("loop_profiles",{}))
+    rail_audio.joint_event_id=str(parsed.get("rail_joint_event",""))
     environment_audio.configure_zones(parsed.get("zone_events", {}))
     return true
 
