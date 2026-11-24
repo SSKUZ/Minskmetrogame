@@ -18,9 +18,10 @@ func bind(audio_system: MetroAudioSystem, train_origin: Node3D, cab_origin: Node
     system.train_audio.origins=motor_origins.duplicate()
     system.rail_audio.set_axles(axle_offsets_m,axle_origins)
     _cab=cab_origin
-    system.cab_audio.sync_switches(_cab.get("switches"))
-    if _cab.has_signal("audio_control_used"):
-        _cab.connect("audio_control_used",_on_cab_control)
+    if is_instance_valid(_cab):
+        system.cab_audio.sync_switches(_cab.get("switches"))
+        if _cab.has_signal("audio_control_used"):
+            _cab.connect("audio_control_used",_on_cab_control)
     _bound = true
 
 func unbind() -> void:

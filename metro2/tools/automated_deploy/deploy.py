@@ -317,6 +317,20 @@ def build(key):
     driver(control,stage,key+'-pack')
     pack=bundle/'module.pck';digest=hashlib.sha256(pack.read_bytes()).hexdigest();size=pack.stat().st_size;name=key+'-'+digest[:20]+'.pck'
     resources=json.loads((bundle/'resources.json').read_text())
+    if key in {'full_line','v106'}:
+        # Required audio must be exported by this package or a runtime dependency;
+        # build-only station packs and lone .import settings do not satisfy it.
+        available=set(resources)
+        runtime_report=published(ref,'pack-resources.json')
+        for dep in spec['dependencies']:
+            available.update(runtime_report.get('resources',{}).get(dep,[]))
+        catalog_path=stage/'audio/data/audio_catalog.json'
+        if not catalog_path.is_file():raise RuntimeError('Missing runtime audio catalogue for '+key)
+        catalogue=json.loads(catalog_path.read_text())
+        missing=[a['event_id']+': '+a.get('resource','') for a in catalogue.get('assets',[])
+                 if a.get('verified') is True and a.get('resource','') not in available
+                 and a.get('resource','')+'.remap' not in available]
+        if missing:raise RuntimeError('Required audio omitted from runtime packs: '+', '.join(missing))
     exported=set(resources)
     # Import settings can survive native staging after a dependency's exported
     # mapping is filtered out. Only an actual source or exported .remap owns a

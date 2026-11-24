@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "User-approved speech recordings; route mapping based on individual_catalog descriptions. Direction-neutral clips only. Other station clips retained as addressable assets.",
+  "description": "Existing recorded announcements from TZ54 and the project's already-assigned train motion recordings. Original WAV/Ogg sources and explicit direction-neutral station mappings retained; no invented mechanical sample bindings.",
   "rights_verified": true,
   "assets": [
     {
