@@ -354,7 +354,7 @@ func _tunnels() -> void:
         var node: Node3D=record.node
         if record.has("mesh"):
             var mesh: Mesh=record.mesh
-            if mesh==builder._shell or mesh==builder._floor or mesh==builder._rail or mesh in builder._contact_meshes:
+            if mesh==builder._shell or mesh==builder._floor or mesh==builder._rail or (mesh is ArrayMesh and mesh in builder._contact_meshes):
                 base_nodes.append(node)
         elif record.has("multi"):
             if record.multi==builder._sleepers or record.multi==builder._insulators or record.multi==builder._rail_clips:
