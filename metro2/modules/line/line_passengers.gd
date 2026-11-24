@@ -30,6 +30,7 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
             await get_tree().process_frame
         return
     var budget=BuildBudget.new(self,2000)
+    var platform_near: bool=absf(float(_game.distance)-float(station.stop_z))<340.0 or absf(_game.camera.global_position.z-float(station.stop_z))<340.0
     var nav=Navigation.new()
     nav.platform=Rect2(-10.0,float(station.low)+0.5,9.1,float(station.high)-float(station.low)-1.0)
     for shape in instance.find_children("*","CollisionShape3D",true,false):
@@ -60,6 +61,7 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
             person.set_meta("origin_station",index)
             person.set_meta("travel_destination",int(saved.travel_destination))
             person.set_meta("stream_model",str(saved.model_path))
+            person.process_mode=Node.PROCESS_MODE_INHERIT if platform_near else Node.PROCESS_MODE_DISABLED
             agents.append(person)
         _platform_states.erase(index)
     else:
@@ -80,6 +82,7 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
             person.set_meta("origin_station",index)
             person.set_meta("travel_destination",-1)
             person.set_meta("stream_model",str(person.visual.scene_file_path))
+            person.process_mode=Node.PROCESS_MODE_INHERIT if platform_near else Node.PROCESS_MODE_DISABLED
             agents.append(person)
         # Existing visual instances own the resources; the spawner must not retain
         # PackedScenes for models no longer used on a platform or in the train.

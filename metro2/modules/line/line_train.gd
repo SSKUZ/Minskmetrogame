@@ -140,9 +140,6 @@ func _physics_process(delta: float) -> void:
         line.passengers.guard_doors(door_system)
     var direction: int=int(cab_runtime.direction)
     var limit: float=line.streamer.approach_limit(distance,direction,_train_bounds) if direction!=0 else INF
-    if direction!=0 and is_instance_valid(_tunnel) and _tunnel.has_method("approach_limit"):
-        var tunnel_limit: float=_tunnel.call("approach_limit",distance,direction,_train_bounds)
-        limit=maxf(limit,tunnel_limit) if direction>0 else minf(limit,tunnel_limit)
     var before_move: float=distance
     var loading_hold: bool=is_finite(limit) and absf(distance-limit)<=1.0
     if is_finite(limit):

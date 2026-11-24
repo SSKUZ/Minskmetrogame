@@ -180,6 +180,7 @@ func _load_station(index: int) -> bool:
     var budget=BuildBudget.new(self,2000)
     _building_budget=budget
     node.set_meta("metro_line_work",budget)
+    budget.register_source(node)
     var active_mode: int=node.process_mode
     node.process_mode=Node.PROCESS_MODE_DISABLED
     node.hide()
@@ -204,6 +205,7 @@ func _load_station(index: int) -> bool:
         _loading_id=""
         return true
     _building_budget=null
+    budget.release_sources()
     node.process_mode=active_mode
     node.show()
     instances[index]=node

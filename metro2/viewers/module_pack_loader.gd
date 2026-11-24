@@ -121,9 +121,10 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
     # A complete, verified local file may survive a browser session. Otherwise
     # the standard browser cache still reuses the same content-hashed URL.
     if FileAccess.file_exists(target):
-        if FileAccess.get_sha256(target) == str(info.sha256) and ProjectSettings.load_resource_pack(target, false):
+        if await _verified_file(target,str(info.sha256),consumer) and ProjectSettings.load_resource_pack(target, false):
             _mounted[id] = true
             return true
+        if not _consumer_alive(consumer): return false
         DirAccess.remove_absolute(target)
     var chunks: Array = info.get("chunks", [])
     if chunks.is_empty(): chunks = [{"file":info.file,"bytes":info.bytes,"sha256":info.sha256}]
@@ -145,8 +146,17 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
             DirAccess.remove_absolute(target)
             return _fail("Загрузка «%s» прервана на части %d/%d; повторите выбор" % [title, index+1, chunks.size()])
         var input := FileAccess.open(partial, FileAccess.READ)
+        var copied_at: int=Time.get_ticks_usec()
         while input.get_position() < input.get_length():
+            if not _consumer_alive(consumer):
+                input.close()
+                output.close()
+                DirAccess.remove_absolute(target)
+                return false
             output.store_buffer(input.get_buffer(262144))
+            if Time.get_ticks_usec()-copied_at>=2000:
+                await get_tree().process_frame
+                copied_at=Time.get_ticks_usec()
         input.close()
         DirAccess.remove_absolute(partial)
         completed_bytes += int(chunk.bytes)
@@ -154,7 +164,7 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
     output.close()
     progress.emit("Проверка целостности пакета «%s»…" % title)
     await get_tree().process_frame
-    if FileAccess.get_sha256(target) != str(info.sha256):
+    if not await _verified_file(target,str(info.sha256),consumer):
         DirAccess.remove_absolute(target)
         return _fail("Пакет «%s» загружен не полностью" % title)
     if not ProjectSettings.load_resource_pack(target, false):
@@ -163,8 +173,25 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
     _mounted[id] = true
     return true
 
+func _verified_file(path: String, digest: String, consumer: WeakRef) -> bool:
+    var input := FileAccess.open(path,FileAccess.READ)
+    if input==null: return false
+    var hash := HashingContext.new()
+    hash.start(HashingContext.HASH_SHA256)
+    var slice_started: int=Time.get_ticks_usec()
+    while input.get_position()<input.get_length():
+        if not _consumer_alive(consumer):
+            input.close()
+            return false
+        hash.update(input.get_buffer(262144))
+        if Time.get_ticks_usec()-slice_started>=2000:
+            await get_tree().process_frame
+            slice_started=Time.get_ticks_usec()
+    input.close()
+    return hash.finish().hex_encode()==digest
+
 func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, total: int, part: int, parts: int, attempt: int, consumer: WeakRef = null) -> bool:
-    if FileAccess.file_exists(target) and FileAccess.get_sha256(target) == str(info.sha256): return true
+    if FileAccess.file_exists(target) and await _verified_file(target,str(info.sha256),consumer): return true
     var request := HTTPRequest.new()
     request.accept_gzip=false
     request.timeout=60.0
@@ -204,7 +231,7 @@ func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, 
     if int(completed[0][0]) != HTTPRequest.RESULT_SUCCESS or int(completed[0][1]) != 200:
         DirAccess.remove_absolute(target)
         return false
-    if FileAccess.get_sha256(target) != str(info.sha256):
+    if not await _verified_file(target,str(info.sha256),consumer):
         DirAccess.remove_absolute(target)
         return false
     return true

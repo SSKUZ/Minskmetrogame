@@ -29,16 +29,6 @@ func _include_slots(required: Dictionary, z0: float, z1: float) -> void:
     for slot in range(floori((z0-VISIBLE_DISTANCE-GUARD_DISTANCE-64.0)/16.0),floori((z1+VISIBLE_DISTANCE+GUARD_DISTANCE+64.0)/16.0)+1):
         required[slot]=true
 
-func approach_limit(z: float, direction: int, bounds: AABB) -> float:
-    var limit: float=-INF if direction>0 else INF
-    for key in _wanted_pieces:
-        if _route_active.has(key): continue
-        var span: Vector2=_wanted_pieces[key]
-        var edge: float=span.y-bounds.position.z+140.0 if direction>0 else span.x-bounds.end.z-140.0
-        if direction>0 and edge<=z: limit=maxf(limit,edge)
-        elif direction<0 and edge>=z: limit=minf(limit,edge)
-    return limit
-
 func sync_to_view() -> void:
     if path==null or not is_instance_valid(_train) or not is_instance_valid(_camera): return
     var signature: String="%d:%d:%d:%d" % [
