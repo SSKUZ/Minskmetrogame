@@ -81,6 +81,9 @@ func bind_origins(train_origin: Node3D, cab_origin: Node3D, station_origin: Node
     cab_audio.origin = cab_origin
     environment_audio.origin = station_origin
 
+func set_master_volume(value: float) -> void:
+    bank.set_master_volume(value)
+
 func set_listener_mode(mode: String) -> void:
     router.set_listener_mode(mode)
 

@@ -163,8 +163,12 @@ def plan():
         sources[key]=closure(seeds)
         for name in seeds|sources[key]:owners.setdefault(name,set()).add(key)
     chosen=set();unknown=[];direct=set()
+    boot_sources=static_boot_sources()
     for name in runtime:
-        if name in POLICY['boot_sources']:chosen.add('boot');continue
+        # Audio class_name scripts are also embedded in the boot pack. Updating
+        # only optional packs leaves their old boot definitions winning at mount.
+        if name in boot_sources:chosen.add('boot')
+        if name in POLICY['boot_sources']:continue
         found=set(owners.get(name,()))
         for key,root in roots.items():
             if root and name.startswith(root+'/'):found.add(key)

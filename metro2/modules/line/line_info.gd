@@ -31,6 +31,20 @@ func _has_loaded_stop(id: String) -> bool:
         if str(record.info_id)==id: return _line.streamer.is_loaded(int(record.index))
     return false
 
+func _at_route_stop(state: Dictionary, consist: Node3D) -> bool:
+    if state.is_empty(): return false
+    if passenger_mode or bool(state.at_station): return bool(state.at_station)
+    # Manual drivers need not hit a 50 cm autopilot point to call the warning.
+    # Use the complete train envelope and saved station connection limits;
+    # this does not change driving, doors or passenger boarding tolerances.
+    var bounds: AABB=game.get("_train_bounds")
+    for record in _line.stations:
+        if str(record.info_id)!=str(state.station_id): continue
+        var low: float=float(record.root_z)+float(record.exit_local_z)
+        var high: float=float(record.root_z)+float(record.entry_local_z)
+        return consist.global_position.z+bounds.position.z>=low and consist.global_position.z+bounds.end.z<=high
+    return false
+
 func select_passenger_mode(enabled: bool) -> void:
     super.select_passenger_mode(enabled)
     _returning_to_depot=false
@@ -44,6 +58,7 @@ func press_info() -> String:
     _update_context()
     if not passenger_mode and audio.info.stopped and audio.info.doors_open and not audio.info._departure_used and tracker.direction=="reverse" and audio.info.station_id=="uruchye":
         if not audio.announcer.is_busy() and audio.bank.has_event(DEPOT_WARNING):
+            audio.cab_audio.press_button("info")
             audio.announcer.manual_play(DEPOT_WARNING)
             audio.info._departure_used=true
             return "Предупреждение о закрытии дверей · выезд в депо"
@@ -92,7 +107,7 @@ func _depot_leg() -> void:
     var doors: Node=game.door_system
     if _depot_warning_at>=0:
         _drive_request(0.0,1.0)
-        if Time.get_ticks_msec()>=_depot_warning_at and _line.passengers.doors_clear():
+        if Time.get_ticks_msec()>=_depot_warning_at and audio.announcer.has_audio_started(DEPOT_WARNING) and _line.passengers.doors_clear():
             doors.request_close()
             _depot_warning_at=-1
         return

@@ -1,5 +1,6 @@
 extends Node3D
 signal master_interaction_changed(held: bool)
+signal audio_control_used(id: String, phase: String)
 ## Runtime bindings for the confirmed cab-r2.1 source entry; complete fresh Three.js export.
 ## Control IDs, positions and handle animation follow js/cab/CabControls.js.
 const CAB_SCENE = preload("res://assets/cab_r21/cab_r21.glb")
@@ -605,6 +606,8 @@ func command(id: String, value: float = 0.0, phase: String = "press") -> void:
         controller_value = -brake_demand if brake_demand > 0.0 else float(controller_notch)/5.0
     if not release and moving.has(id):
         moving[id].set_meta("pressed_until",clock+0.16)
+
+    audio_control_used.emit(id,phase)
 
 func physics_inputs(delta: float, speed: float, screen_throttle: bool, screen_brake: bool) -> Dictionary:
     var binding: Node = game.get("info_binding")

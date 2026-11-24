@@ -7,6 +7,7 @@ var flight_position := Vector3.ZERO
 var _sound: Node
 var _last_speed := 0.0
 var _saloon_fov := 80.0
+var _audio_doors: Dictionary = {}
 
 func _ready() -> void:
     spawn_z=430.0
@@ -28,18 +29,72 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     _sound=AudioAdapter.new()
     add_child(_sound)
     var speakers: Array[Node3D]=[]
+    var motors: Array[Node3D]=[]
     for car in train.get_children():
-        if car is Node3D and str(car.name).begins_with("OriginalV106Car"): speakers.append(car)
+        if not car is Node3D or not str(car.name).begins_with("OriginalV106Car"): continue
+        var speaker := car.get_node("InfoSpeaker") as Marker3D
+        speakers.append(speaker)
+        var motor := Marker3D.new()
+        motor.name="TrainMechanismAudio"
+        car.add_child(motor)
+        var bounds: AABB=_get_model_bounds(car)
+        motor.position=bounds.get_center()
+        motor.position.y=bounds.position.y+0.4
+        motors.append(motor)
     var axles: Array[float]=[]
+    var axle_origins: Array[Node3D]=[]
     for record in _bogie_visuals._cars.values():
         for bogie in record.bogies:
-            axles.append(float(bogie.z)-1.05)
-            axles.append(float(bogie.z)+1.05)
-    _sound.bind(info_binding.audio,train,cab_runtime,line.station_sound_origin,speakers,axles)
-    for side in [-1,1]: _sound.register_door(str(side),train,0.0)
+            for offset in [-1.05,1.05]:
+                # Progress increases toward -Z, so a positive car offset is behind.
+                axles.append(-(float(bogie.z)+float(offset)))
+                var axle := Marker3D.new()
+                bogie.root.add_child(axle)
+                axle.position.z=float(offset)
+                axle_origins.append(axle)
+    _sound.bind(info_binding.audio,train,cab_runtime,line.station_sound_origin,speakers,axles,motors,axle_origins)
+    _register_audio_doors()
+    _configure_rail_audio()
     _install_inspection_ui()
     _set_camera_mode("cabin")
     set_physics_process(true)
+
+func _register_audio_doors() -> void:
+    # Use the original paired leaves and their car frame. Do not emit from the
+    # distant train root or infer door movement from an input button.
+    for leaf in door_system.leaves:
+        if float(leaf.direction)>0.0: continue
+        var car: Node=leaf.parts[0].node
+        while car!=null and not str(car.name).begins_with("OriginalV106Car"):
+            car=car.get_parent()
+        if not car is Node3D: continue
+        var marker := Marker3D.new()
+        car.add_child(marker)
+        var centre: Vector3=leaf.center
+        marker.position=Vector3(centre.x,centre.y,float(leaf.seam))
+        var side: int=-1 if centre.x<0.0 else 1
+        var id: String="door_%d" % _audio_doors.size()
+        _audio_doors[id]=side
+        _sound.register_door(id,marker,float(door_system.side_open[side]))
+
+func _configure_rail_audio() -> void:
+    # Same 16 m grid and exact portal clipping as line_tunnel, independent of
+    # which visual sections/stations happen to be resident.
+    var joints: Dictionary={}
+    for slot in range(floori(line.path.lower_z/16.0),ceili(96.0/16.0)):
+        for piece in line.path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):
+            joints[430.0-piece.x]=true
+            joints[430.0-piece.y]=true
+    var positions: Array[float]=[]
+    for point in joints: positions.append(float(point))
+    _sound.system.rail_audio.set_track(positions)
+
+func _process(_delta: float) -> void:
+    if not is_instance_valid(_sound) or not is_instance_valid(door_system): return
+    # The leaf controller also advances once per rendered frame. Sampling it at
+    # physics frequency would create false stops between two rendered frames.
+    for id in _audio_doors:
+        _sound.update_door(str(id),float(door_system.side_open[int(_audio_doors[id])]))
 
 func _decorate_consist() -> void:
     # Use the saved working passenger-demo advertising/realism integration.
@@ -100,8 +155,10 @@ func _physics_process(delta: float) -> void:
         line.station_sound_origin.global_position=Vector3(0.992,1.2,_station_stop_z)
     if is_instance_valid(line.passengers): line.passengers.update_service(nearest,speed,(speed-_last_speed)/maxf(delta,0.001))
     if is_instance_valid(_sound):
-        _sound.update_motion(430.0-distance,speed,(speed-_last_speed)/maxf(delta,0.001),cab_runtime.traction_actual,cab_runtime.applied_brake,true)
-        for side in [-1,1]: _sound.update_door(str(side),float(door_system.side_open[side]))
+        _sound.update_motion(430.0-distance,speed,(speed-_last_speed)/maxf(delta,0.001),cab_runtime.traction_actual,cab_runtime.applied_brake,float(cab_runtime.voltage_kv)>0.01,int(cab_runtime.direction))
+        _sound.update_cab()
+        var zone: String="depot" if distance>96.0 else "station" if line.path.in_station(distance) else "tunnel"
+        _sound.system.environment_audio.enter_zone(zone)
         _sound.update_controller(cab_runtime.controller_notch)
         _sound.system.set_listener_mode("cab" if camera_mode=="cabin" else "salon" if camera_mode=="salon" else "platform" if camera_mode=="platform" else "free")
     _last_speed=speed

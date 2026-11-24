@@ -37,9 +37,11 @@ func initialize(owner_game: Node3D, world: Node) -> void:
     var consist: Node3D = game.get("train")
     for car in consist.get_children():
         if car is Node3D and str(car.name).begins_with("OriginalV106Car"):
-            var speaker := Marker3D.new()
-            speaker.name = "InfoSpeaker"
-            car.add_child(speaker)
+            var speaker := car.get_node_or_null("InfoSpeaker") as Marker3D
+            if speaker==null:
+                speaker=Marker3D.new()
+                speaker.name = "InfoSpeaker"
+                car.add_child(speaker)
             var bounds: AABB = game.call("_get_model_bounds", car)
             speaker.position = bounds.get_center()
             speakers.append(speaker)
@@ -133,6 +135,7 @@ func _refresh_markers() -> void:
     tracker.configure(points, tracker.direction)
 
 func press_info() -> String:
+    audio.cab_audio.press_button("info")
     _update_context()
     if tracker.stations.is_empty():
         return "INFO: в этой сцене нет станционных точек остановки"
@@ -152,6 +155,9 @@ func select_passenger_mode(enabled: bool) -> void:
     if _button != null:
         _button.text = "РЕЖИМ МАШИНИСТА" if enabled else "РЕЖИМ ПАССАЖИРА"
 
+func _at_route_stop(state: Dictionary, _train: Node3D) -> bool:
+    return not state.is_empty() and bool(state.at_station)
+
 func _update_context() -> void:
     if not is_instance_valid(game) or not is_instance_valid(game.get("train")) or not is_instance_valid(game.get("door_system")):
         return
@@ -168,7 +174,7 @@ func _update_context() -> void:
     if not _state.is_empty():
         audio.info.set_route_context(str(_state.station_id), str(_state.next_station_id), tracker.direction, str(_state.visit_id))
     var doors: Node = game.get("door_system")
-    var stopped: bool = not _state.is_empty() and bool(_state.at_station) and absf(float(game.get("speed"))) <= 0.05
+    var stopped: bool = _at_route_stop(_state,train) and absf(float(game.get("speed"))) <= 0.05
     var towards: bool = false
     if not _state.is_empty() and not stopped:
         var point: Vector3 = tracker.stations[tracker.active_index]["position"]
@@ -205,10 +211,10 @@ func _physics_process(_delta: float) -> void:
         _drive_request(0.0, 1.0)
         if _close_at >= 0 and Time.get_ticks_msec() >= _close_at:
             # Only this explicit auto path closes doors; manual INFO never does.
-            if audio.announcer.current_event() == _departure_event and audio.info.stopped:
+            if audio.announcer.has_audio_started(_departure_event) and audio.info.stopped:
                 doors.call("request_close")
                 _auto_phase = "departing"
-            _close_at = -1
+                _close_at = -1
         return
     if _auto_phase == "departing":
         if not bool(doors.call("can_move")):

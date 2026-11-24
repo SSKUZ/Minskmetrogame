@@ -7,6 +7,10 @@ var _switches: Dictionary = {}
 var _controller_notch: int = 0
 var _horn_active: bool = false
 
+func sync_switches(snapshot: Dictionary) -> void:
+    # Initial state is not a physical toggle event.
+    _switches=snapshot.duplicate()
+
 func set_controller_notch(notch: int) -> void:
     if notch == _controller_notch:
         return

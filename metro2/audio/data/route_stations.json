@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "segment": "Уручье — Площадь Ленина",
-  "note": "Stop coordinates come from instantiated station module transforms and the existing Station Base train-root stop datum (STOP_Z). This registry does not invent world placement for modules absent from a route scene. Plošča Lienina is a game-segment boundary, not the line terminus.",
+  "note": "Full-line stop positions come from the saved Station Base STOP_Z/Connections datums in modules/line/route_layout.json, consumed by line_path.gd independently of streamed station instances. Standalone modules can supply their existing stop markers. Plošča Lienina is the game-segment boundary.",
   "station_ids": [
     "uruchye",
     "barysauski_trakt",
@@ -47,5 +47,5 @@
     "kastrychnitskaya": "Кастрычніцкая",
     "ploshcha_lenina": "Плошча Леніна"
   },
-  "world_layout_status": "TZ55 full_line instantiates all ten route stations using their saved Station Base STOP_Z and Connection markers; depot and both travel directions are integrated separately from station announcement IDs."
+  "world_layout_status": "TZ55.1 persistent compact route; depot and both travel directions remain independent of temporary visual station nodes."
 }

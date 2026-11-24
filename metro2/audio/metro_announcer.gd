@@ -10,6 +10,7 @@ var _queue: Array[Dictionary] = []
 var _seen_visits: Dictionary = {}
 var _active: Array[AudioStreamPlayer3D] = []
 var _current_id: String = ""
+var _started_event: String = ""
 var _segments: Array = []
 var _segment_index: int = 0
 @export var max_queue: int = 8
@@ -55,6 +56,7 @@ func repeat_current() -> void:
 
 func stop_all() -> void:
     _queue.clear()
+    _started_event=""
     var interrupted: String = _current_id
     _release_active()
     _segments.clear()
@@ -64,6 +66,14 @@ func stop_all() -> void:
 
 func is_busy() -> bool:
     return _current_id != "" or not _queue.is_empty()
+
+func has_audio_started(event_id: String) -> bool:
+    # Reset for every new playback, retained on completion for a delayed door
+    # clearance. A queued/scheduled player alone is not proof of audio progress.
+    return event_id!="" and _started_event==event_id
+
+func _mark_audio_started(event_id: String) -> void:
+    if _current_id==event_id: _started_event=event_id
 
 func current_event() -> String:
     return _current_id
@@ -85,6 +95,8 @@ func _process(_delta: float) -> void:
     var end_seconds: float = float(_segments[_segment_index].get("to_s", -1.0)) if not _segments.is_empty() else -1.0
     for player in _active:
         if is_instance_valid(player) and player.playing:
+            var start_seconds: float=float(_segments[_segment_index].get("from_s",0.0)) if not _segments.is_empty() else 0.0
+            if player.get_playback_position()>start_seconds+0.01: _mark_audio_started(_current_id)
             if end_seconds < 0.0 or player.get_playback_position() < end_seconds:
                 any_playing = true
     if not any_playing:
@@ -107,6 +119,7 @@ func _advance() -> void:
     if not bank.has_event(event_id):
         return
     _current_id = event_id
+    _started_event=""
     _segments = bank.event_data(event_id).get("playback_segments", [])
     _segment_index = 0
     if not _start_segment():
@@ -121,5 +134,8 @@ func _start_segment() -> bool:
         if is_instance_valid(origin):
             var player: AudioStreamPlayer3D = bank.play_at(_current_id, origin, Vector3.ZERO, 0.0, false, start_seconds)
             if player != null:
+                # A clip can finish during a slow scene-instantiation frame.
+                # Completion also proves it progressed, without a wall-clock guess.
+                player.finished.connect(_mark_audio_started.bind(_current_id))
                 _active.append(player)
     return not _active.is_empty()

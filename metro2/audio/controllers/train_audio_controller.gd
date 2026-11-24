@@ -71,7 +71,7 @@ func _process(delta: float) -> void:
 func _stop_layer(layer: String) -> void:
     for player in _layers.get(layer,[]):
         if is_instance_valid(player):
-            if router!=null and router.bank!=null: router.bank.release_player(player)
+            if is_instance_valid(router) and is_instance_valid(router.bank): router.bank.release_player(player)
             else: player.queue_free()
     _layers.erase(layer)
 
