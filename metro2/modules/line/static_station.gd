@@ -31,8 +31,10 @@ func _ready() -> void:
         var children: Array[Node]=fragment.get_children()
         add_child(fragment)
         for child in children:
+            _set_subtree_owner(child,null)
             fragment.remove_child(child)
             add_child(child)
+            _set_subtree_owner(child,self)
             if not await work.checkpoint(): return
     work.finish(self)
     if own_budget:
@@ -42,6 +44,10 @@ func _ready() -> void:
         work.release_sources()
     static_ready=not static_failed
     if own_budget and static_ready: show()
+
+func _set_subtree_owner(node: Node, new_owner: Node) -> void:
+    node.owner=new_owner
+    for child in node.get_children(): _set_subtree_owner(child,new_owner)
 
 func static_loading_complete() -> bool:
     return static_ready or static_failed

@@ -134,15 +134,24 @@ func _fragments(station: Node3D) -> Array:
     for child in station.get_children():
         if count>0 and count+_count(child)>64:
             result.append(await _fragment(fragment))
-            for previous in moved: fragment.remove_child(previous); station.add_child(previous)
+            for previous in moved:
+                _clear_owners(previous)
+                fragment.remove_child(previous)
+                station.add_child(previous)
+                _owners(previous,station)
             moved.clear()
             count=0
+        _clear_owners(child)
         station.remove_child(child)
         fragment.add_child(child)
         moved.append(child)
         count+=_count(child)
     if count>0: result.append(await _fragment(fragment))
-    for child in moved: fragment.remove_child(child); station.add_child(child)
+    for child in moved:
+        _clear_owners(child)
+        fragment.remove_child(child)
+        station.add_child(child)
+        _owners(child,station)
     fragment.free()
     return result
 
@@ -200,6 +209,12 @@ func _archive(files: Array) -> void:
     for file in prepared:
         file["archive"]=filename
         _locations[file.path]=file
+
+func _clear_owners(node: Node) -> void:
+    # A fragment owner ceases to be an ancestor after moving this subtree.
+    # Clear the entire ownership chain before detaching, then bind its new root.
+    node.owner=null
+    for child in node.get_children(): _clear_owners(child)
 
 func _owners(node: Node, owner_node: Node) -> void:
     if node!=owner_node: node.owner=owner_node

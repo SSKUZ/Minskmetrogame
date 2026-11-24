@@ -50,7 +50,9 @@ float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.0-2.0*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 q){return noise(q)*0.55+noise(q*2.03)*0.26+noise(q*4.01)*0.13+noise(q*8.03)*0.06;}
 void fragment(){
-vec2 q=n.x>0.5?p.zy:n.y>0.5?p.xz:p.xy;
+vec2 q=p.xy;
+if(n.x>0.5){q=p.zy;}
+else if(n.y>0.5){q=p.xz;}
 vec2 slab=floor(q/vec2(1.20,0.62));float variation=h(slab)*0.05;
 vec2 warped=q+vec2(fbm(q*1.7),fbm(q.yx*2.3))*0.7;
 float vein=pow(1.0-abs(sin(warped.x*5.4+warped.y*2.7+fbm(q*4.2)*5.0)),25.0);

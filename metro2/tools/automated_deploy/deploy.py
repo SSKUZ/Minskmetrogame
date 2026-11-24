@@ -263,7 +263,10 @@ def native(args,log,env=None):
         env=dict(env,LIBGL_ALWAYS_SOFTWARE='1')
     with log.open('w') as f:p=subprocess.run(command,cwd=REPO,env=env,stdout=f,stderr=subprocess.STDOUT)
     data=log.read_text(errors='replace')
-    if p.returncode or any(v in data for v in ['SCRIPT ERROR','Parse Error','Failed to load','ERROR:']):raise RuntimeError(data[-18000:])
+    if p.returncode or any(v in data for v in ['SCRIPT ERROR','Parse Error','Failed to load','ERROR:']):
+        # Repeated ownership/driver warnings must not hide the first real error.
+        excerpt=data if len(data)<=18000 else data[:10000]+'\n... full log retained as an artifact ...\n'+data[-8000:]
+        raise RuntimeError(excerpt)
 
 def driver(data,stage,log):
     control=CI/'controls'/log;write(control.with_suffix('.json'),data)
