@@ -49,9 +49,11 @@ func _ready() -> void:
     train.line=self
     train.consist_ready.connect(_consist_ready)
     add_child(train)
+    var tunnel_geometry: Dictionary={"data":{},"order":[],"pending":{}}
     for track_x in [0.992,-11.732]:
         var tunnel := LineTunnel.new()
         tunnel.path=path
+        tunnel.geometry_cache=tunnel_geometry
         tunnel.center_x=float(track_x)
         add_child(tunnel)
         tunnel.configure(train.train,train._train_bounds,train.camera)
@@ -61,7 +63,7 @@ func station_instance(index: int) -> Node3D:
     return streamer.station(index) if is_instance_valid(streamer) else null
 
 func _station_loaded(index: int, station: Node3D) -> void:
-    if is_instance_valid(passengers): passengers.add_platform(stations[index],station)
+    if is_instance_valid(passengers): await passengers.add_platform(stations[index],station)
     _start_service_if_ready()
 
 func _station_unloading(index: int, station: Node3D) -> void:
@@ -70,6 +72,7 @@ func _station_unloading(index: int, station: Node3D) -> void:
 
 func _start_service_if_ready() -> void:
     if ready_for_service or not is_instance_valid(passengers) or not streamer.is_loaded(0): return
+    if not passengers.platform_ready(0): return
     ready_for_service=true
     train.service_ready=true
     train.camera.make_current()
@@ -82,7 +85,7 @@ func _consist_ready() -> void:
     add_child(passengers)
     passengers.initialize_line(self,train)
     for index in streamer.instances:
-        passengers.add_platform(stations[int(index)],streamer.station(int(index)))
+        await passengers.add_platform(stations[int(index)],streamer.station(int(index)))
     _start_service_if_ready()
 
 func _process(_delta: float) -> void:

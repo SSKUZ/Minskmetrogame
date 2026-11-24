@@ -102,7 +102,9 @@ func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func flush() -> void:
+    if not await _line_checkpoint(): return
     for key in batches:
+        if not await _line_checkpoint(): return
         var data: Dictionary=batches[key]
         var mesh: Mesh
         if data.has("mesh"):
@@ -123,13 +125,16 @@ func flush() -> void:
         var mm := MultiMesh.new()
         mm.transform_format=MultiMesh.TRANSFORM_3D
         mm.mesh=mesh;mm.instance_count=data.poses.size()
-        for i in range(mm.instance_count):mm.set_instance_transform(i,data.poses[i])
+        for i in range(mm.instance_count):
+            if not await _line_checkpoint(): return
+            mm.set_instance_transform(i,data.poses[i])
         var n := MultiMeshInstance3D.new()
         n.name="Repeated"+str(data.kind)
         n.set_meta("portable_role",data.group)
         n.multimesh=mm
         _construction_root(data.group).add_child(n)
     for key in surfaces:
+        if not await _line_checkpoint(): return
         var data: Dictionary=surfaces[key]
         var st: SurfaceTool=data.surface
         # Normals were assigned while constructing the interior faces.
@@ -238,9 +243,13 @@ func bench(p: Vector3,yaw: float=0.0) -> void:
 
 # Closed cross-section extrusion with rounded corners and proper end caps.
 func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     var winding := 0.0
-    for i in range(points.size()):winding+=points[i].cross(points[(i+1)%points.size()])
     for i in range(points.size()):
+        if not await _line_checkpoint(): return
+        winding+=points[i].cross(points[(i+1)%points.size()])
+    for i in range(points.size()):
+        if not await _line_checkpoint(): return
         var a: Vector2=points[i]
         var b: Vector2=points[(i+1)%points.size()]
         var outward := Vector3(b.y-a.y,a.x-b.x,0)
@@ -248,8 +257,10 @@ func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> 
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,outward)
     var indices := Geometry2D.triangulate_polygon(points)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var z: float=z0 if face<0.0 else z1
         for i in range(0,indices.size(),3):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[indices[i]]
             var b: Vector2=points[indices[i+1]]
             var c: Vector2=points[indices[i+2]]
@@ -282,13 +293,17 @@ func arc_point(side: float,a: float,y0: float,height: float,inset: float=0.0) ->
     return Vector2(CX+side*8.98*cos(a),y0+height*sin(a))-outward*inset
 
 func curved_band(side: float,a0: float,a1: float,z0: float,z1: float,y0: float,height: float,inset: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     for j in range(32):
+        if not await _line_checkpoint(): return
         var a: Vector2=arc_point(side,lerpf(a0,a1,float(j)/32.0),y0,height,inset)
         var b: Vector2=arc_point(side,lerpf(a0,a1,float(j+1)/32.0),y0,height,inset)
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func annulus(center: Vector3,r0: float,r1: float,y0: float,y1: float,mat: Material,segments: int=96) -> void:
+    if not await _line_checkpoint(): return
     for j in range(segments):
+        if not await _line_checkpoint(): return
         var a: float=float(j)*TAU/float(segments)
         var b: float=float(j+1)*TAU/float(segments)
         quad(center+Vector3(sin(a)*r0,y0,cos(a)*r0),center+Vector3(sin(b)*r0,y0,cos(b)*r0),center+Vector3(sin(b)*r1,y1,cos(b)*r1),center+Vector3(sin(a)*r1,y1,cos(a)*r1),mat,Vector3.DOWN)
@@ -395,3 +410,19 @@ func _construction_root(label: String) -> Node3D:
     var existing := get_node_or_null(NodePath(label)) as Node3D
     if existing!=null:return existing
     var root := Node3D.new();root.name=label;add_child(root);return root
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

@@ -16,17 +16,23 @@ var _amber := Color(1.0,0.57,0.045)
 const DIGITS := [0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f]
 
 func _ready() -> void:
+    var line_work: RefCounted=_line_work()
+    if line_work!=null: line_work.begin(self)
+    if not await _line_checkpoint(): return
     _find_game()
+    if not await _line_checkpoint(): return
     var saved := ConfigFile.new()
     if saved.load(CLOCK_SAVE) == OK:
         _last_departure = int(saved.get_value("interval","departure_unix",0))
     if _last_departure > int(Time.get_unix_time_from_system()): _last_departure=0
-    _stop_marks()
+    if not await _line_checkpoint(): return
+    await _stop_marks()
     # Opposite tracks have mirrors at opposite platform ends, clear of the stair cheeks.
+    if not await _line_checkpoint(): return
     _platform_mirror("DriverPlatformMirror",Vector3(-0.78,FLOOR+1.55,-0.55),deg_to_rad(8.0),27.0)
+    if not await _line_checkpoint(): return
     _platform_mirror("DriverPlatformMirrorOpposite",Vector3(PLATFORM_X-4.59,FLOOR+1.55,79.77),PI+deg_to_rad(8.0),52.0)
-
-
+    if line_work!=null: line_work.finish(self)
 func _find_game() -> void:
     var node: Node = get_parent()
     while node != null:
@@ -56,14 +62,17 @@ func _box(parent: Node3D,label: String,size: Vector3,pos: Vector3,material: Mate
     return instance
 
 func _stop_marks() -> void:
+    if not await _line_checkpoint(): return
     var white := _material(Color("#e9e7de"))
     var black := _material(Color("#15191b"))
     # A low painted stopping datum between the running rails, not a buffer stop.
     for i in range(10):
+        if not await _line_checkpoint(): return
         var x := 0.992-0.71+(float(i)+0.5)*0.142
         _box(self,"TrackStopStripe%02d" % i,Vector3(0.142,0.09,0.13),Vector3(x,0.035,-1.25),white if i%2 == 0 else black)
     # Matching vertical datum on the outer track wall, at the same stop plane.
     for i in range(8):
+        if not await _line_checkpoint(): return
         _box(self,"WallStopStripe%02d" % i,Vector3(0.055,0.14,0.15),Vector3(3.285,1.26+float(i)*0.14,-1.25),white if i%2 == 0 else black)
 
 func _platform_mirror(label: String,pos: Vector3,yaw: float,target_z: float) -> void:
@@ -198,3 +207,19 @@ func _process(delta: float) -> void:
         camera.global_position=mirror.to_global(Vector3(0,0,0.10))
         camera.look_at(to_global(Vector3(PLATFORM_X,2.10,float(equipment["target_z"]))),global_basis.y)
         reflection.render_target_update_mode=SubViewport.UPDATE_ONCE
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

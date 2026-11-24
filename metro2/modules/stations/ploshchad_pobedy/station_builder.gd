@@ -101,7 +101,9 @@ func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func flush() -> void:
+    if not await _line_checkpoint(): return
     for key in batches:
+        if not await _line_checkpoint(): return
         var data: Dictionary=batches[key]
         var mesh: Mesh
         if data.has("mesh"):
@@ -123,12 +125,15 @@ func flush() -> void:
         var mm := MultiMesh.new()
         mm.transform_format=MultiMesh.TRANSFORM_3D
         mm.mesh=mesh;mm.instance_count=data.poses.size()
-        for i in range(mm.instance_count):mm.set_instance_transform(i,data.poses[i])
+        for i in range(mm.instance_count):
+            if not await _line_checkpoint(): return
+            mm.set_instance_transform(i,data.poses[i])
         var n := MultiMeshInstance3D.new()
         n.name="Repeated"+str(data.kind)
         n.multimesh=mm
         add_child(n)
     for key in surfaces:
+        if not await _line_checkpoint(): return
         var data: Dictionary=surfaces[key]
         var st: SurfaceTool=data.surface
         # Normals were assigned while constructing the interior faces.
@@ -384,3 +389,18 @@ void fragment(){float w=sin(p.z*47.0+sin(p.x*2.3+p.y*4.0)*3.0);float fine=sin(p.
 ALBEDO=mix(vec3(0.29,0.15,0.055),vec3(0.58,0.36,0.15),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader;return mat
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

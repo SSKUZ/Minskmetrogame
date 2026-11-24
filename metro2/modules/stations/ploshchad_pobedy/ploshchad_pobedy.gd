@@ -23,63 +23,118 @@ var lighting: Dictionary = {}
 var oak: StandardMaterial3D
 
 func _ready() -> void:
+    var line_work: RefCounted=_line_work()
+    if line_work!=null: line_work.begin(self)
+    if not await _line_checkpoint(): return
     super._ready()
+    if not await _line_checkpoint(): return
     begin_station()
+    if not await _line_checkpoint(): return
     lighting=JSON.parse_string(FileAccess.get_file_as_string("res://modules/stations/ploshchad_pobedy/lighting_profile.json"))
+    if not await _line_checkpoint(): return
     white=_photo("ceiling_paint.jpg",Vector2(1.0,1.0),0.90)
+    if not await _line_checkpoint(): return
     white.normal_enabled=true;white.normal_texture=load(ART+"ceiling_normal.png");white.normal_scale=0.045
+    if not await _line_checkpoint(): return
     wall_stone=_photo("wall_marble.jpg",Vector2(0.90,0.90),0.46)
+    if not await _line_checkpoint(): return
     granite=_photo("plinth_granite.jpg",Vector2(0.65,0.65),0.48)
+    if not await _line_checkpoint(): return
     stair_stone=_photo("stair_granite.jpg",Vector2(0.55,0.55),0.62)
+    if not await _line_checkpoint(): return
     floor_stone=_photo("floor_grey.jpg",Vector2(0.60,0.60),0.42)
+    if not await _line_checkpoint(): return
     floor_dark=_photo("floor_dark.jpg",Vector2(0.75,0.75),0.45)
+    if not await _line_checkpoint(): return
     floor_red=_photo("floor_red.jpg",Vector2(0.6,0.6),0.38)
+    if not await _line_checkpoint(): return
     trim=_material(Color("#a6a493"),0.12,0.52)
+    if not await _line_checkpoint(): return
     brass=_material(Color("#8d6b38"),0.50,0.37)
+    if not await _line_checkpoint(): return
     bronze=_material(Color("#6f4c2d"),0.38,0.43)
+    if not await _line_checkpoint(): return
     lamp_silver=_material(Color("#cdbb9a"),0.72,0.28)
+    if not await _line_checkpoint(): return
     lamp_bead=_material(Color("#dfc188"),0.56,0.22)
+    if not await _line_checkpoint(): return
     lamp_bead.emission_enabled=true;lamp_bead.emission=Color(1.0,0.79,0.40);lamp_bead.emission_energy_multiplier=0.24
+    if not await _line_checkpoint(): return
     lamp_glass=ShaderMaterial.new()
+    if not await _line_checkpoint(): return
     lamp_glass.shader=preload("res://modules/stations/ploshchad_pobedy/lamp_glass.gdshader")
+    if not await _line_checkpoint(): return
     lamp_glass.set_shader_parameter("emission_strength",float(lighting["glass_emission"]))
+    if not await _line_checkpoint(): return
     lamp_glass.set_shader_parameter("upper_light_fraction",float(lighting["upper_glass_light_fraction"]))
+    if not await _line_checkpoint(): return
     lamp_glass.set_shader_parameter("prism_lanes",float(lighting["diffuser_lanes_per_face"]))
+    if not await _line_checkpoint(): return
     ceiling_light=ShaderMaterial.new()
+    if not await _line_checkpoint(): return
     ceiling_light.shader=preload("res://modules/stations/ploshchad_pobedy/ceiling_light.gdshader")
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("paint",load(ART+"ceiling_paint.jpg"))
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("station_center_x",CX)
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("column_x",COL_X)
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("column_pitch",PITCH)
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("first_column_z",-1.2)
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("last_column_z",80.4)
+    if not await _line_checkpoint(): return
     ceiling_light.set_shader_parameter("pool_radius",float(lighting["ceiling_pool_radius_m"]))
+    if not await _line_checkpoint(): return
     lettering=_material(Color("#b69b60"),0.45,0.32)
+    if not await _line_checkpoint(): return
     yellow=_material(Color("#d7ad39"),0.0,0.67)
+    if not await _line_checkpoint(): return
     oak=_photo("bench_oak.jpg",Vector2(0.65,0.30),0.48)
     for i in range(4):
+        if not await _line_checkpoint(): return
         var m := _photo("column_marble.jpg" if i%2==0 else "column_marble_alt.jpg",Vector2(0.80,0.80),0.41)
         m.uv1_offset=Vector3(float(i)*0.21,float(i)*0.13,0.0)
         column_stones.append(m)
     for file in ["floor_red","floor_grey","floor_dark"]:
+        if not await _line_checkpoint(): return
         var mat: StandardMaterial3D=floor_red if file=="floor_red" else floor_stone if file=="floor_grey" else floor_dark
         mat.normal_enabled=true;mat.normal_texture=load(ART+file+"_normal.png");mat.normal_scale=0.12
-    _floor()
-    _walls()
-    _columns_and_girders()
-    _ceilings()
-    _stairs(-1.0,NORTH)
-    _escalators(SOUTH)
-    _signs()
-    _track_details()
-    _portal_shell()
-    _portal_equipment()
-    _floor_fittings()
-    for z in [12.0,39.6,67.0]:_television(float(z),true)
+    if not await _line_checkpoint(): return
+    await _floor()
+    if not await _line_checkpoint(): return
+    await _walls()
+    if not await _line_checkpoint(): return
+    await _columns_and_girders()
+    if not await _line_checkpoint(): return
+    await _ceilings()
+    if not await _line_checkpoint(): return
+    await _stairs(-1.0,NORTH)
+    if not await _line_checkpoint(): return
+    await _escalators(SOUTH)
+    if not await _line_checkpoint(): return
+    await _signs()
+    if not await _line_checkpoint(): return
+    await _track_details()
+    if not await _line_checkpoint(): return
+    await _portal_shell()
+    if not await _line_checkpoint(): return
+    await _portal_equipment()
+    if not await _line_checkpoint(): return
+    await _floor_fittings()
+    for z in [12.0,39.6,67.0]:
+        if not await _line_checkpoint(): return
+        await _television(float(z),true)
     for side in [-1.0,1.0]:
-        for bay in [3,7,11,15]:_bench(Vector3(CX+side*COL_X,FY,-1.2+(float(bay)+0.5)*PITCH))
-    flush()
-
+        if not await _line_checkpoint(): return
+        for bay in [3,7,11,15]:
+            if not await _line_checkpoint(): return
+            await _bench(Vector3(CX+side*COL_X,FY,-1.2+(float(bay)+0.5)*PITCH))
+    if not await _line_checkpoint(): return
+    await flush()
+    if line_work!=null: line_work.finish(self)
 func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
     var mat := StandardMaterial3D.new()
     mat.albedo_texture=load(ART+file)
@@ -92,19 +147,29 @@ func _photo(file: String,slab: Vector2,roughness: float) -> StandardMaterial3D:
     return mat
 
 func _floor() -> void:
+    if not await _line_checkpoint(): return
     (get_node("IslandPlatform") as MeshInstance3D).material_override=floor_stone
     # One material per paving cell, all at exactly the same top plane: no overlapping cross-stripes.
     var xs: Array[float]=[-5.0,-4.50,-4.31,-3.10,-2.90,-2.15,-1.95,1.95,2.15,2.90,3.10,4.31,4.50,5.0]
     var zs: Array[float]=[ZA,ZB]
-    for i in range(8):xs.append(-4.2+float(i)*1.2)
-    for i in range(175):zs.append(ZA+float(i)*0.60)
+    for i in range(8):
+        if not await _line_checkpoint(): return
+        xs.append(-4.2+float(i)*1.2)
+    for i in range(175):
+        if not await _line_checkpoint(): return
+        zs.append(ZA+float(i)*0.60)
     for i in range(18):
+        if not await _line_checkpoint(): return
         var z: float=-1.2+float(i)*PITCH
-        for off in [-0.60,-0.38,0.38,0.60]:zs.append(z+float(off))
+        for off in [-0.60,-0.38,0.38,0.60]:
+            if not await _line_checkpoint(): return
+            zs.append(z+float(off))
     xs.sort();zs.sort()
     var edge := _material(Color("#9f9786"),0,0.65)
     for ix in range(xs.size()-1):
+        if not await _line_checkpoint(): return
         for iz in range(zs.size()-1):
+            if not await _line_checkpoint(): return
             var w: float=xs[ix+1]-xs[ix];var l: float=zs[iz+1]-zs[iz]
             if w<0.004 or l<0.004:continue
             var x: float=(xs[ix]+xs[ix+1])*0.5;var z: float=(zs[iz]+zs[iz+1])*0.5
@@ -120,13 +185,18 @@ func _floor() -> void:
             elif (abs(x)>1.95 and abs(x)<2.15) or (abs(x)>2.90 and abs(x)<3.10):mat=floor_stone
             box(Vector3(w-0.002,0.012,l-0.002),Vector3(CX+x,FY+0.015,z),mat)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         for i in range(1312):
-            for dx in [-0.058,0.0,0.058]:cylinder(0.010,0.004,Vector3(CX+side*4.405+float(dx),FY+0.025,ZA+0.04+float(i)*0.08),yellow)
+            if not await _line_checkpoint(): return
+            for dx in [-0.058,0.0,0.058]:
+                if not await _line_checkpoint(): return
+                cylinder(0.010,0.004,Vector3(CX+side*4.405+float(dx),FY+0.025,ZA+0.04+float(i)*0.08),yellow)
 
 func _wall_names() -> Array[float]:
     return [1.8,20.6,39.4,58.2,77.0]
 
 func _walls() -> void:
+    if not await _line_checkpoint(): return
     var bed := _material(Color("#8c8779"),0.0,0.76)
     var alternate := _photo("wall_marble_alt.jpg",Vector2(0.90,0.90),0.46)
     var names: Array[float]=_wall_names()
@@ -134,39 +204,56 @@ func _walls() -> void:
     var cuts_y: Array[float]=[y0,3.08,3.56,6.20]
     var cuts_z: Array[float]=[ZA,ZB]
     for i in range(8):
+        if not await _line_checkpoint(): return
         var y: float=y0+float(i)*0.60
         if y<6.20:cuts_y.append(y)
-    for i in range(88):cuts_z.append(ZA+float(i)*1.20)
-    for z in names:cuts_z.append(z-2.48);cuts_z.append(z+2.48)
+    for i in range(88):
+        if not await _line_checkpoint(): return
+        cuts_z.append(ZA+float(i)*1.20)
+    for z in names:
+        if not await _line_checkpoint(): return
+        cuts_z.append(z-2.48);cuts_z.append(z+2.48)
     cuts_y.sort();cuts_z.sort()
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         # Base at the BACK of each recess; a separate marble skin forms the visible wall.
         var x: float=CX+side*8.90
         box(Vector3(0.36,6.2-y0,105),Vector3(CX+side*9.10,(y0+6.2)*0.5,MID),bed)
         box(Vector3(0.30,y0,105),Vector3(x,y0*0.5,MID),granite)
         for iy in range(cuts_y.size()-1):
+            if not await _line_checkpoint(): return
             for iz in range(cuts_z.size()-1):
+                if not await _line_checkpoint(): return
                 var h: float=cuts_y[iy+1]-cuts_y[iy];var w: float=cuts_z[iz+1]-cuts_z[iz]
                 if h<0.004 or w<0.004:continue
                 var y: float=(cuts_y[iy]+cuts_y[iy+1])*0.5;var z: float=(cuts_z[iz]+cuts_z[iz+1])*0.5
                 var opening: bool=false
                 if y>3.08 and y<3.56:
                     for center in names:
+                        if not await _line_checkpoint(): return
                         if abs(z-center)<2.48:opening=true
                 if not opening:box(Vector3(0.16,h-0.002,w-0.002),Vector3(CX+side*8.84,y,z),alternate if (iy+iz)%7==0 else wall_stone)
         rod(Vector3(CX+side*8.73,4.88,ZA),Vector3(CX+side*8.73,4.88,ZB),0.014,metal)
-        for j in range(74):box(Vector3(0.025,0.035,0.022),Vector3(CX+side*8.72,4.88,ZA+float(j)*1.44),bronze)
+        for j in range(74):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.025,0.035,0.022),Vector3(CX+side*8.72,4.88,ZA+float(j)*1.44),bronze)
         for z in names:
-            _name_recess(side,z)
+            if not await _line_checkpoint(): return
+            await _name_recess(side,z)
             picture("route_track1.svg" if side>0 else "route_track2.svg",Vector2(4.92,0.80),Vector3(CX+side*8.70,2.60,z),-side*PI/2.0,true)
         box(Vector3(0.035,0.020,105),Vector3(CX+side*8.73,y0+0.01,MID),metal)
 
 func _name_recess(side: float,z: float) -> void:
+    if not await _line_checkpoint(): return
     var yaw: float=-side*PI/2.0
     # Actual opening, 14cm deep, with back, four stone reveals and a narrow shaded upper lip.
     box(Vector3(0.012,0.48,4.96),Vector3(CX+side*8.917,3.32,z),wall_stone)
-    for dz in [-2.48,2.48]:box(Vector3(0.16,0.48,0.025),Vector3(CX+side*8.84,3.32,z+float(dz)),wall_stone)
-    for y in [3.08,3.56]:box(Vector3(0.16,0.025,4.96),Vector3(CX+side*8.84,float(y),z),wall_stone)
+    for dz in [-2.48,2.48]:
+        if not await _line_checkpoint(): return
+        box(Vector3(0.16,0.48,0.025),Vector3(CX+side*8.84,3.32,z+float(dz)),wall_stone)
+    for y in [3.08,3.56]:
+        if not await _line_checkpoint(): return
+        box(Vector3(0.16,0.025,4.96),Vector3(CX+side*8.84,float(y),z),wall_stone)
     box(Vector3(0.13,0.015,4.93),Vector3(CX+side*8.843,3.545,z),bronze)
     _lit_picture("name_be.jpg" if side>0 else "name_ru.jpg",Vector2(4.84,0.405),Vector3(CX+side*8.895,3.32,z),yaw)
 
@@ -187,32 +274,41 @@ func _capital_point(o: Vector3,face: int,t: float,u: float,offset: float=0.0) ->
     return o+radial*(r+offset)+tangent*u+Vector3.UP*(4.12+1.98*t)
 
 func _columns_and_girders() -> void:
+    if not await _line_checkpoint(): return
     var joint := _material(Color("#969184"),0.10,0.60)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*COL_X
         for i in range(18):
+            if not await _line_checkpoint(): return
             var z: float=-1.2+float(i)*PITCH
             var o := Vector3(x,0,z)
             box(Vector3(0.85,0.075,0.85),Vector3(x,FY+0.0375,z),black)
             box(Vector3(0.84,4.12-FY-0.075,0.84),Vector3(x,(4.12+FY+0.075)*0.5,z),column_stones[i%4])
             for y in [FY+0.91,FY+1.82,FY+2.71]:
+                if not await _line_checkpoint(): return
                 box(Vector3(0.842,0.002,0.842),Vector3(x,float(y),z),joint)
             for face in range(4):
+                if not await _line_checkpoint(): return
                 var angle: float=float(face)*PI/2.0
                 var radial := Vector3(sin(angle),0,cos(angle))
                 var tangent := Vector3(cos(angle),0,-sin(angle))
                 for off in [-0.045,0.045]:
+                    if not await _line_checkpoint(): return
                     box(Vector3(0.006,2.86,0.004),o+radial*0.422+tangent*float(off)+Vector3.UP*(FY+1.50),joint,Basis(Vector3.UP,angle))
                 # Smooth, CLOSED square trumpet capital. Fixtures wrap its corners, not four floating triangles.
                 for row in range(28):
+                    if not await _line_checkpoint(): return
                     var t0: float=float(row)/28.0;var t1: float=float(row+1)/28.0
                     var r0: float=_capital_radius(t0);var r1: float=_capital_radius(t1)
                     quad(_capital_point(o,face,t0,-r0),_capital_point(o,face,t0,r0),_capital_point(o,face,t1,r1),_capital_point(o,face,t1,-r1),white,radial-Vector3.UP)
-                for wing in [-1.0,1.0]:_lamp_wing(o,face,wing)
+                for wing in [-1.0,1.0]:
+                    if not await _line_checkpoint(): return
+                    await _lamp_wing(o,face,wing)
                 # Each positive face edge joins the next face's negative edge exactly.
                 # Four folded corner fixtures share one continuous casing per corner.
-                _lamp_corner_seam(o,face)
-                _axial_lamp(o,face)
+                await _lamp_corner_seam(o,face)
+                await _axial_lamp(o,face)
                 var corner: Vector3=(radial+tangent).normalized()*0.597
                 rod(o+corner+Vector3.UP*3.61,o+corner+Vector3.UP*4.58,0.012,brass)
             box(Vector3(2.80,0.14,2.80),Vector3(x,6.17,z),white)
@@ -225,6 +321,7 @@ func _lamp_point(o: Vector3,face: int,wing: float,t: float,u: float,offset: floa
     return _capital_point(o,face,level,wing*lerpf(inner,outer,u),offset)
 
 func _glass_triangle(a: Vector3,b: Vector3,c: Vector3,ua: Vector2,ub: Vector2,uc: Vector2,hint: Vector3) -> void:
+    if not await _line_checkpoint(): return
     # Continuous fixture UVs are retained for later material baking/export.
     var key := str(lamp_glass.get_instance_id())
     if not surfaces.has(key):
@@ -238,26 +335,32 @@ func _glass_triangle(a: Vector3,b: Vector3,c: Vector3,ua: Vector2,ub: Vector2,uc
     var points: Array[Vector3]=[a,b if reverse else c,c if reverse else b]
     var coords: Array[Vector2]=[ua,ub if reverse else uc,uc if reverse else ub]
     for i in range(3):
+        if not await _line_checkpoint(): return
         st.set_normal(normal);st.set_uv(coords[i]);st.add_vertex(points[i])
 
 func _glass_quad(a: Vector3,b: Vector3,c: Vector3,d: Vector3,t0: float,t1: float,hint: Vector3,u0: float=0.0,u1: float=1.0) -> void:
-    _glass_triangle(a,b,c,Vector2(u0,t0),Vector2(u1,t0),Vector2(u1,t1),hint)
-    _glass_triangle(a,c,d,Vector2(u0,t0),Vector2(u1,t1),Vector2(u0,t1),hint)
+    if not await _line_checkpoint(): return
+    await _glass_triangle(a,b,c,Vector2(u0,t0),Vector2(u1,t0),Vector2(u1,t1),hint)
+    await _glass_triangle(a,c,d,Vector2(u0,t0),Vector2(u1,t1),Vector2(u0,t1),hint)
 
 func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
+    if not await _line_checkpoint(): return
     var radial := Vector3(sin(float(face)*PI/2.0),0,cos(float(face)*PI/2.0))
     var rows: int=int(lighting["reflector_rows"])
     var lanes: int=int(lighting["diffuser_lanes_per_face"])
     # A deep folded tray, not isolated tubes: closed back, side cheeks and continuous rim.
     for row in range(rows):
+        if not await _line_checkpoint(): return
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
         quad(_lamp_point(o,face,wing,t0,0),_lamp_point(o,face,wing,t0,1),_lamp_point(o,face,wing,t1,1),_lamp_point(o,face,wing,t1,0),lamp_silver,radial-Vector3.UP)
         # One continuous glass skin across all reflector cells, without rectangular gaps.
-        _glass_quad(_lamp_point(o,face,wing,t0,0.003,0.078),_lamp_point(o,face,wing,t0,0.997,0.078),_lamp_point(o,face,wing,t1,0.997,0.078),_lamp_point(o,face,wing,t1,0.003,0.078),t0,t1,radial-Vector3.UP)
+        await _glass_quad(_lamp_point(o,face,wing,t0,0.003,0.078),_lamp_point(o,face,wing,t0,0.997,0.078),_lamp_point(o,face,wing,t1,0.997,0.078),_lamp_point(o,face,wing,t1,0.003,0.078),t0,t1,radial-Vector3.UP)
         for edge in [0.0,1.0]:
+            if not await _line_checkpoint(): return
             quad(_lamp_point(o,face,wing,t0,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.022),_lamp_point(o,face,wing,t1,float(edge),0.079),_lamp_point(o,face,wing,t0,float(edge),0.079),brass)
             rod(_lamp_point(o,face,wing,t0,float(edge),0.080),_lamp_point(o,face,wing,t1,float(edge),0.080),0.003,lamp_silver)
         for lane in range(lanes):
+            if not await _line_checkpoint(): return
             var u0: float=(float(lane)+0.08)/float(lanes)
             var u1: float=(float(lane)+0.92)/float(lanes)
             var um: float=(u0+u1)*0.5
@@ -283,22 +386,28 @@ func _lamp_wing(o: Vector3,face: int,wing: float) -> void:
         if row>0 and row%6==0:
             rod(_lamp_point(o,face,wing,t0,0,0.084),_lamp_point(o,face,wing,t0,1,0.084),0.0015,lamp_silver)
     for t in [0.0,1.0]:
+        if not await _line_checkpoint(): return
         quad(_lamp_point(o,face,wing,float(t),0,0.022),_lamp_point(o,face,wing,float(t),1,0.022),_lamp_point(o,face,wing,float(t),1,0.079),_lamp_point(o,face,wing,float(t),0,0.079),brass)
     # Vertical top crown as in the close-ups, physically joined to the flared lower tray.
     for lane in range(lanes):
+        if not await _line_checkpoint(): return
         var u0: float=float(lane)/float(lanes);var u1: float=float(lane+1)/float(lanes)
         var a: Vector3=_lamp_point(o,face,wing,1.0,u0,0.079)
         var b: Vector3=_lamp_point(o,face,wing,1.0,u1,0.079)
         var h := Vector3.UP*float(lighting["crown_height_m"])
-        _glass_quad(a,b,b+h,a+h,1.0,1.12,radial,u0,u1)
+        await _glass_quad(a,b,b+h,a+h,1.0,1.12,radial,u0,u1)
         rod(a,a+h,0.002,brass)
         rod(a.lerp(b,0.5)+h*0.10,a.lerp(b,0.5)+h*0.88,0.002,brass)
-        for v in [0.23,0.50,0.77]:sphere(Vector3(0.025,0.025,0.025),a.lerp(b,0.72)+h*float(v)+radial*0.009,lamp_bead)
+        for v in [0.23,0.50,0.77]:
+            if not await _line_checkpoint(): return
+            sphere(Vector3(0.025,0.025,0.025),a.lerp(b,0.72)+h*float(v)+radial*0.009,lamp_bead)
         rod(a+h,b+h,0.003,brass)
 
 func _lamp_corner_seam(o: Vector3,face: int) -> void:
+    if not await _line_checkpoint(): return
     var rows: int=int(lighting["reflector_rows"])
     for row in range(rows):
+        if not await _line_checkpoint(): return
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
         rod(_lamp_point(o,face,1.0,t0,1.0,0.084),_lamp_point(o,face,1.0,t1,1.0,0.084),0.004,brass)
 
@@ -307,53 +416,70 @@ func _axial_lamp_point(o: Vector3,face: int,t: float,u: float,depth: float) -> V
     return _capital_point(o,face,level,u,depth)
 
 func _axial_lamp(o: Vector3,face: int) -> void:
+    if not await _line_checkpoint(): return
     # One long rectangular compartment in EACH of the four white ribs between corner fans.
     var radial := Vector3(sin(float(face)*PI/2.0),0,cos(float(face)*PI/2.0))
     var half: float=float(lighting["axial_width_m"])*0.5
     var rows := 16
     for row in range(rows):
+        if not await _line_checkpoint(): return
         var t0: float=float(row)/float(rows);var t1: float=float(row+1)/float(rows)
         quad(_axial_lamp_point(o,face,t0,-half,0.032),_axial_lamp_point(o,face,t0,half,0.032),_axial_lamp_point(o,face,t1,half,0.032),_axial_lamp_point(o,face,t1,-half,0.032),bronze,radial-Vector3.UP)
         for edge in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var u: float=float(edge)*half
             quad(_axial_lamp_point(o,face,t0,u,0.032),_axial_lamp_point(o,face,t1,u,0.032),_axial_lamp_point(o,face,t1,u,0.092),_axial_lamp_point(o,face,t0,u,0.092),brass)
             rod(_axial_lamp_point(o,face,t0,u,0.094),_axial_lamp_point(o,face,t1,u,0.094),0.0035,brass)
         var lens: float=half*0.70
-        _glass_quad(_axial_lamp_point(o,face,t0,-lens,0.079),_axial_lamp_point(o,face,t0,lens,0.079),_axial_lamp_point(o,face,t1,lens,0.079),_axial_lamp_point(o,face,t1,-lens,0.079),t0,t1,radial-Vector3.UP)
+        await _glass_quad(_axial_lamp_point(o,face,t0,-lens,0.079),_axial_lamp_point(o,face,t0,lens,0.079),_axial_lamp_point(o,face,t1,lens,0.079),_axial_lamp_point(o,face,t1,-lens,0.079),t0,t1,radial-Vector3.UP)
         if row>0 and row%6==0:
             rod(_axial_lamp_point(o,face,t0,-half,0.095),_axial_lamp_point(o,face,t0,half,0.095),0.0015,brass)
     for t in [0.0,1.0]:
+        if not await _line_checkpoint(): return
         quad(_axial_lamp_point(o,face,float(t),-half,0.032),_axial_lamp_point(o,face,float(t),half,0.032),_axial_lamp_point(o,face,float(t),half,0.092),_axial_lamp_point(o,face,float(t),-half,0.092),brass)
     # Joined bronze stem continues down onto the marble, as in 9897.jpg.
     rod(o+radial*0.434+Vector3.UP*3.64,o+radial*0.434+Vector3.UP*4.12,0.014,brass)
     rod(o+radial*0.434+Vector3.UP*4.12,_axial_lamp_point(o,face,0.0,0,0.094),0.014,brass)
 
 func _ceilings() -> void:
+    if not await _line_checkpoint(): return
     # Solid white soffit, recessed panel fields and narrow panel joints instead of repeated Academy ribs.
     box(Vector3(7.7,0.18,SOUTH-NORTH),Vector3(CX,6.30,(SOUTH+NORTH)*0.5),ceiling_light)
-    for side in [-1.0,1.0]:box(Vector3(5.15,0.18,105),Vector3(CX+side*6.425,6.30,MID),ceiling_light)
+    for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
+        box(Vector3(5.15,0.18,105),Vector3(CX+side*6.425,6.30,MID),ceiling_light)
     var seam := _material(Color("#c1c2b9"),0.0,0.80)
     for i in range(44):
+        if not await _line_checkpoint(): return
         var z: float=ZA+1.2+float(i)*2.4
         if z>NORTH and z<SOUTH:box(Vector3(7.70,0.004,0.008),Vector3(CX,6.203,z),seam)
-        for side in [-1.0,1.0]:box(Vector3(5.15,0.004,0.008),Vector3(CX+side*6.425,6.203,z),seam)
+        for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
+            box(Vector3(5.15,0.004,0.008),Vector3(CX+side*6.425,6.203,z),seam)
     for j in range(8):
+        if not await _line_checkpoint(): return
         var x: float=CX-8.4+float(j)*2.4
         var central: bool=abs(x-CX)<3.85
         box(Vector3(0.008,0.004,SOUTH-NORTH if central else 105.0),Vector3(x,6.203,(SOUTH+NORTH)*0.5 if central else MID),seam)
-    for side in [-1.0,1.0]:box(Vector3(0.44,0.30,SOUTH-NORTH),Vector3(CX+side*COL_X,6.12,(SOUTH+NORTH)*0.5),white)
+    for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
+        box(Vector3(0.44,0.30,SOUTH-NORTH),Vector3(CX+side*COL_X,6.12,(SOUTH+NORTH)*0.5),white)
     for i in range(18):
+        if not await _line_checkpoint(): return
         var z: float=-1.2+float(i)*PITCH
         box(Vector3(17.9,0.30,0.44),Vector3(CX,6.12,z),white)
     # Remove the six broad inherited fills: they washed out every ceiling bay equally.
     for child in get_children():
+        if not await _line_checkpoint(): return
         if child is OmniLight3D:
             child.hide()
     # Real light is attached to every photographed capital, not unrelated 15m intervals.
     # Static ceiling bounce above is evaluated per surface, avoiding dozens of shadow maps
     # and the Compatibility renderer's per-object light limit across the long soffit mesh.
     for i in range(18):
+        if not await _line_checkpoint(): return
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var light := OmniLight3D.new()
             light.name="CapitalLight_%02d_%s" % [i,"L" if side<0.0 else "R"]
             light.position=Vector3(CX+side*COL_X,float(lighting["local_light_height_m"]),-1.2+float(i)*PITCH)
@@ -368,6 +494,7 @@ func _ceilings() -> void:
             add_child(light)
 
 func _stairs(direction: float,start: float) -> void:
+    if not await _line_checkpoint(): return
     var width := 7.12
     var rise := 0.145
     var run := 0.31
@@ -376,9 +503,11 @@ func _stairs(direction: float,start: float) -> void:
     var top: float=FY+float(count)*rise
     var riser := stair_stone.duplicate() as StandardMaterial3D;riser.albedo_color=Color(0.76,0.76,0.73)
     for i in range(count):
+        if not await _line_checkpoint(): return
         var y: float=FY+float(i+1)*rise
         var z: float=start+direction*(float(i)*run+(landing if i>=16 else 0.0))
         for slab in range(5):
+            if not await _line_checkpoint(): return
             var x: float=CX-width*0.5+(float(slab)+0.5)*width/5.0
             box(Vector3(width/5.0-0.003,0.055,run-0.002),Vector3(x,y-0.0275,z),stair_stone)
             box(Vector3(width/5.0-0.003,rise-0.052,0.022),Vector3(x,y-rise*0.5-0.026,z-direction*(run*0.5-0.012)),riser)
@@ -387,18 +516,21 @@ func _stairs(direction: float,start: float) -> void:
     box(Vector3(width,0.08,landing),Vector3(CX,FY+16.0*rise-0.04,middle),stair_stone)
     var finish: float=start+direction*(31.5*run+landing)
     box(Vector3(width,0.15,3.40),Vector3(CX,top-0.075,finish+direction*1.7),floor_stone)
-    _exit_hall(direction,start,width,top,14.7)
+    await _exit_hall(direction,start,width,top,14.7)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*(width*0.5-0.11)
         var points: Array[Vector2]=[Vector2(-0.32,0),Vector2(15.5*run,16.0*rise),Vector2(15.5*run+landing,16.0*rise),Vector2(31.5*run+landing,32.0*rise),Vector2(13.5,32.0*rise)]
         for i in range(points.size()-1):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[i];var b: Vector2=points[i+1]
             rod(Vector3(x,FY+0.90+a.y,start+direction*a.x),Vector3(x,FY+0.90+b.y,start+direction*b.x),0.025,metal)
             for j in range(3):
+                if not await _line_checkpoint(): return
                 var t: float=(float(j)+0.5)/3.0;var q: Vector2=a.lerp(b,t)
                 rod(Vector3(x,FY+0.90+q.y,start+direction*q.x),Vector3(x+side*0.11,FY+0.80+q.y,start+direction*q.x),0.011,metal)
     board("exit_stairs.svg",Vector3(CX,4.66,start-direction*0.50),Vector2(5.90,0.959))
-    _landing(start-direction*0.75,7.35,0.55)
+    await _landing(start-direction*0.75,7.35,0.55)
 
 func _escalator_height(s: float) -> float:
     if s<1.0:return 0.0
@@ -410,49 +542,66 @@ func _escalator_height(s: float) -> float:
     return 5.452
 
 func _escalators(start: float) -> void:
+    if not await _line_checkpoint(): return
     var width := 7.12
     var rubber := _material(Color("#1d201d"),0.0,0.52)
     var stepmat := _material(Color("#555a54"),0.55,0.46)
     var casing := _photo("escalator_oak.jpg",Vector2(0.65,0.80),0.47)
-    _exit_hall(1.0,start,width,FY+5.452,16.5)
-    _escalator_wall_infill(start,width)
-    _landing(start+0.18,7.12,1.60)
+    await _exit_hall(1.0,start,width,FY+5.452,16.5)
+    await _escalator_wall_infill(start,width)
+    await _landing(start+0.18,7.12,1.60)
     for lane in range(3):
+        if not await _line_checkpoint(): return
         var x: float=CX+(float(lane)-1.0)*2.0
         for i in range(54):
+            if not await _line_checkpoint(): return
             var s: float=-0.20+float(i)*0.25
             var y: float=_escalator_height(s)
             box(Vector3(1.39,0.055,0.246),Vector3(x,FY+y+0.028,start+s),stepmat)
             var h: float=maxf(0.005,y-_escalator_height(s-0.25))
             box(Vector3(1.39,h,0.018),Vector3(x,FY+y-h*0.5,start+s-0.123),stepmat)
-            for groove in range(18):box(Vector3(0.005,0.005,0.242),Vector3(x-0.65+float(groove)*0.076,FY+y+0.058,start+s),black)
-        for j in range(70):box(Vector3(0.007,0.017,0.075),Vector3(x-0.67+float(j)*0.0193,FY+0.065,start-0.35),metal)
+            for groove in range(18):
+                if not await _line_checkpoint(): return
+                box(Vector3(0.005,0.005,0.242),Vector3(x-0.65+float(groove)*0.076,FY+y+0.058,start+s),black)
+        for j in range(70):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.007,0.017,0.075),Vector3(x-0.67+float(j)*0.0193,FY+0.065,start-0.35),metal)
     # Four SHARED balustrades, each with continuous curved transitions and a rounded return nose.
     for boundary in range(4):
+        if not await _line_checkpoint(): return
         var x: float=CX-3.0+float(boundary)*2.0
         var outline := PackedVector2Array()
         var rail: Array[Vector3]=[]
         for i in range(76):
+            if not await _line_checkpoint(): return
             var s: float=float(i)*0.18
             var h: float=_escalator_height(s)
             outline.append(Vector2(s,h+0.84));rail.append(Vector3(x,FY+h+0.86,start+s))
         for i in range(75,-1,-1):
+            if not await _line_checkpoint(): return
             var s: float=float(i)*0.18
             outline.append(Vector2(s,_escalator_height(s)+0.10))
         # The top/bottom endpoints already belong to the straight outline; do not repeat polygon vertices.
         for j in range(1,16):
+            if not await _line_checkpoint(): return
             var a: float=-PI/2.0-float(j)*PI/16.0
             outline.append(Vector2(0.37*cos(a),0.47+0.37*sin(a)))
-        _side_panel(outline,x-0.26,x+0.26,start,casing)
+        await _side_panel(outline,x-0.26,x+0.26,start,casing)
         for i in range(rail.size()-1):
+            if not await _line_checkpoint(): return
             rod(rail[i],rail[i+1],0.045,rubber)
-            for off in [-0.263,0.263]:rod(rail[i]+Vector3(float(off),-0.055,0),rail[i+1]+Vector3(float(off),-0.055,0),0.018,metal)
+            for off in [-0.263,0.263]:
+                if not await _line_checkpoint(): return
+                rod(rail[i]+Vector3(float(off),-0.055,0),rail[i+1]+Vector3(float(off),-0.055,0),0.018,metal)
         for j in range(24):
+            if not await _line_checkpoint(): return
             var a0: float=PI/2.0+float(j)*PI/24.0;var a1: float=PI/2.0+float(j+1)*PI/24.0
             var a := Vector3(x,FY+0.47+0.39*sin(a0),start+0.39*cos(a0))
             var b := Vector3(x,FY+0.47+0.39*sin(a1),start+0.39*cos(a1))
             rod(a,b,0.045,rubber)
-            for off in [-0.263,0.263]:rod(a+Vector3(float(off),-0.035,0),b+Vector3(float(off),-0.035,0),0.019,metal)
+            for off in [-0.263,0.263]:
+                if not await _line_checkpoint(): return
+                rod(a+Vector3(float(off),-0.035,0),b+Vector3(float(off),-0.035,0),0.019,metal)
         box(Vector3(0.28,0.69,0.27),Vector3(x,FY+0.345,start-0.63),metal)
         box(Vector3(0.29,0.055,0.28),Vector3(x,FY+0.03,start-0.63),black)
         picture("escalator_warning.svg",Vector2(0.20,0.23),Vector3(x,FY+0.30,start-0.771),PI)
@@ -465,49 +614,63 @@ func _escalators(start: float) -> void:
     board("exit_escalators.svg",Vector3(CX,4.66,start-0.88),Vector2(5.90,0.959))
 
 func _escalator_wall_infill(start: float,width: float) -> void:
+    if not await _line_checkpoint(): return
     # Close the two 31cm side slots with solid shaped stone cheeks, joined to the
     # outer balustrades and hall walls. Preserve all three moving-step lane widths.
     var outline := PackedVector2Array()
     outline.append(Vector2(-0.42,-0.08))
     for i in range(77):
+        if not await _line_checkpoint(): return
         var distance: float=-0.42+float(i)*(14.0/76.0)
         outline.append(Vector2(distance,_escalator_height(maxf(distance,0.0))+0.14))
     outline.append(Vector2(13.58,-0.08))
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var inner: float=CX+float(side)*3.25
         var outer: float=CX+float(side)*(width*0.5+0.04)
-        _side_panel(outline,minf(inner,outer),maxf(inner,outer),start,wall_stone)
+        await _side_panel(outline,minf(inner,outer),maxf(inner,outer),start,wall_stone)
     # Solid machine bed also closes the underside and meets the upper landing.
     var bed := PackedVector2Array([Vector2(-0.42,-0.12)])
     for i in range(77):
+        if not await _line_checkpoint(): return
         var distance: float=-0.42+float(i)*(14.0/76.0)
         bed.append(Vector2(distance,_escalator_height(maxf(distance,0.0))-0.025))
     bed.append(Vector2(13.58,-0.12))
-    _side_panel(bed,CX-3.26,CX+3.26,start,granite)
+    await _side_panel(bed,CX-3.26,CX+3.26,start,granite)
 
 func _side_panel(points: PackedVector2Array,x0: float,x1: float,z0: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     var caps := Geometry2D.triangulate_polygon(points)
     for side in [0,1]:
+        if not await _line_checkpoint(): return
         var x: float=x0 if side==0 else x1
         for j in range(0,caps.size(),3):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[caps[j]];var b: Vector2=points[caps[j+1]];var c: Vector2=points[caps[j+2]]
             triangle(Vector3(x,FY+a.y,z0+a.x),Vector3(x,FY+b.y,z0+b.x),Vector3(x,FY+c.y,z0+c.x),mat,Vector3(-1 if side==0 else 1,0,0))
     for j in range(points.size()):
+        if not await _line_checkpoint(): return
         var a: Vector2=points[j];var b: Vector2=points[(j+1)%points.size()]
         quad(Vector3(x0,FY+a.y,z0+a.x),Vector3(x1,FY+a.y,z0+a.x),Vector3(x1,FY+b.y,z0+b.x),Vector3(x0,FY+b.y,z0+b.x),mat)
 
 func _landing(z: float,width: float,length: float) -> void:
+    if not await _line_checkpoint(): return
     var plate := _photo("checker_plate.svg",Vector2(0.32,0.32),0.47)
     box(Vector3(width,0.018,length),Vector3(CX,FY+0.025,z),plate)
-    for i in range(12):box(Vector3(width*0.82,0.004,0.012),Vector3(CX,FY+0.036,z-length*0.42+float(i)*length*0.075),black)
+    for i in range(12):
+        if not await _line_checkpoint(): return
+        box(Vector3(width*0.82,0.004,0.012),Vector3(CX,FY+0.036,z-length*0.42+float(i)*length*0.075),black)
 
 func _exit_hall(direction: float,start: float,width: float,top: float,length: float) -> void:
+    if not await _line_checkpoint(): return
     var roof_y: float=maxf(8.0,top+2.80)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*(width*0.5+0.16)
         box(Vector3(0.30,roof_y-FY,length),Vector3(x,(roof_y+FY)*0.5,start+direction*(length*0.5-0.30)),wall_stone)
         box(Vector3(0.31,0.09,length),Vector3(x,FY+0.045,start+direction*(length*0.5-0.30)),black)
         for y in [FY+0.6,FY+1.2,FY+1.8,FY+2.4,FY+3.0,FY+3.6,FY+4.2]:
+            if not await _line_checkpoint(): return
             box(Vector3(0.003,0.003,length),Vector3(x-side*0.152,float(y),start+direction*(length*0.5-0.30)),trim)
         picture("no_smoking.svg",Vector2(0.22,0.22),Vector3(x,FY+1.9,start-direction*0.47),0.0 if direction<0 else PI)
         picture("sos_info.svg",Vector2(0.25,0.39),Vector3(x,FY+0.94,start-direction*0.472),0.0 if direction<0 else PI)
@@ -517,15 +680,19 @@ func _exit_hall(direction: float,start: float,width: float,top: float,length: fl
     var front: float=start-direction*0.36
     box(Vector3(width+0.62,1.05,0.42),Vector3(CX,5.87,front),white)
     box(Vector3(width+0.62,roof_y-7.10,0.42),Vector3(CX,(roof_y+7.10)*0.5,front),white)
-    for side in [-1.0,1.0]:box(Vector3((width+0.62-2.6)*0.5,0.73,0.42),Vector3(CX+side*(2.6+(width+0.62-2.6)*0.5)*0.5,6.755,front),white)
+    for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
+        box(Vector3((width+0.62-2.6)*0.5,0.73,0.42),Vector3(CX+side*(2.6+(width+0.62-2.6)*0.5)*0.5,6.755,front),white)
     box(Vector3(2.6,0.73,0.06),Vector3(CX,6.755,front+direction*0.16),white)
     for i in range(7):
+        if not await _line_checkpoint(): return
         var z: float=start+direction*float(i)*2.3
         box(Vector3(width+0.2,0.14,0.28),Vector3(CX,roof_y-0.05,z),white)
         box(Vector3(5.6,0.045,0.045),Vector3(CX,roof_y-0.16,z),glow)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         rod(Vector3(CX+side*3.35,5.22,start),Vector3(CX+side*3.35,5.22,start+direction*5.0),0.025,glow)
-    _gate_concourse(direction,start+direction*(length-1.15),width,top,roof_y)
+    await _gate_concourse(direction,start+direction*(length-1.15),width,top,roof_y)
 
 func _concourse_material(file: String,origin_z: float,direction: float) -> ShaderMaterial:
     var mat := ShaderMaterial.new()
@@ -536,6 +703,7 @@ func _concourse_material(file: String,origin_z: float,direction: float) -> Shade
     return mat
 
 func _gate_concourse(direction: float,landing: float,width: float,top: float,roof_y: float) -> void:
+    if not await _line_checkpoint(): return
     # The landing opens onto a real upper hall before the gate row, continuing into shade.
     var length := 25.0
     var middle: float=landing+direction*length*0.5
@@ -546,10 +714,12 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
     box(Vector3(9.30,0.045,length),Vector3(CX,top-0.020,middle),paving)
     box(Vector3(9.58,0.18,length),Vector3(CX,roof_y+0.09,middle),soffit)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         if side<0.0:
             box(Vector3(0.28,roof_y-top,length),Vector3(CX+side*4.79,(roof_y+top)*0.5,middle),wall)
         else:
             for interval in [Vector2(0,11),Vector2(14,25)]:
+                if not await _line_checkpoint(): return
                 box(Vector3(0.28,roof_y-top,interval.y-interval.x),Vector3(CX+4.79,(roof_y+top)*0.5,landing+direction*(interval.x+interval.y)*0.5),wall)
             box(Vector3(0.28,roof_y-top-2.35,3.0),Vector3(CX+4.79,top+2.35+(roof_y-top-2.35)*0.5,landing+direction*12.5),wall)
         # Widen beyond the existing stair/escalator hall without a gap at the shoulder.
@@ -569,6 +739,7 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
     box(Vector3(8.0,0.20,3.0),Vector3(CX+8.65,top-0.10,branch_z),paving)
     box(Vector3(8.0,0.18,3.0),Vector3(CX+8.65,roof_y+0.09,branch_z),soffit)
     for edge in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         box(Vector3(8.0,roof_y-top,0.25),Vector3(CX+8.65,(roof_y+top)*0.5,branch_z+float(edge)*1.50),wall)
     var bend := MeshInstance3D.new();var bend_mesh := QuadMesh.new()
     bend_mesh.size=Vector2(3.5,roof_y-top+0.40);bend_mesh.material=darkness
@@ -584,6 +755,7 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
     green.emission_enabled=true;green.emission=Color(0.06,0.35,0.14);green.emission_energy_multiplier=1.1
     var gate_z: float=landing+direction*4.70
     for i in range(5):
+        if not await _line_checkpoint(): return
         var x: float=CX-2.64+float(i)*1.32
         box(Vector3(0.31,1.05,0.84),Vector3(x,top+0.525,gate_z),steel)
         box(Vector3(0.28,0.065,0.79),Vector3(x,top+1.082,gate_z),black)
@@ -596,25 +768,31 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
             rod(pivot,pivot+Vector3(0.52,-0.45,direction*0.33),0.025,steel)
             rod(pivot,pivot+Vector3(0.52,-0.45,-direction*0.33),0.025,steel)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*3.85
         box(Vector3(0.10,1.10,0.10),Vector3(x,top+0.55,gate_z),steel)
         box(Vector3(1.15,0.70,0.018),Vector3(x-side*0.52,top+0.72,gate_z),glass)
         for y in [0.26,1.03]:
+            if not await _line_checkpoint(): return
             rod(Vector3(x,top+float(y),gate_z),Vector3(CX+side*4.65,top+float(y),gate_z),0.020,steel)
     var booth_x: float=CX+3.60;var booth_z: float=landing+direction*7.30
     box(Vector3(1.55,0.085,2.40),Vector3(booth_x,top+0.043,booth_z),steel)
     box(Vector3(1.55,0.08,2.40),Vector3(booth_x,top+2.38,booth_z),steel)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         for face in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             box(Vector3(0.065,2.30,0.065),Vector3(booth_x+side*0.74,top+1.23,booth_z+face*1.16),steel)
         box(Vector3(0.025,1.10,2.27),Vector3(booth_x+side*0.74,top+1.62,booth_z),glass)
         box(Vector3(0.06,0.84,2.32),Vector3(booth_x+side*0.74,top+0.51,booth_z),blue)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         box(Vector3(1.44,1.10,0.025),Vector3(booth_x,top+1.62,booth_z+face*1.16),glass)
         box(Vector3(1.48,0.84,0.06),Vector3(booth_x,top+0.51,booth_z+face*1.16),blue)
     # Door frame, handle, operator desk, monitor and seat remain visible through the glazing.
     var door_x: float=booth_x-0.77
     for dz in [-0.48,0.30]:
+        if not await _line_checkpoint(): return
         rod(Vector3(door_x,top+0.10,booth_z+float(dz)),Vector3(door_x,top+2.18,booth_z+float(dz)),0.018,steel)
     rod(Vector3(door_x-0.035,top+1.00,booth_z+0.20),Vector3(door_x-0.035,top+1.22,booth_z+0.20),0.012,metal)
     box(Vector3(1.20,0.08,0.55),Vector3(booth_x,top+0.80,booth_z-direction*0.55),oak)
@@ -624,12 +802,14 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
     picture("control_booth.svg",Vector2(1.40,0.305),Vector3(booth_x,top+2.15,booth_z-direction*1.205),0.0 if direction<0.0 else PI)
     # Gradually fewer and dimmer lights beyond the fare line.
     for i in range(7):
+        if not await _line_checkpoint(): return
         var distance: float=1.5+float(i)*2.7
         var energy: float=1.0-smoothstep(8.0,20.0,distance)
         var strip := _material(Color(0.80,0.78,0.70)*energy,0,0.6)
         strip.emission_enabled=true;strip.emission=Color(1.0,0.93,0.78)*energy;strip.emission_energy_multiplier=0.85
         box(Vector3(3.60,0.035,0.10),Vector3(CX,roof_y-0.055,landing+direction*distance),strip)
     for offset in [2.5,7.0]:
+        if not await _line_checkpoint(): return
         var light := OmniLight3D.new()
         light.position=Vector3(CX,top+2.20,landing+direction*float(offset))
         light.light_color=Color(1.0,0.96,0.87);light.light_energy=0.65
@@ -640,52 +820,76 @@ func _gate_concourse(direction: float,landing: float,width: float,top: float,roo
     anchor.set_meta("lanes",4);anchor.set_meta("controller_booth",Vector3(booth_x,top,booth_z));add_child(anchor)
 
 func _signs() -> void:
+    if not await _line_checkpoint(): return
     # Clear opening = 4.80 - .84 = 3.96 m; framed signs = 3.48 m.
     for bay in [2,6,10,14]:
+        if not await _line_checkpoint(): return
         var z: float=-1.2+(float(bay)+0.5)*PITCH
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var p := Vector3(CX+side*COL_X,4.63,z)
             var size := Vector2(3.40,0.5383)
             box(Vector3(0.075,0.60,3.48),p,metal)
-            for face in [-1.0,1.0]:picture("platform_track1.svg" if side>0 else "platform_track2.svg",size,p+Vector3(face*0.043,0,0),face*PI/2.0)
-            for dz in [-0.95,0.95]:rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,6.02,z+float(dz)),0.022,metal)
+            for face in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
+                picture("platform_track1.svg" if side>0 else "platform_track2.svg",size,p+Vector3(face*0.043,0,0),face*PI/2.0)
+            for dz in [-0.95,0.95]:
+                if not await _line_checkpoint(): return
+                rod(p+Vector3(0,0.27,float(dz)),Vector3(p.x,6.02,z+float(dz)),0.022,metal)
 
 func _bench(p: Vector3) -> void:
+    if not await _line_checkpoint(): return
     var base := _material(Color("#4b3d29"),0.05,0.67)
     box(Vector3(0.60,0.34,2.99),p+Vector3(0,0.21,0),base)
     for seat in range(5):
+        if not await _line_checkpoint(): return
         var z: float=-1.20+float(seat)*0.60
         # Contoured saddle with rounded front and rear noses; five distinct photographed modules.
         for strip in range(15):
+            if not await _line_checkpoint(): return
             var x: float=-0.35+(float(strip)+0.5)*0.70/15.0
             var y: float=0.475+0.028*pow(abs(x)/0.35,3.0)
             box(Vector3(0.047,0.066,0.575),p+Vector3(x,y-0.033,z),oak)
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             for j in range(8):
+                if not await _line_checkpoint(): return
                 var a0: float=-PI/2.0+float(j)*PI/8.0;var a1: float=-PI/2.0+float(j+1)*PI/8.0
                 var x0: float=side*(0.327+0.028*cos(a0));var x1: float=side*(0.327+0.028*cos(a1))
                 quad(p+Vector3(x0,0.473+0.028*sin(a0),z-0.2875),p+Vector3(x0,0.473+0.028*sin(a0),z+0.2875),p+Vector3(x1,0.473+0.028*sin(a1),z+0.2875),p+Vector3(x1,0.473+0.028*sin(a1),z-0.2875),oak)
         for edge in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var joint_z: float=z+edge*0.293
             box(Vector3(0.715,0.014,0.018),p+Vector3(0,0.504,joint_z),black)
-            for side in [-1.0,1.0]:box(Vector3(0.018,0.11,0.018),p+Vector3(side*0.35,0.455,joint_z),black)
+            for side in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
+                box(Vector3(0.018,0.11,0.018),p+Vector3(side*0.35,0.455,joint_z),black)
 
 func _television(z: float,event: bool) -> void:
+    if not await _line_checkpoint(): return
     var p := Vector3(CX,4.65,z)
     box(Vector3(1.56,0.95,0.13),p,black)
     for dx in [-0.48,0.48]:
+        if not await _line_checkpoint(): return
         rod(p+Vector3(float(dx),0.50,0),Vector3(CX+float(dx),5.98,z),0.015,metal)
         box(Vector3(0.14,0.02,0.16),Vector3(CX+float(dx),5.97,z),metal)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         if event:picture("burger_ad.jpg",Vector2(1.48,0.86),p+Vector3(0,0,face*0.07),0.0 if face>0 else PI)
         else:box(Vector3(1.48,0.86,0.006),p+Vector3(0,0,face*0.07),_material(Color("#111719"),0.35,0.15))
 
 func _floor_fittings() -> void:
+    if not await _line_checkpoint(): return
     for z in [11.0,37.0,65.0]:
+        if not await _line_checkpoint(): return
         cylinder(0.20,0.014,Vector3(CX+0.3,FY+0.023,float(z)),metal)
-        for i in range(6):box(Vector3(0.012,0.016,0.25),Vector3(CX+0.22+float(i)*0.032,FY+0.030,float(z)),black)
+        for i in range(6):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.012,0.016,0.25),Vector3(CX+0.22+float(i)*0.032,FY+0.030,float(z)),black)
         box(Vector3(0.35,0.018,0.38),Vector3(CX-0.25,FY+0.025,float(z)+3.4),trim)
-        for i in range(8):box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
+        for i in range(8):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.20,0.022,0.018),Vector3(CX-0.25,FY+0.030,float(z)+3.26+float(i)*0.036),black)
 
 func _portal_z(direction: float) -> float:
     # Equal clearance from the existing mirrors at all four tunnel mouths.
@@ -695,20 +899,27 @@ func _portal_z(direction: float) -> float:
     return eye_z+direction*(float(lighting["mirror_ahead_of_eye_m"])+float(lighting["tunnel_mouth_mirror_clearance_m"]))
 
 func _track_details() -> void:
+    if not await _line_checkpoint(): return
     var detail := preload("res://modules/stations/ploshchad_pobedy/track_detail.gd").new()
     detail.name="UruchyeStyleTrackwork"
     detail.start_z=track_min_z;detail.finish_z=track_max_z;add_child(detail)
     for name in ["Track1","Track2"]:
+        if not await _line_checkpoint(): return
         var x: float=0.992 if name=="Track1" else -11.732
         for direction in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var end: float=_portal_z(float(direction))
             box(Vector3(3.78,0.20,8.0),Vector3(x,4.90,end+direction*3.9),wall_stone)
             for side in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 box(Vector3(0.14,4.60,8.0),Vector3(x+side*1.94,2.12,end+direction*3.9),wall_stone)
-                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
+                for h in [0.70,1.1,1.5,1.9,2.35,2.65]:
+                    if not await _line_checkpoint(): return
+                    rod(Vector3(x+side*1.84,float(h),end),Vector3(x+side*1.84,float(h),end+direction*7.8),0.015,black)
             box(Vector3(3.85,4.65,0.10),Vector3(x,2.13,end+direction*8.0),black)
 
 func _portal_shell() -> void:
+    if not await _line_checkpoint(): return
     # Continuous end-wall returns around four clear tunnel mouths. Top joins the
     # existing soffit; side jambs overlap the tunnel lining and exit-hall walls.
     var top := 6.24
@@ -716,8 +927,10 @@ func _portal_shell() -> void:
     var inner_edge := 3.86
     var outer_edge := 8.94
     for direction in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var end: float=_portal_z(float(direction))
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var track: float=CX+float(side)*6.362
             var mouth_inner := 6.362-1.89
             var mouth_outer := 6.362+1.89
@@ -728,12 +941,17 @@ func _portal_shell() -> void:
             box(Vector3(3.78,top-4.80,0.32),Vector3(track,(top+4.80)*0.5,end+float(direction)*0.26),white)
 
 func _portal_equipment() -> void:
+    if not await _line_checkpoint(): return
     var infra := get_node("StationInfrastructure")
     infra.set("_amber",Color(1.0,0.13,0.055))
     var displays: Array=infra.get("_displays")
     for display in displays:
-        for i in range(70,76):display.set_instance_color(i,Color(1.0,0.13,0.055))
+        if not await _line_checkpoint(): return
+        for i in range(70,76):
+            if not await _line_checkpoint(): return
+            display.set_instance_color(i,Color(1.0,0.13,0.055))
     for node in infra.get_children():
+        if not await _line_checkpoint(): return
         if node is Node3D and "Portal" in str(node.name):
             node.position.y=4.68
             var portal_direction: float=-1.0 if "Portal1" in str(node.name) else 1.0
@@ -741,8 +959,10 @@ func _portal_equipment() -> void:
             # Keep the shared clock arrays intact, hide only the two tail-end panels locally.
             node.visible=str(node.name) in ["Track1Portal1Clock","Track2Portal2Clock"]
     for direction in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var end: float=_portal_z(float(direction))
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var tx: float=CX+side*6.362
             var yaw: float=0.0 if direction<0.0 else PI
             box(Vector3(3.90,0.48,0.25),Vector3(tx,4.68,end),wall_stone)
@@ -761,12 +981,18 @@ func _portal_equipment() -> void:
             var q := QuadMesh.new();q.size=Vector2(0.60,1.56);mirror.mesh=q;mirror.set_meta("mirror_size",q.size);root.add_child(mirror)
             var pts: Array[Vector3]=[]
             for corner in range(4):
+                if not await _line_checkpoint(): return
                 var c := Vector2(0.235*(1.0 if corner in [0,3] else -1.0),0.70*(1.0 if corner in [0,1] else -1.0))
                 for j in range(9):
+                    if not await _line_checkpoint(): return
                     var a: float=float(corner)*PI/2.0+float(j)*PI/16.0;pts.append(Vector3(c.x+0.11*cos(a),c.y+0.11*sin(a),0))
-            for i in range(pts.size()):_local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
+            for i in range(pts.size()):
+                if not await _line_checkpoint(): return
+                _local_rod(root,pts[i],pts[(i+1)%pts.size()],0.032,white)
             _local_rod(root,Vector3(0,-1.42,0),Vector3(0,-0.80,0),0.075,_material(Color("#285476"),0.3,0.42))
-            for dx in [-0.42,0.42]:_local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
+            for dx in [-0.42,0.42]:
+                if not await _line_checkpoint(): return
+                _local_rod(root,Vector3(float(dx),-1.42,0),Vector3(float(dx),-0.52,0.10),0.023,metal)
             _local_rod(root,Vector3(-0.42,-0.52,0.10),Vector3(0.42,-0.52,0.10),0.023,metal)
             var p := Vector3(tx-side*1.60,4.68,end-direction*0.19)
             box(Vector3(0.72,0.46,0.08),p,black)
@@ -799,3 +1025,19 @@ func _camera_box(p: Vector3,yaw: float) -> void:
     sphere(Vector3(0.075,0.075,0.015),p+b*Vector3(0,0,0.16),black)
     rod(p+Vector3(0,0.1,0),p+Vector3(0,0.3,0),0.014,metal)
 
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

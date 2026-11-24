@@ -7,6 +7,10 @@ var _platforms: Dictionary = {}
 var _active_visit := ""
 var _active_station := -1
 var _travel_direction := 1
+var _simulation: Array=[]
+var _activity_clock := 0.0
+var _spaces: Dictionary = {}
+const BuildBudget = preload("res://modules/line/build_budget.gd")
 
 func initialize_line(line: Node3D, game: Node3D) -> void:
     _line=line
@@ -21,7 +25,11 @@ var _platform_states: Dictionary = {}
 
 func add_platform(station: Dictionary, instance: Node3D) -> void:
     var index: int=int(station.index)
-    if _platforms.has(index): return
+    if _platforms.has(index):
+        while _platforms.has(index) and not bool(_platforms[index].get("ready",true)):
+            await get_tree().process_frame
+        return
+    var budget=BuildBudget.new(self,2000)
     var nav=Navigation.new()
     nav.platform=Rect2(-10.0,float(station.low)+0.5,9.1,float(station.high)-float(station.low)-1.0)
     for shape in instance.find_children("*","CollisionShape3D",true,false):
@@ -31,10 +39,13 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
         var box: AABB=collider.global_transform*AABB(-size*0.5,size)
         if box.end.y<1.30 or box.position.y>2.9 or box.size.x>8.0 or box.size.z>18.0: continue
         nav.obstacles.append(Rect2(box.position.x,box.position.z,box.size.x,box.size.z))
-    _platforms[index]={"navigation":nav}
+    _platforms[index]={"navigation":nav,"ready":false}
     if _platform_states.has(index):
         for saved in _platform_states[index]:
-            var scene: PackedScene=load(str(saved.model_path)) as PackedScene
+            if not await budget.checkpoint(): return
+            var model_path: String=str(saved.model_path)
+            if not spawner.cache.has(model_path): spawner.cache[model_path]=load(model_path)
+            var scene: PackedScene=spawner.cache[model_path] as PackedScene
             if scene==null: continue
             var person=Spawner.Agent.new()
             add_child(person)
@@ -55,9 +66,12 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
         var spawn_nav=Navigation.new()
         for obstacle in nav.obstacles:
             spawn_nav.obstacles.append(Rect2(obstacle.position-Vector2(0,float(station.root_z)),obstacle.size))
-        var people: Array=spawner.spawn(self,int(_line.layout.passengers_per_platform),spawn_nav,layout.doors)
-        for i in range(people.size()):
-            var person=people[i]
+        var people: Array=[]
+        var count: int=int(_line.layout.passengers_per_platform)
+        for i in range(count):
+            if not await budget.checkpoint(): return
+            var person=spawner.spawn_one(self,i,count,spawn_nav,layout.doors)
+            people.append(person)
             person.id=index*1000+i
             if person.group_id>=0: person.group_id+=index*100
             person.position.z+=float(station.root_z)
@@ -69,9 +83,22 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
             agents.append(person)
         # Existing visual instances own the resources; the spawner must not retain
         # PackedScenes for models no longer used on a platform or in the train.
-        spawner.cache.clear()
+        spawner.finish_groups(people)
+    spawner.cache.clear()
+    _platforms[index].ready=true
+    _refresh_activity()
+
+func platform_ready(index: int) -> bool:
+    return _platforms.has(index) and bool(_platforms[index].get("ready",false))
+
+func complete() -> bool:
+    var station: Dictionary=_line.path.nearest_station(float(_game.distance))
+    if not station.is_empty() and _platforms.has(int(station.index)) and not bool(_platforms[int(station.index)].get("ready",true)):
+        return false
+    return super.complete()
 
 func can_unload_platform(index: int) -> bool:
+    if _platforms.has(index) and not bool(_platforms[index].get("ready",true)): return false
     if index!=_active_station: return true
     if not doors_clear(): return false
     for door in layout.doors:
@@ -101,6 +128,7 @@ func remove_platform(index: int) -> void:
             door.exit.erase(person)
             if door.active==person: door.active=null
         agents.erase(person)
+        _spaces.erase(person.id)
         person.path.clear()
         person.detour.clear()
         person.navigation=null
@@ -118,6 +146,7 @@ func remove_platform(index: int) -> void:
         _active_station=-1
         _active_visit=""
     spawner.cache.clear()
+    _refresh_activity()
 
 func update_service(station: Dictionary, velocity: float, change: float) -> void:
     speed=velocity
@@ -126,7 +155,7 @@ func update_service(station: Dictionary, velocity: float, change: float) -> void
         exchange_enabled=false
         return
     var index: int=int(station.index)
-    if not _platforms.has(index):
+    if not _platforms.has(index) or not bool(_platforms[index].get("ready",true)):
         exchange_enabled=false
         return
     var stopped: bool=velocity<0.05 and absf(float(_game.distance)-float(station.stop_z))<=0.5
@@ -173,13 +202,38 @@ func guard_doors(doors: Node) -> void:
         doors.side_targets[-1]=true
         doors.target_open=true
 
+func simulation_agents() -> Array:
+    return _simulation
+
+func _refresh_activity() -> void:
+    _simulation.clear()
+    var camera_z: float=_game.camera.global_position.z
+    var train_z: float=float(_game.distance)
+    for person in agents:
+        var active: bool=person.space=="train" or person.state in ["boarding","alighting","returning"]
+        if not active:
+            var index: int=int(person.get_meta("origin_station",-1))
+            if index>=0 and index<_line.stations.size():
+                var stop: float=float(_line.stations[index].stop_z)
+                active=absf(train_z-stop)<340.0 or absf(camera_z-stop)<340.0
+        var mode: int=Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+        if person.process_mode!=mode: person.process_mode=mode
+        if active: _simulation.append(person)
+
 func _physics_process(delta: float) -> void:
+    _activity_clock-=delta
+    if _activity_clock<=0.0:
+        _activity_clock=0.2
+        _refresh_activity()
     super._physics_process(delta)
-    for a in agents:
-        if a.space=="train":
-            a.set_meta("was_on_train",true)
-        elif a.state in ["leaving","waitingNextTrain"] and bool(a.get_meta("was_on_train",false)):
-            a.wants_board=false
-            a.set_meta("origin_station",_active_station)
-            a.set_meta("travel_destination",_active_station)
-            a.set_meta("was_on_train",false)
+    for person in _simulation:
+        var old: String=str(_spaces.get(person.id,"platform"))
+        if old==str(person.space): continue
+        _spaces[person.id]=str(person.space)
+        if person.space=="train":
+            person.set_meta("was_on_train",true)
+        elif person.state in ["leaving","waitingNextTrain"] and bool(person.get_meta("was_on_train",false)):
+            person.wants_board=false
+            person.set_meta("origin_station",_active_station)
+            person.set_meta("travel_destination",_active_station)
+            person.set_meta("was_on_train",false)

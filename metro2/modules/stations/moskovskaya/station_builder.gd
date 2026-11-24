@@ -101,7 +101,9 @@ func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func flush() -> void:
+    if not await _line_checkpoint(): return
     for key in batches:
+        if not await _line_checkpoint(): return
         var data: Dictionary=batches[key]
         var mesh: Mesh
         if data.has("mesh"):
@@ -122,12 +124,15 @@ func flush() -> void:
         var mm := MultiMesh.new()
         mm.transform_format=MultiMesh.TRANSFORM_3D
         mm.mesh=mesh;mm.instance_count=data.poses.size()
-        for i in range(mm.instance_count):mm.set_instance_transform(i,data.poses[i])
+        for i in range(mm.instance_count):
+            if not await _line_checkpoint(): return
+            mm.set_instance_transform(i,data.poses[i])
         var n := MultiMeshInstance3D.new()
         n.name="Repeated"+str(data.kind)
         n.multimesh=mm
         add_child(n)
     for key in surfaces:
+        if not await _line_checkpoint(): return
         var data: Dictionary=surfaces[key]
         var st: SurfaceTool=data.surface
         # Normals were assigned while constructing the interior faces.
@@ -181,26 +186,31 @@ func portals(top: float) -> void:
             box(Vector3(3.65,4.6,0.12),Vector3(tx,2.10,end+direction*7.0),black)
 
 func stairs(direction: float,start: float,width: float=7.5) -> void:
+    if not await _line_checkpoint(): return
     var run := 0.30
     var rise := 0.145
     var landing := 1.20
     var yellow := _material(Color("#d4ae35"))
     for i in range(28):
+        if not await _line_checkpoint(): return
         var height := float(i+1)*rise
         var z: float=start+direction*(float(i)*run+(landing if i>=14 else 0.0))
         box(Vector3(width,height,run+0.008),Vector3(CX,FY+height*0.5,z),marble)
         box(Vector3(width,0.016,0.045),Vector3(CX,FY+height+0.009,z-direction*0.13),yellow if i in [0,13,27] else metal)
     box(Vector3(width,0.18,landing),Vector3(CX,FY+14.0*rise-0.09,start+direction*(13.5*run+landing*0.5)),marble)
     box(Vector3(width,0.20,3.2),Vector3(CX,FY+28.0*rise-0.10,start+direction*11.0),marble)
-    stair_cheek(direction,start,width)
+    await stair_cheek(direction,start,width)
     for rx in [CX-width*0.48,CX+width*0.48]:
+        if not await _line_checkpoint(): return
         for h in [0.70,1.02]:
+            if not await _line_checkpoint(): return
             var a := Vector3(float(rx),FY+float(h),start-0.30*direction)
             var b := Vector3(float(rx),FY+14.0*rise+float(h),start+direction*13.5*run)
             var c := b+Vector3(0,0,direction*landing)
             var d := Vector3(float(rx),FY+28.0*rise+float(h),start+direction*(27.5*run+landing))
             rod(a,b,0.025,metal);rod(b,c,0.025,metal);rod(c,d,0.025,metal)
         for i in range(8):
+            if not await _line_checkpoint(): return
             var fraction := float(i)/7.0
             var y: float=FY+28.0*rise*fraction
             var z: float=start+direction*(27.5*run+landing)*fraction
@@ -235,14 +245,18 @@ func bench(p: Vector3,yaw: float=0.0) -> void:
 
 # Closed cross-section extrusion with rounded corners and proper end caps.
 func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     for i in range(points.size()):
+        if not await _line_checkpoint(): return
         var a: Vector2=points[i]
         var b: Vector2=points[(i+1)%points.size()]
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat)
     var indices := Geometry2D.triangulate_polygon(points)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var z: float=z0 if face<0.0 else z1
         for i in range(0,indices.size(),3):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[indices[i]]
             var b: Vector2=points[indices[i+1]]
             var c: Vector2=points[indices[i+2]]
@@ -364,12 +378,16 @@ func instance_mesh(label: String,mesh: Mesh,p: Vector3) -> void:
     batches[label].poses.append(Transform3D(Basis.IDENTITY,p))
 
 func stair_cheek(direction: float,start: float,width: float) -> void:
+    if not await _line_checkpoint(): return
     var offsets := [Vector2(-0.15,0),Vector2(4.05,2.03),Vector2(5.25,2.03),Vector2(9.45,4.06)]
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*(width*0.5+0.10)
         for i in range(offsets.size()-1):
+            if not await _line_checkpoint(): return
             var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
             for face in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 var xx: float=x+face*0.11
                 quad(Vector3(xx,FY+a.y,start+direction*a.x),Vector3(xx,FY+b.y,start+direction*b.x),Vector3(xx,FY+b.y+0.87,start+direction*b.x),Vector3(xx,FY+a.y+0.87,start+direction*a.x),marble,Vector3(face,0,0))
             quad(Vector3(x-0.11,FY+a.y+0.87,start+direction*a.x),Vector3(x+0.11,FY+a.y+0.87,start+direction*a.x),Vector3(x+0.11,FY+b.y+0.87,start+direction*b.x),Vector3(x-0.11,FY+b.y+0.87,start+direction*b.x),marble,Vector3.UP)
@@ -383,3 +401,18 @@ void fragment(){float w=sin(p.z*47.0+sin(p.x*2.3+p.y*4.0)*3.0);float fine=sin(p.
 ALBEDO=mix(vec3(0.29,0.15,0.055),vec3(0.58,0.36,0.15),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader;return mat
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

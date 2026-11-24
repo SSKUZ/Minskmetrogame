@@ -34,7 +34,7 @@ func _start_layer(layer: String) -> void:
     if router==null or router.bank==null: return
     if _layers.has(layer):
         for existing in _layers[layer]:
-            if is_instance_valid(existing): existing.stream_paused=false
+            if is_instance_valid(existing) and existing.stream_paused: existing.stream_paused=false
         return
     var event_id: String=str(_events.get(layer,""))
     if event_id.is_empty() or not router.bank.has_event(event_id): return
@@ -57,13 +57,14 @@ func _process(delta: float) -> void:
         "brake":maxf(brake_command,clampf(-acceleration_mps2/1.05,0.0,1.0))*moving,
         "idle":1.0-moving if powered else 0.0}
     var blend: float=1.0-exp(-minf(delta,0.1)/maxf(response_seconds,0.01))
+    var nearest_source: Node3D=_nearest_origin(origins)
     for layer in targets:
         _mix[layer]=lerpf(float(_mix[layer]),float(targets[layer]),blend)
         if float(_mix[layer])>0.003: _start_layer(str(layer))
         if not _layers.has(layer): continue
         if float(_mix[layer])<0.002 and float(targets[layer])==0.0:
             for sleeping in _layers[layer]:
-                if is_instance_valid(sleeping): sleeping.stream_paused=true
+                if is_instance_valid(sleeping) and not sleeping.stream_paused: sleeping.stream_paused=true
             continue
         var profile: Dictionary=_profiles.get(layer,{})
         var ratio: float=clampf(speed_mps/22.0,0.0,1.0)
@@ -72,10 +73,11 @@ func _process(delta: float) -> void:
         var perspective: float=float(router.perspective_gain_db[router.listener_mode].get(category,0.0))
         for player in _layers[layer]:
             if not is_instance_valid(player): continue
-            var nearest: Node3D=_nearest_origin(origins)
-            if is_instance_valid(nearest) and player.get_parent()!=nearest:
-                player.reparent(nearest,false)
-                player.position=Vector3.ZERO
+            var nearest: Node3D=nearest_source
+            if is_instance_valid(nearest) and player.global_position!=nearest.global_position:
+                # Reparenting a live AudioStreamPlayer3D exits the world and can
+                # stop playback. Move the emitter without touching its lifetime.
+                player.global_position=nearest.global_position
             if player.pitch_scale!=pitch: player.pitch_scale=pitch
             router.bank.set_player_gain(player,linear_to_db(maxf(0.00001,float(_mix[layer])))+perspective)
 

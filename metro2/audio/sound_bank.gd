@@ -10,6 +10,11 @@ var _entries: Dictionary = {}
 var _cache: Dictionary = {}
 var _order: Array[String] = []
 var _voices: Array[AudioStreamPlayer3D] = []
+var _voice_generation := 0
+var _idle_players: Array[AudioStreamPlayer3D] = []
+var _playbacks: Dictionary = {}
+var _playback_order: Array[String] = []
+@export var max_idle_players := 8
 var category_db: Dictionary = {"traction": 0.0, "rolling": 0.0, "doors": 0.0, "cab": 0.0, "announcer": 0.0, "environment": 0.0}
 
 func configure(catalog: Dictionary) -> void:
@@ -65,10 +70,17 @@ func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3
     var category: String = str(entry.get("category", ""))
     var limit: int=max_voices if category=="announcer" else maxi(1,max_voices-reserved_announcer_voices)
     if _voices.size() >= limit: return null
-    var player := AudioStreamPlayer3D.new()
+    var player: AudioStreamPlayer3D=_idle_players.pop_back() if not _idle_players.is_empty() else AudioStreamPlayer3D.new()
+    _voice_generation+=1
+    player.set_meta("voice_generation",_voice_generation)
+    player.pitch_scale=1.0
+    player.stream_paused=false
     # Godot 4.3 Web Sample playback has no mixer playback-position node.
     # Announcer segment boundaries, loop pitch and spatial sound need Stream.
-    player.playback_type=AudioServer.PLAYBACK_TYPE_STREAM
+    # Continuous loops need no timeline reads; Web's native sample backend
+    # keeps these playing independently of the single-thread game mixer.
+    # Speech remains Stream for accurate segment positions and door gating.
+    player.playback_type=AudioServer.PLAYBACK_TYPE_SAMPLE if looped and OS.has_feature("web") else AudioServer.PLAYBACK_TYPE_STREAM
     player.set_meta("event_id",event_id)
     player.unit_size=float(entry.get("unit_size_m",4.0))
     set_player_gain(player,volume_db)
@@ -76,16 +88,25 @@ func play_at(event_id: String, parent: Node3D, local_position: Vector3 = Vector3
     player.position = local_position
     # Instance-local loop flags: a spoken recording must never inherit an
     # imported loop flag, and cached source resources must remain unchanged.
-    var playback: AudioStream=stream.duplicate() as AudioStream
-    if playback is AudioStreamOggVorbis: playback.loop=looped
-    elif playback is AudioStreamMP3: playback.loop=looped
-    elif playback is AudioStreamWAV:
-        playback.loop_mode=AudioStreamWAV.LOOP_FORWARD if looped else AudioStreamWAV.LOOP_DISABLED
-    elif looped:
-        player.free()
-        return null
+    var cache_key: String=event_id+(":loop" if looped else ":once")
+    var playback: AudioStream=_playbacks.get(cache_key) as AudioStream
+    if playback==null:
+        playback=stream.duplicate() as AudioStream
+        if playback is AudioStreamOggVorbis: playback.loop=looped
+        elif playback is AudioStreamMP3: playback.loop=looped
+        elif playback is AudioStreamWAV:
+            playback.loop_mode=AudioStreamWAV.LOOP_FORWARD if looped else AudioStreamWAV.LOOP_DISABLED
+        elif looped:
+            player.free()
+            return null
+        _playbacks[cache_key]=playback
+    _playback_order.erase(cache_key)
+    _playback_order.append(cache_key)
+    while _playback_order.size()>max_cached_streams:
+        _playbacks.erase(_playback_order.pop_front())
     player.stream=playback
-    parent.add_child(player)
+    if player.get_parent()==null: parent.add_child(player)
+    else: player.reparent(parent,false)
     _voices.append(player)
     if not looped:
         player.finished.connect(_on_finished.bind(player))
@@ -108,12 +129,21 @@ func set_player_gain(player: AudioStreamPlayer3D, gain_db: float) -> void:
     var entry: Dictionary=event_data(str(player.get_meta("event_id","")))
     var category: String=str(entry.get("category",""))
     player.set_meta("mix_gain_db",gain_db)
-    player.volume_db=gain_db+float(category_db.get(category,0.0))+float(entry.get("gain_db",0.0))+linear_to_db(maxf(0.00001,master_volume))
+    var applied: float=gain_db+float(category_db.get(category,0.0))+float(entry.get("gain_db",0.0))+linear_to_db(maxf(0.00001,master_volume))
+    if float(player.get_meta("applied_gain_db",INF))!=applied:
+        player.set_meta("applied_gain_db",applied)
+        player.volume_db=applied
 
 func _on_finished(player: AudioStreamPlayer3D) -> void:
-    _voices.erase(player)
-    if is_instance_valid(player):
-        player.queue_free()
+    # PA owns its source until the announcer releases the segment. Returning it
+    # early could let an effect reuse that same Node while PA still references it.
+    if str(event_data(str(player.get_meta("event_id",""))).get("category",""))=="announcer": return
+    # Defer recycling so all announcement completion subscribers run first.
+    call_deferred("_release_finished_voice",player,int(player.get_meta("voice_generation",0)))
+
+func _release_finished_voice(player: AudioStreamPlayer3D, generation: int) -> void:
+    if is_instance_valid(player) and int(player.get_meta("voice_generation",-1))==generation:
+        release_player(player)
 
 func _cleanup_voices() -> void:
     for i in range(_voices.size() - 1, -1, -1):
@@ -121,9 +151,17 @@ func _cleanup_voices() -> void:
             _voices.remove_at(i)
 
 func release_player(player: AudioStreamPlayer3D) -> void:
+    if not is_instance_valid(player) or _idle_players.has(player): return
     _voices.erase(player)
-    if is_instance_valid(player):
-        player.stop()
+    player.stop()
+    # A reused source must not retain a prior announcement's callbacks.
+    for connection in player.get_signal_connection_list("finished"):
+        player.disconnect("finished",connection.callable)
+    player.stream=null
+    if is_inside_tree() and _idle_players.size()<max_idle_players:
+        player.reparent(self,false)
+        _idle_players.append(player)
+    else:
         player.queue_free()
 
 func stop_all() -> void:
@@ -132,3 +170,8 @@ func stop_all() -> void:
             player.stop()
             player.queue_free()
     _voices.clear()
+    for player in _idle_players:
+        if is_instance_valid(player): player.queue_free()
+    _idle_players.clear()
+    _playbacks.clear()
+    _playback_order.clear()

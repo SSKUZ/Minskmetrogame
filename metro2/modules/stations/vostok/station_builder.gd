@@ -121,17 +121,22 @@ func rod(a: Vector3,b: Vector3,r: float,mat: Material) -> void:
     batch("cylinder",mat,Transform3D(basis*Basis.from_scale(Vector3(r*2,a.distance_to(b),r*2)),(a+b)*0.5))
 
 func profile(points: Array[Vector2],z0: float,z1: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     var spans := maxi(1,ceili((z1-z0)/10.5))
     for span in range(spans):
+        if not await _line_checkpoint(): return
         var za := lerpf(z0,z1,float(span)/float(spans))
         var zb := lerpf(z0,z1,float(span+1)/float(spans))
         for i in range(points.size()-1):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[i]
             var b: Vector2=points[i+1]
             quad(Vector3(a.x,a.y,za),Vector3(b.x,b.y,za),Vector3(b.x,b.y,zb),Vector3(a.x,a.y,zb),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
 
 func flush() -> void:
+    if not await _line_checkpoint(): return
     for key in batches:
+        if not await _line_checkpoint(): return
         var data: Dictionary=batches[key]
         var mesh: Mesh
         if data.has("mesh"):
@@ -152,12 +157,15 @@ func flush() -> void:
         var mm := MultiMesh.new()
         mm.transform_format=MultiMesh.TRANSFORM_3D
         mm.mesh=mesh;mm.instance_count=data.poses.size()
-        for i in range(mm.instance_count):mm.set_instance_transform(i,data.poses[i])
+        for i in range(mm.instance_count):
+            if not await _line_checkpoint(): return
+            mm.set_instance_transform(i,data.poses[i])
         var n := MultiMeshInstance3D.new()
         n.name="Repeated"+str(data.kind)
         n.multimesh=mm
         add_child(n)
     for key in surfaces:
+        if not await _line_checkpoint(): return
         var data: Dictionary=surfaces[key]
         var st: SurfaceTool=data.surface
         # Normals were assigned while constructing the interior faces.
@@ -265,14 +273,18 @@ func bench(p: Vector3,yaw: float=0.0) -> void:
 
 # Closed cross-section extrusion with rounded corners and proper end caps.
 func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     for i in range(points.size()):
+        if not await _line_checkpoint(): return
         var a: Vector2=points[i]
         var b: Vector2=points[(i+1)%points.size()]
         quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),mat)
     var indices := Geometry2D.triangulate_polygon(points)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var z: float=z0 if face<0.0 else z1
         for i in range(0,indices.size(),3):
+            if not await _line_checkpoint(): return
             var a: Vector2=points[indices[i]]
             var b: Vector2=points[indices[i+1]]
             var c: Vector2=points[indices[i+2]]
@@ -302,11 +314,14 @@ func arc_point(side: float,a: float,y0: float,height: float,inset: float=0.0) ->
     return Vector2(CX+side*(8.98*cos(a)-inset),y0+height*sin(a)-inset*0.4)
 
 func curved_band(side: float,a0: float,a1: float,z0: float,z1: float,y0: float,height: float,inset: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     var spans := maxi(1,ceili((z1-z0)/10.5))
     for span in range(spans):
+        if not await _line_checkpoint(): return
         var za := lerpf(z0,z1,float(span)/float(spans))
         var zb := lerpf(z0,z1,float(span+1)/float(spans))
         for j in range(32):
+            if not await _line_checkpoint(): return
             var a: Vector2=arc_point(side,lerpf(a0,a1,float(j)/32.0),y0,height,inset)
             var b: Vector2=arc_point(side,lerpf(a0,a1,float(j+1)/32.0),y0,height,inset)
             quad(Vector3(a.x,a.y,za),Vector3(b.x,b.y,za),Vector3(b.x,b.y,zb),Vector3(a.x,a.y,zb),mat,Vector3(CX-(a.x+b.x)*0.5,-1,0))
@@ -417,3 +432,19 @@ void fragment(){float w=sin(p.z*47.0+sin(p.x*2.3+p.y*4.0)*3.0);float fine=sin(p.
 ALBEDO=mix(vec3(0.40,0.25,0.12),vec3(0.72,0.52,0.29),0.64+grain*0.35);ROUGHNESS=0.35+grain*0.12;SPECULAR=0.5;}
 """
     var mat := ShaderMaterial.new();mat.shader=shader;return mat
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

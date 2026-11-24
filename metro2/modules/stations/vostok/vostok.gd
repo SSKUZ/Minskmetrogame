@@ -15,39 +15,63 @@ var red_guard: StandardMaterial3D
 var _quiet_grain: NoiseTexture2D
 
 func _ready() -> void:
+    var line_work: RefCounted=_line_work()
+    if line_work!=null: line_work.begin(self)
+    if not await _line_checkpoint(): return
     super._ready()
+    if not await _line_checkpoint(): return
     begin_station()
+    if not await _line_checkpoint(): return
     white.albedo_color=Color("#e4e5df")
+    if not await _line_checkpoint(): return
     pale_stone=_material(Color("#dcded7"),0.0,0.65)
     # Photo 8006/8012: the cornice is only a shade darker than the white wall.
     # The dark marble sample belongs exclusively to stair treads and risers.
     white.roughness=0.87
     white.normal_enabled=true
+    if not await _line_checkpoint(): return
     white.normal_texture=mineral_normal()
     white.normal_scale=0.07
     white.uv1_triplanar=true
     white.uv1_world_triplanar=true
     white.uv1_scale=Vector3.ONE*0.55
+    if not await _line_checkpoint(): return
     stair_stone=_stair_material()
+    if not await _line_checkpoint(): return
     housing=_material(Color("#827b69"),0.58,0.38)
+    if not await _line_checkpoint(): return
     cream=_material(Color("#ebe9db"),0.0,0.70)
+    if not await _line_checkpoint(): return
     red_guard=_material(Color("#a9353e"),0.32,0.39)
-    _floor()
-    _photo_platform_edges()
-    _walls()
-    _vault()
-    _lighting()
-    _ends()
+    if not await _line_checkpoint(): return
+    await _floor()
+    if not await _line_checkpoint(): return
+    await _photo_platform_edges()
+    if not await _line_checkpoint(): return
+    await _walls()
+    if not await _line_checkpoint(): return
+    await _vault()
+    if not await _line_checkpoint(): return
+    await _lighting()
+    if not await _line_checkpoint(): return
+    await _ends()
     for z in [14.0,39.612,65.2]:
-        _photo_pylon(float(z))
-        _five_seat_bench(Vector3(CX,FY,float(z)+1.95))
-    _suspended_monitor()
+        if not await _line_checkpoint(): return
+        await _photo_pylon(float(z))
+        await _five_seat_bench(Vector3(CX,FY,float(z)+1.95))
+    if not await _line_checkpoint(): return
+    await _suspended_monitor()
+    if not await _line_checkpoint(): return
     _track_finishes()
-    _floor_fittings()
-    _photo_clocks()
-    flush()
-
+    if not await _line_checkpoint(): return
+    await _floor_fittings()
+    if not await _line_checkpoint(): return
+    await _photo_clocks()
+    if not await _line_checkpoint(): return
+    await flush()
+    if line_work!=null: line_work.finish(self)
 func _floor() -> void:
+    if not await _line_checkpoint(): return
     # Owner photos 7957/8001/8004: individual grey slabs, red stepped diamonds,
     # cream centres and narrow transverse inlays, with a red perimeter.
     # Build the pattern as actual mineral inlays rather than one painted plane.
@@ -55,74 +79,94 @@ func _floor() -> void:
     (get_node("IslandPlatform") as MeshInstance3D).material_override=joint
     var greys: Array[StandardMaterial3D]=[]
     for i in range(3):
+        if not await _line_checkpoint(): return
         var shade := 0.98+float(i)*0.02
         greys.append(_quiet_floor_stone(Color(shade,shade,shade)))
     var red := sampled_stone("red_granite.jpg",Color(0.96,0.95,0.94),0.31,1.55)
     var ivory := _material(Color("#dad5bc"),0.0,0.39)
     for row in range(175):
+        if not await _line_checkpoint(): return
         var z: float=ZA+(float(row)+0.5)*0.60
         var dz: float=absf((float(row%12)+0.5)*0.60-3.6)
         var half_width := 1.8 if dz<0.31 else 1.2 if dz<0.91 else 0.6 if dz<1.51 else 0.0
         for col in range(16):
+            if not await _line_checkpoint(): return
             var dx: float=(float(col)-7.5)*0.60
             var mat: Material=red if absf(dx)<half_width else greys[(row*17+col*11)%3]
             box(Vector3(0.598,0.010,0.598),Vector3(CX+dx,FY+0.005,z),mat)
         # Narrow cut slabs complete the 10 m width underneath the edge finish.
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             box(Vector3(0.198,0.010,0.598),Vector3(CX+side*4.9,FY+0.005,z),greys[row%3])
     for i in range(15):
+        if not await _line_checkpoint(): return
         var z: float=ZA+3.6+float(i)*7.2
         if z>ZB:break
         box(Vector3(1.08,0.006,0.48),Vector3(CX,FY+0.013,z),ivory)
         box(Vector3(0.002,0.001,0.48),Vector3(CX,FY+0.0165,z),joint)
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             box(Vector3(2.55,0.006,0.20),Vector3(CX+side*3.075,FY+0.013,z),red)
             box(Vector3(2.55,0.003,0.055),Vector3(CX+side*3.075,FY+0.0175,z),ivory)
         if z+3.6<ZB:
             box(Vector3(1.08,0.006,0.48),Vector3(CX,FY+0.013,z+3.6),red)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         box(Vector3(0.34,0.006,105),Vector3(CX+side*4.18,FY+0.013,MID),red)
 
 func _photo_platform_edges() -> void:
+    if not await _line_checkpoint(): return
     var edge := _quiet_floor_stone(Color("#b9bcb7"))
     var yellow := _material(Color("#d5ae43"),0.0,0.77)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         box(Vector3(0.40,0.018,105),Vector3(CX+side*4.80,FY+0.010,MID),edge)
         box(Vector3(0.21,0.012,105),Vector3(CX+side*4.47,FY+0.014,MID),yellow)
         # Shallow tactile studs, instanced in a single material batch.
         for i in range(1312):
+            if not await _line_checkpoint(): return
             var z: float=ZA+0.04+float(i)*0.08
             for dx in [-0.065,0.0,0.065]:
+                if not await _line_checkpoint(): return
                 cylinder(0.013,0.006,Vector3(CX+side*4.47+float(dx),FY+0.023,z),yellow)
         for i in range(175):
+            if not await _line_checkpoint(): return
             box(Vector3(0.212,0.001,0.002),Vector3(CX+side*4.47,FY+0.021,ZA+float(i)*0.60),edge)
 
 func _walls() -> void:
+    if not await _line_checkpoint(): return
     var seam := _material(Color("#bdc0b9"),0.0,0.9)
     var plinth := sampled_stone("red_granite.jpg",Color("#625a55"),0.48,1.3)
     var wall_granite: Array[StandardMaterial3D]=[]
     for j in range(4):
+        if not await _line_checkpoint(): return
         var shade := 0.60+float(j)*0.045
         wall_granite.append(sampled_stone("red_granite.jpg",Color(shade,shade,shade),0.38,1.35))
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*8.90
         box(Vector3(0.30,0.46,105),Vector3(x,0.23,MID),plinth)
         for row in range(4):
+            if not await _line_checkpoint(): return
             for i in range(88):
+                if not await _line_checkpoint(): return
                 var za: float=ZA+float(i)*1.20
                 var zb: float=minf(za+1.20,ZB)
                 if zb<=za:continue
                 box(Vector3(0.31,0.397,zb-za-0.003),Vector3(x,0.64+float(row)*0.40,(za+zb)*0.5),wall_granite[(i+row*3)%4])
         var lower: Array[Vector2]=[]
         for j in range(25):
+            if not await _line_checkpoint(): return
             var t: float=float(j)/24.0
             lower.append(Vector2(x-side*0.22*sin(t*PI),2.02+t*1.65))
-        profile(lower,ZA,ZB,white)
+        await profile(lower,ZA,ZB,white)
         for i in range(51):
+            if not await _line_checkpoint(): return
             var zz: float=ZA+float(i)*2.10
             # Hairline panel joints follow the curved wall face.
-            profile(lower,zz,zz+0.007,seam)
+            await profile(lower,zz,zz+0.007,seam)
         for i in range(88):
+            if not await _line_checkpoint(): return
             var za: float=ZA+float(i)*1.20
             var zb: float=minf(za+1.20,ZB)
             if zb<=za:continue
@@ -130,15 +174,19 @@ func _walls() -> void:
         box(Vector3(0.47,0.025,105),Vector3(x-side*0.12,3.84,MID),housing)
         rod(Vector3(x-side*0.17,3.56,ZA),Vector3(x-side*0.17,3.56,ZB),0.012,cream)
         for i in range(71):
+            if not await _line_checkpoint(): return
             var zz: float=ZA+float(i)*1.5
             rod(Vector3(x-side*0.14,3.56,zz),Vector3(x-side*0.14,3.68,zz),0.008,metal)
         for z in [12.0,39.612,67.2]:
+            if not await _line_checkpoint(): return
             box(Vector3(0.52,0.78,4.00),Vector3(x-side*0.15,3.98,float(z)),pale_stone)
-            _wall_letters("УСХОД" if side>0.0 else "ВОСТОК",Vector3(x-side*0.43,3.98,float(z)),-side*PI/2.0)
+            await _wall_letters("УСХОД" if side>0.0 else "ВОСТОК",Vector3(x-side*0.43,3.98,float(z)),-side*PI/2.0)
         for z in [12.0,39.612,67.2]:
+            if not await _line_checkpoint(): return
             picture("line_to_uruchye.svg" if side>0.0 else "line_to_malinovka.svg",Vector2(4.30,0.68),Vector3(x-side*0.26,2.51,float(z)),-side*PI/2.0,true)
 
 func _wall_letters(value: String,p: Vector3,yaw: float) -> void:
+    if not await _line_checkpoint(): return
     # 8006/8012: gold faces with a broad dark bronze rim, raised off marble.
     # Build the outline per glyph so its thickness does not distort spacing.
     var font: Font=preload("res://modules/stations/vostok/art/station_letters.ttf")
@@ -154,8 +202,10 @@ func _wall_letters(value: String,p: Vector3,yaw: float) -> void:
     var total := font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,100).x*pixel+tracking*float(value.length()-1)
     var cursor := -total*0.5
     for character in value:
+        if not await _line_checkpoint(): return
         var advance := font.get_string_size(character,HORIZONTAL_ALIGNMENT_LEFT,-1,100).x*pixel
         for layer in range(2):
+            if not await _line_checkpoint(): return
             var mesh := TextMesh.new()
             mesh.font=font
             mesh.text=character
@@ -172,6 +222,7 @@ func _wall_letters(value: String,p: Vector3,yaw: float) -> void:
         cursor+=advance+tracking
 
 func _vault() -> void:
+    if not await _line_checkpoint(): return
     var coffer := _material(Color("#c8ccc4"),0.0,0.86)
     var joint := _material(Color("#bdc0b9"),0.0,0.88)
     var rim := _material(Color("#b5b6ad"),0.28,0.43)
@@ -179,19 +230,24 @@ func _vault() -> void:
     glow.emission=Color(1.0,0.985,0.91)
     glow.emission_energy_multiplier=1.45
     for side in [-1.0,1.0]:
-        curved_band(float(side),0.0,PI/2.0,ZA,ZB,SPRING,CROWN_RISE,0.0,white)
+        if not await _line_checkpoint(): return
+        await curved_band(float(side),0.0,PI/2.0,ZA,ZB,SPRING,CROWN_RISE,0.0,white)
     # Photo 7959: side petals with rounded flared ends; a smooth open crown.
     for i in range(50):
+        if not await _line_checkpoint(): return
         var z: float=ZA+float(i)*2.10
         for side in [-1.0,1.0]:
-            _vault_rib(float(side),z,coffer)
-            curved_band(float(side),0.012,0.355,z+0.21,z+1.99,SPRING,CROWN_RISE,0.012,coffer)
+            if not await _line_checkpoint(): return
+            await _vault_rib(float(side),z,coffer)
+            await curved_band(float(side),0.012,0.355,z+0.21,z+1.99,SPRING,CROWN_RISE,0.012,coffer)
             for j in range(3):
+                if not await _line_checkpoint(): return
                 var zz: float=z+0.29+float(j)*0.56
-                _rounded_diffuser(float(side),zz+0.04,zz+0.44,rim)
+                await _rounded_diffuser(float(side),zz+0.04,zz+0.44,rim)
         if i%3==0:
             for side in [-1.0,1.0]:
-                curved_band(float(side),0.75,PI/2.0,z,z+0.003,SPRING,CROWN_RISE,0.002,joint)
+                if not await _line_checkpoint(): return
+                await curved_band(float(side),0.75,PI/2.0,z,z+0.003,SPRING,CROWN_RISE,0.002,joint)
 
 func _rib_width(angle: float) -> float:
     # The widened petal head rolls back into the shell instead of ending in a
@@ -200,7 +256,9 @@ func _rib_width(angle: float) -> float:
     return 0.08+round_head*0.15
 
 func _vault_rib(side: float,z: float,edge: Material) -> void:
+    if not await _line_checkpoint(): return
     for i in range(48):
+        if not await _line_checkpoint(): return
         var a0: float=float(i)*0.76/48.0
         var a1: float=float(i+1)*0.76/48.0
         var depth0 := 0.26*(1.0-smoothstep(0.70,0.76,a0))
@@ -213,15 +271,19 @@ func _vault_rib(side: float,z: float,edge: Material) -> void:
         var wb := _rib_width(a1)
         quad(Vector3(a.x,a.y,z-wa),Vector3(b.x,b.y,z-wb),Vector3(b.x,b.y,z+wb),Vector3(a.x,a.y,z+wa),white,Vector3(CX-a.x,-1,0))
         for face in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             quad(Vector3(back_a.x,back_a.y,z+face*wa),Vector3(back_b.x,back_b.y,z+face*wb),Vector3(b.x,b.y,z+face*wb),Vector3(a.x,a.y,z+face*wa),edge,Vector3(0,0,face))
 
 func _rounded_diffuser(side: float,z0: float,z1: float,rim: Material) -> void:
+    if not await _line_checkpoint(): return
     # Rounded luminous panes sit inside a thin grey/cream bezel, three per bay.
     # Arc strips are tessellated directly, retaining the bowed wall profile.
     for layer in range(2):
+        if not await _line_checkpoint(): return
         var mat: Material=rim if layer==0 else glow
         var margin := 0.020 if layer==0 else 0.0
         for j in range(24):
+            if not await _line_checkpoint(): return
             var t0: float=float(j)/24.0
             var t1: float=float(j+1)/24.0
             var a0 := 0.050+t0*0.25
@@ -233,11 +295,14 @@ func _rounded_diffuser(side: float,z0: float,z1: float,rim: Material) -> void:
             quad(Vector3(a.x,a.y,z0+round0-margin),Vector3(b.x,b.y,z0+round1-margin),Vector3(b.x,b.y,z1-round1+margin),Vector3(a.x,a.y,z1-round0+margin),mat,Vector3(CX-a.x,-1,0))
 
 func _lighting() -> void:
+    if not await _line_checkpoint(): return
     # The diffuser's emissive face is paired with actual light on nearby stone.
     # Local object batches let these lamps reach every part of the 105 m hall.
     for i in range(10):
+        if not await _line_checkpoint(): return
         var z: float=ZA+5.25+float(i)*10.5
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var lamp := OmniLight3D.new()
             lamp.name="VaultLight_%02d_%s" % [i,"L" if side<0.0 else "R"]
             lamp.position=Vector3(CX+side*6.4,5.25,z)
@@ -250,27 +315,32 @@ func _lighting() -> void:
             add_child(lamp)
 
 func _ends() -> void:
+    if not await _line_checkpoint(): return
     for direction in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var start: float=STAIR_NORTH if direction<0.0 else STAIR_SOUTH
         var end: float=ZA if direction<0.0 else ZB
-        _photo_stairs(direction,start)
-        _upper_landing(direction,end)
+        await _photo_stairs(direction,start)
+        await _upper_landing(direction,end)
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var tx: float=CX+side*6.362
-            _tunnel_mouth(tx,end,direction)
+            await _tunnel_mouth(tx,end,direction)
             # Track 1 runs toward -Z; the opposing track runs toward +Z.
             # Mirrors belong at the leading cab end only, never at its tail.
             if direction==-side:
                 var p := Vector3(CX+side*4.56,FY+1.39,end-direction*1.40)
-                _driver_mirror(p,direction,side)
+                await _driver_mirror(p,direction,side)
 
 func _photo_stairs(direction: float,start: float) -> void:
+    if not await _line_checkpoint(): return
     var width := 8.10
     var rise := 0.115
     var run := 0.255
     var landing := 0.95
     var yellow := _material(Color("#d5b12c"),0.0,0.7)
     for i in range(40):
+        if not await _line_checkpoint(): return
         var height: float=float(i+1)*rise
         var z: float=start+direction*(float(i)*run+(landing if i>=22 else 0.0))
         box(Vector3(width,height,run+0.002),Vector3(CX,FY+height*0.5,z),stair_stone)
@@ -278,10 +348,13 @@ func _photo_stairs(direction: float,start: float) -> void:
     var offsets: Array[Vector2]=[Vector2(-0.13,0),Vector2(5.48,2.53),Vector2(6.43,2.53),Vector2(11.10,4.60)]
     box(Vector3(width,0.17,landing),Vector3(CX,FY+2.53-0.085,start+direction*5.95),stair_stone)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*(width*0.5+0.12)
         for i in range(offsets.size()-1):
+            if not await _line_checkpoint(): return
             var a: Vector2=offsets[i];var b: Vector2=offsets[i+1]
             for face in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 var xx: float=x+face*0.12
                 quad(Vector3(xx,FY+a.y,start+direction*a.x),Vector3(xx,FY+b.y,start+direction*b.x),Vector3(xx,FY+b.y+0.89,start+direction*b.x),Vector3(xx,FY+a.y+0.89,start+direction*a.x),pale_stone,Vector3(face,0,0))
             quad(Vector3(x-0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+a.y+0.90,start+direction*a.x),Vector3(x+0.15,FY+b.y+0.90,start+direction*b.x),Vector3(x-0.15,FY+b.y+0.90,start+direction*b.x),timber,Vector3.UP)
@@ -291,22 +364,27 @@ func _photo_stairs(direction: float,start: float) -> void:
     board("exit_north.svg" if direction<0.0 else "exit_south.svg",Vector3(CX,6.89,start+direction*6.4),Vector2(5.65,0.82))
 
 func _upper_landing(direction: float,end: float) -> void:
+    if not await _line_checkpoint(): return
     var y := FY+4.60
     # Only the steps use dark marble. The upper floor is grey; the canopy,
     # parapets and rear wall retain the station's light plaster/stone finish.
     box(Vector3(17.9,0.32,5.4),Vector3(CX,y-0.16,end+direction*1.10),_quiet_floor_stone())
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*6.60
         box(Vector3(4.5,0.63,0.24),Vector3(x,y+0.27,end-direction*0.44),pale_stone)
         for height in [0.65,0.89,1.10]:
+            if not await _line_checkpoint(): return
             rod(Vector3(x-2.20,y+float(height),end-direction*0.44),Vector3(x+2.20,y+float(height),end-direction*0.44),0.022,metal)
         for dx in [-2.18,0.0,2.18]:
+            if not await _line_checkpoint(): return
             rod(Vector3(x+float(dx),y+0.55,end-direction*0.44),Vector3(x+float(dx),y+1.10,end-direction*0.44),0.022,metal)
     box(Vector3(17.9,2.15,0.22),Vector3(CX,y+1.075,end+direction*3.4),pale_stone)
-    _exit_controls(direction,end,y)
-    _exit_canopy(direction,end)
+    await _exit_controls(direction,end,y)
+    await _exit_canopy(direction,end)
     box(Vector3(6.8,0.19,0.10),Vector3(CX,7.76,end+direction*3.24),black)
     for i in range(70):
+        if not await _line_checkpoint(): return
         box(Vector3(0.025,0.24,0.07),Vector3(CX-3.35+float(i)*0.096,7.60,end+direction*3.16),black)
 
 func _canopy_point(x: float,along: float,direction: float,end: float,depth: float=0.0) -> Vector3:
@@ -314,38 +392,46 @@ func _canopy_point(x: float,along: float,direction: float,end: float,depth: floa
     return Vector3(CX+x,height+depth,end+direction*along)
 
 func _canopy_patch(direction: float,end: float,x0: float,x1: float,z0: float,z1: float,depth: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     for j in range(36):
+        if not await _line_checkpoint(): return
         var a := lerpf(x0,x1,float(j)/36.0)
         var b := lerpf(x0,x1,float(j+1)/36.0)
         quad(_canopy_point(a,z0,direction,end,depth),_canopy_point(b,z0,direction,end,depth),_canopy_point(b,z1,direction,end,depth),_canopy_point(a,z1,direction,end,depth),mat,Vector3.DOWN)
 
 func _exit_canopy(direction: float,end: float) -> void:
+    if not await _line_checkpoint(): return
     # Photos 7958/8010: curved cut-outs IN the canopy, not glowing rods on it.
     # Omit each slot from the front skin and build its back and all four reveals.
     var recess := _material(Color("#b8bdb5"),0.0,0.82)
     var reveal := _material(Color("#c4c8c0"),0.0,0.84)
     var previous := -10.5
     for i in range(10):
+        if not await _line_checkpoint(): return
         var centre := -9.80+float(i)*1.40
         var near := centre-0.13
         var far := centre+0.13
-        _canopy_patch(direction,end,-4.25,4.25,previous,near,0.0,white)
+        await _canopy_patch(direction,end,-4.25,4.25,previous,near,0.0,white)
         for side in [-1.0,1.0]:
-            _canopy_patch(direction,end,-4.25 if side<0.0 else 3.72,-3.72 if side<0.0 else 4.25,near,far,0.0,white)
-        _canopy_patch(direction,end,-3.72,3.72,near,far,0.10,recess)
+            if not await _line_checkpoint(): return
+            await _canopy_patch(direction,end,-4.25 if side<0.0 else 3.72,-3.72 if side<0.0 else 4.25,near,far,0.0,white)
+        await _canopy_patch(direction,end,-3.72,3.72,near,far,0.10,recess)
         for j in range(36):
+            if not await _line_checkpoint(): return
             var a := -3.72+float(j)*7.44/36.0
             var b := -3.72+float(j+1)*7.44/36.0
             for edge in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 var z: float = centre + float(edge) * 0.13
                 quad(_canopy_point(a,z,direction,end),_canopy_point(b,z,direction,end),_canopy_point(b,z,direction,end,0.10),_canopy_point(a,z,direction,end,0.10),reveal,Vector3(0,0,-direction*edge))
         for side in [-1.0,1.0]:
+            if not await _line_checkpoint(): return
             var x: float=side*3.72
             quad(_canopy_point(x,near,direction,end),_canopy_point(x,far,direction,end),_canopy_point(x,far,direction,end,0.10),_canopy_point(x,near,direction,end,0.10),reveal,Vector3(-side,0,0))
         # A narrow diffuser is recessed behind the opening lip.
-        _canopy_patch(direction,end,-3.61,3.61,centre-0.035,centre+0.035,0.088,glow)
+        await _canopy_patch(direction,end,-3.61,3.61,centre-0.035,centre+0.035,0.088,glow)
         previous=far
-    _canopy_patch(direction,end,-4.25,4.25,previous,4.45,0.0,white)
+    await _canopy_patch(direction,end,-4.25,4.25,previous,4.45,0.0,white)
     var lamp := OmniLight3D.new()
     lamp.name="UpperLandingLight"
     lamp.position=Vector3(CX,7.25,end+direction*0.8)
@@ -356,10 +442,12 @@ func _exit_canopy(direction: float,end: float) -> void:
     add_child(lamp)
 
 func _exit_controls(direction: float,end: float,y: float) -> void:
+    if not await _line_checkpoint(): return
     var reader := _material(Color("#23333d"),0.2,0.35)
     var indicator := _material(Color("#51b77d"),0.0,0.5)
     indicator.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
     for i in range(6):
+        if not await _line_checkpoint(): return
         var x := CX+direction*(-3.15+float(i)*0.90)
         var z := end+direction*2.05
         box(Vector3(0.25,0.96,1.04),Vector3(x,y+0.48,z),metal)
@@ -370,6 +458,7 @@ func _exit_controls(direction: float,end: float,y: float) -> void:
             var pivot := Vector3(x+direction*0.16,y+0.72,z)
             box(Vector3(0.12,0.16,0.16),pivot,metal)
             for arm in range(3):
+                if not await _line_checkpoint(): return
                 var angle := float(arm)*TAU/3.0
                 rod(pivot,pivot+Vector3(direction*0.60,0.22*sin(angle),0.22*cos(angle)),0.021,metal)
     var bx := CX+direction*2.85
@@ -382,10 +471,12 @@ func _exit_controls(direction: float,end: float,y: float) -> void:
     box(Vector3(1.38,0.06,0.22),Vector3(bx,y+0.83,front+direction*0.07),metal)
     box(Vector3(1.22,1.03,0.025),Vector3(bx,y+1.365,front),glass)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=bx+side*0.65
         box(Vector3(0.055,0.80,1.80),Vector3(x,y+0.40,(front+back)*0.5),shell)
         box(Vector3(0.025,1.03,1.70),Vector3(x,y+1.365,(front+back)*0.5),glass)
         for z in [front,back]:
+            if not await _line_checkpoint(): return
             box(Vector3(0.055,1.94,0.055),Vector3(x,y+0.97,float(z)),metal)
     box(Vector3(1.36,0.07,0.07),Vector3(bx,y+1.91,front),shell)
     box(Vector3(1.42,0.065,1.93),Vector3(bx,y+1.97,(front+back)*0.5),shell)
@@ -394,13 +485,16 @@ func _exit_controls(direction: float,end: float,y: float) -> void:
     box(Vector3(0.29,0.23,0.06),Vector3(bx+0.25,y+0.94,front+direction*0.43),reader)
 
 func _tunnel_mouth(x: float,z: float,direction: float) -> void:
+    if not await _line_checkpoint(): return
     # Rectangular tunnel walls and a flat inner roof; only the station-facing
     # lintel follows the hall's shallow curved crown. No lower circular ring.
     var lining := stone(Color("#363a37"),false)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         box(Vector3(0.18,4.48,8.0),Vector3(x+side*2.13,1.90,z+direction*4.0),lining)
         box(Vector3(0.22,4.48,0.22),Vector3(x+side*2.13,1.90,z),housing)
     for j in range(32):
+        if not await _line_checkpoint(): return
         var a := -2.04+float(j)*4.08/32.0
         var b := -2.04+float(j+1)*4.08/32.0
         var ha := 4.14+0.32*(1.0-pow(a/2.04,2.0))
@@ -410,39 +504,54 @@ func _tunnel_mouth(x: float,z: float,direction: float) -> void:
     box(Vector3(4.26,0.16,6.90),Vector3(x,4.22,z+direction*4.55),lining)
     box(Vector3(4.40,4.70,0.08),Vector3(x,1.90,z+direction*8.0),black)
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         for y in [1.2,1.6,2.0,2.4]:
+            if not await _line_checkpoint(): return
             rod(Vector3(x+side*2.025,float(y),z),Vector3(x+side*2.025,float(y),z+direction*7.8),0.018,black)
 
 func _rounded_box(size: Vector3,p: Vector3,mat: Material,r: float=0.05) -> void:
+    if not await _line_checkpoint(): return
     var pts := PackedVector2Array()
     for corner in range(4):
+        if not await _line_checkpoint(): return
         var center := Vector2(p.x+(size.x*0.5-r)*(1.0 if corner in [0,3] else -1.0),p.y+(size.y*0.5-r)*(1.0 if corner in [0,1] else -1.0))
         for j in range(7):
+            if not await _line_checkpoint(): return
             var a: float=float(corner)*PI/2.0+float(j)*PI/12.0
             pts.append(center+Vector2(cos(a),sin(a))*r)
-    extrusion(pts,p.z-size.z*0.5,p.z+size.z*0.5,mat)
+    await extrusion(pts,p.z-size.z*0.5,p.z+size.z*0.5,mat)
 
 func _photo_pylon(z: float) -> void:
-    _rounded_box(Vector3(0.54,1.0,0.54),Vector3(CX,FY+0.50,z),housing,0.05)
-    _rounded_box(Vector3(0.91,2.16,0.85),Vector3(CX,FY+2.08,z),housing,0.065)
+    if not await _line_checkpoint(): return
+    await _rounded_box(Vector3(0.54,1.0,0.54),Vector3(CX,FY+0.50,z),housing,0.05)
+    await _rounded_box(Vector3(0.91,2.16,0.85),Vector3(CX,FY+2.08,z),housing,0.065)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var yaw: float=0.0 if face>0.0 else PI
         picture("pylon_track1.svg" if face>0.0 else "pylon_track2.svg",Vector2(0.70,1.99),Vector3(CX,FY+2.08,z+face*0.434),yaw)
         picture("pylon_exit_a.svg" if face>0.0 else "pylon_exit_b.svg",Vector2(0.74,1.99),Vector3(CX+face*0.463,FY+2.08,z),face*PI/2.0)
         # Panel screws and red protective tubular cradle around the ribbed top unit.
         for dx in [-0.405,0.405]:
-            for y in [FY+1.08,FY+3.08]:sphere(Vector3(0.018,0.018,0.014),Vector3(CX+float(dx),float(y),z+face*0.435),metal)
-        _rounded_tube(Vector3(CX,FY+3.51,z+face*0.35),Vector2(0.98,0.69),0.12,0.031,red_guard)
-    _rounded_box(Vector3(0.86,0.62,0.70),Vector3(CX,FY+3.51,z),housing,0.09)
+            if not await _line_checkpoint(): return
+            for y in [FY+1.08,FY+3.08]:
+                if not await _line_checkpoint(): return
+                sphere(Vector3(0.018,0.018,0.014),Vector3(CX+float(dx),float(y),z+face*0.435),metal)
+        await _rounded_tube(Vector3(CX,FY+3.51,z+face*0.35),Vector2(0.98,0.69),0.12,0.031,red_guard)
+    await _rounded_box(Vector3(0.86,0.62,0.70),Vector3(CX,FY+3.51,z),housing,0.09)
     for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         for i in range(13):
+            if not await _line_checkpoint(): return
             box(Vector3(0.018,0.48,0.015),Vector3(CX-0.34+float(i)*0.056,FY+3.51,z+face*0.358),black)
         sphere(Vector3(0.115,0.115,0.008),Vector3(CX,FY+3.37,z+face*0.37),black)
     box(Vector3(0.18,0.22,0.18),Vector3(CX,FY+3.93,z),metal)
-    _rounded_box(Vector3(1.45,0.84,0.075),Vector3(CX,FY+4.40,z),black,0.014)
-    for face in [-1.0,1.0]:picture("screen_year_2026.jpg",Vector2(1.39,0.782),Vector3(CX,FY+4.40,z+face*0.044),0.0 if face>0.0 else PI)
+    await _rounded_box(Vector3(1.45,0.84,0.075),Vector3(CX,FY+4.40,z),black,0.014)
+    for face in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
+        picture("screen_year_2026.jpg",Vector2(1.39,0.782),Vector3(CX,FY+4.40,z+face*0.044),0.0 if face>0.0 else PI)
     # Stainless waist rail wraps the pedestal and bends away at the two ends.
     for side in [-1.0,1.0]:
+        if not await _line_checkpoint(): return
         var x: float=CX+side*0.27
         rod(Vector3(x,FY+0.10,z),Vector3(x,FY+0.89,z),0.026,metal)
         rod(Vector3(x,FY+0.89,z),Vector3(x+side*0.32,FY+1.02,z),0.026,metal)
@@ -452,13 +561,18 @@ func _photo_pylon(z: float) -> void:
     _cctv(Vector3(CX+0.62,FY+3.70,z))
 
 func _rounded_tube(p: Vector3,size: Vector2,r: float,tube: float,mat: Material) -> void:
+    if not await _line_checkpoint(): return
     var pts: Array[Vector3]=[]
     for i in range(4):
+        if not await _line_checkpoint(): return
         var c := Vector2((size.x*0.5-r)*(1.0 if i in [0,3] else -1.0),(size.y*0.5-r)*(1.0 if i in [0,1] else -1.0))
         for j in range(9):
+            if not await _line_checkpoint(): return
             var a: float=float(i)*PI/2.0+float(j)*PI/16.0
             pts.append(p+Vector3(c.x+r*cos(a),c.y+r*sin(a),0))
-    for i in range(pts.size()):rod(pts[i],pts[(i+1)%pts.size()],tube,mat)
+    for i in range(pts.size()):
+        if not await _line_checkpoint(): return
+        rod(pts[i],pts[(i+1)%pts.size()],tube,mat)
 
 func _cctv(p: Vector3) -> void:
     rod(p-Vector3(0.2,0.2,0),p,0.016,metal)
@@ -467,16 +581,23 @@ func _cctv(p: Vector3) -> void:
     sphere(Vector3(0.056,0.056,0.012),p+Vector3(0,0.06,0.135),black)
 
 func _five_seat_bench(p: Vector3) -> void:
+    if not await _line_checkpoint(): return
     # Five separate wide wooden seat modules, longitudinal on the platform centreline.
     var oak := wood_material()
     for i in range(5):
+        if not await _line_checkpoint(): return
         var z: float=p.z-0.96+float(i)*0.48
         box(Vector3(0.68,0.10,0.45),Vector3(p.x,p.y+0.47,z),oak)
-        for d in [-0.13,0.13]:box(Vector3(0.69,0.006,0.009),Vector3(p.x,p.y+0.523,z+float(d)),housing)
+        for d in [-0.13,0.13]:
+            if not await _line_checkpoint(): return
+            box(Vector3(0.69,0.006,0.009),Vector3(p.x,p.y+0.523,z+float(d)),housing)
         box(Vector3(0.65,0.07,0.035),Vector3(p.x,p.y+0.40,z-0.235),housing)
-    for z in [-0.86,0.86]:box(Vector3(0.49,0.40,0.16),p+Vector3(0,0.20,float(z)),housing)
+    for z in [-0.86,0.86]:
+        if not await _line_checkpoint(): return
+        box(Vector3(0.49,0.40,0.16),p+Vector3(0,0.20,float(z)),housing)
 
 func _driver_mirror(p: Vector3,direction: float,side: float) -> void:
+    if not await _line_checkpoint(): return
     var root := Node3D.new()
     root.name="Track1HeadMirror" if side>0.0 else "Track2HeadMirror"
     root.position=p
@@ -493,13 +614,18 @@ func _driver_mirror(p: Vector3,direction: float,side: float) -> void:
     # White rounded rectangular frame, blue pedestal, stainless track-edge guard.
     var frame_path: Array[Vector3]=[]
     for i in range(4):
+        if not await _line_checkpoint(): return
         var c := Vector2(0.235*(1.0 if i in [0,3] else -1.0),0.70*(1.0 if i in [0,1] else -1.0))
         for j in range(9):
+            if not await _line_checkpoint(): return
             var a: float=float(i)*PI/2.0+float(j)*PI/16.0
             frame_path.append(Vector3(c.x+0.09*cos(a),c.y+0.09*sin(a),0))
-    for i in range(frame_path.size()):_local_rod(root,frame_path[i],frame_path[(i+1)%frame_path.size()],0.028,frame)
+    for i in range(frame_path.size()):
+        if not await _line_checkpoint(): return
+        _local_rod(root,frame_path[i],frame_path[(i+1)%frame_path.size()],0.028,frame)
     _local_rod(root,Vector3(0,-1.30,0),Vector3(0,-0.78,0),0.075,blue)
     for dx in [-0.41,0.41]:
+        if not await _line_checkpoint(): return
         _local_rod(root,Vector3(float(dx),-1.39,-0.02),Vector3(float(dx),-0.51,-0.02),0.025,metal)
         _local_rod(root,Vector3(float(dx),-0.51,-0.02),Vector3(float(dx),-0.51,0.30),0.025,metal)
     _local_rod(root,Vector3(-0.41,-0.51,0.30),Vector3(0.41,-0.51,0.30),0.025,metal)
@@ -512,10 +638,14 @@ func _local_rod(parent: Node3D,a: Vector3,b: Vector3,r: float,mat: Material) -> 
     parent.add_child(n)
 
 func _suspended_monitor() -> void:
+    if not await _line_checkpoint(): return
     var z := 51.0
     box(Vector3(1.30,0.76,0.09),Vector3(CX,6.65,z),black)
-    for dx in [-0.43,0.43]:rod(Vector3(CX+float(dx),7.90,z),Vector3(CX+float(dx),7.04,z),0.012,black)
+    for dx in [-0.43,0.43]:
+        if not await _line_checkpoint(): return
+        rod(Vector3(CX+float(dx),7.90,z),Vector3(CX+float(dx),7.04,z),0.012,black)
     for i in range(15):
+        if not await _line_checkpoint(): return
         var a: float=float(i)*PI/30.0
         var b: float=float(i+1)*PI/30.0
         rod(Vector3(CX-8.9*cos(a),SPRING+CROWN_RISE*sin(a)-0.08,z),Vector3(CX-8.9*cos(b),SPRING+CROWN_RISE*sin(b)-0.08,z),0.014,housing)
@@ -528,27 +658,39 @@ func _track_finishes() -> void:
     add_child(trackwork)
 
 func _floor_fittings() -> void:
+    if not await _line_checkpoint(): return
     for z in [7.0,29.0,53.0,75.0]:
+        if not await _line_checkpoint(): return
         cylinder(0.17,0.011,Vector3(CX+1.42,FY+0.011,float(z)),housing)
-        for i in range(7):box(Vector3(0.010,0.014,0.24),Vector3(CX+1.33+float(i)*0.03,FY+0.019,float(z)),black)
+        for i in range(7):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.010,0.014,0.24),Vector3(CX+1.33+float(i)*0.03,FY+0.019,float(z)),black)
         box(Vector3(0.30,0.015,0.30),Vector3(CX+0.85,FY+0.014,float(z)+2.0),housing)
-        for i in range(8):box(Vector3(0.012,0.019,0.24),Vector3(CX+0.74+float(i)*0.03,FY+0.022,float(z)+2.0),black)
+        for i in range(8):
+            if not await _line_checkpoint(): return
+            box(Vector3(0.012,0.019,0.24),Vector3(CX+0.74+float(i)*0.03,FY+0.022,float(z)+2.0),black)
 
 func _photo_clocks() -> void:
+    if not await _line_checkpoint(): return
     # Reuse the same four live time/interval displays as other stations. Place
     # their faces in front of the portal lintels, below the gallery floor.
     var infrastructure := get_node("StationInfrastructure")
     infrastructure.set("_amber",Color(1.0,0.12,0.045))
     var displays: Array=infrastructure.get("_displays")
     for display in displays:
-        for i in range(70,76):display.set_instance_color(i,Color(1.0,0.12,0.045))
+        if not await _line_checkpoint(): return
+        for i in range(70,76):
+            if not await _line_checkpoint(): return
+            display.set_instance_color(i,Color(1.0,0.12,0.045))
     for node in infrastructure.get_children():
+        if not await _line_checkpoint(): return
         if node is Node3D and "Portal" in str(node.name):
             var portal := node as Node3D
             var near_end: bool=portal.position.z<MID
             portal.position=Vector3(0.992 if portal.position.x>CX else -11.732,4.93,ZA+0.50 if near_end else ZB-0.50)
             portal.show()
             for dx in [-0.85,0.85]:
+                if not await _line_checkpoint(): return
                 box(Vector3(0.035,0.31,0.04),Vector3(portal.position.x+float(dx),5.315,portal.position.z),metal)
 
 func _stair_material() -> ShaderMaterial:
@@ -585,3 +727,19 @@ func _quiet_floor_stone(tint: Color=Color.WHITE) -> StandardMaterial3D:
     m.uv1_world_triplanar=true
     m.uv1_scale=Vector3.ONE*1.4
     return m
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

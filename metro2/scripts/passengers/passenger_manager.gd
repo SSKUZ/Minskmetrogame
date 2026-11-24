@@ -32,10 +32,22 @@ func request_alight() -> void:
 func complete() -> bool:
     return boarding.complete(agents)
 
+func simulation_agents() -> Array:
+    return agents
+
 func _physics_process(delta: float) -> void:
     var dt:=minf(delta,0.1)
     clock+=dt
-    for a in agents:
+    var active: Array=simulation_agents()
+    # Conservative world-space broad phase. Preserve the complete crowd for
+    # route replanning, but sweep only nearby bodies for each walking step.
+    var cells: Dictionary={}
+    for person in active:
+        var p: Vector3=person.global_position
+        var cell := Vector2i(floori(p.x/1.5),floori(p.z/1.5))
+        if not cells.has(cell): cells[cell]=[]
+        cells[cell].append(person)
+    for a in active:
         a.idle(dt,speed,acceleration)
         if a.state=="standingUp" and a.animation.finished():
             a.visual.position=Vector3.ZERO
@@ -45,7 +57,12 @@ func _physics_process(delta: float) -> void:
         if a.path.is_empty(): continue
         # Closed doors pause only doorway crossing, waiting people may still stroll.
         if a.state in ["boarding","alighting"] and not exchange_enabled: continue
-        if not a.step(dt,agents): continue
+        var p: Vector3=a.global_position
+        var cell := Vector2i(floori(p.x/1.5),floori(p.z/1.5))
+        var nearby: Array=[]
+        for dx in range(-2,3):
+            for dz in range(-2,3): nearby.append_array(cells.get(cell+Vector2i(dx,dz),[]))
+        if not a.step(dt,active,nearby): continue
         match a.state:
             "queueing":a.state="queued";a.animation.play("Idle")
             "settling":
@@ -54,7 +71,7 @@ func _physics_process(delta: float) -> void:
                     a.state="sittingDown";a.animation.play("Sit down (chair)",false)
                 else:a.state="riding";a.animation.play("Idle")
             "leaving":a.state="waitingNextTrain";a.animation.play("Idle")
-    boarding.update(agents,exchange_enabled)
+    boarding.update(active,exchange_enabled)
 
 func doors_clear() -> bool:
     for d in layout.doors:

@@ -1,6 +1,8 @@
 extends Node
 ## Owns only live scene instances. Route geometry belongs to line.path, never nodes.
 const Catalog = preload("res://modules/core/module_catalog.gd")
+const BuildBudget = preload("res://modules/line/build_budget.gd")
+var _building_budget: RefCounted
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
 signal station_loaded(index: int, station: Node3D)
 signal station_unloading(index: int, station: Node3D)
@@ -92,8 +94,7 @@ func _pump() -> void:
             station_unloading.emit(index,node)
             instances.erase(index)
             node.process_mode=Node.PROCESS_MODE_DISABLED
-            line.remove_child(node)
-            node.queue_free()
+            await _dispose_station(node)
             if is_instance_valid(pack_loader):
                 pack_loader.release_module_resources(str(line.stations[index].module_id))
             await get_tree().process_frame
@@ -139,7 +140,7 @@ func _load_station(index: int) -> bool:
     if not OS.has_feature("web"):
         # Godot 4.3 single-thread Web export has no worker loader. Native targets
         # can decode resources off-thread; instantiate/_ready stay here.
-        var error: Error=ResourceLoader.load_threaded_request(scene_path,"PackedScene",false,ResourceLoader.CACHE_MODE_IGNORE)
+        var error: Error=ResourceLoader.load_threaded_request(scene_path,"PackedScene",false,ResourceLoader.CACHE_MODE_REUSE)
         if error==OK:
             _thread_path=scene_path
             var state: int=ResourceLoader.load_threaded_get_status(scene_path)
@@ -149,8 +150,11 @@ func _load_station(index: int) -> bool:
             scene=ResourceLoader.load_threaded_get(scene_path) as PackedScene
             _thread_path=""
     else:
-        await get_tree().process_frame
-        scene=ResourceLoader.load(scene_path,"PackedScene",ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
+        # The native resource parser cannot be preempted on single-thread Web.
+        # Texture dependencies were prepared individually by the pack loader;
+        # procedural construction below is cooperatively budgeted, not faked by
+        # a yield immediately before one synchronous scene _ready().
+        scene=ResourceLoader.load(scene_path,"PackedScene",ResourceLoader.CACHE_MODE_REUSE) as PackedScene
     if scene==null:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         loading_changed.emit("Не удалось прочитать станцию: "+id+"; повтор загрузки через 15 с")
@@ -173,8 +177,35 @@ func _load_station(index: int) -> bool:
     node.name="LineStation_"+id
     node.set("track_min_z",float(record.exit_local_z))
     node.set("track_max_z",float(record.entry_local_z))
+    var budget=BuildBudget.new(self,2000)
+    _building_budget=budget
+    node.set_meta("metro_line_work",budget)
+    var active_mode: int=node.process_mode
+    node.process_mode=Node.PROCESS_MODE_DISABLED
+    node.hide()
     line.add_child(node)
-    Connections.open_connections(node)
+    # _ready notifications may yield. Do not expose a partly built platform or
+    # admit the train until this root and all cooperative child builders finish.
+    while not budget.pending.is_empty():
+        await get_tree().process_frame
+        if not _wanted.has(index):
+            budget.cancel()
+            await _dispose_station(node)
+            _building_budget=null
+            if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
+            _loading_id=""
+            return true
+    await Connections.open_connections(node,budget)
+    if not _wanted.has(index):
+        budget.cancel()
+        await _dispose_station(node)
+        _building_budget=null
+        if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
+        _loading_id=""
+        return true
+    _building_budget=null
+    node.process_mode=active_mode
+    node.show()
     instances[index]=node
     station_loaded.emit(index,node)
     # Only scene/agent owners retain decoded resources; never keep PackedScenes.
@@ -185,6 +216,29 @@ func _load_station(index: int) -> bool:
     _loading_id=""
     loading_changed.emit("")
     return true
+
+func _dispose_station(root: Node3D) -> void:
+    root.hide()
+    root.process_mode=Node.PROCESS_MODE_DISABLED
+    var budget=BuildBudget.new(self,2000)
+    # Release leaves in bounded batches rather than recursively deleting a
+    # complete detailed station at one frame boundary.
+    var stack: Array[Node]=[root]
+    var count: int=0
+    while not stack.is_empty():
+        var node: Node=stack[-1]
+        if node.get_child_count()>0:
+            stack.append(node.get_child(0))
+            continue
+        stack.pop_back()
+        if node!=root: node.get_parent().remove_child(node)
+        node.queue_free()
+        count+=1
+        if count>=64:
+            count=0
+            await get_tree().process_frame
+        elif not await budget.checkpoint():
+            return
 
 func approach_limit(z: float, direction: int, bounds: AABB) -> float:
     # Train-root coordinate of the first missing station's protected approach.
@@ -199,6 +253,7 @@ func approach_limit(z: float, direction: int, bounds: AABB) -> float:
 
 func _exit_tree() -> void:
     # Child instances are owned by the line, and freed with that subtree.
+    if _building_budget!=null: _building_budget.cancel()
     if is_instance_valid(pack_loader) and not _loading_id.is_empty():
         pack_loader.release_module_resources(_loading_id)
     if not _thread_path.is_empty():

@@ -13,20 +13,34 @@ var ballast: ShaderMaterial
 var fixing: StandardMaterial3D
 
 func _ready() -> void:
+    var line_work: RefCounted=_line_work()
+    if line_work!=null: line_work.begin(self)
+    if not await _line_checkpoint(): return
     metal=_mat(Color("#9ca9af"),0.83,0.27)
+    if not await _line_checkpoint(): return
     rust=_mat(Color("#4d443b"),0.63,0.57)
+    if not await _line_checkpoint(): return
     fixing=_mat(Color("#292d2e"),0.65,0.52)
+    if not await _line_checkpoint(): return
     tie=_grain(Color("#292d2b"),true)
+    if not await _line_checkpoint(): return
     ballast=_grain(Color("#383b38"),false)
+    if not await _line_checkpoint(): return
     var station := get_parent().get_parent()
     for name in ["Track1","Track2"]:
+        if not await _line_checkpoint(): return
         var original := station.get_node(name)
-        for key in ["Rails","Beds","Sleepers"]:(original.get_node(key) as GeometryInstance3D).hide()
-    _running_tracks()
+        for key in ["Rails","Beds","Sleepers"]:
+            if not await _line_checkpoint(): return
+            (original.get_node(key) as GeometryInstance3D).hide()
+    if not await _line_checkpoint(): return
+    await _running_tracks()
+    if not await _line_checkpoint(): return
     _flush()
     # StationInfrastructure is added after the architecture in Station Base's _ready.
+    if not await _line_checkpoint(): return
     call_deferred("_contact_rails")
-
+    if line_work!=null: line_work.finish(self)
 func _mat(tint: Color,metallic: float,roughness: float) -> StandardMaterial3D:
     var m := StandardMaterial3D.new();m.albedo_color=tint;m.metallic=metallic;m.roughness=roughness;return m
 
@@ -73,15 +87,19 @@ func _flush() -> void:
     batches.clear()
 
 func _running_tracks() -> void:
+    if not await _line_checkpoint(): return
     for track in range(2):
+        if not await _line_checkpoint(): return
         var x: float=TRACKS[track]
         for i in range(int(ceil(FINISH-START))):
+            if not await _line_checkpoint(): return
             var z0: float=START+float(i);var z1: float=minf(FINISH,z0+1.0);var z: float=(z0+z1)*0.5
             var lateral: float=PATH.offset(z) if track==0 else 0.0
             var b := Basis(Vector3.UP,PATH.heading(z) if track==0 else 0.0)
             var centre := Vector3(x+lateral,0,z)
             _box(Vector3(3.18,0.22,z1-z0),centre+Vector3(0,-0.44,0),ballast,b)
             for side in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 var rail: Vector3=centre+b*Vector3(side*GAUGE_HALF,0,0)
                 # Separate foot, narrow web, underside of head and worn crown. Rail top remains y=0.
                 _box(Vector3(0.145,0.032,z1-z0),rail+Vector3(0,-0.166,0),rust,b)
@@ -90,6 +108,7 @@ func _running_tracks() -> void:
                 _box(Vector3(0.068,0.029,z1-z0),rail+Vector3(0,-0.0145,0),metal,b)
         var n: int=int(floor((FINISH-START)/0.65))
         for i in range(n):
+            if not await _line_checkpoint(): return
             var z: float=START+(float(i)+0.5)*0.65
             var lateral: float=PATH.offset(z) if track==0 else 0.0
             var b := Basis(Vector3.UP,PATH.heading(z) if track==0 else 0.0)
@@ -97,13 +116,19 @@ func _running_tracks() -> void:
             _box(Vector3(2.72,0.20,0.285),centre,tie,b)
             # Shoulder/end caps, bearing plates, retaining clips and bolts give the ties a raised silhouette.
             for side in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
                 var rail: Vector3=Vector3(x+lateral,0,z)+b*Vector3(side*GAUGE_HALF,0,0)
                 _box(Vector3(0.30,0.023,0.235),rail+Vector3(0,-0.176,0),fixing,b)
                 for offset in [-0.108,0.108]:
+                    if not await _line_checkpoint(): return
                     var p: Vector3=rail+b*Vector3(float(offset),-0.143,0)
                     _box(Vector3(0.043,0.047,0.16),p,fixing,b)
-                    for dz in [-0.071,0.071]:_cylinder(0.018,0.019,p+b*Vector3(0,0.032,float(dz)),metal)
-            for side in [-1.0,1.0]:_box(Vector3(0.08,0.012,0.25),centre+b*Vector3(side*1.28,0.106,0),fixing,b)
+                    for dz in [-0.071,0.071]:
+                        if not await _line_checkpoint(): return
+                        _cylinder(0.018,0.019,p+b*Vector3(0,0.032,float(dz)),metal)
+            for side in [-1.0,1.0]:
+                if not await _line_checkpoint(): return
+                _box(Vector3(0.08,0.012,0.25),centre+b*Vector3(side*1.28,0.106,0),fixing,b)
 
 func _contact_rails() -> void:
     var station := get_parent().get_parent()
@@ -132,3 +157,19 @@ func _contact_rails() -> void:
             for y in [-0.010,0.040,0.082]:_cylinder(0.084,0.018,Vector3(x,float(y),z),porcelain)
             _box(Vector3(0.19,0.036,0.13),Vector3(x,0.118,z),metal)
     _flush()
+
+# Integration supplies this opt-in budget; standalone station builds stay direct.
+func _line_work() -> RefCounted:
+    var node: Node=self
+    while node!=null:
+        if node.has_meta("metro_line_work"):
+            var work: RefCounted=node.get_meta("metro_line_work")
+            if node!=self: set_meta("metro_line_work",work)
+            return work
+        node=node.get_parent()
+    return null
+
+func _line_checkpoint() -> bool:
+    var work: RefCounted=_line_work()
+    if work==null: return true
+    return await work.checkpoint()

@@ -62,7 +62,7 @@ func follow(points: Array[Vector3], next_state: String) -> void:
     state = next_state
     animation.play("Walk")
 
-func step(dt: float,agents: Array) -> bool:
+func step(dt: float,agents: Array,nearby: Array = []) -> bool:
     replan_delay=maxf(0,replan_delay-dt)
     if path.is_empty():return true
     var goal: Vector3=detour[0] if not detour.is_empty() else path[0]
@@ -72,7 +72,8 @@ func step(dt: float,agents: Array) -> bool:
     var blocker: Node3D
     var frame:=get_parent() as Node3D
     var inverse:=frame.global_transform.affine_inverse()
-    for other in agents:
+    var candidates: Array=nearby if not nearby.is_empty() else agents
+    for other in candidates:
         if other==self:continue
         var other_point: Vector3=inverse*other.global_position
         var center:=Vector2(other_point.x,other_point.z)

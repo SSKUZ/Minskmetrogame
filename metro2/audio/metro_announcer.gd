@@ -93,9 +93,8 @@ func _process(_delta: float) -> void:
         return
     var nearest: Node3D=_nearest_speaker()
     for voice in _active:
-        if is_instance_valid(voice) and is_instance_valid(nearest) and voice.get_parent()!=nearest:
-            voice.reparent(nearest,false)
-            voice.position=Vector3.ZERO
+        if is_instance_valid(voice) and is_instance_valid(nearest) and voice.global_position!=nearest.global_position:
+            voice.global_position=nearest.global_position
     var any_playing: bool = false
     var end_seconds: float = float(_segments[_segment_index].get("to_s", -1.0)) if not _segments.is_empty() else -1.0
     for player in _active:

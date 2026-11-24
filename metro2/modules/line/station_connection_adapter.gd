@@ -2,11 +2,12 @@ extends RefCounted
 ## Standalone stations have opaque rectangular far-end caps in batched meshes.
 ## Open only those full-track closures in route instances; retain source resources.
 
-static func open_connections(station: Node3D) -> Dictionary:
+static func open_connections(station: Node3D, budget: RefCounted = null) -> Dictionary:
     var meshes: Array[MeshInstance3D]=[]
     var caps: Array[AABB]=[]
     var inverse := station.global_transform.affine_inverse()
     for node in station.find_children("*","MeshInstance3D",true,false):
+        if budget!=null and not await budget.checkpoint(): return {}
         var instance := node as MeshInstance3D
         if instance.mesh==null or not instance.visible: continue
         meshes.append(instance)
@@ -19,6 +20,7 @@ static func open_connections(station: Node3D) -> Dictionary:
             var vertices: PackedVector3Array=arrays[Mesh.ARRAY_VERTEX]
             var indices: PackedInt32Array=_indices(arrays,vertices.size())
             for i in range(0,indices.size(),3):
+                if i%384==0 and budget!=null and not await budget.checkpoint(): return {}
                 var a: Vector3=pose*vertices[indices[i]]
                 var b: Vector3=pose*vertices[indices[i+1]]
                 var c: Vector3=pose*vertices[indices[i+2]]
@@ -36,6 +38,7 @@ static func open_connections(station: Node3D) -> Dictionary:
                 if not merged: caps.append(box)
     if caps.is_empty(): return {}
     for instance in meshes:
+        if budget!=null and not await budget.checkpoint(): return {}
         var original := instance.mesh
         var pose := inverse*instance.global_transform
         var bounds := pose*instance.get_aabb()
@@ -50,6 +53,7 @@ static func open_connections(station: Node3D) -> Dictionary:
             var candidate: bool=_cap_material(instance.get_active_material(surface))
             if not candidate: kept=indices
             for i in range(0,indices.size() if candidate else 0,3):
+                if i%384==0 and budget!=null and not await budget.checkpoint(): return {}
                 var a: Vector3=pose*vertices[indices[i]]
                 var b: Vector3=pose*vertices[indices[i+1]]
                 var c: Vector3=pose*vertices[indices[i+2]]
