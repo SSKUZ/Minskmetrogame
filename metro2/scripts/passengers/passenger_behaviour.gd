@@ -10,12 +10,14 @@ var blend := 0.0
 var phone: Node3D
 var leaflet: Node3D
 var _active := false
+var _next_activity := 0.0
 
 func setup(owner_agent: Node3D) -> void:
     agent=owner_agent
     skeleton=agent.skeleton
     phase=float(agent.id)*1.731
     activity=(agent.id+int(agent.id/4))%4
+    _next_activity=8.0+float(agent.id%11)*1.3
     process_priority=35
     if skeleton==null: return
     for i in range(skeleton.get_bone_count()):
@@ -40,6 +42,7 @@ func _box(parent: Node3D,size: Vector3,p: Vector3,material: Material) -> void:
     parent.add_child(node)
 
 func _prop(kind: String) -> Node3D:
+    if not bones.has("righthand"): return null
     var attachment := BoneAttachment3D.new()
     attachment.bone_name=skeleton.get_bone_name(int(bones.get("righthand",0)))
     attachment.name="Passenger"+kind.capitalize()
@@ -99,15 +102,30 @@ func _process(delta: float) -> void:
     if phone!=null: phone.visible=calm and activity==1
     if leaflet!=null: leaflet.visible=calm and activity==2
     if blend<=0.001:
+        agent.visual.rotation.y=move_toward(agent.visual.rotation.y,0.0,delta*0.8)
         _active=false
         return
     skeleton.force_update_all_bone_transforms()
     var seated: bool=agent.state=="seated"
+    if calm and age>=_next_activity:
+        activity=(activity+1+int(agent.id/7)%3)%4
+        _next_activity=age+12.0+float(agent.id%9)*1.7
+    var social_turn := 0.0
+    var peer_reference: WeakRef=agent.get_meta("social_peer",null) as WeakRef
+    var peer: Node3D=peer_reference.get_ref() as Node3D if peer_reference!=null else null
+    if is_instance_valid(peer) and peer.space==agent.space and peer.path.is_empty() and peer.global_position.distance_squared_to(agent.global_position)<9.0:
+        var direction: Vector3=agent.global_basis.inverse()*(peer.global_position-agent.global_position)
+        social_turn=clampf(atan2(direction.x,direction.z),-0.55,0.55)
+    agent.visual.rotation.y=sin(age*0.17+phase)*0.025*blend if seated else (social_turn*0.20+sin(age*0.12+phase)*0.07)*blend
     var torso := _pose("spine2") if bones.has("spine2") else Transform3D.IDENTITY
     var reading := activity in [1,2]
+    if bones.has("spine2"):
+        var turn: float=sin(age*0.19+phase)*0.018+(social_turn*0.16 if not reading else 0.0)
+        torso.basis=Basis(Vector3.UP,turn)*torso.basis
+        _apply_bone("spine2",torso,blend)
     if bones.has("head"):
         var head := _pose("head")
-        var glance := sin(age*0.13+phase)*0.09 if not reading else sin(age*0.11+phase)*0.018
+        var glance := social_turn+sin(age*0.13+phase)*0.12 if not reading else sin(age*0.11+phase)*0.018
         head.basis=head.basis*Basis.from_euler(Vector3(0.13 if reading else 0.0,glance,0.0))
         _apply_bone("head",head,blend)
     if reading:

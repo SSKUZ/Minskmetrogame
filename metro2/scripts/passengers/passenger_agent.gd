@@ -84,15 +84,18 @@ func step(dt: float,agents: Array,nearby: Array = []) -> bool:
         if start.distance_to(center)<clearance and (finish-start).dot(start-center)>0:continue
         if navigation.distance_to_segment(center,start,finish)<clearance:
             blocker=other;break
-    if is_instance_valid(blocker):
+    var static_blocked := false
+    if space=="platform" and navigation!=null and navigation.platform.has_point(Vector2(position.x,position.z)) and navigation.platform.has_point(Vector2(desired.x,desired.z)):
+        static_blocked=not navigation.clear_segment(position,desired)
+    if is_instance_valid(blocker) or static_blocked:
         blocked_for+=dt
         animation.play("Idle")
-        var may_detour: bool=space=="platform" and path[0].x<=navigation.platform.end.x
+        var may_detour: bool=space=="platform" and navigation.platform.has_point(Vector2(path[0].x,path[0].z))
         if space=="train":
             may_detour=aisle.has_point(Vector2(position.x,position.z)) and aisle.has_point(Vector2(path[0].x,path[0].z))
         if may_detour and blocked_for>0.30 and replan_delay<=0:
             # A stable ID priority lets one head-on walker pass a waiting peer.
-            var yield_time:=1.1 if not blocker.path.is_empty() and blocker.id<id else 0.30
+            var yield_time:=1.1 if is_instance_valid(blocker) and not blocker.path.is_empty() and blocker.id<id else 0.30
             if blocked_for>=yield_time:
                 var people: Array=[]
                 for other in agents:

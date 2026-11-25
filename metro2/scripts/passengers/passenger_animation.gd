@@ -8,31 +8,37 @@ var lateral := 0.0
 var vf := 0.0
 var vl := 0.0
 var phase := 0.0
+var _missing := false
+var _pace := 1.0
 
 func setup(model: Node3D, id: int) -> void:
     visual = model
     phase = id * 0.731
+    _pace=0.94+float(id%5)*0.025
     for node in model.find_children("*", "AnimationPlayer", true, false):
         player = node
         break
 
 func play(clip: String, loop: bool = true) -> void:
-    if player == null or current == clip: return
+    if player==null: _missing=true;return
+    if current==clip and not _missing: return
+    _missing=true
     for name in player.get_animation_list():
         if str(name).get_slice("/", str(name).get_slice_count("/")-1) == clip:
             var animation := player.get_animation(name)
             animation.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
-            player.speed_scale = 1.0
+            _missing=false
+            player.speed_scale = _pace
             player.play(name, 0.45)
             if clip in ["Idle","Sit idle (chair)"]:
-                # Stable pelvis; gestures are applied separately to head/arms.
-                player.seek(0.45 if clip == "Sit idle (chair)" else 0.6,true)
-                player.pause()
+                # Original idle clips stay alive; each passenger starts at a
+                # different phase. Agent pelvis compensation retains the seat.
+                player.seek(fposmod(phase,maxf(animation.length,0.01)),true)
             current = clip
             return
 
 func finished() -> bool:
-    return player == null or not player.is_playing()
+    return _missing or player == null or not player.is_playing()
 
 func balance(dt: float, time: float, speed: float, acceleration: float, seated: bool, riding: bool) -> void:
     var sensitivity := 0.04 if seated else 0.16

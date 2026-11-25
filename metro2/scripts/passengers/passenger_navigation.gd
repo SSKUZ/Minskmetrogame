@@ -2,6 +2,92 @@ extends RefCounted
 ## Static furniture and dynamic body discs share one bounded visibility graph.
 var obstacles: Array[Rect2]=[]
 var platform:=Rect2(-10.0,-11.0,9.1,101.0)
+var platform_area:=platform
+var height := 1.1805
+
+func read_station(root: Node3D, budget: RefCounted, fallback: Rect2) -> void:
+    platform_area=fallback
+    var slab := root.find_child("IslandPlatform",true,false) as MeshInstance3D
+    if slab!=null and slab.mesh!=null:
+        var box: AABB=slab.global_transform*slab.get_aabb()
+        platform_area=Rect2(box.position.x,box.position.z,box.size.x,box.size.z)
+        height=box.end.y
+    platform=platform_area.grow(-0.30)
+    for node in root.find_children("*","CollisionShape3D",true,false):
+        var collider:=node as CollisionShape3D
+        if not await budget.checkpoint(): return
+        if collider.disabled or collider.shape==null: continue
+        var size:=Vector3.ZERO
+        if collider.shape is BoxShape3D: size=collider.shape.size
+        elif collider.shape is CylinderShape3D: size=Vector3((collider.shape as CylinderShape3D).radius*2.0,(collider.shape as CylinderShape3D).height,(collider.shape as CylinderShape3D).radius*2.0)
+        elif collider.shape is CapsuleShape3D: size=Vector3((collider.shape as CapsuleShape3D).radius*2.0,(collider.shape as CapsuleShape3D).height,(collider.shape as CapsuleShape3D).radius*2.0)
+        elif collider.shape is SphereShape3D: size=Vector3.ONE*collider.shape.radius*2.0
+        if size!=Vector3.ZERO: _add_box(collider.global_transform*AABB(-size*0.5,size))
+    for node in root.find_children("*","GeometryInstance3D",true,false):
+        if not await budget.checkpoint(): return
+        if not (node as Node3D).is_visible_in_tree(): continue
+        if node is MultiMeshInstance3D:
+            var multi: MultiMesh=node.multimesh
+            if multi==null or multi.mesh==null: continue
+            var count: int=multi.instance_count if multi.visible_instance_count<0 else mini(multi.instance_count,multi.visible_instance_count)
+            for i in range(count):
+                if i%32==0 and not await budget.checkpoint(): return
+                var pose: Transform3D=node.global_transform*multi.get_instance_transform(i)
+                _add_box(pose*multi.mesh.get_aabb())
+        elif node is MeshInstance3D and node.mesh!=null:
+            var mesh: Mesh=node.mesh
+            var pose: Transform3D=node.global_transform
+            var box: AABB=pose*mesh.get_aabb()
+            if not _intersects_walkway(box): continue
+            if box.size.x<8.0 and box.size.z<18.0:
+                _add_box(box)
+                continue
+            # Static stations batch columns/furniture into larger meshes. Read
+            # body-height triangle footprints once, with the existing frame budget.
+            for surface in range(mesh.get_surface_count()):
+                var arrays: Array=mesh.surface_get_arrays(surface)
+                var vertices: PackedVector3Array=arrays[Mesh.ARRAY_VERTEX]
+                var indices: PackedInt32Array=arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX]!=null else PackedInt32Array()
+                var count: int=indices.size() if not indices.is_empty() else vertices.size()
+                for i in range(0,count,3):
+                    if i%192==0 and not await budget.checkpoint(): return
+                    var a: Vector3=pose*vertices[indices[i] if not indices.is_empty() else i]
+                    var b: Vector3=pose*vertices[indices[i+1] if not indices.is_empty() else i+1]
+                    var c: Vector3=pose*vertices[indices[i+2] if not indices.is_empty() else i+2]
+                    _add_box(AABB(a,Vector3.ZERO).expand(b).expand(c))
+
+func _intersects_walkway(box: AABB) -> bool:
+    return box.end.y>height+0.15 and box.position.y<height+1.65 and platform_area.intersects(Rect2(box.position.x,box.position.z,box.size.x,box.size.z).grow(0.02))
+
+func _add_box(box: AABB) -> void:
+    if not _intersects_walkway(box) or box.size.x>8.0 or box.size.z>18.0: return
+    var shape:=Rect2(box.position.x,box.position.z,maxf(box.size.x,0.02),maxf(box.size.z,0.02))
+    for i in range(obstacles.size()-1,-1,-1):
+        if not obstacles[i].grow(0.06).intersects(shape): continue
+        var combined: Rect2=shape.merge(obstacles[i])
+        if combined.size.x>8.0 or combined.size.y>18.0: continue
+        shape=combined
+        obstacles.remove_at(i)
+    obstacles.append(shape)
+
+func free_point(point: Vector3) -> Vector3:
+    point.x=clampf(point.x,platform.position.x,platform.end.x-0.001)
+    point.z=clampf(point.z,platform.position.y,platform.end.y-0.001)
+    point.y=height
+    if not obstacles.any(func(o: Rect2): return o.grow(0.34).has_point(Vector2(point.x,point.z))): return point
+    var nearest:=point
+    var best:=INF
+    for radius in range(1,11):
+        for direction in range(16):
+            var angle: float=float(direction)*TAU/16.0
+            var candidate:=point+Vector3(cos(angle),0,sin(angle))*float(radius)*0.35
+            if not platform.has_point(Vector2(candidate.x,candidate.z)): continue
+            if obstacles.any(func(o: Rect2): return o.grow(0.34).has_point(Vector2(candidate.x,candidate.z))): continue
+            var distance: float=point.distance_squared_to(candidate)
+            if distance<best: best=distance;nearest=candidate
+        if is_finite(best): return nearest
+    return nearest
+
 
 static func distance_to_segment(p: Vector2,a: Vector2,b: Vector2) -> float:
     var delta:=b-a
@@ -27,8 +113,9 @@ func clear_segment(a: Vector3,b: Vector3,people: Array=[],use_static: bool=true)
     return true
 
 func route(a: Vector3,b: Vector3,people: Array=[],region: Rect2=Rect2(),use_static: bool=true) -> Array[Vector3]:
-    if clear_segment(a,b,people,use_static):return [b]
     var bounds:=platform if region.size==Vector2.ZERO else region
+    if not bounds.has_point(Vector2(b.x,b.z)): return []
+    if clear_segment(a,b,people,use_static):return [b]
     var nodes: Array[Vector3]=[a,b]
     if use_static:
         var corridor:=Rect2(Vector2(a.x,a.z),Vector2.ZERO).expand(Vector2(b.x,b.z)).grow(1.6)

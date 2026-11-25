@@ -56,7 +56,7 @@ func _physics_process(delta: float) -> void:
             a.state="seated";a.animation.play("Sit idle (chair)")
         if a.path.is_empty(): continue
         # Closed doors pause only doorway crossing, waiting people may still stroll.
-        if a.state in ["boarding","alighting"] and not exchange_enabled: continue
+        if a.state in ["boarding","alighting"] and (not exchange_enabled or not boarding.can_step(a)): continue
         var p: Vector3=a.global_position
         var cell := Vector2i(floori(p.x/1.5),floori(p.z/1.5))
         var nearby: Array=[]
