@@ -404,6 +404,12 @@ def publish():
     bundles={}
     for key in plan_data['modules']:
         folder=CI/'bundles'/key;bundles[key]=(folder,json.loads((folder/'entry.json').read_text()))
+    # GitHub rejects blobs over 100 MiB. Fail before creating/uploading Git
+    # objects, rather than retrying the same permanently rejected payload.
+    for folder,_data in bundles.values():
+        for payload in folder.iterdir():
+            if payload.suffix in {'.pck','.bin'} and payload.stat().st_size>96*1024*1024:
+                raise RuntimeError('Publication payload must be partitioned before push: '+payload.name)
     for attempt in range(3):
         base=fetch_pages();manifest=published(base,'module-packs.json');report=published(base,'pack-resources.json');info=published(base,'build-info.json');state=published(base,POLICY['state_file'],{'schema':1,'modules':{}})
         html,match,cfg=boot_config(base);files={}

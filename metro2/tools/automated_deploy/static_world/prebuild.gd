@@ -1,6 +1,8 @@
 extends SceneTree
 ## CI resource compiler. No main/game scene, train, passengers, input or simulation.
 ## Existing architecture generators run once in a disabled resource-only subtree.
+const ARCHIVE_TARGET_BYTES := 24 * 1024 * 1024
+const MAX_PUBLISHED_FILE_BYTES := 96 * 1024 * 1024
 const Budget = preload("res://modules/line/build_budget.gd")
 const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
@@ -221,6 +223,24 @@ func _fragment(fragment: Node3D) -> Dictionary:
     return {"scene":saved,"files":files,"textures":textures.values(),"archives":required_archives.values()}
 
 func _archive(files: Array) -> void:
+    # Keep native resources intact, but bound each HTTP/Git publication archive.
+    # The existing path/offset/SHA mapping is written separately for every part.
+    var group: Array=[]
+    var group_bytes:=0
+    for file in files:
+        var bytes: int=int(file.bytes)
+        if bytes>MAX_PUBLISHED_FILE_BYTES:
+            _fail("Native resource exceeds publication limit: "+str(file.path))
+            return
+        if not group.is_empty() and group_bytes+bytes>ARCHIVE_TARGET_BYTES:
+            _archive_part(group)
+            group=[]
+            group_bytes=0
+        group.append(file)
+        group_bytes+=bytes
+    if not group.is_empty(): _archive_part(group)
+
+func _archive_part(files: Array) -> void:
     var prepared: Array=[]
     var temporary := "user://metro-static-stage/chunk.bin"
     var output := FileAccess.open(temporary,FileAccess.WRITE)
