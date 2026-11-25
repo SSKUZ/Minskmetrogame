@@ -219,9 +219,11 @@ static func _clip(polygon: Array, plane: Plane, keep_inside: bool) -> Array:
         if previous_in!=current_in:
             var weight: float=d0/(d0-d1)
             var vertex: Dictionary={}
+            # Position uses a String key; mesh channels use integer keys.
+            # Vector and Color attributes share lerp(), so preserve each value's
+            # native type without comparing unlike Dictionary key types.
             for key in previous:
-                if key==Mesh.ARRAY_COLOR: vertex[key]=(previous[key] as Color).lerp(current[key],weight)
-                else: vertex[key]=previous[key].lerp(current[key],weight)
+                vertex[key]=previous[key].lerp(current[key],weight)
             result.append(vertex)
         if current_in: result.append(current)
         previous=current;d0=d1;previous_in=current_in
