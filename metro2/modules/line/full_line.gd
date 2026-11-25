@@ -85,12 +85,16 @@ func _station_unloading(index: int, station: Node3D) -> void:
     if is_instance_valid(train): train.release_station(station)
 
 func _start_service_if_ready() -> void:
-    if ready_for_service or not is_instance_valid(passengers) or not streamer.is_loaded(0): return
-    if not passengers.platform_ready(0) or tunnels.size()!=2: return
+    if ready_for_service or not is_instance_valid(passengers): return
+    # A passenger can start at any retained platform. Readiness of an unrelated
+    # station must not hold that start behind an evicted Uruchye instance.
+    if not is_instance_valid(gameplay) or not gameplay.prepared or tunnels.size()!=2: return
+    var initial: int=gameplay.start_station if gameplay.role=="passenger" else 0
+    if not passengers.platform_ready(initial): return
     for tunnel in tunnels:
         if not tunnel.base_ready: return
     ready_for_service=true
-    train.service_ready=true
+    train.service_ready=gameplay.running and not gameplay.virtual_wait
     train.camera.make_current()
 
 func _consist_ready() -> void:

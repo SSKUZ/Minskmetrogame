@@ -306,6 +306,7 @@ func retire_virtual_service() -> void:
         if not person.slot.is_empty(): layout.release(person.slot)
         agents.erase(person)
         _simulation.erase(person)
+        _spaces.erase(person.id)
         person.queue_free()
     boarding.exchange_active=false
     boarding.opened=false

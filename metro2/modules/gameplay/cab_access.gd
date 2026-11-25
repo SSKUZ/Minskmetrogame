@@ -48,6 +48,7 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
         var uvs: PackedVector2Array=arrays[Mesh.ARRAY_TEX_UV] if arrays[Mesh.ARRAY_TEX_UV]!=null else PackedVector2Array()
         var uv2s: PackedVector2Array=arrays[Mesh.ARRAY_TEX_UV2] if arrays[Mesh.ARRAY_TEX_UV2]!=null else PackedVector2Array()
         var colors: PackedColorArray=arrays[Mesh.ARRAY_COLOR] if arrays[Mesh.ARRAY_COLOR]!=null else PackedColorArray()
+        var tangents: PackedFloat32Array=arrays[Mesh.ARRAY_TANGENT] if arrays[Mesh.ARRAY_TANGENT]!=null else PackedFloat32Array()
         var indices: PackedInt32Array=arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX]!=null else PackedInt32Array()
         var count: int=indices.size() if not indices.is_empty() else vertices.size()
         var outside:=SurfaceTool.new()
@@ -61,6 +62,8 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
             for k in range(3):
                 var i: int=indices[offset+k] if not indices.is_empty() else offset+k
                 polygon.append({"v":vertices[i],"p":pose*vertices[i],"n":normals[i] if i<normals.size() else Vector3.UP,"uv":uvs[i] if i<uvs.size() else Vector2.ZERO,"uv2":uv2s[i] if i<uv2s.size() else Vector2.ZERO,"c":colors[i] if i<colors.size() else Color.WHITE})
+                if tangents.size()>i*4+3:
+                    polygon[-1]["t"]=Vector4(tangents[i*4],tangents[i*4+1],tangents[i*4+2],tangents[i*4+3])
             for axis in range(3):
                 for high in [false,true]:
                     if polygon.is_empty(): break
@@ -80,13 +83,15 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
             inside.set_material(material)
             inside.commit(leaf)
     if not removed: return false
+    for i in range(instance.get_surface_override_material_count()): instance.set_surface_override_material(i,null)
     instance.mesh=wall
     instance.material_override=null
-    for i in range(instance.get_surface_override_material_count()): instance.set_surface_override_material(i,null)
     var moving:=MeshInstance3D.new()
     moving.name=str(instance.name)+"OriginalDoorSurface"
     moving.mesh=leaf
     moving.layers=instance.layers
+    moving.cast_shadow=instance.cast_shadow
+    moving.material_overlay=instance.material_overlay
     pivot.add_child(moving)
     return true
 
@@ -111,12 +116,21 @@ func _cut(polygon: Array, axis: int, edge: float, high: bool) -> Array:
 func _triangles(tool: SurfaceTool, polygon: Array, pose: Transform3D, transformed: bool) -> int:
     var count:=0
     for i in range(1,polygon.size()-1):
+        var a: Vector3=polygon[0].v
+        var b: Vector3=polygon[i].v
+        var c: Vector3=polygon[i+1].v
+        if (b-a).cross(c-a).length_squared()<0.000000000001: continue
         for j in [0,i,i+1]:
             var vertex: Dictionary=polygon[j]
-            tool.set_normal((pose.basis*vertex.n).normalized() if transformed else vertex.n)
+            tool.set_normal((pose.basis.inverse().transposed()*vertex.n).normalized() if transformed else vertex.n)
             tool.set_uv(vertex.uv)
             tool.set_uv2(vertex.uv2)
             tool.set_color(vertex.c)
+            if vertex.has("t"):
+                var t: Vector4=vertex.t
+                var axis:=Vector3(t.x,t.y,t.z)
+                if transformed: axis=(pose.basis*axis).normalized()
+                tool.set_tangent(Plane(axis,t.w*(-1.0 if transformed and pose.basis.determinant()<0.0 else 1.0)))
             tool.add_vertex(pose*vertex.v if transformed else vertex.v)
             count+=1
     return count

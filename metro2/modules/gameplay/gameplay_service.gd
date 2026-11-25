@@ -5,12 +5,14 @@ const Automatic = preload("res://modules/gameplay/automatic_service.gd")
 const UI = preload("res://modules/gameplay/gameplay_ui.gd")
 const Geometry = preload("res://modules/gameplay/world_geometry.gd")
 const CabAccess = preload("res://modules/gameplay/cab_access.gd")
+const VirtualService = preload("res://modules/gameplay/virtual_train_service.gd")
 var line: Node3D
 var train: Node3D
 var player: CharacterBody3D
 var interaction: Node
 var automatic: Node
 var ui: CanvasLayer
+var timetable: RefCounted
 var rules: Dictionary
 var role:="driver"
 var running:=false
@@ -18,20 +20,21 @@ var driver_seated:=false
 var prepared:=false
 var virtual_wait:=false
 var _starting:=false
+var start_station:=0
 var _absence_started:=false
 var _absence_armed:=false
 var _absence:=0.0
 var _notice_sent:=false
 var _warning_at:=180.0
 var _safe_station:=0
-var _arrival_at:=0.0
-var _next_direction:=1
 var _respawning:=false
 
 func initialize(world: Node3D) -> void:
     line=world
     train=line.train
     rules=JSON.parse_string(FileAccess.get_file_as_string("res://modules/gameplay/gameplay_rules.json"))
+    timetable=VirtualService.new()
+    timetable.initialize(self)
     player=Player.new()
     line.add_child(player)
     player.initialize(self,rules.walking)
@@ -55,6 +58,7 @@ func _prepare() -> void:
     await geometry.prepare(line.get_node("OperatingDepot"))
     await geometry.prepare(train.train,true)
     prepared=true
+    line._start_service_if_ready()
 
 func first_car() -> Node3D:
     return line.passengers.layout.cars[0]
@@ -63,15 +67,17 @@ func start_role(selected_role: String, station_index: int) -> void:
     if _starting or running: return
     _starting=true
     role=selected_role
+    start_station=clampi(station_index,0,line.stations.size()-1) if role=="passenger" else 0
     ui.menu.hide()
     ui.notice("Подготовка физического мира…")
     # A physical anchor pins only the selected platform through the TZ58 streamer.
     if role=="passenger":
-        _safe_station=clampi(station_index,0,line.stations.size()-1)
+        _safe_station=start_station
         player.global_position=Vector3(-5.37,1.25,float(line.stations[_safe_station].root_z)+40.0)
         train.camera.global_position=player.global_position+Vector3.UP*1.68
         train.camera_mode="walk"
         line.streamer.register_player(player)
+        line._start_service_if_ready()
     while not prepared or not line.ready_for_service:
         await get_tree().process_frame
         if not is_inside_tree(): return
@@ -90,11 +96,12 @@ func start_role(selected_role: String, station_index: int) -> void:
             await get_tree().process_frame
             if not is_inside_tree(): return
         player.spawn_at(platform_spawn(_safe_station))
-        _set_automatic(true)
         _retire_train(true)
-        _arrival_at=float(Time.get_ticks_msec())/1000.0+float(rules.service.interval)
+        _set_automatic(true)
+        timetable.schedule(_safe_station)
     line.streamer.register_player(player)
     running=true
+    train.service_ready=not virtual_wait
     _starting=false
     ui.set_play_visible(true)
     train._update_camera()
@@ -146,7 +153,7 @@ func leave_driver(handover: bool=false) -> void:
     train._set_camera_mode("walk")
 
 func switch_role(next_role: String) -> void:
-    if not running or next_role==role: return
+    if not running or _respawning or next_role==role or next_role not in ["driver","passenger"]: return
     if next_role=="driver":
         if virtual_wait or absf(train.speed)>0.05 or station_at_train()<0:
             ui.notice("Принять управление можно после остановки поезда на станции")
@@ -156,6 +163,7 @@ func switch_role(next_role: String) -> void:
             ui.notice("Подойдите к прибывшему составу")
             return
         role="driver"
+        timetable.cancel()
         automatic.disable()
         _set_automatic(false)
         _hold_cab()
@@ -167,12 +175,18 @@ func switch_role(next_role: String) -> void:
         _warning_at=float(rules.absence.warning)
         ui.notice("Поезд ожидает машиниста. Займите рабочее место.")
     else:
+        # Preserve the demand that the original cab was applying before its
+        # screen controls are released. Applied brake pressure is never reset.
+        var demand: float=float(train.cab_runtime.controller_value)
+        if train.brake: demand=-1.0
+        elif train.throttle and demand>=0.0: demand=1.0
         if driver_seated: leave_driver(true)
         role="passenger"
         _absence_started=false
+        _absence_armed=false
         ui.warning.hide()
         _set_automatic(true)
-        automatic.enable()
+        automatic.enable(demand)
         ui.notice("Управление передано автоматике. Стоянка — около 30 секунд.")
 
 func _set_automatic(enabled: bool) -> void:
@@ -181,6 +195,8 @@ func _set_automatic(enabled: bool) -> void:
     binding.audio.info.set_mode("auto" if enabled else "manual")
     train.throttle=false
     train.brake=false
+    train.cab_runtime.cancel_interaction()
+    train._flight_ui._release_pointer()
 
 func station_at_train() -> int:
     if absf(train.speed)>0.05: return -1
@@ -213,54 +229,7 @@ func _physics_process(delta: float) -> void:
         if line.passengers.platform_ready(index):
             var nav=line.passengers._platforms[index].navigation
             if nav.platform_area.has_point(Vector2(player.global_position.x,player.global_position.z)) and absf(player.global_position.y-float(nav.height))<0.5: _safe_station=index
-    if role=="passenger": _virtual_service()
-
-func _virtual_service() -> void:
-    if is_instance_valid(player.aboard): return
-    var now: float=float(Time.get_ticks_msec())/1000.0
-    if not virtual_wait:
-        var departed: float=(player.global_position.z-float(train.distance))*float(train.cab_runtime.direction)
-        var bounds: AABB=train._train_bounds
-        var view_z: float=train.camera.global_position.z
-        var camera_clear: bool=absf(clampf(view_z,float(train.distance)+bounds.position.z,float(train.distance)+bounds.end.z)-view_z)>170.0
-        if departed>float(rules.service.retire_distance) and camera_clear and interaction.doorway_clear():
-            _retire_train()
-            _arrival_at=now+float(rules.service.interval)
-        return
-    var record: Dictionary=line.path.nearest_station(player.global_position.z)
-    var index: int=int(record.index)
-    if not line.passengers.platform_ready(index): return
-    var direction: int=_next_direction
-    if index==line.stations.size()-1: direction=1
-    var spawn_z: float=float(record.stop_z)+float(direction)*float(rules.service.appearance_distance)
-    var bounds: AABB=train._train_bounds
-    spawn_z=clampf(spawn_z,line.path.lower_z-bounds.position.z+8.0,96.0-bounds.end.z-8.0)
-    var closest_z: float=clampf(player.global_position.z,spawn_z+bounds.position.z,spawn_z+bounds.end.z)
-    # Whole consist, physical player and retained inspection camera must be safe.
-    if absf(closest_z-player.global_position.z)<170.0: return
-    var camera_z: float=train.camera.global_position.z
-    if absf(clampf(camera_z,spawn_z+bounds.position.z,spawn_z+bounds.end.z)-camera_z)<170.0: return
-    var distance: float=absf(spawn_z-float(record.stop_z))
-    var cruise: float=float(rules.service.cruise_speed)
-    var peak: float=minf(cruise,sqrt(2.0*distance/(1.0/0.95+1.0/float(rules.service.braking_deceleration))))
-    var travel: float=peak/0.95+peak/float(rules.service.braking_deceleration)+maxf(0.0,distance-peak*peak*0.5*(1.0/0.95+1.0/float(rules.service.braking_deceleration)))/maxf(peak,0.1)
-    if now<_arrival_at-travel: return
-    train.distance=spawn_z
-    train.train.position.z=spawn_z
-    train.track_x=0.992 if direction>0 else -11.732
-    train.cab_runtime.direction=direction
-    train._posed_distance=NAN
-    train._place_consist()
-    train.cab_runtime.controller_value=0.0
-    train.cab_runtime.brake_demand=1.0
-    train.door_system.request_close()
-    virtual_wait=false
-    train.train.show()
-    _train_collisions(true)
-    train.service_ready=true
-    automatic.approach_station(index,direction)
-    _next_direction=-direction
-    line.streamer.refresh()
+    if role=="passenger": timetable.update()
 
 func _retire_train(initial: bool=false) -> void:
     if is_instance_valid(player.aboard): return

@@ -21,6 +21,7 @@ func _process(delta: float) -> void:
     service.ui.interact.disabled=current.is_empty()
 
 func _near_action() -> Dictionary:
+    if not service.player.active: return {}
     var player: Node3D=service.player
     if service.driver_seated: return {"kind":"leave_driver","title":"ПОКИНУТЬ ПУЛЬТ"}
     if not seat.is_empty(): return {"kind":"stand","title":"ВСТАТЬ"}
@@ -61,9 +62,11 @@ func activate() -> void:
             seat=place
             service.player.seated=true
             service.player.global_position=place.car.to_global(place.position)
+            service.player.basis=Basis.IDENTITY
             service.player.eye.position.y=float(place.height)-float(place.position.y)+0.75
             service.player.capsule.disabled=true
             service.player.yaw=float(place.heading)
+            service.player.pitch=0.0
         "cab_door":
             var point: Vector3=service.first_car().to_local(service.player.global_position)
             var doorway: Vector3=current.door.threshold

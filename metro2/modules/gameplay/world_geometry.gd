@@ -13,7 +13,10 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
     var nodes: Array[Node]=[root]
     while not nodes.is_empty() and is_instance_valid(root):
         var node: Node=nodes.pop_back()
-        if node is CollisionObject3D or node is Skeleton3D: continue
+        if node is Skeleton3D: continue
+        # Original render meshes may live beneath existing physics bodies.
+        # Traverse them, but never recursively rebuild our own generated shapes.
+        if node is CollisionObject3D and node.has_meta("metro_native_walk"): continue
         nodes.append_array(node.get_children())
         var mesh: Mesh
         var transforms: Array[Transform3D]=[Transform3D.IDENTITY]
@@ -40,6 +43,7 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
             body=animated
         else: body=StaticBody3D.new()
         body.name="WalkCollision"
+        body.set_meta("metro_native_walk",true)
         body.collision_layer=TRAIN if moving else WORLD
         body.collision_mask=0
         node.add_child(body)
@@ -67,6 +71,11 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
             if not await budget.checkpoint(): return
     root.set_meta("metro_walk_collision",1)
     _shapes.clear()
+
+static func clear_generated(root: Node3D) -> void:
+    for body in root.find_children("*","CollisionObject3D",true,false):
+        if is_instance_valid(body) and body.has_meta("metro_native_walk"): body.free()
+    root.remove_meta("metro_walk_collision")
 
 func shapes_for(mesh: Mesh, budget: RefCounted) -> Array:
     if _shapes.has(mesh): return _shapes[mesh]

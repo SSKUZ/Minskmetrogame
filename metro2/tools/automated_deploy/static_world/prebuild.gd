@@ -412,10 +412,14 @@ func _tunnels() -> void:
                 for node in base_nodes:
                     _clear_owners(node)
                     section.remove_child(node)
+                # Preserve physical cabinets, doors and other native detail
+                # surfaces in the same streamed fragment, prepared only in CI.
+                await WalkingGeometry.new().prepare(section)
                 var description: Dictionary=await _fragment(section)
                 description["low"]=span.x
                 description["high"]=span.y
                 spans[key]=description
+                WalkingGeometry.clear_generated(section)
                 for node in base_nodes: section.add_child(node)
             # Station track 2 has its contact rail on the opposite side. Reuse
             # every other mesh; mirror only the source conductor before warping.

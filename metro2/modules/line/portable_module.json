@@ -8,7 +8,7 @@
   "source_frame": {
     "engine": "Godot",
     "engine_version": "4.3",
-    "metres_per_unit": 1.0,
+    "metres_per_unit": 1,
     "handedness": "right",
     "up_axis": "+Y",
     "forward_axis": "-Z",
@@ -80,6 +80,13 @@
         "path": "res://audio/data/audio_catalog.json",
         "format": "json",
         "notes": "TZ57: original recordings, station/direction mappings, four train states, crossfade seconds, gains in dB and provisional minimal effects. Godot playback logic needs adaptation for Luau."
+      },
+      {
+        "id": "driver_passenger_rules",
+        "purpose": "physics",
+        "path": "res://modules/gameplay/gameplay_rules.json",
+        "format": "json",
+        "notes": "Two roles; walking capsule, speeds, cab thresholds, absence timers, dwell/headway and virtual service visibility limits. Physics/input/audio controllers require Luau adaptation."
       }
     ]
   },

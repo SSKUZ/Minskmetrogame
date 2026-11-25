@@ -30,6 +30,7 @@ func initialize(owner_service: Node, settings: Dictionary) -> void:
     shape.radius=float(rules.radius)
     shape.height=float(rules.height)
     capsule.shape=shape
+    capsule.disabled=true
     capsule.position.y=shape.height*0.5
     add_child(capsule)
     eye=Node3D.new()
@@ -108,6 +109,7 @@ func _physics_process(delta: float) -> void:
         return
     if global_position.y<service.line.path.position_at(global_position.z).y-8.0:
         service.respawn("Возвращение на безопасную платформу")
+        return
     _eye_pose()
 
 func _step(delta: float) -> void:

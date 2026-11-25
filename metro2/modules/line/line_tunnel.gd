@@ -85,6 +85,9 @@ func sync_to_view() -> void:
     var required: Dictionary={}
     _include_slots(required,_train.global_position.z+_train_bounds.position.z,_train.global_position.z+_train_bounds.end.z,true)
     _include_slots(required,_camera.global_position.z,_camera.global_position.z)
+    var player: Node3D=line.gameplay.player if is_instance_valid(line) and is_instance_valid(line.gameplay) else null
+    if is_instance_valid(player) and player.active:
+        _include_slots(required,player.global_position.z,player.global_position.z)
     _sync_base(required)
     # The long braking horizon belongs to base track only. Detail resources
     # retain the original view distance plus a short time-based prefetch band.
@@ -93,6 +96,8 @@ func sync_to_view() -> void:
     _include_slots(detail_slots,_train.global_position.z+_train_bounds.position.z-(lead if _direction>0 else 0.0),
         _train.global_position.z+_train_bounds.end.z+(lead if _direction<0 else 0.0))
     _include_slots(detail_slots,_camera.global_position.z,_camera.global_position.z)
+    if is_instance_valid(player) and player.active:
+        _include_slots(detail_slots,player.global_position.z,player.global_position.z)
     _wanted.clear()
     for slot in detail_slots:
         for span in path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):

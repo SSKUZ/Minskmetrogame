@@ -209,9 +209,9 @@ func driver_has_control() -> bool:
     return is_instance_valid(line.gameplay) and line.gameplay.running and line.gameplay.role=="driver" and line.gameplay.driver_seated
 
 func _input(event: InputEvent) -> void:
-    if is_instance_valid(line.gameplay) and not driver_has_control() and camera_mode=="walk": return
+    if is_instance_valid(line.gameplay) and (not line.gameplay.running or camera_mode=="walk"): return
     super._input(event)
 
 func _unhandled_input(event: InputEvent) -> void:
-    if is_instance_valid(line.gameplay) and not driver_has_control() and camera_mode=="walk": return
+    if is_instance_valid(line.gameplay) and (not line.gameplay.running or camera_mode=="walk"): return
     super._unhandled_input(event)

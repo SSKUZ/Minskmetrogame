@@ -382,6 +382,8 @@ func _master_hit(point: Vector2, camera: Camera3D) -> bool:
     return found and Rect2(low,high-low).grow(16.0).has_point(point)
 
 func handle_input(event: InputEvent, camera: Camera3D) -> bool:
+    if game.has_method("driver_has_control") and not game.call("driver_has_control"):
+        return false
     if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_C,KEY_V,KEY_HOME,KEY_END]:
         command({KEY_C:"carriage",KEY_V:"platform",KEY_HOME:"forward",KEY_END:"desk"}[event.physical_keycode])
         return true
@@ -942,6 +944,8 @@ func _notification(what: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
+    if is_instance_valid(game) and game.has_method("driver_has_control") and not game.call("driver_has_control"):
+        return
     # Capture the physical master before GUI/unhandled-input routing. Once held,
     # continue receiving the same finger even over other controls or outside the
     # projected grip; the camera must never consume a controller drag.

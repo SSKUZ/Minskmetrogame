@@ -19,7 +19,7 @@ func initialize(owner_service: Node) -> void:
     service=owner_service
     layer=20
     root=Control.new()
-    root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    root.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
     root.mouse_filter=Control.MOUSE_FILTER_IGNORE
     add_child(root)
     var top:=HBoxContainer.new()
@@ -33,6 +33,9 @@ func initialize(owner_service: Node) -> void:
     for title in ["От первого лица","Кабина","Салон","Платформа","Свободная камера"]: view.get_popup().add_item(title)
     view.get_popup().id_pressed.connect(func(id: int):
         if id==1 and not service.driver_seated: return
+        service.player.stick=Vector2.ZERO
+        service.train._flight_ui.stick=Vector2.ZERO
+        _look_pointer=-1
         service.train._set_camera_mode(["walk","cabin","salon","platform","flight"][id]))
     status=Label.new()
     root.add_child(status)
@@ -75,6 +78,14 @@ func initialize(owner_service: Node) -> void:
     _start_menu()
     _absence_panel()
     set_play_visible(false)
+    get_viewport().size_changed.connect(_resize)
+    _resize()
+
+func _resize() -> void:
+    var viewport_size: Vector2=get_viewport().get_visible_rect().size
+    var scale_factor: float=minf(1.0,viewport_size.x/560.0)
+    root.scale=Vector2.ONE*scale_factor
+    root.size=viewport_size/maxf(scale_factor,0.1)
 
 func _button(parent: Node, title: String, callback: Callable) -> Button:
     var button:=Button.new()
@@ -151,11 +162,13 @@ func _process(delta: float) -> void:
     status.text=("МАШИНИСТ" if service.role=="driver" else "ПАССАЖИР")+" · "+("В составе" if is_instance_valid(service.player.aboard) else "На станции / в депо")
 
 func _unhandled_input(event: InputEvent) -> void:
-    if not service.running or service.driver_seated or service.train.camera_mode!="walk": return
+    if not service.running: return
     if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_E:
         service.interaction.activate()
         get_viewport().set_input_as_handled()
-    elif event is InputEventScreenTouch:
+        return
+    if service.driver_seated or service.train.camera_mode!="walk": return
+    if event is InputEventScreenTouch:
         if event.pressed and event.position.x>get_viewport().get_visible_rect().size.x*0.36 and _look_pointer<0: _look_pointer=event.index
         elif not event.pressed and event.index==_look_pointer: _look_pointer=-1
     elif event is InputEventScreenDrag and event.index==_look_pointer:
@@ -168,7 +181,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
     if what==NOTIFICATION_APPLICATION_FOCUS_OUT:
         _look_pointer=-1
-        if is_instance_valid(service) and is_instance_valid(service.player): service.player.stick=Vector2.ZERO
+        if is_instance_valid(service) and is_instance_valid(service.player):
+            service.player.stick=Vector2.ZERO
+            if is_instance_valid(service.train._flight_ui): service.train._flight_ui.stick=Vector2.ZERO
 
 func _input(event: InputEvent) -> void:
     if event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==_look_pointer:

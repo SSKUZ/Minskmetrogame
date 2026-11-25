@@ -20,9 +20,9 @@ func initialize(owner_service: Node) -> void:
     process_priority=-5
     service.train.info_binding.audio.info.departure_started.connect(_departure_started)
 
-func enable() -> void:
+func enable(initial_master: float=NAN) -> void:
     direction=1 if int(service.train.cab_runtime.direction)>=0 else -1
-    _master=float(service.train.cab_runtime.controller_value)
+    _master=initial_master if is_finite(initial_master) else float(service.train.cab_runtime.controller_value)
     var stopped: int=service.station_at_train()
     if absf(service.train.speed)<0.05 and stopped>=0:
         target=stopped
@@ -54,6 +54,9 @@ func approach_station(index: int, travel_direction: int) -> void:
     _visit_key=""
     _terminal_reversed=false
     _departed_context=false
+    _warning_requested=false
+    _warning_heard=false
+    departure_event=""
 
 func _next_ahead() -> int:
     var records: Array=service.line.stations
@@ -96,6 +99,7 @@ func _physics_process(delta: float) -> void:
             _drive(-1.0,delta)
             if speed>0.05: return
             if not service.line.streamer.is_loaded(target) or not service.line.passengers.platform_ready(target): return
+            service.timetable.begin_call(target,direction,visit)
             info.on_auto_approach()
             var nav=service.line.passengers._platforms[target].navigation
             var layout=service.line.passengers.layout
@@ -105,8 +109,9 @@ func _physics_process(delta: float) -> void:
                 if door.available: side=int(door.side);break
             if side==0: return
             train.cab_runtime.door_side=side
-            doors.request_side(side,speed)
-            phase=Phase.OPENING
+            # Close the non-platform side inherited from a manual driver.
+            doors.side_targets[-side]=false
+            if doors.request_side(side,speed): phase=Phase.OPENING
         Phase.OPENING:
             _drive(-1.0,delta)
             if float(doors.openness)<0.99: return
@@ -159,12 +164,15 @@ func _physics_process(delta: float) -> void:
         Phase.TERMINAL:
             _drive(-1.0,delta)
             if not service.line.passengers.complete() or not _doorway_clear(): return
+            if not service.timetable.terminal_ready(visit): return
             # Finish disembarkation before changing direction/destination context.
             direction=-direction
             train.cab_runtime.direction=direction
             visit+=1
             _visit_key=""
-            dwell_left=float(service.rules.service.dwell)
+            # The terminal call already observed the timetable's full dwell.
+            # Keep this physical consist when the player is aboard.
+            dwell_left=0.0
             _warning_requested=false
             _warning_heard=false
             departure_event=""
@@ -189,7 +197,9 @@ func update_info() -> void:
     info.set_route_context(str(record.info_id),str(service.line.stations[next].info_id) if next>=0 and next<service.line.stations.size() else "",binding.tracker.direction,key)
     if _visit_key!=key:
         _visit_key=key
-        if _terminal_reversed: info._arrival_used=true
+        if _terminal_reversed:
+            info._arrival_used=true
+            _terminal_reversed=false
     var speed: float=absf(service.train.speed)
     var stopped: bool=service.station_at_train()==target and speed<0.05
     info.update_train_state(phase==Phase.RUN and remaining<125.0 and remaining>=-2.0,stopped,bool(doors.target_open) and float(doors.openness)>=0.99,doors.can_move())
