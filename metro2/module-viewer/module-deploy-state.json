@@ -2,64 +2,64 @@
   "schema": 1,
   "modules": {
     "borisovsky_trakt": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "b6a99341af20896efa5fd3ea9dc3c0623fc127c8401bb118242642ef9071cd6c",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "1d5268a7a8c19bdd719b2f2b9b2146de0b3555fc4b1b545e4a2125e13f1fb7c7",
       "category": "station",
       "scene": "modules/stations/borisovsky_trakt/borisovsky_trakt.tscn",
       "dependencies": []
     },
     "vostok": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "c90c1e6a54bd39d8056cbd6ae33374c319e309f1d02b428a06fa2ac1a2164674",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "db87d3f7e5f03a7728ef606d55070a40d12cb19722abd1ece7bdf7766acc2532",
       "category": "station",
       "scene": "modules/stations/vostok/vostok.tscn",
       "dependencies": []
     },
     "moskovskaya": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "e6aa884a2263baf3f4ab1e6c2bbd787a35cc755d34b552ee2eae8f5ab1d1552c",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "03eccf7aeefdc292a7f620116bb4a89cafb7a67fa867de6c63af7ceeb5c6c4b6",
       "category": "station",
       "scene": "modules/stations/moskovskaya/moskovskaya.tscn",
       "dependencies": []
     },
     "park_chelyuskintsev": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "3e966820dc443035132711f928ccc983a6a15394fc6cb4f17150790b8a5c2536",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "1c57207610c1bc7d035ebe3ba84cefb60d6518578f4837f3a8bef4e96d0a948d",
       "category": "station",
       "scene": "modules/stations/park_chelyuskintsev/park_chelyuskintsev.tscn",
       "dependencies": []
     },
     "akademiya_nauk": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "72bb949ef76cd263ba7788abc84493aee7bb79bdaac50b6db723b5d7e53afb0e",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "39630a03e56c34b5df460eecb28d170ca801017f01d706f89c6b5294d1c3ec52",
       "category": "station",
       "scene": "modules/stations/akademiya_nauk/akademiya_nauk.tscn",
       "dependencies": []
     },
     "yakuba_kolasa": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "7821d03d2778e796c64d5a335526c17fd295fb28dc20316a15cdb5e6e34b0aff",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "cc1e65a2e5429c5ac19e9135972d13dd4265211ff5dc113d614a96594f2b4eb2",
       "category": "station",
       "scene": "modules/stations/yakuba_kolasa/yakuba_kolasa.tscn",
       "dependencies": []
     },
     "ploshchad_pobedy": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "7e5634f07a084705be6c199f2bfc2b22f8079a723909c58c8de0be04f1eddecb",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "bb8d41b512c2c1e03146a01064a6ebdc6fff99f21a47dfeaf5e991fc4645d342",
       "category": "station",
       "scene": "modules/stations/ploshchad_pobedy/ploshchad_pobedy.tscn",
       "dependencies": []
     },
     "oktyabrskaya": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "842af757a418a3a7ed3b043f010cbda0d32f4773b6cad8c09ffe5cbd56c006bc",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "5dc153b44e236b14fdbf45caec5d0eb23a997c684282f375b1e24d173d1eb440",
       "category": "station",
       "scene": "modules/stations/oktyabrskaya/oktyabrskaya.tscn",
       "dependencies": []
     },
     "ploshchad_lenina": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "6b4ef092e81470067f418131509856d8cd3fe8c25eeea4a420859da2fbf514e6",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "4f20d70c09fcd71d5e9f839d3df0f431fb23e10b3b15a2cd9e40d3bcc3947e9a",
       "category": "station",
       "scene": "modules/stations/ploshchad_lenina/ploshchad_lenina.tscn",
       "dependencies": []
@@ -79,8 +79,8 @@
       "dependencies": []
     },
     "depot": {
-      "source_commit": "a375becf7ab418839bec2d01253790e6a68da0ce",
-      "pack_sha256": "4c8340df86a8c857f1c3d5bcd8ba468f2337f499e92ecf042222f84d30ccdad3",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "7144658f5acaded16dbe7addd7fdfc4bbdf495ca68710984aaa7fc4bd129df13",
       "category": "module",
       "scene": "modules/depot/depot.tscn",
       "dependencies": [
@@ -88,8 +88,8 @@
       ]
     },
     "full_line": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "bafe1520f057b65b086aa0439b09601bf814cba990678ce371ddd32ee4378a72",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "1c4426e7f640533e9dda7655d3b64abc392340158cfaea95afef81583a8e8cc4",
       "category": "module",
       "scene": "modules/line/full_line.tscn",
       "dependencies": [
@@ -100,8 +100,8 @@
       ]
     },
     "v106": {
-      "source_commit": "55ad2ed404e6a7970a18f8a781ec6a97c031efef",
-      "pack_sha256": "f4118bbcb91e0c2bce1c0f62dacaf57cf67c36ad763de459513d1937698311f1",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "96e0e57f6a1b671118ba732fae0ac5354da46dd9e04dd1a1385079912d2c5726",
       "category": "train",
       "scene": "viewers/v106_inspection.tscn",
       "dependencies": [
@@ -109,8 +109,8 @@
       ]
     },
     "uruchye": {
-      "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-      "pack_sha256": "445e3b065053329cd1d5adf2d71e17df104e37322f939f51368eddd431d21775",
+      "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+      "pack_sha256": "1e89ba346fd7d6023ad5e1c25a7a5d62edd0a459a64ab784b1d9a2d0ccc9a26b",
       "category": "station",
       "scene": "modules/stations/uruchye/uruchye.tscn",
       "dependencies": [
@@ -119,7 +119,7 @@
     }
   },
   "boot": {
-    "source_commit": "dd1e3eeeccf96028d94428b16355539cd9d7b510",
-    "file": "boot-2566e06bd2fcad053da1.pck"
+    "source_commit": "e002fad981b87776192c0e146f19129151df6f37",
+    "file": "boot-de6d1bd6e9ccc30728d2.pck"
   }
 }
