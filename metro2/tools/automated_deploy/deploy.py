@@ -410,6 +410,7 @@ def publish():
         for payload in folder.iterdir():
             if payload.suffix in {'.pck','.bin'} and payload.stat().st_size>96*1024*1024:
                 raise RuntimeError('Publication payload must be partitioned before push: '+payload.name)
+    print('Publication: bundles ready; refreshing published metadata',flush=True)
     for attempt in range(3):
         base=fetch_pages();manifest=published(base,'module-packs.json');report=published(base,'pack-resources.json');info=published(base,'build-info.json');state=published(base,POLICY['state_file'],{'schema':1,'modules':{}})
         html,match,cfg=boot_config(base);files={}
@@ -440,15 +441,34 @@ def publish():
         files.update({PREFIX+p.name:p for p in patch.iterdir() if p.is_file()})
         # An isolated index merges against the latest tree without checking out or deleting other modules.
         index=CI/'publication.index';index.unlink(missing_ok=True);env=dict(os.environ,GIT_INDEX_FILE=str(index))
+        print('Publication: indexing '+str(len(files))+' files ('+str(sum(p.stat().st_size for p in files.values())//(1024*1024))+' MiB)',flush=True)
         git('read-tree',base,env=env)
         for path,local in files.items():
             sha=git('hash-object','-w',str(local)).decode().strip();git('update-index','--add','--cacheinfo','100644,'+sha+','+path,env=env)
         tree=git('write-tree',env=env).decode().strip()
         commit=git('-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit-tree',tree,'-p',base,input=('Update selected Metro2 packs from '+head+'\n').encode()).decode().strip()
-        pushed=git('push','origin',commit+':'+POLICY['pages_branch'],check=False)
-        if pushed.returncode==0:return
-        if attempt==2:raise RuntimeError(pushed.stderr.decode(errors='replace'))
-        # Retry metadata merge only; packs are never rebuilt and changed selected versions abort above.
+        # Native archives are already content-addressed; delta search across large
+        # binary packs wastes CPU and can lazily fetch old blobs in this partial
+        # clone. Send self-contained objects without searching for delta bases.
+        print('Publication: sending Git objects, attempt '+str(attempt+1),flush=True)
+        command=['git','-c','pack.window=0','-c','pack.compression=1',
+                 'push','--no-thin','--progress','origin',commit+':'+POLICY['pages_branch']]
+        with subprocess.Popen(command,cwd=REPO,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                              text=True,errors='replace') as pushed:
+            messages=[]
+            for line in pushed.stdout:
+                print(line,end='',flush=True);messages.append(line)
+            status=pushed.wait()
+        if status==0:
+            print('Publication: gh-pages updated',flush=True)
+            return
+        detail=''.join(messages)
+        # Only a competing publication can be repaired by refreshing metadata.
+        # Size limits, transport/authentication errors must remain visible.
+        conflict=any(reason in detail.lower() for reason in
+                     ('non-fast-forward','fetch first','stale info'))
+        if not conflict or attempt==2:raise RuntimeError(detail)
+        print('Publication: concurrent update; refreshing metadata',flush=True)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['plan','build','publish']);parser.add_argument('--module');args=parser.parse_args()
