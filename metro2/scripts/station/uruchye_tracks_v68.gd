@@ -39,7 +39,11 @@ func _ready() -> void:
     _flush()
     # StationInfrastructure is added after the architecture in Station Base's _ready.
     if not await _line_checkpoint(): return
-    call_deferred("_contact_rails")
+    # The compiler must retain this builder until its deferred rail pass ends.
+    call_deferred("_finish_contact_rails",line_work)
+
+func _finish_contact_rails(line_work: RefCounted) -> void:
+    _contact_rails()
     if line_work!=null: line_work.finish(self)
 func _mat(tint: Color,metallic: float,roughness: float) -> StandardMaterial3D:
     var m := StandardMaterial3D.new();m.albedo_color=tint;m.metallic=metallic;m.roughness=roughness;return m

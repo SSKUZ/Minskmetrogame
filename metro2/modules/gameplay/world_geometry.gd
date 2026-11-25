@@ -36,6 +36,19 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
         var box: AABB=mesh.get_aabb()
         if box.size.length()<0.045: continue
         var shapes: Array=await shapes_for(mesh,budget)
+        # A collapsed visual transform can still contain a real planar surface.
+        # Anchor its body to an invertible ancestor and bake only the singular
+        # shape poses, retaining the original render geometry unchanged.
+        var anchor: Node3D=node as Node3D
+        while absf(anchor.global_basis.determinant())<0.0000000001:
+            if anchor==root:
+                push_error("Cannot prepare walking collision below a singular module root")
+                return
+            var parent: Node=anchor.get_parent()
+            while parent!=null and not parent is Node3D: parent=parent.get_parent()
+            if parent==null: return
+            anchor=parent as Node3D
+        var into_anchor: Transform3D=anchor.global_transform.affine_inverse()*(node as Node3D).global_transform
         var body: StaticBody3D
         if moving:
             var animated:=AnimatableBody3D.new()
@@ -46,17 +59,23 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
         body.set_meta("metro_native_walk",true)
         body.collision_layer=TRAIN if moving else WORLD
         body.collision_mask=0
-        node.add_child(body)
+        anchor.add_child(body)
         for pose in transforms:
-            for shape in shapes:
+            var shape_pose: Transform3D=into_anchor*pose
+            var active_shapes: Array=shapes
+            if absf(shape_pose.basis.determinant())<0.0000000001:
+                active_shapes=await _baked_shapes(mesh,shape_pose,budget)
+                shape_pose=Transform3D.IDENTITY
+            for shape in active_shapes:
                 var collision:=CollisionShape3D.new()
                 collision.shape=shape
-                collision.transform=pose
+                collision.transform=shape_pose
                 body.add_child(collision)
                 if not await budget.checkpoint(): return
             if station:
                 var to_station: Transform3D=root.global_transform.affine_inverse()*node.global_transform*pose
                 var live: PackedVector3Array=contact_faces(mesh,to_station)
+                live=_baked_faces(live,into_anchor*pose)
                 if not live.is_empty():
                     var hazard:=StaticBody3D.new()
                     hazard.name="OriginalContactRail"
@@ -64,7 +83,7 @@ func prepare(root: Node3D, moving: bool=false, station: bool=false) -> void:
                     hazard.collision_mask=0
                     hazard.set_meta("metro_electric",true)
                     body.add_child(hazard)
-                    hazard.transform=pose
+                    hazard.transform=Transform3D.IDENTITY
                     var collision:=CollisionShape3D.new()
                     collision.shape=triangle_shape(live)
                     hazard.add_child(collision)
@@ -86,6 +105,28 @@ func shapes_for(mesh: Mesh, budget: RefCounted) -> Array:
         result.append(triangle_shape(faces.slice(offset,mini(offset+1152,faces.size()))))
         if not await budget.checkpoint(): return []
     _shapes[mesh]=result
+    return result
+
+func _baked_shapes(mesh: Mesh, pose: Transform3D, budget: RefCounted) -> Array:
+    var faces: PackedVector3Array=mesh.get_faces()
+    var result: Array=[]
+    for offset in range(0,faces.size(),1152):
+        var baked: PackedVector3Array=_baked_faces(faces.slice(offset,mini(offset+1152,faces.size())),pose)
+        if not baked.is_empty(): result.append(triangle_shape(baked))
+        if not await budget.checkpoint(): return []
+    return result
+
+static func _baked_faces(faces: PackedVector3Array, pose: Transform3D) -> PackedVector3Array:
+    var result:=PackedVector3Array()
+    for i in range(0,faces.size(),3):
+        var a: Vector3=pose*faces[i]
+        var b: Vector3=pose*faces[i+1]
+        var c: Vector3=pose*faces[i+2]
+        # Collapsed lines/points have no physical surface. Planar triangles stay.
+        if (b-a).cross(c-a).length_squared()<0.000000000001: continue
+        result.append(a)
+        result.append(b)
+        result.append(c)
     return result
 
 static func triangle_shape(faces: PackedVector3Array) -> ConcavePolygonShape3D:

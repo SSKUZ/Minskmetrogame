@@ -246,7 +246,7 @@ func _retire_train(initial: bool=false) -> void:
 
 func _train_collisions(enabled: bool) -> void:
     for body in train.train.find_children("*","CollisionObject3D",true,false):
-        if body.name=="WalkCollision": body.collision_layer=Geometry.TRAIN if enabled else 0
+        if body.has_meta("metro_native_walk"): body.collision_layer=Geometry.TRAIN if enabled else 0
 
 func _legacy_ui(enabled: bool) -> void:
     for control in train._ui_layer.get_children():

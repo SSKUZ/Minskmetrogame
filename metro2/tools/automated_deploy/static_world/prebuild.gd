@@ -59,7 +59,7 @@ func _station() -> void:
     var opened: Array=await _fragments(open_station)
     var index := {"schema":1,"module_id":control.module,"metres_per_unit":1.0,
         "source_scene":control.scene,"source_commit":control.source_commit,
-        "closed_chunks":closed,"open_chunks":opened,"walking_collision":1,
+        "closed_chunks":closed,"open_chunks":opened,"walking_collision":2,
         "portability":{"geometry":"native Mesh/ArrayMesh/MultiMesh; original hierarchy and transforms", "route":"res://modules/line/route_layout.json", "limitations":["Godot shaders and live viewport textures require adaptation for glTF/Roblox"]}}
     _json(str(control.index),index)
     open_station.free()
