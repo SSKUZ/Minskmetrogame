@@ -74,8 +74,9 @@ func _source_station(line_open: bool) -> Node3D:
     if line_open:
         var layout: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://modules/line/route_layout.json"))
         var datum: Dictionary=layout.station_datums[str(control.module)]
-        station.set("track_min_z",float(datum.exit_local[2]))
-        station.set("track_max_z",float(datum.entry_local[2]))
+        station.set_meta("metro_line_datum",datum)
+        station.set("track_min_z",float(datum.low_local_z))
+        station.set("track_max_z",float(datum.high_local_z))
     var work=Budget.new(_host,10000)
     station.set_meta("metro_line_work",work)
     _host.add_child(station)
@@ -380,7 +381,12 @@ func _tunnels() -> void:
                 if middle>=float(station.low) and middle<=float(station.high): station_index=int(station.index);break
             await builder._warp_section(section,span)
             section.position=Vector3.ZERO
-            section.get_node("WallLight").visible=posmod(floori(span.x/16.0),2)==0
+            var slot_id: int=floori(span.x/16.0)
+            section.get_node("WallLight").visible=posmod(slot_id,2)==0 and section.get_node("WallLight").position.z>=0.0 and section.get_node("WallLight").position.z<=span.y-span.x
+            section.get_node("ServiceCabinet").visible=posmod(slot_id,3)==1
+            section.get_node("JunctionBox").visible=posmod(slot_id,2)==0
+            section.get_node("TechnicalDoor").visible=posmod(slot_id,11)==3
+            section.get_node("TransformerEnclosure").visible=posmod(slot_id,7)==4
             var parts: Array=[]
             for node in base_nodes:
                 var part: Dictionary={"kind":node.get_class(),"name":str(node.name),"transform":node.transform,
@@ -404,13 +410,73 @@ func _tunnels() -> void:
                 description["high"]=span.y
                 spans[key]=description
                 for node in base_nodes: section.add_child(node)
+            # Station track 2 has its contact rail on the opposite side. Reuse
+            # every other mesh; mirror only the source conductor before warping.
+            await builder._warp_section(section,span,true,-1.0)
+            var alternate_parts: Array=parts.duplicate(true)
+            for part_index in range(base_nodes.size()):
+                var node: Node3D=base_nodes[part_index]
+                if node is MeshInstance3D: alternate_parts[part_index]["mesh"]=(node as MeshInstance3D).mesh
+                else: alternate_parts[part_index]["multimesh"]=(node as MultiMeshInstance3D).multimesh
+            var alternate := Resource.new()
+            alternate.set_meta("parts",alternate_parts)
+            var alternate_local: Resource=await _local_resource(alternate)
+            base_spans[key]["track_2_path"]=alternate_local.resource_path
             _resources.clear()
             _local_resources.clear()
             await process_frame
-    _json(str(control.index),{"schema":2,"metres_per_unit":1.0,"source_commit":control.source_commit,
+    await _group_tunnel_archives(spans)
+    _json(str(control.index),{"schema":3,"metres_per_unit":1.0,"source_commit":control.source_commit,
         "source_route":"res://modules/line/route_layout.json","spans":spans,
         "base":base_spans,"base_part_kinds":part_kinds})
     builder.free()
+
+func _group_tunnel_archives(spans: Dictionary) -> void:
+    # Eight consecutive 16 m sections share one transfer. Keep native resources
+    # independently leased/decoded; the runtime never mounts a whole-line PCK.
+    var memberships: Dictionary={}
+    var paths: Dictionary={}
+    for key in spans:
+        var description: Dictionary=spans[key]
+        var group: int=floori((float(description.low)+float(description.high))*0.5/128.0)
+        paths[key]=[]
+        for file in description.files:
+            var path: String=str(file.path)
+            paths[key].append(path)
+            if not memberships.has(path): memberships[path]={}
+            memberships[path][group]=true
+    var previous: Array=_archives.keys()
+    _archives.clear()
+    _locations.clear()
+    var shared: Array=[]
+    var groups: Dictionary={}
+    for path in memberships:
+        var file: Dictionary=_written[path]
+        if memberships[path].size()>1 or bool(file.get("shared",false)):
+            shared.append(file)
+        else:
+            var group: int=int(memberships[path].keys()[0])
+            if not groups.has(group): groups[group]=[]
+            groups[group].append(file)
+    if not shared.is_empty(): _archive(shared)
+    var ordered: Array=groups.keys()
+    ordered.sort()
+    for group in ordered:
+        _archive(groups[group])
+        await process_frame
+    for key in spans:
+        var files: Array=[]
+        var archives: Dictionary={}
+        for path in paths[key]:
+            var file: Dictionary=_locations[path]
+            files.append(file)
+            var archive: Dictionary=_archives[file.archive]
+            archive["stream_group"]=true
+            archives[file.archive]=archive
+        spans[key]["files"]=files
+        spans[key]["archives"]=archives.values()
+    for filename in previous:
+        if not _archives.has(filename): DirAccess.remove_absolute(_folder.path_join(str(filename)))
 
 func _local_resource(source: Resource) -> Resource:
     # Base path resources live inside the existing full_line PCK. They never

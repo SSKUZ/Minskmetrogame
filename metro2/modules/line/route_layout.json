@@ -113,15 +113,18 @@
       "low_local_z": -12.888,
       "high_local_z": 92.112,
       "low_profile": [
-        3.15,
-        7
+        2.175,
+        3.9
       ],
       "high_profile": [
-        3.15,
-        7
+        2.175,
+        3.9
       ],
       "source_commit": "eac2331ae930b760c4d9931f58da9b45610f6078",
-      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z"
+      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged",
+      "trim_external_portals": true
     },
     "vostok": {
       "stop_local_z": 9.603,
@@ -138,15 +141,19 @@
       "low_local_z": -12.888,
       "high_local_z": 92.112,
       "low_profile": [
-        3.15,
-        7
+        2.04,
+        4.46
       ],
       "high_profile": [
-        3.15,
-        7
+        2.04,
+        4.46
       ],
       "source_commit": "dee1f12841cc6d221cd470b522ffac9711745a22",
-      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z"
+      "derivation": "Connections/Entry and Connections/Exit; station_base.gd STOP_Z",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged",
+      "portal_crown_m": 0.32,
+      "trim_external_portals": true
     },
     "moskovskaya": {
       "stop_local_z": 9.603,
@@ -163,15 +170,17 @@
       "low_local_z": -20.888,
       "high_local_z": 100.112,
       "low_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.4
       ],
       "high_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.4
       ],
       "source_commit": "886cbbc0f6fbf1a0798bbebe25e4eb06f221d74e",
-      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=3.85 top=2.13+4.65/2"
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=3.85 top=2.13+4.65/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     },
     "park_chelyuskintsev": {
       "stop_local_z": 9.603,
@@ -188,15 +197,18 @@
       "low_local_z": -20.9,
       "high_local_z": 100.124,
       "low_profile": [
-        1.925,
-        4.01
+        1.89,
+        3.92
       ],
       "high_profile": [
-        1.925,
-        4.01
+        1.89,
+        3.92
       ],
       "source_commit": "bdf45142d8edc396df6c09a6604b18e0cb663f5d",
-      "derivation": "NORTH/SOUTH +/- _tunnel_lining length=18.1; cap width=3.85 top=1.96+4.10/2"
+      "derivation": "NORTH/SOUTH +/- _tunnel_lining length=18.1; cap width=3.85 top=1.96+4.10/2",
+      "portal_shape": "ellipse",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged",
+      "portal_spring_y": 2.3
     },
     "akademiya_nauk": {
       "stop_local_z": 9.603,
@@ -213,15 +225,17 @@
       "low_local_z": -20.888,
       "high_local_z": 100.112,
       "low_profile": [
-        2.02,
-        5
+        1.87,
+        4.8
       ],
       "high_profile": [
-        2.02,
-        5
+        1.87,
+        4.8
       ],
       "source_commit": "bd3cdc47ba8d5e173fdaa1af02369fab00730ec0",
-      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details far; cap width=4.04 top=2.275+5.45/2"
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details far; cap width=4.04 top=2.275+5.45/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     },
     "yakuba_kolasa": {
       "stop_local_z": 9.603,
@@ -238,15 +252,17 @@
       "low_local_z": -20.888,
       "high_local_z": 100.112,
       "low_profile": [
-        2.02,
-        5
+        1.87,
+        4.8
       ],
       "high_profile": [
-        2.02,
-        5
+        1.87,
+        4.8
       ],
       "source_commit": "be32933767459d31fc1daa1a7a93bcf5714e58a7",
-      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=4.04 top=2.275+5.45/2"
+      "derivation": "station_builder.gd ZA/ZB +/- 8; _track_details cap width=4.04 top=2.275+5.45/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     },
     "ploshchad_pobedy": {
       "stop_local_z": 9.603,
@@ -263,15 +279,17 @@
       "low_local_z": -10.997,
       "high_local_z": 90.221,
       "low_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "high_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "source_commit": "2e38db3b8d40eb84b11d864edf751667190163cf",
-      "derivation": "_portal_z: STOP_Z + lighting driver_eye_offset, reflected around MID; +/- mirror_ahead+mouth_clearance+8; cap width=3.85 top=2.13+4.65/2"
+      "derivation": "_portal_z: STOP_Z + lighting driver_eye_offset, reflected around MID; +/- mirror_ahead+mouth_clearance+8; cap width=3.85 top=2.13+4.65/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     },
     "oktyabrskaya": {
       "stop_local_z": 9.603,
@@ -288,15 +306,17 @@
       "low_local_z": -12.976,
       "high_local_z": 92.2,
       "low_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "high_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "source_commit": "e05e29b0cd5ae63aeb69b330d1a83696bb4bb43f",
-      "derivation": "NORTH=ZA+ZB-SOUTH, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2"
+      "derivation": "NORTH=ZA+ZB-SOUTH, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     },
     "ploshchad_lenina": {
       "stop_local_z": 9.603,
@@ -313,15 +333,17 @@
       "low_local_z": -12.976,
       "high_local_z": 92.2,
       "low_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "high_profile": [
-        1.925,
-        4.455
+        1.87,
+        4.8
       ],
       "source_commit": "fab8b9299170e063365f0f95473e8c852622ba67",
-      "derivation": "NORTH=-4.976, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2"
+      "derivation": "NORTH=-4.976, SOUTH=84.20; _track_details +/- 8; cap width=3.85 top=2.13+4.65/2",
+      "portal_shape": "rectangle",
+      "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     }
   }
 }

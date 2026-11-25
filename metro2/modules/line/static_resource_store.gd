@@ -11,6 +11,10 @@ var _leases: Dictionary = {}
 var _consumer_tokens: Dictionary = {}
 var _lease_serial := 0
 var _resident_bytes := 0
+const MAX_ARCHIVE_CACHE_BYTES := 24 * 1024 * 1024
+var _archive_cache: Dictionary={}
+var _archive_order: Array[String]=[]
+var _archive_bytes := 0
 var error_message := ""
 
 static func shared(consumer: Node) -> Node:
@@ -28,7 +32,8 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
     for file in description.files+description.get("textures",[]):
         var path: String=str(file.path)
         if not _users.has(path):
-            if _resident_bytes+int(file.bytes)>MAX_RESIDENT_BYTES:
+            _trim_archives(int(file.bytes))
+            if _resident_bytes+_archive_bytes+int(file.bytes)>MAX_RESIDENT_BYTES:
                 error_message="Недостаточно свободной памяти для геометрии"
                 _release_paths(reserved)
                 return null
@@ -140,6 +145,11 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
     return success
 
 func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
+    var cache_key: String=str(info.sha256)
+    if _archive_cache.has(cache_key):
+        _archive_order.erase(cache_key)
+        _archive_order.append(cache_key)
+        return _archive_cache[cache_key]
     var request := HTTPRequest.new()
     request.accept_gzip=false
     request.timeout=40.0
@@ -168,7 +178,19 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
         break
     request.queue_free()
     if downloaded.is_empty(): error_message="Не удалось загрузить подготовленный участок; будет повтор"
+    elif bool(info.get("stream_group",false)) and downloaded.size()<=MAX_ARCHIVE_CACHE_BYTES:
+        _trim_archives(downloaded.size())
+        if _resident_bytes+_archive_bytes+downloaded.size()<=MAX_RESIDENT_BYTES:
+            _archive_cache[cache_key]=downloaded
+            _archive_order.append(cache_key)
+            _archive_bytes+=downloaded.size()
     return downloaded
+
+func _trim_archives(incoming: int) -> void:
+    while not _archive_order.is_empty() and (_archive_bytes+incoming>MAX_ARCHIVE_CACHE_BYTES or _resident_bytes+_archive_bytes+incoming>MAX_RESIDENT_BYTES):
+        var key: String=_archive_order.pop_front()
+        _archive_bytes-=(_archive_cache[key] as PackedByteArray).size()
+        _archive_cache.erase(key)
 
 func release_chunk(node: Node) -> void:
     if not is_instance_valid(node): return
@@ -185,6 +207,10 @@ func release_token(token: int) -> void:
 func _release_consumer(consumer_id: int) -> void:
     for token in _consumer_tokens.get(consumer_id,[]).duplicate(): release_token(int(token))
     _consumer_tokens.erase(consumer_id)
+    if _consumer_tokens.is_empty():
+        _archive_cache.clear()
+        _archive_order.clear()
+        _archive_bytes=0
 
 func _release_paths(paths: Array) -> void:
     for path in paths:

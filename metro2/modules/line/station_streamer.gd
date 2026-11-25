@@ -214,8 +214,9 @@ func _load_station(index: int) -> bool:
     if prepared:
         node.set("line_open",true)
     else:
-        node.set("track_min_z",float(record.exit_local_z))
-        node.set("track_max_z",float(record.entry_local_z))
+        node.set("track_min_z",float(record.low)-float(record.root_z))
+        node.set("track_max_z",float(record.high)-float(record.root_z))
+        node.set_meta("metro_line_datum",line.layout.station_datums[id])
     var budget=BuildBudget.new(self,2000)
     _building_budget=budget
     node.set_meta("metro_line_work",budget)

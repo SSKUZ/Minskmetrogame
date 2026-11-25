@@ -84,12 +84,19 @@ func sync_to_view() -> void:
     var required: Dictionary={}
     _include_slots(required,_train.global_position.z+_train_bounds.position.z,_train.global_position.z+_train_bounds.end.z,true)
     _include_slots(required,_camera.global_position.z,_camera.global_position.z)
+    _sync_base(required)
+    # The long braking horizon belongs to base track only. Detail resources
+    # retain the original view distance plus a short time-based prefetch band.
+    var detail_slots: Dictionary={}
+    var lead: float=clampf(_speed*6.0+32.0,64.0,192.0)
+    _include_slots(detail_slots,_train.global_position.z+_train_bounds.position.z-(lead if _direction>0 else 0.0),
+        _train.global_position.z+_train_bounds.end.z+(lead if _direction<0 else 0.0))
+    _include_slots(detail_slots,_camera.global_position.z,_camera.global_position.z)
     _wanted.clear()
-    for slot in required:
+    for slot in detail_slots:
         for span in path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):
             var key: String="%.4f:%.4f" % [span.x,span.y]
             if prepared_spans.has(key): _wanted[key]=prepared_spans[key]
-    _sync_base(required)
     # Detach retired sections before reserving the next resource slice.
     for key in _route_active.keys():
         if _wanted.has(key): continue
@@ -112,7 +119,10 @@ func _pump() -> void:
             var middle: float=(float(description.low)+float(description.high))*0.5
             var train_distance: float=absf(middle-_train.global_position.z)
             if (_train.global_position.z-middle)*float(_direction)<0.0: train_distance*=1.25
-            var distance: float=minf(train_distance,absf(middle-_camera.global_position.z))
+            var camera_distance: float=absf(middle-_camera.global_position.z)
+            var distance: float=minf(train_distance,camera_distance)
+            # Fill the camera's complete visible corridor before distant extras.
+            if camera_distance>VISIBLE_DISTANCE+GUARD_DISTANCE: distance+=1536.0
             if distance<priority: priority=distance;next=str(key)
         if next.is_empty(): break
         var section: Node3D=await _store.instantiate_chunk(_wanted[next],self)
@@ -208,8 +218,10 @@ func _request_base() -> void:
     call_deferred("_pump_base")
 
 func _base_data(key: String) -> Resource:
+    var resource_path: String=str(base_spans[key].get("track_2_path",base_spans[key].path)) if center_x<0.0 else str(base_spans[key].path)
+    key=resource_path # Different conductors, identical shared non-contact meshes.
     if not base_cache.data.has(key):
-        var resource: Resource=ResourceLoader.load(str(base_spans[key].path),"Resource",ResourceLoader.CACHE_MODE_REUSE)
+        var resource: Resource=ResourceLoader.load(resource_path,"Resource",ResourceLoader.CACHE_MODE_REUSE)
         if resource==null or not resource.has_meta("parts"): return null
         base_cache.data[key]=resource
     base_cache.order.erase(key)
