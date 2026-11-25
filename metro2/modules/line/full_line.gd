@@ -22,6 +22,7 @@ var layout: Dictionary
 var tunnels: Array[Node3D]=[]
 var _sun: DirectionalLight3D
 var _environment: Environment
+var _gameplay_initializing:=false
 
 func _ready() -> void:
     layout=JSON.parse_string(FileAccess.get_file_as_string(LAYOUT))
@@ -97,8 +98,16 @@ func _start_service_if_ready() -> void:
 
 
 func _consist_ready() -> void:
-    # consist_ready is emitted before the inherited train attaches its INFO binding.
-    await get_tree().process_frame
+    if _gameplay_initializing or is_instance_valid(gameplay): return
+    _gameplay_initializing=true
+    var deadline: int=Time.get_ticks_msec()+15000
+    # Await real object references, not an assumed one-frame completion order.
+    while not is_instance_valid(train.info_binding) or not is_instance_valid(train._flight_ui) or not is_instance_valid(train.camera):
+        if Time.get_ticks_msec()>=deadline:
+            _stream_status.text="Ошибка запуска: не завершена инициализация кабины, камеры или управления V106"
+            return
+        await get_tree().process_frame
+        if not is_inside_tree(): return
     passengers=Passengers.new()
     passengers.name="WholeLinePassengerService"
     add_child(passengers)

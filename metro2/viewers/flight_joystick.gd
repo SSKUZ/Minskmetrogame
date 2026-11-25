@@ -22,7 +22,8 @@ func reset() -> void:
 
 func _update_axis(point: Vector2) -> void:
     var radius := minf(size.x,size.y)*0.36
-    _knob = ((point-global_position)-size*0.5).limit_length(radius)
+    var local: Vector2=get_global_transform_with_canvas().affine_inverse()*point
+    _knob = (local-size*0.5).limit_length(radius)
     var raw := _knob/radius
     var amount := raw.length()
     axis = Vector2.ZERO if amount <= DEAD_ZONE else raw.normalized()*((amount-DEAD_ZONE)/(1.0-DEAD_ZONE))
@@ -33,7 +34,7 @@ func _input(event: InputEvent) -> void:
     if not is_visible_in_tree(): return
     if event is InputEventMouse and event.device == -1: return
     if event is InputEventScreenTouch:
-        if event.pressed and _pointer == -1 and get_global_rect().has_point(event.position):
+        if event.pressed and _pointer == -1 and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*event.position):
             _pointer = event.index
             _update_axis(event.position)
             get_viewport().set_input_as_handled()
@@ -44,7 +45,7 @@ func _input(event: InputEvent) -> void:
         _update_axis(event.position)
         get_viewport().set_input_as_handled()
     elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-        if event.pressed and _pointer == -1 and get_global_rect().has_point(event.position):
+        if event.pressed and _pointer == -1 and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*event.position):
             _pointer = -2
             _update_axis(event.position)
             get_viewport().set_input_as_handled()

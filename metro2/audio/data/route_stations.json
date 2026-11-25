@@ -47,5 +47,17 @@
     "kastrychnitskaya": "Кастрычніцкая",
     "ploshcha_lenina": "Плошча Леніна"
   },
-  "world_layout_status": "TZ55.1 persistent compact route; depot and both travel directions remain independent of temporary visual station nodes."
+  "world_layout_status": "TZ55.1 persistent compact route; depot and both travel directions remain independent of temporary visual station nodes.",
+  "station_names_ru": {
+    "uruchye": "Уручье",
+    "barysauski_trakt": "Борисовский тракт",
+    "uskhod": "Восток",
+    "maskouskaya": "Московская",
+    "park_chalyuskintsau": "Парк Челюскинцев",
+    "akademiya_navuk": "Академия наук",
+    "ploshcha_yakuba_kolasa": "Площадь Якуба Коласа",
+    "ploshcha_peramohi": "Площадь Победы",
+    "kastrychnitskaya": "Октябрьская",
+    "ploshcha_lenina": "Площадь Ленина"
+  }
 }

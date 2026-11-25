@@ -41,8 +41,10 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
     var platform_near: bool=absf(float(_game.distance)-float(station.stop_z))<340.0 or absf(_game.camera.global_position.z-float(station.stop_z))<340.0
     var nav=Navigation.new()
     var fallback:=Rect2(-10.37,float(station.root_z)-12.888,10.0,105.0)
-    _platforms[index]={"navigation":nav,"ready":false}
+    _platforms[index]={"navigation":nav,"ready":false,"navigation_ready":false}
     await nav.read_station(instance,budget,fallback)
+    if not is_instance_valid(instance) or budget.cancelled: return
+    _platforms[index].navigation_ready=true
     if _platform_states.has(index) and not _platform_states[index].is_empty():
         for saved in _platform_states[index]:
             if not await budget.checkpoint(): return
@@ -99,6 +101,9 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
     _platforms[index].ready=true
     _next_probe=0
     _refresh_activity()
+
+func platform_spawn_ready(index: int) -> bool:
+    return _platforms.has(index) and bool(_platforms[index].get("navigation_ready",false)) and is_instance_valid(_line.station_instance(index))
 
 func platform_ready(index: int) -> bool:
     return _platforms.has(index) and bool(_platforms[index].get("ready",false))

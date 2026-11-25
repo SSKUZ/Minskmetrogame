@@ -28,6 +28,15 @@ const CAMERA := 4
 var _retention: Dictionary = {}
 var _next_index := -1
 var _player: WeakRef
+var _startup_target:=-1
+
+func set_startup_target(index: int) -> void:
+    _startup_target=index
+    refresh()
+
+func clear_startup_target() -> void:
+    _startup_target=-1
+    refresh()
 
 func register_player(player: Node3D) -> void:
     _player=weakref(player) if is_instance_valid(player) else null
@@ -81,6 +90,13 @@ func refresh() -> void:
         if is_instance_valid(line.train.camera): camera_z=line.train.camera.global_position.z
     _wanted.clear()
     _retention.clear()
+    if _startup_target>=0 and _startup_target<line.stations.size() and is_instance_valid(line.gameplay) and not line.gameplay.running:
+        _wanted[_startup_target]=true
+        _retention[_startup_target]=PLAYER
+        if not _busy:
+            _busy=true
+            call_deferred("_pump")
+        return
     _next_index=-1
     var bounds := AABB()
     if is_instance_valid(line.train): bounds=line.train._train_bounds

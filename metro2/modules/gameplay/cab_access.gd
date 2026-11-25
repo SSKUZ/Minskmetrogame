@@ -4,6 +4,7 @@ extends RefCounted
 const Budget = preload("res://modules/line/build_budget.gd")
 
 func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
+    if car.has_meta("metro_cab_access_result"): return car.get_meta("metro_cab_access_result")
     var result: Array[Dictionary]=[]
     var budget=Budget.new(car,1500)
     # Original V106 rear partition and external cab skin; axes are car-local.
@@ -20,7 +21,7 @@ func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
         var sources: Array[Node]=car.find_children("*","MeshInstance3D",true,false)
         for node in sources:
             var instance:=node as MeshInstance3D
-            if instance.mesh==null or not instance.is_visible_in_tree() or cab.is_ancestor_of(instance) or instance.skin!=null: continue
+            if instance.mesh==null or not _visible_in_car(instance,car) or cab.is_ancestor_of(instance) or instance.skin!=null: continue
             if pivot.is_ancestor_of(instance): continue
             var pose: Transform3D=car.global_transform.affine_inverse()*instance.global_transform
             var box: AABB=pose*instance.get_aabb()
@@ -33,7 +34,15 @@ func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
             pivot.queue_free()
             continue
         result.append({"pivot":pivot,"threshold":portal.threshold,"side":portal.side,"angle":portal.angle,"open":false,"fraction":0.0})
+    if not result.is_empty(): car.set_meta("metro_cab_access_result",result)
     return result
+
+func _visible_in_car(node: Node3D, car: Node3D) -> bool:
+    var current: Node=node
+    while current!=car:
+        if current is Node3D and not current.visible: return false
+        current=current.get_parent()
+    return true
 
 func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: Node3D, budget: RefCounted) -> bool:
     var source: Mesh=instance.mesh

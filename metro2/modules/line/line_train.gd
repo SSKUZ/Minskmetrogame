@@ -170,10 +170,10 @@ func platform_camera_available() -> bool:
 func _update_camera() -> void:
     if _in_motion_step: return
     if not is_instance_valid(camera) or not is_instance_valid(train): return
-    _place_consist()
-    if camera_mode=="walk" and is_instance_valid(line.gameplay):
+    if camera_mode=="walk" and is_instance_valid(line.gameplay) and is_instance_valid(line.gameplay.player) and is_instance_valid(line.gameplay.player.eye):
         camera.global_transform=line.gameplay.player.eye.global_transform
         return
+    _place_consist()
     if camera_mode=="flight":
         camera.global_position=flight_position
         camera.global_basis=Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
@@ -215,3 +215,15 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if is_instance_valid(line.gameplay) and (not line.gameplay.running or camera_mode=="walk"): return
     super._unhandled_input(event)
+
+func activate_character_view(eye: Node3D) -> bool:
+    if not is_instance_valid(camera) or not is_instance_valid(eye): return false
+    if is_instance_valid(cab_runtime): cab_runtime.cancel_interaction()
+    if is_instance_valid(_flight_ui): _flight_ui._release_pointer()
+    _touch_points.clear()
+    _pinching=false
+    touch_dragging=false
+    camera_mode="walk"
+    camera.global_transform=eye.global_transform
+    camera.make_current()
+    return camera.is_current()

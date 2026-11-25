@@ -18,17 +18,22 @@ var load_panel: PanelContainer
 var load_text: Label
 var retry_button: Button
 var back_button: Button
+var station_panel: PanelContainer
+var station_confirm: Button
+var _play_visible:=false
 
 func initialize(owner_service: Node) -> void:
     service=owner_service
-    layer=20
+    layer=40
+    process_mode=Node.PROCESS_MODE_ALWAYS
     root=Control.new()
     root.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
     root.mouse_filter=Control.MOUSE_FILTER_IGNORE
     add_child(root)
-    var top:=HBoxContainer.new()
+    var top:=HFlowContainer.new()
     root.add_child(top)
     top.position=Vector2(12,12)
+    top.custom_minimum_size.x=536
     role_button=_button(top,"РЕЖИМ ПАССАЖИРА",func(): service.switch_role("passenger" if service.role=="driver" else "driver"))
     walk_button=_button(top,"ИДТИ",func(): service.leave_driver())
     var view:=MenuButton.new()
@@ -44,6 +49,7 @@ func initialize(owner_service: Node) -> void:
     status=Label.new()
     root.add_child(status)
     status.position=Vector2(14,70)
+    status.mouse_filter=Control.MOUSE_FILTER_IGNORE
     message=Label.new()
     root.add_child(message)
     message.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
@@ -67,6 +73,7 @@ func initialize(owner_service: Node) -> void:
             service.player.stick=Vector2.ZERO
         else: service.player.stick=axis)
     interact=Button.new()
+    interact.text="ВЗАИМОДЕЙСТВИЕ"
     root.add_child(interact)
     interact.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
     interact.offset_left=-302
@@ -89,7 +96,8 @@ func initialize(owner_service: Node) -> void:
 func _resize() -> void:
     var viewport_size: Vector2=get_viewport().get_visible_rect().size
     var scale_factor: float=minf(1.0,viewport_size.x/560.0)
-    root.scale=Vector2.ONE*scale_factor
+    if viewport_size.x<=0.0 or viewport_size.y<=0.0: return
+    root.scale=Vector2.ONE*maxf(scale_factor,0.1)
     root.size=viewport_size/maxf(scale_factor,0.1)
 
 func _button(parent: Node, title: String, callback: Callable) -> Button:
@@ -116,16 +124,53 @@ func _start_menu() -> void:
     title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
     column.add_child(title)
     _button(column,"МАШИНИСТ · НАЧАТЬ В ДЕПО",func(): service.start_role("driver",0))
-    station=OptionButton.new()
-    column.add_child(station)
-    var route: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://audio/data/route_stations.json"))
-    for record in service.line.stations:
-        var title_text: String=str(route.station_names.get(str(record.info_id),record.module_id))
-        station.add_item(title_text)
-    _button(column,"ПАССАЖИР · НАЧАТЬ НА СТАНЦИИ",func(): service.start_role("passenger",station.selected))
+    _button(column,"ПАССАЖИР · ВЫБРАТЬ СТАНЦИЮ",_choose_station)
     var hint:=Label.new()
     hint.text="Ходьба: джойстик / WASD\nОбзор: палец справа / правая кнопка мыши\nВзаимодействие: кнопка / E"
     column.add_child(hint)
+    station_panel=PanelContainer.new()
+    root.add_child(station_panel)
+    station_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+    station_panel.offset_left=-240
+    station_panel.offset_right=240
+    station_panel.offset_top=-135
+    station_panel.offset_bottom=135
+    station_panel.custom_minimum_size=Vector2(480,270)
+    var choices:=VBoxContainer.new()
+    station_panel.add_child(choices)
+    var heading:=Label.new()
+    heading.text="ПАССАЖИР · ВЫБЕРИТЕ СТАНЦИЮ"
+    choices.add_child(heading)
+    station=OptionButton.new()
+    station.custom_minimum_size=Vector2(450,60)
+    choices.add_child(station)
+    var route: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://audio/data/route_stations.json"))
+    var names: Dictionary=route.get("station_names_ru",route.get("station_names",{}))
+    for record in service.line.stations:
+        station.add_item(str(names.get(str(record.info_id),record.module_id)))
+    station.select(-1)
+    station_confirm=_button(choices,"НАЧАТЬ ИГРУ",func():
+        if station.selected<0: return
+        service.start_role("passenger",station.selected))
+    station_confirm.disabled=true
+    station.item_selected.connect(func(_index: int): station_confirm.disabled=station.selected<0)
+    _button(choices,"НАЗАД К ВЫБОРУ РЕЖИМА",show_menu)
+    station_panel.hide()
+
+func _choose_station() -> void:
+    if service._starting or service.running: return
+    menu.hide()
+    load_panel.hide()
+    station.select(-1)
+    station_confirm.disabled=true
+    station_panel.show()
+
+func show_menu() -> void:
+    if service._starting or service.running: return
+    station_panel.hide()
+    load_panel.hide()
+    menu.show()
+
 
 func _absence_panel() -> void:
     warning=PanelContainer.new()
@@ -166,11 +211,12 @@ func _loading_panel() -> void:
     retry_button=_button(column,"ПОВТОРИТЬ ПОДГОТОВКУ",func(): service.retry_start())
     back_button=_button(column,"ВЫБРАТЬ РЕЖИМ",func():
         if service._starting: return
-        load_panel.hide()
-        menu.show())
+        show_menu())
     load_panel.hide()
 
 func loading(stage: String) -> void:
+    root.show()
+    station_panel.hide()
     menu.hide()
     load_panel.show()
     retry_button.hide()
@@ -183,9 +229,25 @@ func start_failed(reason: String) -> void:
     back_button.disabled=false
 
 func set_play_visible(enabled: bool) -> void:
+    _play_visible=enabled
+    root.show()
     for item in [role_button.get_parent(),status,stick,interact]: item.visible=enabled
     menu.visible=not enabled
-    if enabled: load_panel.hide()
+    if enabled:
+        load_panel.hide()
+        station_panel.hide()
+        stick.reset()
+
+func activate_play() -> bool:
+    _resize()
+    if root.size.x<=0.0 or root.size.y<=0.0: return false
+    _look_pointer=-1
+    set_play_visible(true)
+    interact.show()
+    status.show()
+    role_button.get_parent().show()
+    stick.visible=not service.driver_seated and not service.player.seated
+    return root.is_visible_in_tree() and interact.is_visible_in_tree()
 
 func notice(text: String) -> void:
     message.text=text
@@ -195,7 +257,7 @@ func _process(delta: float) -> void:
     flash.color.a=move_toward(flash.color.a,0.0,delta*0.65)
     _notice_left=maxf(0.0,_notice_left-delta)
     message.visible=_notice_left>0.0
-    if not service.running: return
+    if not service.running or not _play_visible: return
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
     walk_button.visible=service.driver_seated
     stick.visible=not service.driver_seated and not service.player.seated and service.train.camera_mode in ["walk","flight"]
@@ -211,9 +273,6 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         if event.pressed and event.position.x>get_viewport().get_visible_rect().size.x*0.36 and _look_pointer<0: _look_pointer=event.index
         elif not event.pressed and event.index==_look_pointer: _look_pointer=-1
-    elif event is InputEventScreenDrag and event.index==_look_pointer:
-        service.player.look(event.relative)
-        get_viewport().set_input_as_handled()
     elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
         service.player.look(event.relative)
         get_viewport().set_input_as_handled()
@@ -226,5 +285,10 @@ func _notification(what: int) -> void:
             if is_instance_valid(service.train._flight_ui): service.train._flight_ui.stick=Vector2.ZERO
 
 func _input(event: InputEvent) -> void:
-    if event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==_look_pointer:
+    if not service.running or service.driver_seated or service.train.camera_mode!="walk": return
+    if event is InputEventScreenDrag and event.index==_look_pointer:
+        service.player.look(event.relative)
+        get_viewport().set_input_as_handled()
+    elif event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==_look_pointer:
         _look_pointer=-1
+        get_viewport().set_input_as_handled()
