@@ -33,6 +33,9 @@ func _has_loaded_stop(id: String) -> bool:
 
 func _at_route_stop(state: Dictionary, consist: Node3D) -> bool:
     if state.is_empty(): return false
+    if is_instance_valid(_line.gameplay):
+        var platform: int=_line.gameplay.station_at_train()
+        return platform>=0 and str(_line.stations[platform].info_id)==str(state.station_id)
     if passenger_mode or bool(state.at_station): return bool(state.at_station)
     # Manual drivers need not hit a 50 cm autopilot point to call the warning.
     # Use the complete train envelope and saved station connection limits;
@@ -46,6 +49,9 @@ func _at_route_stop(state: Dictionary, consist: Node3D) -> bool:
     return false
 
 func select_passenger_mode(enabled: bool) -> void:
+    if is_instance_valid(_line.gameplay):
+        _line.gameplay.switch_role("passenger" if enabled else "driver")
+        return
     super.select_passenger_mode(enabled)
     _returning_to_depot=false
     _depot_warning_at=-1
@@ -55,6 +61,8 @@ func select_passenger_mode(enabled: bool) -> void:
         tracker.set_direction("forward")
 
 func press_info() -> String:
+    if is_instance_valid(_line.gameplay) and passenger_mode:
+        return "Информатор: автоматический режим"
     _update_context()
     if not passenger_mode and audio.info.stopped and audio.info.doors_open and not audio.info._departure_used and tracker.direction=="reverse" and audio.info.station_id=="uruchye":
         if not audio.announcer.is_busy() and audio.bank.has_event(DEPOT_WARNING):
@@ -66,6 +74,12 @@ func press_info() -> String:
 
 func _physics_process(delta: float) -> void:
     if not _line.ready_for_service: return
+    if is_instance_valid(_line.gameplay):
+        if passenger_mode:
+            _line.gameplay.automatic.update_info()
+        else:
+            _update_context()
+        return
     _update_context()
     if passenger_mode and _returning_to_depot:
         _depot_leg()
@@ -98,6 +112,7 @@ func _physics_process(delta: float) -> void:
     super._physics_process(delta)
 
 func _on_departure_started(event_id: String, warning_seconds: float) -> void:
+    if is_instance_valid(_line.gameplay): return
     super._on_departure_started(event_id,warning_seconds)
     if passenger_mode and warning_seconds>0.0:
         # Warning starts first; leaves begin moving while that recording sounds.

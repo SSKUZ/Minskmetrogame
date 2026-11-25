@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "units": "metres, seconds, radians",
+  "roles": [
+    "driver",
+    "passenger"
+  ],
+  "walking": {
+    "eye_height": 1.68,
+    "height": 1.74,
+    "radius": 0.24,
+    "speed": 1.4,
+    "acceleration": 5.0,
+    "gravity": 18.0,
+    "step": 0.28
+  },
+  "service": {
+    "dwell": 30.0,
+    "interval": 60.0,
+    "cruise_speed": 16.0,
+    "braking_deceleration": 0.65,
+    "retire_distance": 420.0,
+    "appearance_distance": 460.0
+  },
+  "absence": {
+    "notice": 120.0,
+    "warning": 180.0,
+    "repeat": 60.0
+  },
+  "sources": {
+    "route": "res://modules/line/route_layout.json",
+    "seats": "res://modules/passengers/v106_seats.json",
+    "doors": "res://scripts/v33_door_controller.gd",
+    "cab": "res://assets/cab_r21/cab_r21.glb"
+  },
+  "portability": {
+    "coordinates": "original car-local and station/world transforms",
+    "physics": "native collision meshes derived from original triangles",
+    "runtime_adapter": "Godot CharacterBody3D; requires Luau adaptation"
+  },
+  "cab_access": [
+    {
+      "name": "CabAccessLeft",
+      "minimum": [
+        -1.65,
+        1.04,
+        -8.92
+      ],
+      "size": [
+        0.47,
+        2.1,
+        0.8
+      ],
+      "hinge": [
+        -1.36,
+        1.04,
+        -8.12
+      ],
+      "threshold": [
+        -1.36,
+        1.033,
+        -8.52
+      ],
+      "side": -1,
+      "angle": 1.65
+    },
+    {
+      "name": "CabAccessRear",
+      "minimum": [
+        -0.34,
+        1.04,
+        -7.9
+      ],
+      "size": [
+        0.7,
+        2.1,
+        0.5
+      ],
+      "hinge": [
+        -0.34,
+        1.04,
+        -7.65
+      ],
+      "threshold": [
+        0.01,
+        1.033,
+        -7.65
+      ],
+      "side": 0,
+      "angle": 1.65
+    }
+  ]
+}

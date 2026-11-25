@@ -4,6 +4,7 @@ const PathData = preload("res://modules/line/line_path.gd")
 const LineTrain = preload("res://modules/line/line_train.gd")
 const LineTunnel = preload("res://modules/line/line_tunnel.gd")
 const Passengers = preload("res://modules/line/line_passengers.gd")
+const Gameplay = preload("res://modules/gameplay/gameplay_service.gd")
 const Streamer = preload("res://modules/line/station_streamer.gd")
 const LAYOUT := "res://modules/line/route_layout.json"
 const INFO_ROUTE := "res://audio/data/route_stations.json"
@@ -16,6 +17,7 @@ var train: Node3D
 var passengers: Node3D
 var stations: Array[Dictionary] = []
 var ready_for_service := false
+var gameplay: Node
 var layout: Dictionary
 var tunnels: Array[Node3D]=[]
 var _sun: DirectionalLight3D
@@ -98,6 +100,10 @@ func _consist_ready() -> void:
     passengers.name="WholeLinePassengerService"
     add_child(passengers)
     passengers.initialize_line(self,train)
+    gameplay=Gameplay.new()
+    gameplay.name="DriverPassengerGameplay"
+    add_child(gameplay)
+    gameplay.initialize(self)
     for index in streamer.instances:
         await passengers.add_platform(stations[int(index)],streamer.station(int(index)))
     _start_service_if_ready()

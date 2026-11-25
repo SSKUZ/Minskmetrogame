@@ -293,3 +293,23 @@ func _physics_process(delta: float) -> void:
             person.set_meta("travel_destination",_active_station)
             person.set_meta("was_on_train",false)
             person.set_meta("alighted_call",_visit_serial)
+
+func retire_virtual_service() -> void:
+    # Only the offscreen, unoccupied consist is reused. Platform cohorts persist.
+    boarding.cancel_waiters()
+    for door in layout.doors:
+        door.enter.clear()
+        door.exit.clear()
+        door.active=null
+    for person in agents.duplicate():
+        if person.space!="train": continue
+        if not person.slot.is_empty(): layout.release(person.slot)
+        agents.erase(person)
+        _simulation.erase(person)
+        person.queue_free()
+    boarding.exchange_active=false
+    boarding.opened=false
+    _active_visit=""
+    _active_station=-1
+    _was_stopped=false
+    _next_probe=0

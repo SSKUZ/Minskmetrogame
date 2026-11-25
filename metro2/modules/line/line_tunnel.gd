@@ -1,4 +1,5 @@
 extends Node3D
+const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
 ## Runtime consumes prepared resources. All vertex deformation lives in the CI generator.
 const BuildBudget = preload("res://modules/line/build_budget.gd")
 const Store = preload("res://modules/line/static_resource_store.gd")
@@ -177,14 +178,25 @@ func _prepare_pool() -> void:
                 push_error("Неизвестный тип базового пути: "+str(kind))
                 return
             root.add_child(part)
+            if part is MeshInstance3D:
+                var body:=StaticBody3D.new()
+                body.name="WalkCollision"
+                body.collision_layer=0
+                body.collision_mask=0
+                part.add_child(body)
+                var collision:=CollisionShape3D.new()
+                collision.name="Shape"
+                body.add_child(collision)
             if not await _base_budget.checkpoint(): return
     _pool_ready=true
     _request_base()
 
 func _release_base(root: Node3D) -> void:
-    root.hide()
+    _base_visible(root,false)
     for part in root.get_children():
-        if part is MeshInstance3D: part.mesh=null
+        if part is MeshInstance3D:
+            part.mesh=null
+            part.get_node("WalkCollision/Shape").shape=null
         elif part is MultiMeshInstance3D: part.multimesh=null
         part.material_override=null
     _base_pool.append(root)
@@ -197,7 +209,7 @@ func _sync_base(required: Dictionary) -> void:
         for key in _base_slots.get(slot,[]): _base_wanted[key]=base_spans[key]
     for key in _base_active.keys():
         if _base_wanted.has(key):
-            _base_active[key].visible=not _station_has_track(base_spans[key])
+            _base_visible(_base_active[key],not _station_has_track(base_spans[key]))
         else:
             _release_base(_base_active[key])
             _base_active.erase(key)
@@ -210,7 +222,7 @@ func _station_has_track(desc: Dictionary) -> bool:
 func station_track_changed(index: int, available: bool) -> void:
     # Exchange station-owned rails and pooled rails without a blank frame.
     for key in _base_active:
-        if int(base_spans[key].get("station",-1))==index: _base_active[key].visible=not available
+        if int(base_spans[key].get("station",-1))==index: _base_visible(_base_active[key],not available)
 
 func _request_base() -> void:
     if not _pool_ready or _base_busy: return
@@ -257,14 +269,20 @@ func _pump_base() -> void:
             part.transform=payload.transform
             part.visible=bool(payload.visible)
             part.material_override=payload.get("material") as Material
-            if part is MeshInstance3D: part.mesh=payload.get("mesh") as Mesh
+            if part is MeshInstance3D:
+                part.mesh=payload.get("mesh") as Mesh
+                var body: StaticBody3D=part.get_node("WalkCollision")
+                var collision: CollisionShape3D=body.get_node("Shape")
+                collision.shape=payload.get("collision") as Shape3D
+                body.set_meta("metro_electric",bool(payload.get("electric",false)))
+                if not bool(payload.get("electric",false)): body.remove_meta("metro_electric")
             elif part is MultiMeshInstance3D: part.multimesh=payload.get("multimesh") as MultiMesh
             if not await _base_budget.checkpoint(): return
         if not _base_wanted.has(next):
             _release_base(root)
         else:
             root.position=Vector3(center_x,0,float(base_spans[next].low))
-            root.visible=not _station_has_track(base_spans[next])
+            _base_visible(root,not _station_has_track(base_spans[next]))
             _base_active[next]=root
         await get_tree().process_frame
     _base_busy=false
@@ -320,3 +338,10 @@ func _exit_tree() -> void:
         for section in _route_active.values(): _store.release_chunk(section)
     _route_active.clear()
     _wanted.clear()
+
+func _base_visible(root: Node3D, available: bool) -> void:
+    root.visible=available
+    for part in root.get_children():
+        var body:=part.get_node_or_null("WalkCollision") as StaticBody3D
+        if body==null: continue
+        body.collision_layer=(WalkingGeometry.WORLD|(WalkingGeometry.ELECTRIC if body.has_meta("metro_electric") else 0)) if available and part.visible else 0

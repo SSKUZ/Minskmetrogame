@@ -4,7 +4,7 @@ import hashlib, io, json, os, shutil, subprocess, wave
 
 RUNTIME_FILES = ['modules/line/static_station.gd', 'modules/line/static_resource_store.gd',
                  'modules/line/build_budget.gd', 'modules/line/station_connection_adapter.gd',
-                 'modules/line/route_layout.json']
+                 'modules/line/route_layout.json', 'modules/gameplay/world_geometry.gd']
 COMPILER = 'tools/automated_deploy/static_world/prebuild.gd'
 
 

@@ -482,6 +482,9 @@ func handle_input(event: InputEvent, camera: Camera3D) -> bool:
 func command(id: String, value: float = 0.0, phase: String = "press") -> void:
     var release := phase == "release"
     var binding: Node = game.get("info_binding")
+    if game.has_method("driver_has_control") and not game.call("driver_has_control") and not (is_instance_valid(binding) and bool(binding.get("applying_auto_input"))):
+        notice = "Для управления займите рабочее место машиниста"
+        return
     if id == "info":
         if not release:
             notice = str(binding.call("press_info")) if is_instance_valid(binding) else "INFO: контроллер маршрута не подключён"
@@ -615,6 +618,8 @@ func physics_inputs(delta: float, speed: float, screen_throttle: bool, screen_br
         screen_throttle = false
         screen_brake = false
     var desired_brake := maxf(brake_demand,1.0 if screen_brake or emergency else 0.0)
+    var unattended: bool=game.has_method("driver_has_control") and not game.call("driver_has_control") and not (is_instance_valid(binding) and bool(binding.get("passenger_mode")))
+    if unattended: desired_brake=1.0
     if bool(switches.ars) and speed > 16.67:
         desired_brake = maxf(desired_brake,0.65)
         notice = "АРС: ограничение 60 км/ч"
@@ -622,6 +627,7 @@ func physics_inputs(delta: float, speed: float, screen_throttle: bool, screen_br
     if not is_instance_valid(binding) and bool(switches.mode) and not screen_throttle and not screen_brake and brake_demand == 0.0 and controller_notch > 0:
         desired_traction = clampf((target_speed-speed)*0.5,0.0,1.0)
         desired_brake = maxf(desired_brake,clampf((speed-target_speed)*0.3,0.0,0.5))
+    if unattended: desired_traction=0.0
     if switches.reserve: desired_traction = minf(desired_traction,0.4)
     applied_brake = move_toward(applied_brake,desired_brake,delta*(5.0 if switches.ept or emergency or screen_brake else 1.5))
     if applied_brake > 0.01 or not bool(doors.call("can_move")) or direction == 0:

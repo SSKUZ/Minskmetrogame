@@ -2,6 +2,7 @@ extends "res://modules/trains/v106/v106_train.gd"
 const LineInfo = preload("res://modules/line/line_info.gd")
 var line: Node3D
 var service_ready := false
+var track_x := 0.992
 var flight_position := Vector3.ZERO
 var _last_speed := 0.0
 var _saloon_fov := 80.0
@@ -126,7 +127,7 @@ func _cache_consist() -> void:
     _posed_distance=NAN
 
 func _pose_frame(z: float, frames: Dictionary) -> Transform3D:
-    if not frames.has(z): frames[z]=line.path.frame_at(z)
+    if not frames.has(z): frames[z]=line.path.frame_at(z,track_x)
     return frames[z]
 
 func _place_consist() -> void:
@@ -170,6 +171,9 @@ func _update_camera() -> void:
     if _in_motion_step: return
     if not is_instance_valid(camera) or not is_instance_valid(train): return
     _place_consist()
+    if camera_mode=="walk" and is_instance_valid(line.gameplay):
+        camera.global_transform=line.gameplay.player.eye.global_transform
+        return
     if camera_mode=="flight":
         camera.global_position=flight_position
         camera.global_basis=Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
@@ -200,3 +204,14 @@ func _set_camera_mode(mode: String) -> void:
 
 func _publish_diagnostics() -> void:
     pass
+
+func driver_has_control() -> bool:
+    return is_instance_valid(line.gameplay) and line.gameplay.running and line.gameplay.role=="driver" and line.gameplay.driver_seated
+
+func _input(event: InputEvent) -> void:
+    if is_instance_valid(line.gameplay) and not driver_has_control() and camera_mode=="walk": return
+    super._input(event)
+
+func _unhandled_input(event: InputEvent) -> void:
+    if is_instance_valid(line.gameplay) and not driver_has_control() and camera_mode=="walk": return
+    super._unhandled_input(event)

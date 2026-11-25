@@ -2,6 +2,7 @@ extends SceneTree
 ## CI resource compiler. No main/game scene, train, passengers, input or simulation.
 ## Existing architecture generators run once in a disabled resource-only subtree.
 const Budget = preload("res://modules/line/build_budget.gd")
+const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
 var control: Dictionary
 var _written: Dictionary={}
@@ -42,6 +43,7 @@ func _station() -> void:
         _legacy_index()
         closed_station.free()
         return
+    await WalkingGeometry.new().prepare(closed_station,false,true)
     var closed: Array=await _fragments(closed_station)
     closed_station.free()
     _resources.clear()
@@ -53,10 +55,11 @@ func _station() -> void:
         _legacy_index()
         open_station.free()
         return
+    await WalkingGeometry.new().prepare(open_station,false,true)
     var opened: Array=await _fragments(open_station)
     var index := {"schema":1,"module_id":control.module,"metres_per_unit":1.0,
         "source_scene":control.scene,"source_commit":control.source_commit,
-        "closed_chunks":closed,"open_chunks":opened,
+        "closed_chunks":closed,"open_chunks":opened,"walking_collision":1,
         "portability":{"geometry":"native Mesh/ArrayMesh/MultiMesh; original hierarchy and transforms", "route":"res://modules/line/route_layout.json", "limitations":["Godot shaders and live viewport textures require adaptation for glTF/Roblox"]}}
     _json(str(control.index),index)
     open_station.free()
@@ -393,6 +396,10 @@ func _tunnels() -> void:
                     "visible":node.visible and not (station_index>=0 and node.name=="ConcreteArch")}
                 if node is MeshInstance3D: part["mesh"]=(node as MeshInstance3D).mesh
                 else: part["multimesh"]=(node as MultiMeshInstance3D).multimesh
+                if node is MeshInstance3D:
+                    var collision_faces: PackedVector3Array=node.mesh.get_faces()
+                    if not collision_faces.is_empty(): part["collision"]=WalkingGeometry.triangle_shape(collision_faces)
+                    part["electric"]=str(node.name)=="ContactRailPart0"
                 part["material"]=(node as GeometryInstance3D).material_override
                 parts.append(part)
             var data := Resource.new()
@@ -416,7 +423,10 @@ func _tunnels() -> void:
             var alternate_parts: Array=parts.duplicate(true)
             for part_index in range(base_nodes.size()):
                 var node: Node3D=base_nodes[part_index]
-                if node is MeshInstance3D: alternate_parts[part_index]["mesh"]=(node as MeshInstance3D).mesh
+                if node is MeshInstance3D:
+                    alternate_parts[part_index]["mesh"]=(node as MeshInstance3D).mesh
+                    var faces: PackedVector3Array=node.mesh.get_faces()
+                    if not faces.is_empty(): alternate_parts[part_index]["collision"]=WalkingGeometry.triangle_shape(faces)
                 else: alternate_parts[part_index]["multimesh"]=(node as MultiMeshInstance3D).multimesh
             var alternate := Resource.new()
             alternate.set_meta("parts",alternate_parts)

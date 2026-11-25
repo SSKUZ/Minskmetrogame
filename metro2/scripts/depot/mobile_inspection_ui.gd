@@ -243,7 +243,7 @@ func _local_point(point: Vector2,control: Control) -> Vector2:
     return control.get_global_transform_with_canvas().affine_inverse()*point
 
 func _input(event: InputEvent) -> void:
-    if not is_instance_valid(_master): return
+    if not is_visible_in_tree() or not is_instance_valid(_master): return
     var pointer := -2
     var point := Vector2.ZERO
     var press := false

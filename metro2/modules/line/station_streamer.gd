@@ -3,6 +3,7 @@ extends Node
 const Catalog = preload("res://modules/core/module_catalog.gd")
 const BuildBudget = preload("res://modules/line/build_budget.gd")
 var _building_budget: RefCounted
+const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
 signal station_loaded(index: int, station: Node3D)
 signal station_unloading(index: int, station: Node3D)
@@ -77,11 +78,13 @@ func refresh() -> void:
     _next_index=-1
     var bounds := AABB()
     if is_instance_valid(line.train): bounds=line.train._train_bounds
+    var virtual_parked: bool=is_instance_valid(line.gameplay) and line.gameplay.virtual_wait
     var front: float=_z+(bounds.position.z if _direction>0 else bounds.end.z)
     # First unpassed platform only. Direction reversal recomputes this selection.
     var ordered: Array=line.stations.duplicate()
     if _direction<0: ordered.reverse()
     for record in ordered:
+        if virtual_parked: break
         if (_direction>0 and front>float(record.low)) or (_direction<0 and front<float(record.high)):
             _next_index=int(record.index)
             _wanted[_next_index]=true
@@ -99,7 +102,7 @@ func refresh() -> void:
         var low: float=float(record.low)
         var high: float=float(record.high)
         var reasons: int=0
-        if is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
+        if not virtual_parked and is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
             reasons|=TRAIN
         if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): reasons|=TRAIN
         if is_instance_valid(player) and player.global_position.z>=low-30.0 and player.global_position.z<=high+30.0:
@@ -137,6 +140,7 @@ func _pump() -> void:
             var index: int=int(key)
             if is_loaded(index) or Time.get_ticks_msec()<int(_retry_at.get(index,0)): continue
             var distance: float=absf(_z-float(line.stations[index].stop_z))
+            if int(_retention.get(index,0))&PLAYER: distance-=100000.0
             if (_z-float(line.stations[index].stop_z))*float(_direction)<0.0: distance*=1.15
             if distance<priority:
                 priority=distance
@@ -244,7 +248,9 @@ func _load_station(index: int) -> bool:
         loading_changed.emit("Не удалось загрузить готовую геометрию: "+id)
         _loading_id=""
         return false
-    if not prepared: await Connections.open_connections(node,budget)
+    if not prepared:
+        await Connections.open_connections(node,budget)
+        await WalkingGeometry.new().prepare(node,false,true)
     if not _wanted.has(index):
         budget.cancel()
         await _dispose_station(node)
