@@ -28,6 +28,13 @@ var _notice_sent:=false
 var _warning_at:=180.0
 var _safe_station:=0
 var _respawning:=false
+var _cab_ready:=false
+var _cab_busy:=false
+var _cab_error:=""
+var _geometry=Geometry.new()
+var _near_busy:=false
+var _near_clock:=0.0
+var _near_error:=""
 
 func initialize(world: Node3D) -> void:
     line=world
@@ -52,59 +59,176 @@ func initialize(world: Node3D) -> void:
     call_deferred("_prepare")
 
 func _prepare() -> void:
+    if _cab_busy or _cab_ready: return
+    _cab_busy=true
+    _cab_error=""
+    var car: Node3D=first_car()
+    if car==null or not is_instance_valid(train.cab_runtime):
+        _cab_error="Отсутствует состав или кабина V106"
+        _cab_busy=false
+        return
     var access=CabAccess.new()
-    interaction.cab_doors=await access.prepare(first_car(),train.cab_runtime,rules.cab_access)
-    var geometry=Geometry.new()
-    await geometry.prepare(line.get_node("OperatingDepot"))
-    await geometry.prepare(train.train,true)
-    prepared=true
+    interaction.cab_doors=await access.prepare(car,train.cab_runtime,rules.cab_access)
+    _cab_ready=not interaction.cab_doors.is_empty()
+    if not _cab_ready: _cab_error="Не найдены доступные двери кабины V106"
+    _cab_busy=false
     line._start_service_if_ready()
 
 func first_car() -> Node3D:
-    return line.passengers.layout.cars[0]
+    var cars: Array=line.passengers.layout.cars
+    return cars[0] if not cars.is_empty() else null
+
+func _wait_ready(condition: Callable, stage: String) -> bool:
+    ui.loading(stage)
+    var deadline: int=Time.get_ticks_msec()+int(float(rules.startup.wait_seconds)*1000.0)
+    while not condition.call():
+        if not is_inside_tree(): return false
+        if Time.get_ticks_msec()>=deadline:
+            _start_failed(stage+" · операция не завершена. Можно повторить ожидание.")
+            return false
+        await get_tree().process_frame
+    return true
+
+func _start_failed(reason: String) -> void:
+    prepared=false
+    _starting=false
+    player.active=false
+    player.capsule.set_deferred("disabled",true)
+    ui.start_failed(reason)
+    push_error("Gameplay startup: "+reason)
+
+func retry_start() -> void:
+    if _starting or running: return
+    if role=="passenger": line.streamer.retry_station(start_station)
+    if not _cab_ready and not _cab_busy:
+        _cab_error=""
+        call_deferred("_prepare")
+    start_role(role,start_station)
 
 func start_role(selected_role: String, station_index: int) -> void:
     if _starting or running: return
+    if selected_role not in ["driver","passenger"]: return
     _starting=true
+    prepared=false
     role=selected_role
     start_station=clampi(station_index,0,line.stations.size()-1) if role=="passenger" else 0
-    ui.menu.hide()
-    ui.notice("Подготовка физического мира…")
-    # A physical anchor pins only the selected platform through the TZ58 streamer.
-    if role=="passenger":
-        _safe_station=start_station
-        player.global_position=Vector3(-5.37,1.25,float(line.stations[_safe_station].root_z)+40.0)
-        train.camera.global_position=player.global_position+Vector3.UP*1.68
-        train.camera_mode="walk"
-        line.streamer.register_player(player)
-        line._start_service_if_ready()
-    while not prepared or not line.ready_for_service:
-        await get_tree().process_frame
-        if not is_inside_tree(): return
+    ui.loading("Подготовка места появления")
+    var spawn: Vector3
     if role=="driver":
-        var door: Dictionary=interaction.cab_doors[0] if not interaction.cab_doors.is_empty() else {}
-        var local: Vector3=door.get("threshold",Vector3(-1.35,1.033,-8.4))
-        var point: Vector3=first_car().to_global(local+Vector3(-1.4,0,0))
+        virtual_wait=false
+        train.train.show()
+        _train_collisions(true)
+        if not _cab_ready and not _cab_busy:
+            _cab_error=""
+            call_deferred("_prepare")
+        if not await _wait_ready(func(): return _cab_ready or not _cab_error.is_empty(),"Подготовка дверей кабины V106"): return
+        if not _cab_error.is_empty():
+            _start_failed(_cab_error)
+            return
+        var car: Node3D=first_car()
+        if car==null:
+            _start_failed("Не найден головной вагон V106")
+            return
+        var local: Vector3=interaction.cab_doors[0].threshold
+        var point: Vector3=car.to_global(local+Vector3(-1.4,0,0))
         point.y=8.5
-        player.spawn_at(_ground(point))
+        var depot:=line.get_node_or_null("OperatingDepot") as Node3D
+        if depot==null:
+            _start_failed("Не найдено существующее депо")
+            return
+        ui.loading("Подготовка пола и препятствий возле состава")
+        if not await _geometry.prepare_near(depot,point,float(rules.startup.local_radius)):
+            _start_failed(_geometry.error_message)
+            return
+        car.add_to_group("metro_walking_train")
+        ui.loading("Подготовка ближайшей части вагона и дверей")
+        if not await _geometry.prepare_near(car,point,float(rules.startup.local_radius)):
+            _start_failed(_geometry.error_message)
+            return
+        await get_tree().physics_frame
+        spawn=_ground(point)
+        if not is_finite(spawn.y):
+            _start_failed("В зоне появления машиниста нет готовой поверхности депо")
+            return
         train.door_system.request_close()
-        train.camera_mode="walk"
-        train.info_binding.passenger_mode=false
-        train.info_binding.audio.info.set_mode("manual")
+        _set_automatic(false)
+        _hold_cab()
     else:
-        while not line.passengers.platform_ready(_safe_station):
-            await get_tree().process_frame
-            if not is_inside_tree(): return
-        player.spawn_at(platform_spawn(_safe_station))
+        _safe_station=start_station
+        # Pin the requested station before its asynchronous download; depot and
+        # remote tunnel readiness are not prerequisites for a platform spawn.
         _retire_train(true)
+        player.global_position=Vector3(-5.37,1.25,float(line.stations[start_station].root_z)+40.0)
+        train.camera_mode="walk"
+        train._update_camera()
+        train.camera.global_position=player.global_position+Vector3.UP*float(rules.walking.eye_height)
+        line.streamer.register_player(player)
+        line.streamer.retry_station(start_station)
+        var stage: String="Загрузка платформы: "+str(line.stations[start_station].module_id)
+        if not await _wait_ready(func(): return line.passengers.platform_ready(start_station),stage): return
+        spawn=platform_spawn(start_station)
+        await get_tree().physics_frame
+        spawn=_ground(spawn+Vector3.UP*1.0)
+        if not is_finite(spawn.y):
+            _start_failed("На выбранной платформе отсутствует готовая поверхность")
+            return
         _set_automatic(true)
-        timetable.schedule(_safe_station)
-    line.streamer.register_player(player)
+        timetable.schedule(start_station)
+    if not is_inside_tree(): return
+    # Actual floor and capsule clearance are mandatory; no timer sets readiness.
+    var query:=PhysicsShapeQueryParameters3D.new()
+    query.shape=player.capsule.shape
+    query.transform=Transform3D(Basis.IDENTITY,spawn+Vector3.UP*(float(rules.walking.height)*0.5+0.06))
+    query.collision_mask=player.collision_mask
+    query.exclude=[player.get_rid()]
+    if not line.get_world_3d().direct_space_state.intersect_shape(query,1).is_empty():
+        _start_failed("Место появления занято физическим препятствием")
+        return
+    player.spawn_at(spawn)
+    prepared=true
     running=true
-    train.service_ready=not virtual_wait
     _starting=false
+    line.streamer.register_player(player)
+    train._set_camera_mode("walk")
+    train.camera.make_current()
     ui.set_play_visible(true)
-    train._update_camera()
+    line._start_service_if_ready()
+    _near_clock=0.0
+
+
+func walking_area_ready(point: Vector3) -> bool:
+    if point.z>96.0:
+        var depot:=line.get_node_or_null("OperatingDepot") as Node3D
+        if not _geometry.covers(depot,point,1.0): return false
+    for car in line.passengers.layout.cars:
+        var box: AABB=train._pose_cache.get(car,AABB())
+        if box.grow(0.4).has_point(car.to_local(point)):
+            if not _cab_ready or not _geometry.covers(car,point,1.0): return false
+    return true
+
+func request_walk_area() -> void:
+    if _near_busy or not running: return
+    _near_busy=true
+    call_deferred("_prepare_walk_area")
+
+func _prepare_walk_area() -> void:
+    var point: Vector3=player.global_position
+    _near_error=""
+    if point.z>96.0:
+        var depot:=line.get_node_or_null("OperatingDepot") as Node3D
+        if not _geometry.covers(depot,point,float(rules.startup.prefetch_margin)):
+            if not await _geometry.prepare_near(depot,point,float(rules.startup.local_radius)): _near_error=_geometry.error_message
+    if _cab_ready and train.train.visible:
+        for car in line.passengers.layout.cars:
+            if not is_inside_tree(): return
+            var box: AABB=train._pose_cache.get(car,AABB())
+            if not box.grow(20.0).has_point(car.to_local(point)): continue
+            if _geometry.covers(car,point,float(rules.startup.prefetch_margin)): continue
+            car.add_to_group("metro_walking_train")
+            if not await _geometry.prepare_near(car,point,float(rules.startup.local_radius)): _near_error=_geometry.error_message
+    _near_busy=false
+    if not _near_error.is_empty(): ui.notice(_near_error+" · подготовка будет повторена")
+
 
 func platform_spawn(index: int) -> Vector3:
     var nav=line.passengers._platforms[index].navigation
@@ -114,7 +238,7 @@ func platform_spawn(index: int) -> Vector3:
 func _ground(point: Vector3) -> Vector3:
     var query:=PhysicsRayQueryParameters3D.create(point,point-Vector3.UP*6.0,Geometry.WORLD)
     var hit: Dictionary=line.get_world_3d().direct_space_state.intersect_ray(query)
-    return hit.position if not hit.is_empty() else Vector3(point.x,5.67,point.z)
+    return hit.position if not hit.is_empty() else Vector3(point.x,NAN,point.z)
 
 func occupy_driver() -> void:
     if role!="driver" or driver_seated or absf(train.speed)>0.05 or player.aboard!=first_car(): return
@@ -229,7 +353,7 @@ func _physics_process(delta: float) -> void:
         if line.passengers.platform_ready(index):
             var nav=line.passengers._platforms[index].navigation
             if nav.platform_area.has_point(Vector2(player.global_position.x,player.global_position.z)) and absf(player.global_position.y-float(nav.height))<0.5: _safe_station=index
-    if role=="passenger": timetable.update()
+    if role=="passenger" and _cab_ready: timetable.update()
 
 func _retire_train(initial: bool=false) -> void:
     if is_instance_valid(player.aboard): return
@@ -280,6 +404,11 @@ func respawn(message: String) -> void:
 
 func _process(_delta: float) -> void:
     if not running: return
+    line._start_service_if_ready()
+    _near_clock-=_delta
+    if _near_clock<=0.0:
+        _near_clock=float(rules.startup.refresh_seconds)
+        request_walk_area()
     if train.camera_mode=="walk": train._update_camera()
     elif virtual_wait and train.camera_mode=="flight":
         var axis: Vector2=train._flight_ui.stick

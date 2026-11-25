@@ -14,6 +14,10 @@ var stick: Control
 var _look_pointer:=-1
 var _notice_left:=0.0
 var flash: ColorRect
+var load_panel: PanelContainer
+var load_text: Label
+var retry_button: Button
+var back_button: Button
 
 func initialize(owner_service: Node) -> void:
     service=owner_service
@@ -77,6 +81,7 @@ func initialize(owner_service: Node) -> void:
     flash.mouse_filter=Control.MOUSE_FILTER_IGNORE
     _start_menu()
     _absence_panel()
+    _loading_panel()
     set_play_visible(false)
     get_viewport().size_changed.connect(_resize)
     _resize()
@@ -143,9 +148,44 @@ func _absence_panel() -> void:
     _button(row,"Режим пассажира",func(): service.switch_role("passenger"))
     warning.hide()
 
+func _loading_panel() -> void:
+    load_panel=PanelContainer.new()
+    root.add_child(load_panel)
+    load_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+    load_panel.offset_left=-240
+    load_panel.offset_right=240
+    load_panel.offset_top=-100
+    load_panel.offset_bottom=100
+    load_panel.custom_minimum_size=Vector2(480,200)
+    var column:=VBoxContainer.new()
+    load_panel.add_child(column)
+    load_text=Label.new()
+    load_text.custom_minimum_size=Vector2(460,100)
+    load_text.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+    column.add_child(load_text)
+    retry_button=_button(column,"ПОВТОРИТЬ ПОДГОТОВКУ",func(): service.retry_start())
+    back_button=_button(column,"ВЫБРАТЬ РЕЖИМ",func():
+        if service._starting: return
+        load_panel.hide()
+        menu.show())
+    load_panel.hide()
+
+func loading(stage: String) -> void:
+    menu.hide()
+    load_panel.show()
+    retry_button.hide()
+    back_button.disabled=true
+    load_text.text=stage
+
+func start_failed(reason: String) -> void:
+    loading("Не удалось запустить режим\n"+reason)
+    retry_button.show()
+    back_button.disabled=false
+
 func set_play_visible(enabled: bool) -> void:
     for item in [role_button.get_parent(),status,stick,interact]: item.visible=enabled
     menu.visible=not enabled
+    if enabled: load_panel.hide()
 
 func notice(text: String) -> void:
     message.text=text

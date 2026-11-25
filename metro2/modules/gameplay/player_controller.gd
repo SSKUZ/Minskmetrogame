@@ -91,6 +91,10 @@ func _physics_process(delta: float) -> void:
         velocity.x=move_toward(velocity.x,desired.x,float(rules.acceleration)*delta)
         velocity.z=move_toward(velocity.z,desired.z,float(rules.acceleration)*delta)
         velocity.y=-0.5 if is_on_floor() else velocity.y-float(rules.gravity)*delta
+        if not service.walking_area_ready(global_position+Vector3(velocity.x,0,velocity.z)*delta):
+            velocity.x=0.0
+            velocity.z=0.0
+            service.request_walk_area()
         _step(delta)
         move_and_slide()
     service.interaction.update_car_membership(previous)

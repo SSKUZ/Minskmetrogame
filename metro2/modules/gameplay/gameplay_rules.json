@@ -10,31 +10,34 @@
     "height": 1.74,
     "radius": 0.24,
     "speed": 1.4,
-    "acceleration": 5.0,
-    "gravity": 18.0,
+    "acceleration": 5,
+    "gravity": 18,
     "step": 0.28
   },
   "service": {
-    "dwell": 30.0,
-    "interval": 60.0,
-    "cruise_speed": 16.0,
+    "dwell": 30,
+    "interval": 60,
+    "cruise_speed": 16,
     "braking_deceleration": 0.65,
-    "retire_distance": 420.0,
-    "appearance_distance": 460.0,
+    "retire_distance": 420,
+    "appearance_distance": 460,
     "acceleration_estimate": 0.75,
-    "minimum_approach": 190.0,
-    "visibility_clearance": 170.0,
+    "minimum_approach": 190,
+    "visibility_clearance": 170,
     "schedule": {
-      "directions": [1, -1],
+      "directions": [
+        1,
+        -1
+      ],
       "clock": "monotonic_seconds",
       "terminal": "occupied consist remains physical; reverse after alighting and scheduled dwell",
       "ownership": "driver cancels virtual calls; only a hidden unoccupied consist can be repositioned"
     }
   },
   "absence": {
-    "notice": 120.0,
-    "warning": 180.0,
-    "repeat": 60.0
+    "notice": 120,
+    "warning": 180,
+    "repeat": 60
   },
   "sources": {
     "route": "res://modules/line/route_layout.json",
@@ -98,5 +101,11 @@
       "side": 0,
       "angle": 1.65
     }
-  ]
+  ],
+  "startup": {
+    "wait_seconds": 180,
+    "local_radius": 16,
+    "prefetch_margin": 8,
+    "refresh_seconds": 1
+  }
 }

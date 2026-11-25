@@ -33,6 +33,12 @@ func register_player(player: Node3D) -> void:
     _player=weakref(player) if is_instance_valid(player) else null
     refresh()
 
+func retry_station(index: int) -> void:
+    if index<0 or index>=line.stations.size() or is_loaded(index): return
+    _retry_at.erase(index)
+    _clock=0.0
+    refresh() # The existing single pump owns the in-flight request.
+
 func retention_reasons(index: int) -> PackedStringArray:
     var result := PackedStringArray()
     var reasons: int=int(_retention.get(index,0))
@@ -231,14 +237,19 @@ func _load_station(index: int) -> bool:
     line.add_child(node)
     # Publish the platform only after every cooperative child builder finishes.
     # The independent prepared base path remains available during this work.
+    var preparation_deadline: int=Time.get_ticks_msec()+180000
     while not budget.pending.is_empty():
         await get_tree().process_frame
-        if not _wanted.has(index):
+        var expired: bool=Time.get_ticks_msec()>=preparation_deadline
+        if not _wanted.has(index) or expired:
             budget.cancel()
             await _dispose_station(node)
             _building_budget=null
             if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
             _loading_id=""
+            if expired:
+                loading_changed.emit("Не завершена подготовка станции: "+id+"; доступен повтор")
+                return false
             return true
     if prepared and bool(node.get("static_failed")):
         budget.cancel()
