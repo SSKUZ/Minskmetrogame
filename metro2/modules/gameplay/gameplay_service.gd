@@ -1,12 +1,11 @@
 extends Node
-const STARTUP_REVISION := "ТЗ 64.3 · доступ в кабину по точкам"
+const STARTUP_REVISION := "ТЗ 64.3 · прямой запуск V106"
 const Player = preload("res://modules/gameplay/player_controller.gd")
 const Interaction = preload("res://modules/gameplay/player_interaction.gd")
 const Automatic = preload("res://modules/gameplay/automatic_service.gd")
 const UI = preload("res://modules/gameplay/gameplay_ui.gd")
 const Geometry = preload("res://modules/gameplay/world_geometry.gd")
 const WalkLite = preload("res://modules/gameplay/walk_lite.gd")
-const CabAccess = preload("res://modules/gameplay/cab_access.gd")
 const VirtualService = preload("res://modules/gameplay/virtual_train_service.gd")
 var line: Node3D
 var train: Node3D
@@ -63,22 +62,6 @@ func initialize(world: Node3D) -> void:
             ui.load_text.text=startup_component+"\n"+message)
     train.info_binding._button.hide()
     _legacy_ui(false)
-
-func prepare_cab_access_points() -> void:
-    # Optional interaction only: neither role startup may depend on this task.
-    if not running or _starting or direct_driver or not is_instance_valid(player): return
-    if _cab_busy or _cab_ready: return
-    _cab_busy=true
-    _cab_error=""
-    var access=CabAccess.new()
-    interaction.cab_points=access.prepare_points(train.train)
-    _cab_ready=interaction.cab_points.size()==2
-    _cab_error=access.error_message
-    if not _cab_ready and _cab_error.is_empty():
-        _cab_error="Не удалось подготовить обе точки доступа в кабину"
-    _cab_busy=false
-    if running and not _cab_error.is_empty(): ui.notice(_cab_error)
-
 
 func _ensure_player() -> void:
     if not is_instance_valid(player):

@@ -42,6 +42,19 @@ def boot_config(ref):
     if not match:raise RuntimeError('Unknown existing viewer configuration; refusing to replace its shell')
     return html,match,json.loads(match[1])
 
+
+def fresh_boot_shell(html):
+    """Keep cached shell HTML from pinning an obsolete Godot boot PCK."""
+    if 'METRO_FRESH_BOOT_V1' in html:return html
+    engine='const engine = new Engine(GODOT_CONFIG);'
+    opening='(function () {'
+    feature_check='\tconst missing = Engine.getMissingFeatures({'
+    if engine not in html or opening not in html or feature_check not in html:
+        raise RuntimeError('Unknown viewer startup; refusing to omit the fresh-boot guard')
+    html=html.replace(engine,'let engine;',1).replace(opening,'(async function () {',1)
+    bootstrap="\n\t// METRO_FRESH_BOOT_V1: resolve the current published boot before Godot exists.\n\tsetStatusMode('progress');\n\tsetStatusNotice('Получение актуальной версии игры…');\n\tconst bootAbort = new AbortController();\n\tconst bootTimeout = setTimeout(() => bootAbort.abort(), 30000);\n\ttry {\n\t\tconst stateURL = new URL('module-deploy-state.json', window.location.href);\n\t\tstateURL.searchParams.set('startup', String(Date.now()));\n\t\tconst response = await fetch(stateURL.href, {cache: 'no-store', signal: bootAbort.signal});\n\t\tif (!response.ok) throw new Error('Не удалось получить версию игры: HTTP ' + response.status);\n\t\tconst state = await response.json();\n\t\tconst boot = state.boot;\n\t\tif (!boot || !/^boot-[a-f0-9]+[.]pck$/.test(boot.file)) throw new Error('В публикации не указан загрузочный пакет игры');\n\t\tconst previous = GODOT_CONFIG.mainPack;\n\t\tGODOT_CONFIG.mainPack = boot.file;\n\t\tGODOT_CONFIG.fileSizes = GODOT_CONFIG.fileSizes || {};\n\t\tif (previous !== boot.file) delete GODOT_CONFIG.fileSizes[previous];\n\t\tif (Number.isSafeInteger(boot.bytes) && boot.bytes > 0) GODOT_CONFIG.fileSizes[boot.file] = boot.bytes;\n\t\tengine = new Engine(GODOT_CONFIG);\n\t} catch (error) {\n\t\tdisplayFailureNotice('Не удалось загрузить актуальную игру. Обновите страницу для повторной попытки. · ' + String(error.message || error));\n\t\treturn;\n\t} finally {\n\t\tclearTimeout(bootTimeout);\n\t}\n"
+    return html.replace(feature_check,bootstrap+'\n'+feature_check,1)
+
 def source_name(value):
     name=value.removeprefix('res://').removeprefix('metro2/')
     for suffix in ['.remap','.import']:
@@ -426,7 +439,7 @@ def publish():
             if actual!=spec['expected']:raise RuntimeError('Publication moved for '+key+'; refuse stale replacement, retain build artifacts')
             if key=='boot':
                 old=cfg['mainPack'];cfg['mainPack']=entry['file'];cfg.setdefault('fileSizes',{}).pop(old,None);cfg['fileSizes'][entry['file']]=entry['bytes']
-                state['boot']={'source_commit':head,'file':entry['file']};continue
+                state['boot']={'source_commit':head,'file':entry['file'],'bytes':entry['bytes']};continue
             manifest['packs'][key]=entry
             manifest.setdefault('modules',{})[key]=spec['dependencies']+[key]
             manifest.setdefault('names',{}).setdefault(key,spec['name'])
@@ -436,8 +449,8 @@ def publish():
             state.setdefault('modules',{})[key]={'source_commit':head,'pack_sha256':entry['sha256'],'category':spec['category'],'scene':spec['scene'],'dependencies':spec['dependencies']}
         patch=CI/'publication';patch.mkdir(exist_ok=True)
         for name,data in [('module-packs.json',manifest),('pack-resources.json',report),('build-info.json',info),(POLICY['state_file'],state)]:write(patch/name,data)
-        if 'boot' in bundles:
-            (patch/'index.html').write_text(html[:match.start(1)]+json.dumps(cfg,separators=(',',':'))+html[match.end(1):])
+        shell=html[:match.start(1)]+json.dumps(cfg,separators=(',',':'))+html[match.end(1):]
+        (patch/'index.html').write_text(fresh_boot_shell(shell))
         for key,(folder,data) in bundles.items():
             for p in folder.iterdir():
                 if p.suffix in {'.pck','.bin'}:files[PREFIX+p.name]=p

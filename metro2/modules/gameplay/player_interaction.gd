@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
     if not service._cab_ready and not service._cab_busy and service._cab_error.is_empty() and service.train.train.visible and absf(service.train.speed)<0.05:
         var cab: Node3D=service.train.cab_runtime
         if is_instance_valid(cab) and service.player.global_position.distance_to(cab.global_position)<12.0:
-            service.call_deferred("prepare_cab_access_points")
+            call_deferred("_prepare_cab_points")
     current=_near_action()
     service.ui.interact.text=str(current.get("title","ВЗАИМОДЕЙСТВИЕ"))
     service.ui.interact.disabled=current.is_empty()
@@ -286,3 +286,23 @@ func _transfer(car: Node3D, floor: Vector3, view: Basis) -> void:
     player.capsule.set_deferred("disabled",false)
     service.train.activate_character_view(player.eye)
     service.line.streamer.refresh()
+
+func _prepare_cab_points() -> void:
+    # Optional transfer markers, reached only by an already active walker.
+    # No door construction, mesh traversal or startup readiness dependency.
+    if not service.running or service._starting or service.direct_driver or not is_instance_valid(service.player): return
+    if service._cab_busy or service._cab_ready: return
+    service._cab_busy=true
+    service._cab_error=""
+    var script=load("res://modules/gameplay/cab_access.gd")
+    if script==null or not script is Script or not script.can_instantiate():
+        service._cab_error="Не загружены точки входа в кабину"
+    else:
+        var access=script.new()
+        cab_points=access.prepare_points(service.train.train)
+        service._cab_ready=cab_points.size()==2
+        service._cab_error=access.error_message
+        if not service._cab_ready and service._cab_error.is_empty():
+            service._cab_error="Не удалось подготовить точки входа в кабину"
+    service._cab_busy=false
+    if not service._cab_error.is_empty(): service.ui.notice(service._cab_error)
