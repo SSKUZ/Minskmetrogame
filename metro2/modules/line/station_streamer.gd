@@ -96,6 +96,11 @@ func _process(delta: float) -> void:
 
 func refresh() -> void:
     if not is_instance_valid(line) or line.stations.is_empty(): return
+    # The role menu must not start downloading Uruchye (or any station) before
+    # the player selects a role. Passenger startup explicitly pins its station;
+    # direct driver startup needs the existing cab, not a station download.
+    if is_instance_valid(line.gameplay) and not line.gameplay.running and not line.gameplay._starting and _startup_target<0:
+        return
     var camera_z: float=INF
     if is_instance_valid(line.train):
         _z=float(line.train.distance)
