@@ -14,6 +14,13 @@ func _process(delta: float) -> void:
     _clock-=delta
     if _clock>0.0: return
     _clock=0.15
+    # Cab access geometry is optional for platform startup. Build its authored
+    # interaction points only when a walking player actually approaches the
+    # stopped train; never block the role menu or passenger spawn on this work.
+    if not service._cab_ready and not service._cab_busy and service.train.train.visible and absf(service.train.speed)<0.05:
+        var cab: Node3D=service.train.cab_runtime
+        if is_instance_valid(cab) and service.player.global_position.distance_to(cab.global_position)<12.0:
+            service.call_deferred("_prepare")
     current=_near_action()
     service.ui.interact.text=str(current.get("title","ВЗАИМОДЕЙСТВИЕ"))
     service.ui.interact.disabled=current.is_empty()
