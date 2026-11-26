@@ -219,6 +219,7 @@ def plan():
     static_modules = set()
     if static_inputs:
         chosen.add('full_line')
+        static_modules.add('full_line')
         # A Pages size recovery must cover the live station archives as well
         # as the line PCK. Migrate only the existing route stations that still
         # lack native lossless compression; their ancestry guards remain active.
@@ -227,6 +228,7 @@ def plan():
         for key in route['station_module_ids']:
             if manifest['packs'].get(key,{}).get('static_resource_compression')!='zstd-v1':
                 chosen.add(key)
+                static_modules.add(key)
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
     if not branch.startswith(POLICY['branch_prefix']) and branch!=POLICY['source_branch']:raise RuntimeError('Branch is not opted into automatic publication')
     if scope!='integration' and direct-{scope}:raise RuntimeError('Cross-module source change requires an integration branch: '+','.join(sorted(direct)))
@@ -247,7 +249,9 @@ def plan():
                 # Integration borrows current station source trees as well as their
                 # ancestry. Reuse a published pack when all its actual sources match.
                 source_delta=git('diff','--name-only',previous['source_commit'],head,'--',*sorted('metro2/'+s for s in own))
-                if not source_delta.strip() and not (static_inputs and key=='full_line'):continue
+                # Identical source geometry still needs repackaging when its
+                # compiler output format is explicitly being migrated.
+                if not source_delta.strip() and key not in static_modules:continue
             # Unchanged modules above are reused verbatim. Every package we
             # actually rebuild still passes the original publication guard.
             guard(key,manifest,state,head)
@@ -275,6 +279,10 @@ def plan():
             for dep in manifest['modules'].get(requirement,[requirement]):
                 if dep!=key and dep not in deps and dep not in build_deps:build_deps.append(dep)
         modules[key]={'id':key,'name':title,'category':category,'source_path':roots.get(key,''),'scene':entry,'dependencies':deps,'build_dependencies':build_deps,'publication_path':PREFIX,'sources':sorted(own),'deleted':deleted,'part_changes':relevant_parts,'expected':expected,'existing':key=='boot' or key in manifest['packs']}
+    omitted_static=static_modules-set(modules)
+    if omitted_static:
+        raise RuntimeError('Required static-resource migration was omitted from the build plan: '+','.join(sorted(omitted_static)))
+    print('Static-resource migration build modules: '+','.join(sorted(static_modules)),flush=True)
     result={'active':bool(modules),'head':head,'before':before,'branch':branch,'pages_base':ref,'boot_file':cfg['mainPack'],'modules':modules,'pack_versions':{k:v['sha256'] for k,v in manifest['packs'].items()}}
     write(PLAN,result);output('active',str(bool(modules)).lower());output('matrix',json.dumps({'include':[{'module':k} for k in modules]},separators=(',',':')))
 
