@@ -534,9 +534,8 @@ func station_at_train() -> int:
 
 func _physics_process(delta: float) -> void:
     if not running: return
-    if is_instance_valid(player):
-        interaction.guard_doors()
-        if player.active: _geometry.update_doors(self)
+    if is_instance_valid(player) and player.active:
+        _geometry.update_doors(self)
     if role=="driver" and not driver_seated and _absence_armed:
         if absf(train.speed)<0.05:
             if not _absence_started: _absence_started=true
