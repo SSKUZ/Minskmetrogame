@@ -71,6 +71,8 @@ func _prepare() -> void:
     interaction.cab_points=access.prepare_points(train.train)
     _cab_ready=interaction.cab_points.size()==2
     _cab_error=access.error_message
+    if not _cab_ready and _cab_error.is_empty():
+        _cab_error="Не удалось подготовить обе точки доступа в кабину"
     _cab_busy=false
     if running and not _cab_error.is_empty(): ui.notice(_cab_error)
     line._start_service_if_ready()
