@@ -172,6 +172,12 @@ func _pump() -> void:
         _busy=false
         return
     while is_inside_tree():
+        # An awaited download may finish after gameplay has returned to the
+        # role menu. Re-evaluate ownership before evicting or loading modules.
+        if is_instance_valid(line.gameplay) and not line.gameplay.running and not line.gameplay._starting and _startup_target<0:
+            _wanted.clear()
+            _retention.clear()
+            break
         for key in instances.keys():
             var index: int=int(key)
             refresh() # Re-evaluate TRAIN/PLAYER/CAMERA after every awaited disposal.
