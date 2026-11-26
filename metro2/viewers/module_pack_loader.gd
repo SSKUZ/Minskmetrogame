@@ -26,26 +26,10 @@ func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
         return true
     if _base_url.is_empty():
         _base_url = str(JavaScriptBridge.eval("new URL('.', window.location.href).href", true))
-    if _manifest.is_empty():
-        progress.emit("Получение списка модулей…")
-        var request := HTTPRequest.new()
-        # Web Fetch already decodes Content-Encoding; do not decompress twice.
-        request.accept_gzip = false
-        request.timeout = 30.0
-        add_child(request)
-        var started := request.request(_base_url + "module-packs.json", PackedStringArray(["Cache-Control: no-cache"]))
-        if started != OK:
-            request.queue_free()
-            return _fail("Не удалось запросить список модулей")
-        var response: Array = await request.request_completed
-        request.queue_free()
-        if not _consumer_alive(consumer_ref): return false
-        if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
-            return _fail("Не удалось получить список модулей (HTTP %d, код %d)" % [int(response[1]), int(response[0])])
-        var parsed = JSON.parse_string((response[3] as PackedByteArray).get_string_from_utf8())
-        if not parsed is Dictionary or not parsed.has("modules") or not parsed.has("packs"):
-            return _fail("Некорректный список модулей")
-        _manifest = parsed
+    # Refresh only at a viewer selection boundary. Streamed stations retain
+    # the same publication snapshot as their running line.
+    if _manifest.is_empty() or consumer_ref==null:
+        if not await _refresh_manifest(consumer_ref): return false
     var id := "v106" if key == "v106" or key.begins_with("car") else key
     if not _manifest.modules.has(id):
         return _fail("Модуль отсутствует в списке: " + id)
@@ -60,6 +44,7 @@ func _ensure_module(key: String, consumer_ref: WeakRef) -> bool:
             if not await _download_pack(str(pack_id), str(_manifest.names[id]), consumer_ref):
                 release_module_resources(id)
                 return false
+    if id=="full_line" and not _current_gameplay_contract(): return false
     # Prepared station fragments resolve only their own material dependencies.
     # Eagerly warming every decorative texture defeats geometry-first streaming.
     var prepared_station := false
@@ -130,7 +115,7 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
     # the standard browser cache still reuses the same content-hashed URL.
     if FileAccess.file_exists(target):
         if await _verified_file(target,str(info.sha256),consumer) and ProjectSettings.load_resource_pack(target, false):
-            _mounted[id] = true
+            _mounted[id] = str(info.sha256)
             return true
         if not _consumer_alive(consumer): return false
         DirAccess.remove_absolute(target)
@@ -178,7 +163,7 @@ func _download_pack(id: String, title: String, consumer: WeakRef = null) -> bool
     if not ProjectSettings.load_resource_pack(target, false):
         DirAccess.remove_absolute(target)
         return _fail("Не удалось подключить пакет «%s»" % title)
-    _mounted[id] = true
+    _mounted[id] = str(info.sha256)
     return true
 
 func _verified_file(path: String, digest: String, consumer: WeakRef) -> bool:
@@ -244,8 +229,9 @@ func _fetch_chunk(info: Dictionary, target: String, title: String, offset: int, 
         return false
     return true
 
-func _fail(message: String) -> bool:
-    error_message = message + ". Нажмите нужный модуль ещё раз для повторной попытки."
+func _fail(message: String, retryable: bool=true) -> bool:
+    error_message = message
+    if retryable: error_message += ". Нажмите нужный модуль ещё раз для повторной попытки."
     progress.emit(error_message)
     return false
 
@@ -280,3 +266,47 @@ func prepare_train_scene(path: String) -> PackedScene:
     var scene := ResourceLoader.load(path, "PackedScene") as PackedScene
     if scene == null: _fail("Не удалось подготовить сцену состава V106")
     return scene
+
+func _refresh_manifest(consumer_ref: WeakRef) -> bool:
+    progress.emit("Получение списка модулей…")
+    var request := HTTPRequest.new()
+    # Web Fetch already decodes Content-Encoding; do not decompress twice.
+    request.accept_gzip = false
+    request.timeout = 30.0
+    add_child(request)
+    var started := request.request(_base_url + "module-packs.json?publication=%d" % int(Time.get_unix_time_from_system()*1000.0), PackedStringArray(["Cache-Control: no-store"]))
+    if started != OK:
+        request.queue_free()
+        return _fail("Не удалось запросить список модулей")
+    var response: Array = await request.request_completed
+    request.queue_free()
+    if not _consumer_alive(consumer_ref): return false
+    if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200:
+        return _fail("Не удалось получить список модулей (HTTP %d, код %d)" % [int(response[1]), int(response[0])])
+    var parsed = JSON.parse_string((response[3] as PackedByteArray).get_string_from_utf8())
+    if not parsed is Dictionary or not parsed.has("modules") or not parsed.has("packs"):
+        return _fail("Некорректный список модулей")
+    # Godot 4.3 cannot unmount PCKs or replace already cached Scripts safely.
+    # Never combine newly published files with the code of a mounted old line.
+    for mounted_id in _mounted:
+        if not parsed.packs.has(mounted_id) or str(parsed.packs[mounted_id].get("sha256",""))!=str(_mounted[mounted_id]):
+            return _fail("Опубликовано обновление. Закройте страницу просмотрщика и откройте её заново, чтобы загрузить новую версию.",false)
+    _manifest = parsed
+    return true
+
+func _current_gameplay_contract() -> bool:
+    # Inspect scripts before instantiating the line. Do not execute a legacy
+    # start_role() which waits for runtime cab mesh cutting.
+    var gameplay := ResourceLoader.load("res://modules/gameplay/gameplay_service.gd","Script") as Script
+    var access := ResourceLoader.load("res://modules/gameplay/cab_access.gd","Script") as Script
+    if gameplay==null or access==null or not gameplay.can_instantiate() or not access.can_instantiate():
+        return _fail("Ошибка загрузки кода игрового режима. Вернитесь к выбору модуля и повторите загрузку.")
+    var revision: String=str(gameplay.get_script_constant_map().get("STARTUP_REVISION",""))
+    var marker_access:=false
+    for method in access.get_script_method_list():
+        if str(method.name)=="prepare":
+            return _fail("Загружена устаревшая подготовка кабины V106. Закройте страницу и откройте просмотрщик заново.",false)
+        if str(method.name)=="prepare_points": marker_access=true
+    if revision.is_empty() or not marker_access:
+        return _fail("Пакет полной линии устарел: отсутствует прямой запуск кабины. Закройте страницу и откройте просмотрщик заново.",false)
+    return true
