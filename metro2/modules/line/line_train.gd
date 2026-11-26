@@ -29,9 +29,8 @@ func _create_info_binding() -> Node:
     return LineInfo.new()
 
 func _decorate_consist() -> void:
-    # Use the saved working passenger-demo advertising/realism integration.
-    preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
-    preload("res://scripts/depot/saloon_realism_v49.gd").apply(train,door_system)
+    # No legacy door mesh enumeration or geometry modifications during startup.
+    # The existing GLB artwork and carriage materials remain unchanged.
     preload("res://scripts/depot/goodmix_restore.gd").apply(train)
 
 func _install_inspection_ui() -> void:
