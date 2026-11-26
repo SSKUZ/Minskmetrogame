@@ -36,7 +36,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   plan:
-    if: github.event_name == 'push'
+    # TZ62.1 is archived; TZ62.2 supersedes animated cab doors.
+    if: github.event_name == 'push' && github.ref_name != 'feature/metro2-auto/integration/v106-side-cab-doors-tz62-1'
     runs-on: ubuntu-latest
     outputs:
       active: ${{ steps.select.outputs.active }}
