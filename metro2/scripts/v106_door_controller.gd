@@ -18,7 +18,7 @@ func setup(consist: Node3D) -> void:
     for car in consist.get_children():
         var panels: Array[Dictionary] = []
         var decals: Array[Dictionary] = []
-        _scan(car, car, panels, decals)
+        _scan(car, car.global_transform.affine_inverse(), car.global_basis.z, panels, decals)
         var grouped: Dictionary = {}
         for item in panels:
             var center: Vector3 = item["center"]
@@ -80,22 +80,22 @@ func setup(consist: Node3D) -> void:
     if leaves.size() != 64:
         push_warning("Door controller expected 64 leaves; found %d. Animation disabled." % leaves.size())
 
-func _scan(root: Node, car: Node3D, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
+func _scan(root: Node, car_inverse: Transform3D, car_forward: Vector3, panels: Array[Dictionary], decals: Array[Dictionary]) -> void:
     if root is MeshInstance3D and root.mesh != null:
         var bounds: AABB = root.get_aabb()
         var size: Vector3 = bounds.size
-        var to_car: Transform3D = car.global_transform.affine_inverse() * root.global_transform
+        var to_car: Transform3D = car_inverse * root.global_transform
         var center: Vector3 = to_car * bounds.get_center()
         if str(root.name).begins_with("passenger-door-caution"):
             decals.append({"node": root, "center": center, "origin": root.position,
-                "slide_axis": root.get_parent().global_basis.inverse() * car.global_basis.z})
+                "slide_axis": root.get_parent().global_basis.inverse() * car_forward})
         elif size.x > 0.67 and size.x < 0.70 and size.y > 2.0 and size.y < 2.1 and size.z > 0.02 and size.z < 0.04 and absf(center.x) > 1.0 and absf(center.x) < 1.4:
             # Move the existing leaf parent, including skin, glass and trim.
             var leaf: Node3D = root.get_parent()
             panels.append({"node": leaf, "center": center, "origin": leaf.position,
-                "slide_axis": leaf.get_parent().global_basis.inverse() * car.global_basis.z})
+                "slide_axis": leaf.get_parent().global_basis.inverse() * car_forward})
     for child in root.get_children():
-        _scan(child, car, panels, decals)
+        _scan(child, car_inverse, car_forward, panels, decals)
 
 func _process(delta: float) -> void:
     if not validated:
