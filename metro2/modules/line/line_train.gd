@@ -12,6 +12,9 @@ var _pose_children := -1
 var _posed_distance := NAN
 var _in_motion_step := false
 var _platform_station: Node3D
+var _flight_frame:=Transform3D.IDENTITY
+var _flight_region_key:=""
+var _station_braking:=false
 
 func _ready() -> void:
     spawn_z=430.0
@@ -73,8 +76,23 @@ func _physics_process(delta: float) -> void:
         # architecture and decorative HTTP resources never enter this limit.
         var safe_speed: float=sqrt(2.0*float(line.layout.streaming.braking_deceleration_mps2)*maxf(0.0,remaining-1.0))
         speed=minf(speed,safe_speed)
+    # A missing platform uses the original ramped cab brake. Unlike the
+    # existing base-track guard it never clamps speed or rewrites position.
+    var saved_brake: float=float(cab_runtime.brake_demand)
+    _station_braking=false
+    var guard: Dictionary=line.streamer.movement_guard(direction)
+    if not guard.is_empty():
+        var remaining: float=float(guard.remaining)
+        var stopping: float=speed*speed/(2.0*float(line.layout.streaming.braking_deceleration_mps2))+speed+2.0
+        if remaining<=stopping:
+            _station_braking=true
+            cab_runtime.brake_demand=maxf(saved_brake,1.0)
+            var index: int=int(guard.index)
+            var problem: String=line.streamer.station_error(index)
+            line._stream_status.text="Ожидание платформы: "+str(line.stations[index].module_id)+(" · "+problem if not problem.is_empty() else " · подготовка станции")
     _in_motion_step=true
     super._physics_process(delta)
+    cab_runtime.brake_demand=saved_brake
     _in_motion_step=false
     if loading_hold or (is_finite(limit) and ((direction>0 and distance<limit) or (direction<0 and distance>limit))):
         distance=before_move if loading_hold else limit
@@ -157,6 +175,7 @@ func _place_consist() -> void:
 
 func release_station(station: Node3D) -> void:
     if _station==station: _station=null
+    if _platform_station==station: _platform_station=null
 
 func retained_platform_station() -> Node3D:
     return _platform_station if camera_mode=="platform" and is_instance_valid(_platform_station) else null
@@ -173,6 +192,7 @@ func _update_camera() -> void:
         return
     _place_consist()
     if camera_mode=="flight":
+        _constrain_flight()
         camera.global_position=flight_position
         camera.global_basis=Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
         return
@@ -196,10 +216,71 @@ func _set_camera_mode(mode: String) -> void:
     if mode=="platform" and camera_mode!="platform":
         if not platform_camera_available(): return
         _platform_station=_station
-    if mode=="flight" and is_instance_valid(camera): flight_position=camera.global_position
+    if mode=="flight" and is_instance_valid(camera):
+        flight_position=camera.global_position
+        _flight_region_key=""
     super._set_camera_mode(mode)
     if camera_mode!="platform": _platform_station=null
     if is_instance_valid(line) and is_instance_valid(line.streamer): line.streamer.refresh()
+
+func release_distant_platform_camera() -> void:
+    if camera_mode!="platform" or not is_instance_valid(_platform_station): return
+    var pinned: int=line.streamer.player_station_index()
+    for record in line.stations:
+        if line.station_instance(int(record.index))!=_platform_station: continue
+        if int(record.index)==pinned: return
+        var margin: float=float(line.layout.free_camera.station_retention_margin)
+        if distance+_train_bounds.end.z>=float(record.low)-margin and distance+_train_bounds.position.z<=float(record.high)+margin: return
+        # The existing platform view ceases to be available beyond the active
+        # corridor. Use the ordinary exterior view, without moving the player.
+        _platform_station=null
+        camera_mode="external"
+        _update_camera()
+        return
+
+func _flight_region() -> Dictionary:
+    var policy: Dictionary=line.layout.free_camera
+    var index: int=line.streamer.player_station_index()
+    # The character's ownership decides the region, never train speed. An
+    # onboard camera therefore keeps the same frame through every stop/start.
+    if index>=0 and line.streamer.is_loaded(index):
+        var actual: AABB=line.streamer.station_camera_bounds(index)
+        var box: AABB=actual.grow(float(policy.station_exterior_margin))
+        # Include all authored stairs/transfers; longitudinal extension into
+        # adjoining tunnel space is capped separately from exterior clearance.
+        box.position.z=actual.position.z-float(policy.station_tunnel_margin)
+        box.size.z=actual.size.z+2.0*float(policy.station_tunnel_margin)
+        return {"key":"station:%d" % index,"frame":Transform3D.IDENTITY,"bounds":box}
+    var frame: Transform3D=line.path.frame_at(distance,track_x)
+    var inverse: Transform3D=frame.affine_inverse()
+    var box:=AABB()
+    var found:=false
+    for record in _pose_cars:
+        var car_bounds: AABB=inverse*(record.node.global_transform*(_pose_cache[record.node] as AABB))
+        box=box.merge(car_bounds) if found else car_bounds
+        found=true
+    if not found: box=_train_bounds
+    box.position.x-=float(policy.train_side_margin)
+    box.size.x+=2.0*float(policy.train_side_margin)
+    box.position.z-=float(policy.train_end_margin)
+    box.size.z+=2.0*float(policy.train_end_margin)
+    box.size.y+=float(policy.train_top_margin)
+    return {"key":"train","frame":frame,"bounds":box}
+
+func _constrain_flight() -> void:
+    var region: Dictionary=_flight_region()
+    var frame: Transform3D=region.frame
+    var key: String=str(region.key)
+    # Carry the camera with the moving train's frame, including bends. It does
+    # not remain at the old world boundary while the whole region moves away.
+    if key=="train" and key==_flight_region_key:
+        flight_position=frame*(_flight_frame.affine_inverse()*flight_position)
+    var point: Vector3=frame.affine_inverse()*flight_position
+    var box: AABB=region.bounds
+    point=Vector3(clampf(point.x,box.position.x,box.end.x),clampf(point.y,box.position.y,box.end.y),clampf(point.z,box.position.z,box.end.z))
+    flight_position=frame*point
+    _flight_frame=frame
+    _flight_region_key=key
 
 func _publish_diagnostics() -> void:
     pass
