@@ -342,7 +342,7 @@ func _save_resource(resource: Resource, extension: String) -> String:
     _serial+=1
     var temporary := "user://metro-static-stage/%d.%s" % [_serial,extension]
     DirAccess.make_dir_recursive_absolute(temporary.get_base_dir())
-    if ResourceSaver.save(resource,temporary)!=OK: _fail("Cannot save prepared resource"); return ""
+    if ResourceSaver.save(resource,temporary,ResourceSaver.FLAG_COMPRESS)!=OK: _fail("Cannot save prepared resource"); return ""
     var digest := FileAccess.get_sha256(temporary)
     var path := "user://metro-static/"+digest+"."+extension
     DirAccess.make_dir_recursive_absolute(path.get_base_dir())
@@ -551,7 +551,7 @@ func _local_resource(source: Resource) -> Resource:
     var directory: String="res://modules/line/prebuilt/base"
     DirAccess.make_dir_recursive_absolute(directory)
     var temporary: String=directory+"/pending.res"
-    if ResourceSaver.save(resource,temporary)!=OK: _fail("Cannot save base path resource"); return resource
+    if ResourceSaver.save(resource,temporary,ResourceSaver.FLAG_COMPRESS)!=OK: _fail("Cannot save base path resource"); return resource
     var digest: String=FileAccess.get_sha256(temporary)
     var target: String=directory+"/"+digest+".res"
     if FileAccess.file_exists(target): DirAccess.remove_absolute(temporary)

@@ -140,7 +140,14 @@ def plan():
     CI.mkdir(exist_ok=True)
     event=json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
     head=os.environ['GITHUB_SHA'];before=event.get('before','')
-    if not before or set(before)=={'0'}:before=POLICY['integration_base_commit']
+    # Resume from the last atomic viewer/line publication, not months of
+    # already published source changes on a newly created recovery branch.
+    ref=fetch_pages()
+    state=published(ref,POLICY['state_file'],{})
+    completed=state.get('boot',{}).get('source_commit','')
+    if completed and not ancestor(completed,head):completed=''
+    baseline=completed or POLICY['integration_base_commit']
+    if not before or set(before)=={'0'}:before=baseline
     git('fetch','--filter=blob:none','--depth=1','origin',before)
     changed=git('diff','--name-only',before,head).decode().splitlines()
     planner_inputs={'.github/workflows/metro2-module-viewer-v49.yml',
@@ -151,7 +158,7 @@ def plan():
     if planner_inputs.intersection(changed) or compiler_changed:
         # A planner repair must include runtime changes from a failed previous
         # push, even when this push changes only deployment code/configuration.
-        before=POLICY['integration_base_commit']
+        before=baseline
         git('fetch','--filter=blob:none','--depth=1','origin',before)
         changed=git('diff','--name-only',before,head).decode().splitlines()
     runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/','metro2/audio/')) and not ignored(p) and '/parts/' not in p and '/identification_tz54_1/' not in p and not p.startswith('metro2/audio/tools/')]
@@ -160,7 +167,7 @@ def plan():
     if not runtime and not compiler_changed:
         write(PLAN,{'active':False,'head':head,'modules':{},'reason':'No runtime module changes; no Godot import/export/publication'})
         output('active','false');output('matrix','{"include":[]}');return
-    ref=fetch_pages();manifest=published(ref,'module-packs.json');report=published(ref,'pack-resources.json')
+    manifest=published(ref,'module-packs.json');report=published(ref,'pack-resources.json')
     state=published(ref,POLICY['state_file'],{})
     catalog=dict(re.findall(r'"([a-z0-9_]+)"\s*:\s*"res://([^\"]+)"',(ROOT/POLICY['catalog']).read_text()))
     names={key:title for title,key in re.findall(r'\[\s*"([^\"]+)"\s*,\s*"([a-z0-9_]+)"\s*\]',(ROOT/'viewers/module_viewer.gd').read_text())}
@@ -367,6 +374,11 @@ def build(key):
     native(['--editor','--path',str(stage),'--import'],CI/'logs'/(key+'-import.log'))
     bundle=CI/'bundles'/key;bundle.mkdir(parents=True,exist_ok=True)
     compile_world(ROOT,CI,stage,bundle,spec,p,copied,native)
+    # Recompilation replaces the tunnel base resource graph in full. Old
+    # hash-addressed meshes are retained in Git, not accumulated in the new PCK.
+    if key=='full_line':
+        live_base={'res://'+name for name in copied if name.startswith('modules/line/prebuilt/base/')}
+        own=[name for name in own if not name.startswith('res://modules/line/prebuilt/base/') or name in live_base]
     control={'mode':'pack','destination':str(stage),'output':str(bundle/'module.pck'),'base_files':own,'sources':copied,'deleted':spec['deleted'],'foreign_files':sorted(foreign),'resources':str(bundle/'resources.json'),'boot':key=='boot'}
     # Compiler entry points are build tools, not runtime dependencies.
     control['sources']=[name for name in control['sources'] if name not in {
@@ -401,7 +413,9 @@ def build(key):
                      and not source_name(s).startswith('.godot/')
                      and ('res://'+source_name(s) in exported or
                           'res://'+source_name(s)+'.remap' in exported)})
-    entry={'file':name,'sha256':digest,'bytes':size,'warmup':['res://'+s for s in textures]}
+    from pages_content import world_files
+    entry={'file':name,'sha256':digest,'bytes':size,'warmup':['res://'+s for s in textures],
+           'world_files':world_files(pack)}
     if key!='boot' and size>32*1024*1024:
         chunks=[]
         with pack.open('rb') as f:
@@ -448,6 +462,16 @@ def publish():
             info.setdefault('module_packs',{})[key]=entry
             state.setdefault('modules',{})[key]={'source_commit':head,'pack_sha256':entry['sha256'],'category':spec['category'],'scene':spec['scene'],'dependencies':spec['dependencies']}
         patch=CI/'publication';patch.mkdir(exist_ok=True)
+        # Build a Jekyll inclusion policy from every live package's real indexes.
+        # Archived files stay in Git; only the Pages artifact is reduced.
+        for folder,data in bundles.values():
+            for payload in folder.iterdir():
+                if payload.suffix in {'.pck','.bin'}:files[PREFIX+payload.name]=payload
+        from pages_content import configuration
+        pages_config=CI/'pages-config.yml'
+        pages_config.write_text(configuration(base,manifest,report,cfg,files,PREFIX,CI,git))
+        files['_config.yml']=pages_config
+        info['module_packs']=manifest['packs']
         for name,data in [('module-packs.json',manifest),('pack-resources.json',report),('build-info.json',info),(POLICY['state_file'],state)]:write(patch/name,data)
         shell=html[:match.start(1)]+json.dumps(cfg,separators=(',',':'))+html[match.end(1):]
         (patch/'index.html').write_text(fresh_boot_shell(shell))
@@ -459,6 +483,8 @@ def publish():
         index=CI/'publication.index';index.unlink(missing_ok=True);env=dict(os.environ,GIT_INDEX_FILE=str(index))
         print('Publication: indexing '+str(len(files))+' files ('+str(sum(p.stat().st_size for p in files.values())//(1024*1024))+' MiB)',flush=True)
         git('read-tree',base,env=env)
+        # The root marker bypasses Jekyll and its inclusion policy entirely.
+        git('update-index','--force-remove','.nojekyll',env=env)
         for path,local in files.items():
             sha=git('hash-object','-w',str(local)).decode().strip();git('update-index','--add','--cacheinfo','100644,'+sha+','+path,env=env)
         tree=git('write-tree',env=env).decode().strip()
