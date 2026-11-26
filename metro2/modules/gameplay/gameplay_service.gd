@@ -133,7 +133,7 @@ func _start_direct_driver() -> void:
     automatic.disable()
     _set_automatic(false)
     _hold_cab()
-    train.door_system.request_close()
+    # Instant cab access does not operate passenger-door geometry.
     _activate_direct_driver()
     if not train.camera.is_current() or not ui.activate_play():
         _start_failed("Не удалось включить камеру или интерфейс кабины")
