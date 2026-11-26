@@ -5,6 +5,7 @@ const ARCHIVE_TARGET_BYTES := 24 * 1024 * 1024
 const MAX_PUBLISHED_FILE_BYTES := 96 * 1024 * 1024
 const Budget = preload("res://modules/line/build_budget.gd")
 const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
+const WalkLite = preload("res://modules/gameplay/walk_lite.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
 const Navigation = preload("res://scripts/passengers/passenger_navigation.gd")
 var control: Dictionary
@@ -46,7 +47,6 @@ func _station() -> void:
         _legacy_index()
         closed_station.free()
         return
-    await WalkingGeometry.new().prepare(closed_station,false,true)
     var closed: Array=await _fragments(closed_station)
     closed_station.free()
     _resources.clear()
@@ -58,17 +58,18 @@ func _station() -> void:
         _legacy_index()
         open_station.free()
         return
-    await WalkingGeometry.new().prepare(open_station,false,true)
     # Derive platform navigation from the real complete geometry once in CI,
     # rather than rescanning every collision/triangle on a mobile startup.
     var navigation=Navigation.new()
     var navigation_budget=Budget.new(_host,10000)
     await navigation.read_station(open_station,navigation_budget,Rect2(-10.37,-12.888,10.0,105.0))
     var platform_navigation: Dictionary=navigation.portable_data()
+    var walking_lite: Dictionary=await WalkLite.new().describe_station(open_station,platform_navigation)
     var opened: Array=await _fragments(open_station)
     var index := {"schema":1,"module_id":control.module,"metres_per_unit":1.0,
         "source_scene":control.scene,"source_commit":control.source_commit,
-        "closed_chunks":closed,"open_chunks":opened,"walking_collision":2,
+        "closed_chunks":closed,"open_chunks":opened,"walking_collision":0,
+        "walking_lite":walking_lite,
         "platform_navigation":platform_navigation,
         "portability":{"geometry":"native Mesh/ArrayMesh/MultiMesh; original hierarchy and transforms", "route":"res://modules/line/route_layout.json", "limitations":["Godot shaders and live viewport textures require adaptation for glTF/Roblox"]}}
     _json(str(control.index),index)

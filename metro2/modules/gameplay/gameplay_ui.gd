@@ -37,7 +37,7 @@ func initialize(owner_service: Node) -> void:
     top.position=Vector2(12,12)
     top.custom_minimum_size.x=536
     role_button=_button(top,"РЕЖИМ ПАССАЖИРА",func(): service.switch_role("passenger" if service.role=="driver" else "driver"))
-    walk_button=_button(top,"ВЫЙТИ ИЗ КАБИНЫ",func(): service.interaction.exit_cab())
+    walk_button=_button(top,"ВЫЙТИ ИЗ КАБИНЫ",func(): service.walk_action())
     var view:=MenuButton.new()
     view_menu=view
     view.text="ОБЗОР"
@@ -283,12 +283,16 @@ func _process(delta: float) -> void:
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
     view_menu.get_popup().set_item_disabled(0,service.direct_driver)
     if service.direct_driver:
-        walk_button.hide()
+        walk_button.show()
+        walk_button.text="ВЫЙТИ НА ПЛАТФОРМУ"
+        walk_button.disabled=service.station_at_train()<0
         interact.hide()
         stick.hide()
         status.text="МАШИНИСТ · "+("Свободная камера" if service.train.camera_mode=="flight" else "Пульт V106")
         return
-    walk_button.visible=service.driver_seated or not service.interaction.inside_cab().is_empty()
+    walk_button.visible=service.role=="driver" or service.driver_seated or not service.interaction.inside_cab().is_empty()
+    walk_button.text="ВЕРНУТЬСЯ ЗА ПУЛЬТ" if service.role=="driver" else "ВЫЙТИ ИЗ КАБИНЫ"
+    walk_button.disabled=false
     stick.visible=not service.driver_seated and not service.player.seated and service.train.camera_mode in ["walk","flight"]
     status.text=("МАШИНИСТ" if service.role=="driver" else "ПАССАЖИР")+" · "+("В составе" if is_instance_valid(service.player.aboard) else "На станции / в депо")
 

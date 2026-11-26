@@ -111,24 +111,36 @@ func update_car_membership(previous: Vector3) -> void:
     if service.driver_seated or player.seated: return
     var layout=service.line.passengers.layout
     if is_instance_valid(player.aboard):
-        var local: Vector3=player.aboard.to_local(player.global_position)
-        var bounds: AABB=service.train._pose_cache.get(player.aboard,AABB())
-        if local.y<0.6 or local.z<bounds.position.z-0.4 or local.z>bounds.end.z+0.4:
-            player.attach_car(null)
-            service.line.streamer.refresh()
-            return
-        if absf(local.x)<1.48: return
-        if not _passage(player.aboard,previous,player.global_position):
+        var car: Node3D=player.aboard
+        var state: Dictionary=car.get_meta("metro_walk_lite_train",{})
+        if state.is_empty():
             player.global_position=previous
             player.velocity=Vector3.ZERO
             return
-        player.attach_car(null)
-        service.line.streamer.refresh()
+        var local: Vector3=car.to_local(player.global_position)
+        var box: AABB=state.bounds
+        var passage: bool=_passage(car,previous,player.global_position)
+        if absf(local.x)>1.50 and passage:
+            player.attach_car(null)
+            service.line.streamer.refresh()
+            return
+        # Never detach because of a transient floor/transform discrepancy.
+        # The car parent is the sole carrier; moving-platform transport is off.
+        var radius: float=float(service.rules.walking.radius)
+        var corrected: Vector3=local
+        if not passage: corrected.x=clampf(local.x,box.position.x+radius,box.end.x-radius)
+        corrected.z=clampf(local.z,box.position.z+radius,box.end.z-radius)
+        if local.y<float(state.floor)-0.15:
+            corrected.y=float(state.floor)+0.04
+            player.velocity=Vector3.ZERO
+        if not corrected.is_equal_approx(local): player.position=corrected
     else:
         for car in layout.cars:
+            var state: Dictionary=car.get_meta("metro_walk_lite_train",{})
+            if state.is_empty(): continue
             var local: Vector3=car.to_local(player.global_position)
-            var box: AABB=service.train._pose_cache.get(car,AABB())
-            if absf(local.x)>1.35 or local.z<box.position.z or local.z>box.end.z or local.y<0.85 or local.y>1.60: continue
+            var box: AABB=state.bounds
+            if absf(local.x)>1.10 or local.z<box.position.z or local.z>box.end.z or absf(local.y-float(state.floor))>0.60: continue
             if _passage(car,previous,player.global_position):
                 player.attach_car(car)
                 service.line.streamer.refresh()
@@ -138,12 +150,21 @@ func update_car_membership(previous: Vector3) -> void:
             return
 
 func _passage(car: Node3D, from: Vector3, to: Vector3) -> bool:
+    if absf(float(service.train.speed))>0.05: return false
     var a: Vector3=car.to_local(from)
     var b: Vector3=car.to_local(to)
-    for door in service.line.passengers.layout.doors:
-        if door.car!=car or not service.line.passengers.layout.usable(door): continue
+    var layout=service.line.passengers.layout
+    for door in layout.doors:
+        if door.car!=car or not layout.usable(door) or not layout.platform_selected: continue
         var p: Vector3=door.marker.position
-        if absf(b.z-p.z)<0.73 and absf(b.y-p.y)<0.50: return true
+        if absf(b.z-p.z)>0.70 or absf(b.y-p.y)>0.60: continue
+        if signf(b.x)!=float(door.side) or maxf(absf(a.x),absf(b.x))<1.1: continue
+        var landing: Vector3=layout.landing(door,0.8)
+        for record in service.line.stations:
+            var index: int=int(record.index)
+            if not service.line.passengers.platform_spawn_ready(index): continue
+            var station: Node3D=service.line.station_instance(index)
+            if service._geometry.covers(station,landing,0.5): return true
     return false
 
 func _clear_reach(from: Vector3, to: Vector3) -> bool:

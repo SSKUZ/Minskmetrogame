@@ -6,13 +6,20 @@
     "passenger"
   ],
   "walking": {
-    "eye_height": 1.68,
+    "eye_height": 1.65,
     "height": 1.74,
     "radius": 0.24,
     "speed": 1.4,
     "acceleration": 5,
     "gravity": 18,
-    "step": 0.28
+    "step": 0.28,
+    "max_slope_degrees": 48,
+    "collision_policy": {
+      "station": "prepared primitive descriptions; bounded regions near the actor",
+      "train": "existing door markers and seat anchors; floor, sides, ends, closed-door blockers",
+      "carrier": "owning car parent transform only; engine platform carry disabled",
+      "intercar_passage": false
+    }
   },
   "service": {
     "dwell": 30,
@@ -47,7 +54,7 @@
   },
   "portability": {
     "coordinates": "original car-local and station/world transforms",
-    "physics": "native collision meshes derived from original triangles",
+    "physics": "portable primitive constraints, local poses and car-relative passenger position",
     "runtime_adapter": "Godot CharacterBody3D; requires Luau adaptation"
   },
   "cab_access": [

@@ -124,7 +124,7 @@ func _process(delta: float) -> void:
     if Input.is_physical_key_pressed(KEY_E): axis.y += 1.0
     if axis.length_squared() > 0.0:
         var rate := move_speed*(3.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 1.0)
-        translate_view(camera.global_basis*axis.limit_length(1.0)*rate*minf(delta,0.05))
+        translate_view((movement_direction(camera.global_basis,Vector2(axis.x,axis.z))+camera.global_basis.y*axis.y).limit_length(1.0)*rate*minf(delta,0.05))
 
 func _input(event: InputEvent) -> void:
     if free_mode:
@@ -177,3 +177,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func hold_motion(axis: Vector3, held: bool) -> void:
     if held: _held_motion[axis] = true
     else: _held_motion.erase(axis)
+
+# The same view-relative motion basis serves flight and constrained walking.
+static func movement_direction(view: Basis, axis: Vector2, horizontal: bool=false) -> Vector3:
+    var right: Vector3=view.x
+    var forward: Vector3=view.z
+    if horizontal:
+        right.y=0.0
+        forward.y=0.0
+        right=right.normalized()
+        forward=forward.normalized()
+    return right*axis.x+forward*axis.y

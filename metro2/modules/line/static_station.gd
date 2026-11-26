@@ -66,6 +66,7 @@ func _ready() -> void:
             if not await work.checkpoint(): return
             await get_tree().process_frame
         work.release_sources()
+    if manifest.has("walking_lite"): set_meta("metro_walk_lite_data",manifest.walking_lite)
     if manifest.has("platform_navigation"): set_meta("metro_platform_navigation",manifest.platform_navigation)
     if not static_failed and int(manifest.get("walking_collision",0))>0: set_meta("metro_walk_collision",int(manifest.walking_collision))
     static_ready=not static_failed

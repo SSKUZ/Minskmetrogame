@@ -18,6 +18,7 @@ var _probe_index := -1
 var _probe_z := NAN
 var _next_person_id := 0
 var _station_calls: Dictionary={}
+const WalkLite = preload("res://modules/gameplay/walk_lite.gd")
 const BuildBudget = preload("res://modules/line/build_budget.gd")
 
 func initialize_line(line: Node3D, game: Node3D) -> void:
@@ -52,7 +53,14 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
             _platforms.erase(index)
             return
     else:
-        await nav.read_station(instance,budget,fallback)
+        var light: Dictionary=instance.get_meta("metro_walk_lite_data",{})
+        if light.is_empty():
+            light=await WalkLite.new().describe_station(instance)
+            instance.set_meta("metro_walk_lite_data",light)
+        if not nav.read_prepared(light.get("navigation",{}),instance.global_transform):
+            _platform_errors[index]="Нет безопасного описания платформы: "+str(station.module_id)
+            _platforms.erase(index)
+            return
     if not _platforms.has(index) or int(_platforms[index].token)!=token: return
     if not is_instance_valid(instance) or budget.cancelled:
         _platforms.erase(index)
@@ -130,8 +138,14 @@ func retry_platform(index: int) -> void:
         var instance: Node3D=_line.station_instance(index)
         if is_instance_valid(instance): add_platform(_line.stations[index],instance)
 
-func platform_spawn_ready(index: int) -> bool:
+func platform_navigation_ready(index: int) -> bool:
     return _platforms.has(index) and bool(_platforms[index].get("navigation_ready",false)) and is_instance_valid(_line.station_instance(index))
+
+func platform_spawn_ready(index: int) -> bool:
+    if not platform_navigation_ready(index): return false
+    var instance: Node3D=_line.station_instance(index)
+    var region: Dictionary=instance.get_meta("metro_walk_lite_region",{})
+    return not region.is_empty() and bool(region.get("ready",false))
 
 func platform_ready(index: int) -> bool:
     return _platforms.has(index) and bool(_platforms[index].get("ready",false))

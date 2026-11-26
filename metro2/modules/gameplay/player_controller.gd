@@ -1,4 +1,5 @@
 extends CharacterBody3D
+const FlightCamera = preload("res://viewers/inspection_camera.gd")
 const Geometry = preload("res://modules/gameplay/world_geometry.gd")
 var service: Node
 var rules: Dictionary
@@ -8,6 +9,7 @@ var pitch:=0.0
 var active:=false
 var seated:=false
 var aboard: Node3D
+var current_car_id:=""
 var eye: Node3D
 var capsule: CollisionShape3D
 var _climb: Array[Vector3]=[]
@@ -24,7 +26,7 @@ func initialize(owner_service: Node, settings: Dictionary) -> void:
     platform_wall_layers=0
     platform_on_leave=CharacterBody3D.PLATFORM_ON_LEAVE_DO_NOTHING
     floor_snap_length=0.24
-    floor_max_angle=deg_to_rad(48.0)
+    floor_max_angle=deg_to_rad(float(rules.get("max_slope_degrees",48.0)))
     capsule=CollisionShape3D.new()
     var shape:=CapsuleShape3D.new()
     shape.radius=float(rules.radius)
@@ -53,6 +55,7 @@ func attach_car(car: Node3D) -> void:
     var view: Basis=eye.global_basis
     reparent(car if is_instance_valid(car) else service.line,true)
     aboard=car
+    current_car_id=str(car.name) if is_instance_valid(car) else ""
     var local_view: Basis=global_basis.inverse()*view
     yaw=local_view.get_euler().y
     pitch=local_view.get_euler().x
@@ -86,14 +89,18 @@ func _physics_process(delta: float) -> void:
     else:
         var keyboard:=Vector2(float(Input.is_physical_key_pressed(KEY_D))-float(Input.is_physical_key_pressed(KEY_A)),float(Input.is_physical_key_pressed(KEY_S))-float(Input.is_physical_key_pressed(KEY_W)))
         var input: Vector2=(stick+keyboard).limit_length() if service.train.camera_mode=="walk" else Vector2.ZERO
-        var forward: Basis=global_basis*Basis(Vector3.UP,yaw)
-        var desired: Vector3=(forward.x*input.x+forward.z*input.y)*float(rules.speed)
-        velocity.x=move_toward(velocity.x,desired.x,float(rules.acceleration)*delta)
-        velocity.z=move_toward(velocity.z,desired.z,float(rules.acceleration)*delta)
-        velocity.y=-0.5 if is_on_floor() else velocity.y-float(rules.gravity)*delta
-        if not service.walking_area_ready(global_position+Vector3(velocity.x,0,velocity.z)*delta):
-            velocity.x=0.0
-            velocity.z=0.0
+        var up: Vector3=aboard.global_basis.y.normalized() if is_instance_valid(aboard) else Vector3.UP
+        up_direction=up
+        var desired: Vector3=FlightCamera.movement_direction(eye.global_basis,input,true)
+        desired-=up*desired.dot(up)
+        if desired.length_squared()>0.000001: desired=desired.normalized()*input.length()*float(rules.speed)
+        var vertical: Vector3=up*velocity.dot(up)
+        var horizontal: Vector3=velocity-vertical
+        horizontal=horizontal.move_toward(desired,float(rules.acceleration)*delta)
+        vertical=-up*0.5 if is_on_floor() else vertical-up*float(rules.gravity)*delta
+        velocity=horizontal+vertical
+        if not service.walking_area_ready(global_position+horizontal*delta):
+            velocity=vertical
             service.request_walk_area()
         _step(delta)
         move_and_slide()
@@ -118,9 +125,9 @@ func _physics_process(delta: float) -> void:
 
 func _step(delta: float) -> void:
     if not is_on_floor(): return
-    var horizontal:=Vector3(velocity.x,0,velocity.z)*delta
+    var horizontal: Vector3=(velocity-up_direction*velocity.dot(up_direction))*delta
     if horizontal.length_squared()<0.000001 or not test_move(global_transform,horizontal): return
-    var rise:=Vector3.UP*float(rules.step)
+    var rise: Vector3=up_direction*float(rules.step)
     if test_move(global_transform,rise): return
     var raised:=global_transform
     raised.origin+=rise
@@ -128,6 +135,6 @@ func _step(delta: float) -> void:
     var result:=PhysicsTestMotionResult3D.new()
     var parameters:=PhysicsTestMotionParameters3D.new()
     parameters.from=raised.translated(horizontal)
-    parameters.motion=-rise-Vector3.UP*0.08
-    if PhysicsServer3D.body_test_motion(get_rid(),parameters,result) and result.get_collision_normal().dot(Vector3.UP)>0.65:
+    parameters.motion=-rise-up_direction*0.08
+    if PhysicsServer3D.body_test_motion(get_rid(),parameters,result) and result.get_collision_normal().dot(up_direction)>0.65:
         global_position+=rise+result.get_travel()

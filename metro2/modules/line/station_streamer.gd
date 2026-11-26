@@ -3,7 +3,7 @@ extends Node
 const Catalog = preload("res://modules/core/module_catalog.gd")
 const BuildBudget = preload("res://modules/line/build_budget.gd")
 var _building_budget: RefCounted
-const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
+const WalkLite = preload("res://modules/gameplay/walk_lite.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
 signal station_loaded(index: int, station: Node3D)
 signal station_unloading(index: int, station: Node3D)
@@ -296,7 +296,8 @@ func _load_station(index: int) -> bool:
         return _load_failed(index,"Станция "+id+": "+failure)
     if not prepared:
         await Connections.open_connections(node,budget)
-        await WalkingGeometry.new().prepare(node,false,true)
+        var walking_lite: Dictionary=await WalkLite.new().describe_station(node)
+        node.set_meta("metro_walk_lite_data",walking_lite)
     if not _wanted.has(index):
         budget.cancel()
         await _dispose_station(node)
