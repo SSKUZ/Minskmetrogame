@@ -94,7 +94,7 @@ func _start_service_if_ready() -> void:
         ready_for_service=true
     # Route motion and physical character startup have separate readiness.
     # Missing track still holds the existing train, but never hides walking UI.
-    train.service_ready=gameplay.running and gameplay._cab_ready and not gameplay.virtual_wait
+    train.service_ready=gameplay.running and not gameplay.virtual_wait
 
 
 func _consist_ready() -> void:

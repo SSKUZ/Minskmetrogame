@@ -194,6 +194,7 @@ func _update_camera() -> void:
         camera.global_basis=car.global_basis*Basis.from_euler(Vector3(-orbit_pitch,orbit_yaw,0))
 
 func _set_camera_mode(mode: String) -> void:
+    if mode=="walk" and is_instance_valid(line.gameplay) and line.gameplay.direct_driver: mode="cabin"
     if mode=="platform" and camera_mode!="platform":
         if not platform_camera_available(): return
         _platform_station=_station

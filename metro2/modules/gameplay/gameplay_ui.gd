@@ -21,6 +21,7 @@ var back_button: Button
 var station_panel: PanelContainer
 var station_confirm: Button
 var _play_visible:=false
+var view_menu: MenuButton
 
 func initialize(owner_service: Node) -> void:
     service=owner_service
@@ -37,12 +38,14 @@ func initialize(owner_service: Node) -> void:
     role_button=_button(top,"РЕЖИМ ПАССАЖИРА",func(): service.switch_role("passenger" if service.role=="driver" else "driver"))
     walk_button=_button(top,"ВЫЙТИ ИЗ КАБИНЫ",func(): service.interaction.exit_cab())
     var view:=MenuButton.new()
+    view_menu=view
     view.text="ОБЗОР"
     top.add_child(view)
     for title in ["От первого лица","Кабина","Салон","Платформа","Свободная камера"]: view.get_popup().add_item(title)
     view.get_popup().id_pressed.connect(func(id: int):
+        if id==0 and service.direct_driver: return
         if id==1 and not service.driver_seated: return
-        service.player.stick=Vector2.ZERO
+        if is_instance_valid(service.player): service.player.stick=Vector2.ZERO
         service.train._flight_ui.stick=Vector2.ZERO
         _look_pointer=-1
         service.train._set_camera_mode(["walk","cabin","salon","platform","flight"][id]))
@@ -70,8 +73,8 @@ func initialize(owner_service: Node) -> void:
     stick.axis_changed.connect(func(axis: Vector2):
         if service.train.camera_mode=="flight":
             service.train._flight_ui.stick=axis
-            service.player.stick=Vector2.ZERO
-        else: service.player.stick=axis)
+            if is_instance_valid(service.player): service.player.stick=Vector2.ZERO
+        elif is_instance_valid(service.player): service.player.stick=axis)
     interact=Button.new()
     interact.text="ВЗАИМОДЕЙСТВИЕ"
     root.add_child(interact)
@@ -123,7 +126,7 @@ func _start_menu() -> void:
     title.text="МИНСКОЕ МЕТРО 2.0\nВыберите игровую роль"
     title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
     column.add_child(title)
-    _button(column,"МАШИНИСТ · НАЧАТЬ В ДЕПО",func(): service.start_role("driver",0))
+    _button(column,"МАШИНИСТ · НАЧАТЬ В КАБИНЕ",func(): service.start_role("driver",0))
     _button(column,"ПАССАЖИР · ВЫБРАТЬ СТАНЦИЮ",_choose_station)
     var hint:=Label.new()
     hint.text="Ходьба: джойстик / WASD\nОбзор: палец справа / правая кнопка мыши\nВзаимодействие: кнопка / E"
@@ -246,7 +249,12 @@ func activate_play() -> bool:
     interact.show()
     status.show()
     role_button.get_parent().show()
-    stick.visible=not service.driver_seated and not service.player.seated
+    if service.direct_driver:
+        stick.hide()
+        interact.hide()
+        walk_button.hide()
+        return root.is_visible_in_tree() and role_button.is_visible_in_tree()
+    stick.visible=is_instance_valid(service.player) and not service.driver_seated and not service.player.seated
     return root.is_visible_in_tree() and interact.is_visible_in_tree()
 
 func notice(text: String) -> void:
@@ -259,6 +267,13 @@ func _process(delta: float) -> void:
     message.visible=_notice_left>0.0
     if not service.running or not _play_visible: return
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
+    view_menu.get_popup().set_item_disabled(0,service.direct_driver)
+    if service.direct_driver:
+        walk_button.hide()
+        interact.hide()
+        stick.hide()
+        status.text="МАШИНИСТ · "+("Свободная камера" if service.train.camera_mode=="flight" else "Пульт V106")
+        return
     walk_button.visible=service.driver_seated or not service.interaction.inside_cab().is_empty()
     stick.visible=not service.driver_seated and not service.player.seated and service.train.camera_mode in ["walk","flight"]
     status.text=("МАШИНИСТ" if service.role=="driver" else "ПАССАЖИР")+" · "+("В составе" if is_instance_valid(service.player.aboard) else "На станции / в депо")

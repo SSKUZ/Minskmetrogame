@@ -10,7 +10,7 @@ func initialize(owner_service: Node) -> void:
     service=owner_service
 
 func _process(delta: float) -> void:
-    if not service.running: return
+    if not service.running or service.direct_driver or not is_instance_valid(service.player): return
     _clock-=delta
     if _clock>0.0: return
     _clock=0.15
@@ -19,7 +19,7 @@ func _process(delta: float) -> void:
     service.ui.interact.disabled=current.is_empty()
 
 func _near_action() -> Dictionary:
-    if not service.player.active: return {}
+    if service.direct_driver or not is_instance_valid(service.player) or not service.player.active: return {}
     var player: Node3D=service.player
     if service.driver_seated: return {"kind":"leave_driver","title":"ПОКИНУТЬ ПУЛЬТ"}
     if not seat.is_empty(): return {"kind":"stand","title":"ВСТАТЬ"}
@@ -89,7 +89,7 @@ func stand() -> void:
     player.eye.position.y=float(player.rules.eye_height)
 
 func doorway_clear() -> bool:
-    if service.driver_seated or not service.player.active: return true
+    if service.direct_driver or not is_instance_valid(service.player) or service.driver_seated or not service.player.active: return true
     for door in service.line.passengers.layout.doors:
         var p: Vector3=door.car.to_local(service.player.global_position)
         var seam: Vector3=door.marker.position
@@ -162,6 +162,7 @@ func close_cab_for_departure() -> bool:
     return true
 
 func inside_cab() -> Dictionary:
+    if service.direct_driver or not is_instance_valid(service.player): return {}
     var player: Node3D=service.player
     if not is_instance_valid(player.aboard): return {}
     for point in cab_points:
@@ -170,7 +171,10 @@ func inside_cab() -> Dictionary:
     return {}
 
 func enter_cab(point: Dictionary) -> void:
-    if not service.running or not service.player.active or service.player.aboard!=null: return
+    if service.direct_driver or not is_instance_valid(service.player) or not service.running or not service.player.active or service.player.aboard!=null: return
+    if point.entry.global_position.z>96.0:
+        service.ui.notice("Пеший доступ в депо отключён. Для осмотра используйте полёт.")
+        return
     if absf(float(service.train.speed))>float(point.rules.max_speed):
         service.ui.notice("Войти в кабину можно только после остановки")
         return
@@ -183,6 +187,7 @@ func enter_cab(point: Dictionary) -> void:
     _transfer(point.car,target,service.player.eye.global_basis)
 
 func exit_cab() -> void:
+    if service.direct_driver: return
     var point: Dictionary=inside_cab()
     if point.is_empty() or not service.running: return
     if absf(float(service.train.speed))>float(point.rules.max_speed):
@@ -227,9 +232,7 @@ func _safe_cab_position(point: Dictionary, interior: bool) -> Vector3:
 
 func _exterior_surface(floor: Vector3, owner: Node) -> bool:
     if not is_instance_valid(owner): return false
-    if floor.z>96.0:
-        var depot: Node3D=service.line.get_node_or_null("OperatingDepot")
-        return is_instance_valid(depot) and depot.is_ancestor_of(owner) and service._geometry.covers(depot,floor,0.5)
+    if floor.z>96.0: return false
     for record in service.line.stations:
         var index: int=int(record.index)
         if not service.line.passengers.platform_spawn_ready(index): continue
