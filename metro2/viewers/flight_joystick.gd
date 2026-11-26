@@ -39,11 +39,11 @@ func _input(event: InputEvent) -> void:
     if not is_visible_in_tree(): return
     if event is InputEventMouse and event.device == -1: return
     if event is InputEventScreenTouch:
-        if event.pressed and not event.canceled and contains_screen_point(event.position):
-            if movement_touch_id==-1:
-                movement_touch_id=event.index
-                _update_axis(event.position)
-            # A new finger on an occupied pad cannot become a camera touch.
+        if event.pressed and not event.canceled and contains_screen_point(event.position) and movement_touch_id==-1:
+            movement_touch_id=event.index
+            _update_axis(event.position)
+            # Only the captured movement finger belongs to the pad. A second
+            # finger must remain available for simultaneous camera gestures.
             get_viewport().set_input_as_handled()
         elif (not event.pressed or event.canceled) and event.index==movement_touch_id:
             reset()
