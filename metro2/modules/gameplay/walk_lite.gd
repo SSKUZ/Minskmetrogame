@@ -216,9 +216,31 @@ func prepare_train(service: Node) -> bool:
     for car in layout.cars:
         if car.has_meta("metro_walk_lite_train"): continue
         var doors: Array=layout.doors.filter(func(d):return d.car==car)
+        # Static interior bounds work without the removed mesh-door scanner.
+        # Cab entry/exit is handled by the independent authored-marker adapter.
         if doors.is_empty():
-            error_message="Не найдены исходные проёмы вагона "+str(car.name)
-            return false
+            var seats: Array=layout.places.filter(func(p): return p.car==car)
+            var lo_static: float=-8.0
+            var hi_static: float=8.0
+            if not seats.is_empty():
+                lo_static=INF
+                hi_static=-INF
+                for place in seats:
+                    lo_static=minf(lo_static,float(place.position.z)-0.7)
+                    hi_static=maxf(hi_static,float(place.position.z)+0.7)
+            var floor_static: float=1.033
+            var body_static:=AnimatableBody3D.new()
+            body_static.name="LightCarConstraints"
+            body_static.sync_to_physics=false
+            body_static.collision_layer=TRAIN
+            body_static.collision_mask=0
+            body_static.set_meta("metro_native_walk",true)
+            car.add_child(body_static)
+            _box(body_static,"SaloonFloor",Vector3(0,floor_static-0.07,(lo_static+hi_static)*0.5),Vector3(2.7,0.14,hi_static-lo_static))
+            for end in [lo_static,hi_static]:
+                _box(body_static,"EndPartition",Vector3(0,floor_static+1.1,end),Vector3(2.7,2.2,0.12))
+            car.set_meta("metro_walk_lite_train",{"body":body_static,"floor":floor_static,"bounds":AABB(Vector3(-1.34,floor_static,lo_static),Vector3(2.68,2.2,hi_static-lo_static)),"portals":[]})
+            continue
         var lo:=INF
         var hi:=-INF
         for door in doors:
