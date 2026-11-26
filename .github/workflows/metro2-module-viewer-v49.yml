@@ -76,8 +76,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          apt-get update -qq
-          apt-get install -y -qq python3 ffmpeg xvfb xauth libgl1 libgl1-mesa-dri libxrandr2 libxinerama1 libxcursor1 libxi6
+          # Some Godot CI images ship stale Ubuntu package indexes. Refresh
+          # strictly and retry once on mirror churn (404), never hide failures.
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+          apt-get -o Acquire::Retries=3 -o APT::Update::Error-Mode=any update -qq
+          if ! apt-get -o Acquire::Retries=3 install -y -qq python3 ffmpeg xvfb xauth libgl1 libgl1-mesa-dri libxrandr2 libxinerama1 libxcursor1 libxi6; then
+            apt-get clean
+            rm -rf /var/lib/apt/lists/*
+            apt-get -o Acquire::Retries=3 -o APT::Update::Error-Mode=any update -qq
+            apt-get -o Acquire::Retries=3 install -y -qq python3 ffmpeg xvfb xauth libgl1 libgl1-mesa-dri libxrandr2 libxinerama1 libxcursor1 libxi6
+          fi
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config remote.origin.promisor true
           git config remote.origin.partialclonefilter blob:none
