@@ -153,6 +153,7 @@ def plan():
     planner_inputs={'.github/workflows/metro2-module-viewer-v49.yml',
                     'metro2/config/module_deploy_manifest.json',
                     'metro2/tools/automated_deploy/deploy.py',
+                    'metro2/tools/automated_deploy/pages_content.py',
                     'metro2/tools/automated_deploy/pack_module.gd'}
     compiler_changed=any(p.startswith('metro2/tools/automated_deploy/static_world/') for p in changed)
     if planner_inputs.intersection(changed) or compiler_changed:
@@ -161,6 +162,7 @@ def plan():
         before=baseline
         git('fetch','--filter=blob:none','--depth=1','origin',before)
         changed=git('diff','--name-only',before,head).decode().splitlines()
+    compiler_changed=any(p.startswith('metro2/tools/automated_deploy/static_world/') for p in changed)
     runtime=[p[7:] for p in changed if p.startswith(('metro2/modules/','metro2/scripts/','metro2/assets/','metro2/viewers/','metro2/audio/')) and not ignored(p) and '/parts/' not in p and '/identification_tz54_1/' not in p and not p.startswith('metro2/audio/tools/')]
     part_changes=[p[7:] for p in changed if p.startswith('metro2/assets/') and '/parts/' in p]
     runtime+=part_changes
@@ -216,11 +218,15 @@ def plan():
                         for p in changed)
     static_modules = set()
     if static_inputs:
-        # Recompile the integrated route, but never rebuild every independently
-        # published station merely because shared compiler code changed. Station
-        # packages are versioned separately and must retain their live geometry.
-        # An explicitly edited station is still selected through source ownership.
         chosen.add('full_line')
+        # A Pages size recovery must cover the live station archives as well
+        # as the line PCK. Migrate only the existing route stations that still
+        # lack native lossless compression; their ancestry guards remain active.
+        # Subsequent compiler changes do not rebuild already migrated stations.
+        route=json.loads((ROOT/'modules/line/route_layout.json').read_text())
+        for key in route['station_module_ids']:
+            if manifest['packs'].get(key,{}).get('static_resource_compression')!='zstd-v1':
+                chosen.add(key)
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
     if not branch.startswith(POLICY['branch_prefix']) and branch!=POLICY['source_branch']:raise RuntimeError('Branch is not opted into automatic publication')
     if scope!='integration' and direct-{scope}:raise RuntimeError('Cross-module source change requires an integration branch: '+','.join(sorted(direct)))
@@ -416,6 +422,8 @@ def build(key):
     from pages_content import world_files
     entry={'file':name,'sha256':digest,'bytes':size,'warmup':['res://'+s for s in textures],
            'world_files':world_files(pack)}
+    if key=='full_line' or key in route_ids:
+        entry['static_resource_compression']='zstd-v1'
     if key!='boot' and size>32*1024*1024:
         chunks=[]
         with pack.open('rb') as f:
