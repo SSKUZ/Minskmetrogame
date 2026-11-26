@@ -130,7 +130,8 @@ def plan():
     if not before or set(before)=={'0'}:before=POLICY['integration_base_commit']
     git('fetch','--filter=blob:none','--depth=1','origin',before)
     changed=git('diff','--name-only',before,head).decode().splitlines()
-    planner_inputs={'metro2/config/module_deploy_manifest.json',
+    planner_inputs={'.github/workflows/metro2-module-viewer-v49.yml',
+                    'metro2/config/module_deploy_manifest.json',
                     'metro2/tools/automated_deploy/deploy.py',
                     'metro2/tools/automated_deploy/pack_module.gd'}
     compiler_changed=any(p.startswith('metro2/tools/automated_deploy/static_world/') for p in changed)

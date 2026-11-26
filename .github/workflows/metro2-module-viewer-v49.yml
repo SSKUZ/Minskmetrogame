@@ -57,7 +57,9 @@ jobs:
     needs: plan
     if: needs.plan.outputs.active == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The integrated line includes the existing prebuilt tunnel resources.
+    # Give its cold import/package job time to finish without changing content.
+    timeout-minutes: ${{ matrix.module == 'full_line' && 90 || 30 }}
     container:
       image: barichello/godot-ci:4.3
     strategy:
