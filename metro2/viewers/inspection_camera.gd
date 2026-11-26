@@ -12,6 +12,7 @@ var move_axis := Vector3.ZERO
 var move_speed := 7.0
 var enabled := false
 var _touches: Dictionary = {}
+var camera_touch_id := -1
 var _pinch_span := 0.0
 var _held_motion: Dictionary = {}
 var _sphere := SphereShape3D.new()
@@ -55,6 +56,7 @@ func set_free(value: bool) -> void:
     _apply(false)
 
 func clear_gestures() -> void:
+    camera_touch_id=-1
     _touches.clear()
     _pinch_span = 0.0
     move_axis = Vector3.ZERO
@@ -125,6 +127,14 @@ func _process(delta: float) -> void:
         translate_view(camera.global_basis*axis.limit_length(1.0)*rate*minf(delta,0.05))
 
 func _input(event: InputEvent) -> void:
+    if free_mode:
+        if event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==camera_touch_id:
+            camera_touch_id=-1
+            get_viewport().set_input_as_handled()
+        elif enabled and event is InputEventScreenDrag and event.index==camera_touch_id:
+            orbit(event.relative)
+            get_viewport().set_input_as_handled()
+        return
     # Releases may end over a GUI button and never reach unhandled input.
     if event is InputEventScreenTouch and not event.pressed:
         _touches.erase(event.index)
@@ -133,6 +143,12 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if not enabled: return
     if event is InputEventMouse and event.device == -1: return
+    if free_mode and event is InputEventScreenTouch:
+        if event.pressed and not event.canceled and camera_touch_id<0:
+            camera_touch_id=event.index
+            get_viewport().set_input_as_handled()
+        return
+    if free_mode and event is InputEventScreenDrag: return
     if event is InputEventScreenTouch:
         if event.pressed: _touches[event.index] = event.position
         else: _touches.erase(event.index)

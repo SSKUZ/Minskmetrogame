@@ -218,6 +218,7 @@ func _unhandled_input(event: InputEvent) -> void:
     super._unhandled_input(event)
 
 func activate_character_view(eye: Node3D) -> bool:
+    camera_touch_id=-1
     if not is_instance_valid(camera) or not is_instance_valid(eye): return false
     if is_instance_valid(cab_runtime): cab_runtime.cancel_interaction()
     if is_instance_valid(_flight_ui): _flight_ui._release_pointer()

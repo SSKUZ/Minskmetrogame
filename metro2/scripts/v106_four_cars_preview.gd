@@ -19,6 +19,7 @@ var orbit_yaw := 0.35
 var orbit_pitch := 0.10
 var orbit_radius := 4.6
 var _touch_points: Dictionary = {}
+var camera_touch_id := -1
 var _pinching := false
 var _pinch_distance := 0.0
 var _cab_fov := 80.0
@@ -46,6 +47,8 @@ var info_binding: Node
 var _bogie_visuals = BOGIE_VISUALS.new()
 
 func _ready() -> void:
+    get_window().focus_exited.connect(_reset_camera_touch)
+    get_viewport().size_changed.connect(_reset_camera_touch)
     print("TZ30_BOOT ready")
     _diagnostics_enabled = OS.has_feature("web")
     print("TZ30_BOOT diagnostics configured")
@@ -325,6 +328,20 @@ func _zoom_view(ratio: float) -> void:
         orbit_radius = clampf(orbit_radius/ratio,0.35,120.0)
 
 func _input(event: InputEvent) -> void:
+    if camera_mode=="flight":
+        if event is InputEventScreenTouch:
+            if (not event.pressed or event.canceled) and event.index==camera_touch_id:
+                camera_touch_id=-1
+                get_viewport().set_input_as_handled()
+            return
+        if event is InputEventScreenDrag:
+            if event.index==camera_touch_id:
+                orbit_yaw-=event.relative.x*0.008
+                orbit_pitch=clampf(orbit_pitch+event.relative.y*0.006,-1.2,1.2)
+                _update_camera()
+                get_viewport().set_input_as_handled()
+            return
+        if event is InputEventMouse and event.device==-1: return
     if event is InputEventScreenTouch:
         if event.pressed: _touch_points[event.index] = event.position
         else: _touch_points.erase(event.index)
@@ -352,6 +369,14 @@ func _input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
+    if camera_mode=="flight":
+        if event is InputEventScreenTouch:
+            if event.pressed and not event.canceled and camera_touch_id<0:
+                camera_touch_id=event.index
+                get_viewport().set_input_as_handled()
+            return
+        if event is InputEventScreenDrag: return
+        if event is InputEventMouse and event.device==-1: return
     if _pinching or (event is InputEventMouse and not _touch_points.is_empty()): return
     if is_instance_valid(cab_runtime) and cab_runtime.call("handle_input",event,camera):
         get_viewport().set_input_as_handled()
@@ -527,6 +552,11 @@ func _illuminate_headlamp_lenses(lead: Node3D) -> void:
         push_error("V106: expected six illuminated headlamp lenses, found %d" % lit_lamps)
 
 func _set_camera_mode(mode: String) -> void:
+    camera_touch_id=-1
+    _touch_points.clear()
+    _pinching=false
+    _pinch_distance=0.0
+    touch_dragging=false
     camera_mode = mode
     camera.fov = _cab_fov if mode == "cabin" else 75.0
     if is_instance_valid(cab_runtime): cab_runtime.call("cancel_interaction")
@@ -648,3 +678,14 @@ func _decorate_consist() -> void:
     preload("res://scripts/v106_warning_stickers.gd").restore(train, door_system)
     preload("res://scripts/depot/saloon_advertising_v46.gd").decorate(self,train,door_system)
     _report_saloon_artwork_v46()
+
+func _notification(what: int) -> void:
+    if what==NOTIFICATION_APPLICATION_FOCUS_OUT:
+        camera_touch_id=-1
+        _touch_points.clear()
+        _pinching=false
+        _pinch_distance=0.0
+        touch_dragging=false
+
+func _reset_camera_touch() -> void:
+    camera_touch_id=-1

@@ -3,7 +3,7 @@ extends Control
 signal axis_changed(axis: Vector2)
 const DEAD_ZONE := 0.12
 var axis := Vector2.ZERO
-var _pointer := -1
+var movement_touch_id := -1
 var _knob := Vector2.ZERO
 
 func _ready() -> void:
@@ -11,10 +11,15 @@ func _ready() -> void:
     get_window().focus_exited.connect(reset)
     get_viewport().size_changed.connect(reset)
     visibility_changed.connect(reset)
+    if OS.has_feature("web"):
+        JavaScriptBridge.eval("document.querySelectorAll('canvas').forEach(c=>{c.style.touchAction='none';if(!c.metroTouchPolicy){c.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});c.metroTouchPolicy=true;}});null",true)
     queue_redraw()
 
+func contains_screen_point(point: Vector2) -> bool:
+    return is_visible_in_tree() and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*point)
+
 func reset() -> void:
-    _pointer = -1
+    movement_touch_id = -1
     _knob = Vector2.ZERO
     axis = Vector2.ZERO
     axis_changed.emit(axis)
@@ -34,25 +39,27 @@ func _input(event: InputEvent) -> void:
     if not is_visible_in_tree(): return
     if event is InputEventMouse and event.device == -1: return
     if event is InputEventScreenTouch:
-        if event.pressed and _pointer == -1 and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*event.position):
-            _pointer = event.index
-            _update_axis(event.position)
+        if event.pressed and not event.canceled and contains_screen_point(event.position):
+            if movement_touch_id==-1:
+                movement_touch_id=event.index
+                _update_axis(event.position)
+            # A new finger on an occupied pad cannot become a camera touch.
             get_viewport().set_input_as_handled()
-        elif not event.pressed and event.index == _pointer:
+        elif (not event.pressed or event.canceled) and event.index==movement_touch_id:
             reset()
             get_viewport().set_input_as_handled()
-    elif event is InputEventScreenDrag and event.index == _pointer:
+    elif event is InputEventScreenDrag and event.index == movement_touch_id:
         _update_axis(event.position)
         get_viewport().set_input_as_handled()
     elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-        if event.pressed and _pointer == -1 and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*event.position):
-            _pointer = -2
+        if event.pressed and movement_touch_id == -1 and Rect2(Vector2.ZERO,size).has_point(get_global_transform_with_canvas().affine_inverse()*event.position):
+            movement_touch_id = -2
             _update_axis(event.position)
             get_viewport().set_input_as_handled()
-        elif not event.pressed and _pointer == -2:
+        elif not event.pressed and movement_touch_id == -2:
             reset()
             get_viewport().set_input_as_handled()
-    elif event is InputEventMouseMotion and _pointer == -2:
+    elif event is InputEventMouseMotion and movement_touch_id == -2:
         _update_axis(event.position)
         get_viewport().set_input_as_handled()
 

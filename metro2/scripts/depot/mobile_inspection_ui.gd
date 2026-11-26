@@ -15,6 +15,8 @@ var _platform: DeckButton
 var _flight: DeckButton
 var _cab: Node3D
 var _touch := -2
+var movement_touch_id := -1
+var _last_mode := ""
 var _drag_kind := ""
 var _drag_start := Vector2.ZERO
 var _drag_value := 0.0
@@ -184,7 +186,9 @@ func initialize(owner: Node3D) -> void:
     _joystick=FlightStick.new()
     _joystick.size=Vector2(128,128)
     _deck.add_child(_joystick)
-    resized.connect(_layout)
+    resized.connect(_reset_pointer_layout)
+    visibility_changed.connect(_visibility_reset)
+    get_window().focus_exited.connect(_release_pointer)
     _layout()
     _bind_cab()
 
@@ -196,6 +200,14 @@ func _button(kind: String,label: String,dimensions: Vector2,action: Callable) ->
     button.pressed.connect(action)
     _deck.add_child(button)
     return button
+
+func _visibility_reset() -> void:
+    _release_pointer()
+    if is_instance_valid(game) and game.has_method("_reset_camera_touch"): game.call("_reset_camera_touch")
+
+func _reset_pointer_layout() -> void:
+    _release_pointer()
+    _layout()
 
 func _layout() -> void:
     if not is_instance_valid(_deck): return
@@ -210,7 +222,8 @@ func _layout() -> void:
     _flight.position=Vector2(bounds.x-110,196 if _platform.visible else 138)
     _doors.position=Vector2(bounds.x-174,bounds.y-98)
     _speaker.position=Vector2(bounds.x-82,bounds.y-90)
-    _joystick.position=Vector2(bounds.x-138,bounds.y-246)
+    # Left pad above the existing master console; no overlap or button changes.
+    _joystick.position=Vector2(10,maxf(80.0,bounds.y-440.0))
 
 func _get_cab() -> Node3D:
     if not is_instance_valid(game): return null
@@ -261,6 +274,9 @@ func _input(event: InputEvent) -> void:
         if event.device == -1: return
         pointer=-1; point=event.position; moving=true
     else: return
+    if press and _touch!=-2 and _joystick.is_visible_in_tree() and _joystick.get_global_rect().has_point(point):
+        get_viewport().set_input_as_handled()
+        return
     if press and _touch == -2:
         if _master.visible and _master.get_global_rect().has_point(point) and not _physical_held:
             _drag_kind="master"
@@ -271,7 +287,9 @@ func _input(event: InputEvent) -> void:
             _drag_kind="stick"
         else: return
         _touch=pointer
-        if _drag_kind == "stick": _move_stick(point)
+        if _drag_kind == "stick":
+            movement_touch_id=pointer
+            _move_stick(point)
         get_viewport().set_input_as_handled()
         return
     if pointer != _touch or _drag_kind.is_empty(): return
@@ -296,6 +314,7 @@ func _move_stick(point: Vector2) -> void:
 func _release_pointer() -> void:
     # Release ownership only. The cab retains the commanded master setting.
     _touch=-2
+    movement_touch_id=-1
     _drag_kind=""
     stick=Vector2.ZERO
     if is_instance_valid(_joystick):
@@ -329,6 +348,9 @@ func _process(_delta: float) -> void:
             _master.value=current
             _master.queue_redraw()
     var mode := str(game.get("camera_mode"))
+    if mode!=_last_mode:
+        _release_pointer()
+        _last_mode=mode
     var was_flight := flight
     flight=mode == "flight"
     _joystick.visible=flight

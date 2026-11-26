@@ -11,7 +11,7 @@ var status: Label
 var message: Label
 var warning: PanelContainer
 var stick: Control
-var _look_pointer:=-1
+var camera_touch_id:=-1
 var _notice_left:=0.0
 var flash: ColorRect
 var load_panel: PanelContainer
@@ -22,6 +22,7 @@ var station_panel: PanelContainer
 var station_confirm: Button
 var _play_visible:=false
 var view_menu: MenuButton
+var _touch_context:=""
 
 func initialize(owner_service: Node) -> void:
     service=owner_service
@@ -47,7 +48,7 @@ func initialize(owner_service: Node) -> void:
         if id==1 and not service.driver_seated: return
         if is_instance_valid(service.player): service.player.stick=Vector2.ZERO
         service.train._flight_ui.stick=Vector2.ZERO
-        _look_pointer=-1
+        camera_touch_id=-1
         service.train._set_camera_mode(["walk","cabin","salon","platform","flight"][id]))
     status=Label.new()
     root.add_child(status)
@@ -94,9 +95,15 @@ func initialize(owner_service: Node) -> void:
     _loading_panel()
     set_play_visible(false)
     get_viewport().size_changed.connect(_resize)
+    get_window().focus_exited.connect(_reset_touches)
     _resize()
 
+func _reset_touches() -> void:
+    camera_touch_id=-1
+    if is_instance_valid(stick): stick.reset()
+
 func _resize() -> void:
+    _reset_touches()
     var viewport_size: Vector2=get_viewport().get_visible_rect().size
     var scale_factor: float=minf(1.0,viewport_size.x/560.0)
     if viewport_size.x<=0.0 or viewport_size.y<=0.0: return
@@ -232,6 +239,8 @@ func start_failed(reason: String) -> void:
     back_button.disabled=false
 
 func set_play_visible(enabled: bool) -> void:
+    camera_touch_id=-1
+    stick.reset()
     _play_visible=enabled
     root.show()
     for item in [role_button.get_parent(),status,stick,interact]: item.visible=enabled
@@ -244,7 +253,7 @@ func set_play_visible(enabled: bool) -> void:
 func activate_play() -> bool:
     _resize()
     if root.size.x<=0.0 or root.size.y<=0.0: return false
-    _look_pointer=-1
+    camera_touch_id=-1
     set_play_visible(true)
     interact.show()
     status.show()
@@ -265,6 +274,11 @@ func _process(delta: float) -> void:
     flash.color.a=move_toward(flash.color.a,0.0,delta*0.65)
     _notice_left=maxf(0.0,_notice_left-delta)
     message.visible=_notice_left>0.0
+    var context: String=str(service.running)+":"+str(_play_visible)+":"+service.role+":"+service.train.camera_mode+":"+str(root.is_visible_in_tree())
+    if context!=_touch_context:
+        camera_touch_id=-1
+        stick.reset()
+        _touch_context=context
     if not service.running or not _play_visible: return
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
     view_menu.get_popup().set_item_disabled(0,service.direct_driver)
@@ -286,24 +300,27 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if service.driver_seated or service.train.camera_mode!="walk": return
     if event is InputEventScreenTouch:
-        if event.pressed and event.position.x>get_viewport().get_visible_rect().size.x*0.36 and _look_pointer<0: _look_pointer=event.index
-        elif not event.pressed and event.index==_look_pointer: _look_pointer=-1
-    elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+        if event.pressed and not event.canceled and event.position.x>get_viewport().get_visible_rect().size.x*0.36 and camera_touch_id<0 and event.index!=stick.movement_touch_id and not stick.contains_screen_point(event.position):
+            camera_touch_id=event.index
+            get_viewport().set_input_as_handled()
+        elif not event.pressed and event.index==camera_touch_id: camera_touch_id=-1
+    elif event is InputEventMouseMotion and event.device!=-1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
         service.player.look(event.relative)
         get_viewport().set_input_as_handled()
 
 func _notification(what: int) -> void:
     if what==NOTIFICATION_APPLICATION_FOCUS_OUT:
-        _look_pointer=-1
+        camera_touch_id=-1
+        if is_instance_valid(stick): stick.reset()
         if is_instance_valid(service) and is_instance_valid(service.player):
             service.player.stick=Vector2.ZERO
             if is_instance_valid(service.train._flight_ui): service.train._flight_ui.stick=Vector2.ZERO
 
 func _input(event: InputEvent) -> void:
     if not service.running or service.driver_seated or service.train.camera_mode!="walk": return
-    if event is InputEventScreenDrag and event.index==_look_pointer:
+    if event is InputEventScreenDrag and event.index==camera_touch_id:
         service.player.look(event.relative)
         get_viewport().set_input_as_handled()
-    elif event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==_look_pointer:
-        _look_pointer=-1
+    elif event is InputEventScreenTouch and (not event.pressed or event.canceled) and event.index==camera_touch_id:
+        camera_touch_id=-1
         get_viewport().set_input_as_handled()
