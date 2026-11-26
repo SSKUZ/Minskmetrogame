@@ -118,7 +118,9 @@ func _physics_process(delta: float) -> void:
     if not get_world_3d().direct_space_state.intersect_shape(electric,1).is_empty():
         service.respawn("Контактный рельс · поражение током")
         return
-    if global_position.y<service.line.path.position_at(global_position.z).y-8.0:
+    # A passenger is parented to the original moving car. The route's world
+    # height is not a valid fall threshold inside that moving local frame.
+    if not is_instance_valid(aboard) and global_position.y<service.line.path.position_at(global_position.z).y-8.0:
         service.respawn("Возвращение на безопасную платформу")
         return
     _eye_pose()
