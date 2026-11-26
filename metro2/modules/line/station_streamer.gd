@@ -161,6 +161,11 @@ func refresh() -> void:
 func _pump() -> void:
     # A single pump serializes pack downloads, instantiation and eviction.
     # Scene-tree mutation is exclusively on the main thread.
+    # A deferred pump queued before the role menu became idle must not start
+    # a station download. Passenger startup explicitly sets _startup_target.
+    if is_instance_valid(line.gameplay) and not line.gameplay.running and not line.gameplay._starting and _startup_target<0:
+        _busy=false
+        return
     while is_inside_tree():
         for key in instances.keys():
             var index: int=int(key)
