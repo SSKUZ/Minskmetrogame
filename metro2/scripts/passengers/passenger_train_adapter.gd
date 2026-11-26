@@ -14,15 +14,21 @@ func configure(train: Node3D,door_controller: Node) -> void:
     for car in train.get_children():
         if not str(car.name).begins_with("OriginalV106Car"): continue
         cars.append(car)
-        # Door locations are static portable markers. Never inspect GLB meshes
-        # or rely on animated leaves during passenger-layout initialization.
-        for side in [-1,1]:
-            for z_pos in [-5.7,-1.9,1.9,5.7]:
-                var marker:=Marker3D.new()
-                marker.name="PassengerDoor%02d" % doors.size()
-                marker.position=Vector3(float(side)*1.34,1.033,float(z_pos))
-                car.add_child(marker)
-                doors.append({"id":doors.size(),"car":car,"marker":marker,"enter":[],"exit":[],"active":null,"side":side,"available":side<0})
+        var seams: Dictionary = {}
+        for leaf in controller.leaves:
+            var moving: Node3D = leaf.parts[0].node
+            if not car.is_ancestor_of(moving): continue
+            var center: Vector3 = leaf.center
+            var seam: float = leaf.seam
+            var side: int=-1 if center.x<0.0 else 1
+            var key := "%d:%d" % [side,roundi(seam*100)]
+            if seams.has(key): continue
+            seams[key]=true
+            var marker := Marker3D.new()
+            marker.name="PassengerDoor%02d" % doors.size()
+            car.add_child(marker)
+            marker.position=Vector3(center.x,1.033,seam)
+            doors.append({"id":doors.size(),"car":car,"marker":marker,"enter":[],"exit":[],"active":null,"side":side,"available":side<0})
         # Upholstery is one merged mesh spanning both benches in the source
         # GLBs. Read anchors extracted from its actual horizontal cushion faces.
         var catalog: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://modules/passengers/v106_seats.json"))
@@ -70,7 +76,7 @@ func landing(d: Dictionary, distance: float=1.15) -> Vector3:
 
 func usable(d: Dictionary, require_open: bool=true) -> bool:
     if not bool(d.get("available",true)): return false
-    return true # Marker-based boarding: no moving-door dependency.
+    return not require_open or (is_instance_valid(controller) and float(controller.side_open[int(d.get("side",-1))])>=0.99)
 
 func door(id: int) -> Dictionary:
     return doors[id] if id>=0 and id<doors.size() else {}
