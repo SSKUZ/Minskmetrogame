@@ -97,9 +97,9 @@ body {
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"engine-fe5cebc590758c10bc44","experimentalVK":false,"fileSizes":{"engine-fe5cebc590758c10bc44.wasm":35376909,"boot-24ec43ebc94dba606b6f.pck":129024},"focusCanvas":true,"gdextensionLibs":[],"mainPack":"boot-24ec43ebc94dba606b6f.pck"};
 const GODOT_THREADS_ENABLED = false;
-const engine = new Engine(GODOT_CONFIG);
+let engine;
 
-(function () {
+(async function () {
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
@@ -144,6 +144,33 @@ const engine = new Engine(GODOT_CONFIG);
 		}
 		setStatusMode('notice');
 		initializing = false;
+	}
+
+
+	// METRO_FRESH_BOOT_V1: resolve the current published boot before Godot exists.
+	setStatusMode('progress');
+	setStatusNotice('Получение актуальной версии игры…');
+	const bootAbort = new AbortController();
+	const bootTimeout = setTimeout(() => bootAbort.abort(), 30000);
+	try {
+		const stateURL = new URL('module-deploy-state.json', window.location.href);
+		stateURL.searchParams.set('startup', String(Date.now()));
+		const response = await fetch(stateURL.href, {cache: 'no-store', signal: bootAbort.signal});
+		if (!response.ok) throw new Error('Не удалось получить версию игры: HTTP ' + response.status);
+		const state = await response.json();
+		const boot = state.boot;
+		if (!boot || !/^boot-[a-f0-9]+[.]pck$/.test(boot.file)) throw new Error('В публикации не указан загрузочный пакет игры');
+		const previous = GODOT_CONFIG.mainPack;
+		GODOT_CONFIG.mainPack = boot.file;
+		GODOT_CONFIG.fileSizes = GODOT_CONFIG.fileSizes || {};
+		if (previous !== boot.file) delete GODOT_CONFIG.fileSizes[previous];
+		if (Number.isSafeInteger(boot.bytes) && boot.bytes > 0) GODOT_CONFIG.fileSizes[boot.file] = boot.bytes;
+		engine = new Engine(GODOT_CONFIG);
+	} catch (error) {
+		displayFailureNotice('Не удалось загрузить актуальную игру. Обновите страницу для повторной попытки. · ' + String(error.message || error));
+		return;
+	} finally {
+		clearTimeout(bootTimeout);
 	}
 
 	const missing = Engine.getMissingFeatures({

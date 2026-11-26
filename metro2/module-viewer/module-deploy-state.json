@@ -88,8 +88,8 @@
       ]
     },
     "full_line": {
-      "source_commit": "fea9e4812fca8046d829d0b35a25f79baadf37d7",
-      "pack_sha256": "39daaa573fe57298d37fbdc9038faf9992c8912ab99803960fa14fcfb03b33e3",
+      "source_commit": "81f49be77032cbe90604da32c30ee8a36595bc26",
+      "pack_sha256": "b770a2954edabc0f03540a838f460f0718e41b76e5dd57f08a25296f103b48f8",
       "category": "module",
       "scene": "modules/line/full_line.tscn",
       "dependencies": [
@@ -119,7 +119,8 @@
     }
   },
   "boot": {
-    "source_commit": "139198b01b23d35a720fd590cbc3d540b6641f62",
-    "file": "boot-24ec43ebc94dba606b6f.pck"
+    "source_commit": "81f49be77032cbe90604da32c30ee8a36595bc26",
+    "file": "boot-24ec43ebc94dba606b6f.pck",
+    "bytes": 129024
   }
 }
