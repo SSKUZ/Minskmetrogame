@@ -195,8 +195,10 @@ def plan():
                         for p in changed)
     static_modules = set()
     if static_inputs:
-        static_modules = set(json.loads((ROOT/'modules/line/route_layout.json').read_text())['station_module_ids'])
-        chosen.update(static_modules)
+        # Recompile the integrated route, but never rebuild every independently
+        # published station merely because shared compiler code changed. Station
+        # packages are versioned separately and must retain their live geometry.
+        # An explicitly edited station is still selected through source ownership.
         chosen.add('full_line')
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
     if not branch.startswith(POLICY['branch_prefix']) and branch!=POLICY['source_branch']:raise RuntimeError('Branch is not opted into automatic publication')
@@ -218,7 +220,7 @@ def plan():
                 # Integration borrows current station source trees as well as their
                 # ancestry. Reuse a published pack when all its actual sources match.
                 source_delta=git('diff','--name-only',previous['source_commit'],head,'--',*sorted('metro2/'+s for s in own))
-                if not source_delta.strip() and key not in static_modules and not (static_inputs and key=='full_line'):continue
+                if not source_delta.strip() and not (static_inputs and key=='full_line'):continue
             # Unchanged modules above are reused verbatim. Every package we
             # actually rebuild still passes the original publication guard.
             guard(key,manifest,state,head)
