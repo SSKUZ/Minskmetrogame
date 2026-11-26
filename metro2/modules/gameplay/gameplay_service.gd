@@ -184,7 +184,7 @@ func _driver_to_passenger() -> void:
     line.streamer.register_player(player)
     _set_automatic(true)
     automatic.enable(demand)
-    if not _cab_ready: call_deferred("_prepare")
+    # Cab access points are optional legacy interaction data, not a startup task.
     _respawning=false
     ui.notice("Режим пассажира · управление передано автоматике")
 
@@ -370,7 +370,7 @@ func start_role(selected_role: String, station_index: int) -> void:
     line.streamer.register_player(player)
     line._start_service_if_ready()
     _near_clock=0.0
-    if not _cab_ready: call_deferred("_prepare")
+    # Cab access points are optional legacy interaction data, not a startup task.
 
 
 func walking_area_ready(point: Vector3) -> bool:
