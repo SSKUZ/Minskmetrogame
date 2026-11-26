@@ -6,6 +6,7 @@ const MAX_PUBLISHED_FILE_BYTES := 96 * 1024 * 1024
 const Budget = preload("res://modules/line/build_budget.gd")
 const WalkingGeometry = preload("res://modules/gameplay/world_geometry.gd")
 const Connections = preload("res://modules/line/station_connection_adapter.gd")
+const Navigation = preload("res://scripts/passengers/passenger_navigation.gd")
 var control: Dictionary
 var _written: Dictionary={}
 var _resources: Dictionary={}
@@ -58,10 +59,17 @@ func _station() -> void:
         open_station.free()
         return
     await WalkingGeometry.new().prepare(open_station,false,true)
+    # Derive platform navigation from the real complete geometry once in CI,
+    # rather than rescanning every collision/triangle on a mobile startup.
+    var navigation=Navigation.new()
+    var navigation_budget=Budget.new(_host,10000)
+    await navigation.read_station(open_station,navigation_budget,Rect2(-10.37,-12.888,10.0,105.0))
+    var platform_navigation: Dictionary=navigation.portable_data()
     var opened: Array=await _fragments(open_station)
     var index := {"schema":1,"module_id":control.module,"metres_per_unit":1.0,
         "source_scene":control.scene,"source_commit":control.source_commit,
         "closed_chunks":closed,"open_chunks":opened,"walking_collision":2,
+        "platform_navigation":platform_navigation,
         "portability":{"geometry":"native Mesh/ArrayMesh/MultiMesh; original hierarchy and transforms", "route":"res://modules/line/route_layout.json", "limitations":["Godot shaders and live viewport textures require adaptation for glTF/Roblox"]}}
     _json(str(control.index),index)
     open_station.free()

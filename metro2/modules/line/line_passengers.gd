@@ -30,20 +30,34 @@ func initialize_line(line: Node3D, game: Node3D) -> void:
 
 # Dormant platforms retain only portable scalar passenger descriptors, not Nodes.
 var _platform_states: Dictionary = {}
+var _platform_serial:=0
+var _platform_errors: Dictionary={}
 
 func add_platform(station: Dictionary, instance: Node3D) -> void:
     var index: int=int(station.index)
-    if _platforms.has(index):
-        while _platforms.has(index) and not bool(_platforms[index].get("ready",true)):
-            await get_tree().process_frame
-        return
+    if _platforms.has(index): return
+    _platform_serial+=1
+    var token: int=_platform_serial
+    _platform_errors.erase(index)
     var budget=BuildBudget.new(self,2000)
     var platform_near: bool=absf(float(_game.distance)-float(station.stop_z))<340.0 or absf(_game.camera.global_position.z-float(station.stop_z))<340.0
     var nav=Navigation.new()
     var fallback:=Rect2(-10.37,float(station.root_z)-12.888,10.0,105.0)
-    _platforms[index]={"navigation":nav,"ready":false,"navigation_ready":false}
-    await nav.read_station(instance,budget,fallback)
-    if not is_instance_valid(instance) or budget.cancelled: return
+    _platforms[index]={"navigation":nav,"ready":false,"navigation_ready":false,"token":token,
+        "deadline":Time.get_ticks_msec()+180000}
+    var prepared: Dictionary=instance.get_meta("metro_platform_navigation",{})
+    if not prepared.is_empty():
+        if not nav.read_prepared(prepared,instance.global_transform):
+            _platform_errors[index]="Некорректные подготовленные данные платформы: "+str(station.module_id)
+            _platforms.erase(index)
+            return
+    else:
+        await nav.read_station(instance,budget,fallback)
+    if not _platforms.has(index) or int(_platforms[index].token)!=token: return
+    if not is_instance_valid(instance) or budget.cancelled:
+        _platforms.erase(index)
+        _platform_errors[index]="Прервана регистрация платформы: "+str(station.module_id)
+        return
     _platforms[index].navigation_ready=true
     if _platform_states.has(index) and not _platform_states[index].is_empty():
         for saved in _platform_states[index]:
@@ -101,6 +115,20 @@ func add_platform(station: Dictionary, instance: Node3D) -> void:
     _platforms[index].ready=true
     _next_probe=0
     _refresh_activity()
+
+func platform_error(index: int) -> String:
+    if _platforms.has(index) and not bool(_platforms[index].get("navigation_ready",false)) and Time.get_ticks_msec()>=int(_platforms[index].get("deadline",0)):
+        return "Не завершена регистрация навигации платформы: "+str(_line.stations[index].module_id)
+    return str(_platform_errors.get(index,""))
+
+func retry_platform(index: int) -> void:
+    if _platforms.has(index) and platform_error(index).is_empty(): return
+    _platform_errors.erase(index)
+    if _platforms.has(index) and not bool(_platforms[index].get("navigation_ready",false)):
+        _platforms.erase(index)
+    if not _platforms.has(index):
+        var instance: Node3D=_line.station_instance(index)
+        if is_instance_valid(instance): add_platform(_line.stations[index],instance)
 
 func platform_spawn_ready(index: int) -> bool:
     return _platforms.has(index) and bool(_platforms[index].get("navigation_ready",false)) and is_instance_valid(_line.station_instance(index))

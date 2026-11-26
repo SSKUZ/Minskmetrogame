@@ -16,6 +16,7 @@ var _archive_cache: Dictionary={}
 var _archive_order: Array[String]=[]
 var _archive_bytes := 0
 var error_message := ""
+signal progress(consumer_id: int, message: String)
 
 static func shared(consumer: Node) -> Node:
     var root := consumer.get_tree().root
@@ -27,6 +28,7 @@ static func shared(consumer: Node) -> Node:
     return service
 
 func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
+    error_message=""
     var reference: WeakRef=weakref(consumer)
     var reserved: Array[String]=[]
     for file in description.files+description.get("textures",[]):
@@ -61,7 +63,7 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
             return null
         var resource := ResourceLoader.load(path,"",ResourceLoader.CACHE_MODE_REUSE)
         if resource==null:
-            error_message="Не удалось подготовить ресурс геометрии"
+            error_message="Не удалось подготовить ресурс геометрии: "+path
             _release_paths(reserved)
             return null
         _decoded[path]=resource
@@ -74,7 +76,7 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
     var node: Node3D=scene.instantiate() as Node3D if scene!=null else null
     scene=null
     if node==null:
-        error_message="Не удалось прочитать подготовленную геометрию"
+        error_message="Не удалось прочитать подготовленную геометрию: "+str(description.scene)
         _release_paths(reserved)
         return null
     var consumer_id: int=consumer.get_instance_id()
@@ -97,9 +99,13 @@ func _ensure_chunk(description: Dictionary, reference: WeakRef) -> bool:
 
 func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> bool:
     var key := "archive:"+str(archive.sha256)
+    var waiting_since: int=Time.get_ticks_msec()
     while _pending.has(key):
         await get_tree().process_frame
         if not _alive(reference): return false
+        if Time.get_ticks_msec()-waiting_since>130000:
+            error_message="Не завершена совместная загрузка архива: "+str(archive.file)
+            return false
     if not _alive(reference): return false
     var missing := false
     for file in files:
@@ -115,9 +121,15 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
         var writing=Budget.new(self,1500)
         for file in files:
             var path: String=str(file.path)
+            var file_wait: int=Time.get_ticks_msec()
             while _pending.has(path):
                 await get_tree().process_frame
                 if not _alive(reference): break
+                if Time.get_ticks_msec()-file_wait>130000:
+                    error_message="Не завершена запись ресурса: "+path
+                    success=false
+                    break
+            if not success: break
             if not _alive(reference): success=false;break
             if FileAccess.file_exists(path): continue
             var offset: int=int(file.offset)
@@ -142,6 +154,7 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
             _pending.erase(path)
             if not success: break
     _pending.erase(key)
+    if not success and error_message.is_empty(): error_message="Не удалось распаковать архив: "+str(archive.file)
     return success
 
 func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
@@ -151,6 +164,8 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
         _archive_order.append(cache_key)
         return _archive_cache[cache_key]
     var request := HTTPRequest.new()
+    var completed: Array=[]
+    request.request_completed.connect(func(result: int, code: int, headers: PackedStringArray, body: PackedByteArray): completed.append([result,code,headers,body]))
     request.accept_gzip=false
     request.timeout=40.0
     request.body_size_limit=int(info.bytes)+1024
@@ -159,10 +174,32 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
     var downloaded := PackedByteArray()
     for attempt in range(3):
         if not _alive(reference): break
-        if request.request(base+str(info.file))!=OK: continue
-        var reply: Array=await request.request_completed
+        completed.clear()
+        if request.request(base+str(info.file))!=OK:
+            error_message="Не удалось запросить архив: "+str(info.file)
+            continue
+        var last_bytes: int=-1
+        var last_change: int=Time.get_ticks_msec()
+        while completed.is_empty() and _alive(reference):
+            var received: int=request.get_downloaded_bytes()
+            if received!=last_bytes:
+                last_bytes=received
+                last_change=Time.get_ticks_msec()
+                var node: Node=reference.get_ref() as Node
+                progress.emit(node.get_instance_id(),"Геометрия: %.1f / %.1f МБ" % [float(received)/1048576.0,float(info.bytes)/1048576.0])
+            if Time.get_ticks_msec()-last_change>20000:
+                error_message="Нет данных при загрузке архива: "+str(info.file)
+                break
+            await get_tree().process_frame
+        if completed.is_empty():
+            request.cancel_request()
+            if not _alive(reference): break
+            continue
+        var reply: Array=completed[0]
         if not _alive(reference): break
-        if int(reply[0])!=HTTPRequest.RESULT_SUCCESS or int(reply[1])!=200: continue
+        if int(reply[0])!=HTTPRequest.RESULT_SUCCESS or int(reply[1])!=200:
+            error_message="Архив "+str(info.file)+" · HTTP %d, код %d" % [int(reply[1]),int(reply[0])]
+            continue
         var bytes: PackedByteArray=reply[3]
         if bytes.size()!=int(info.bytes): continue
         var digest := HashingContext.new()
@@ -177,8 +214,11 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
         downloaded=bytes
         break
     request.queue_free()
-    if downloaded.is_empty(): error_message="Не удалось загрузить подготовленный участок; будет повтор"
-    elif bool(info.get("stream_group",false)) and downloaded.size()<=MAX_ARCHIVE_CACHE_BYTES:
+    if downloaded.is_empty():
+        if error_message.is_empty(): error_message="Не удалось загрузить архив: "+str(info.file)
+    # Station fragments also share archive dependencies. Use the same bounded
+    # cache as tunnel groups instead of downloading their archive repeatedly.
+    elif downloaded.size()<=MAX_ARCHIVE_CACHE_BYTES:
         _trim_archives(downloaded.size())
         if _resident_bytes+_archive_bytes+downloaded.size()<=MAX_RESIDENT_BYTES:
             _archive_cache[cache_key]=downloaded

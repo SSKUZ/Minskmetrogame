@@ -56,6 +56,31 @@ func read_station(root: Node3D, budget: RefCounted, fallback: Rect2) -> void:
                     var c: Vector3=pose*vertices[indices[i+2] if not indices.is_empty() else i+2]
                     _add_box(AABB(a,Vector3.ZERO).expand(b).expand(c))
 
+# Portable station-local rectangles derived from the original mesh/furniture.
+func portable_data() -> Dictionary:
+    var boxes: Array=[]
+    for box in obstacles: boxes.append([box.position.x,box.position.y,box.size.x,box.size.y])
+    return {"height":height,"area":[platform_area.position.x,platform_area.position.y,platform_area.size.x,platform_area.size.y],
+        "walk":[platform.position.x,platform.position.y,platform.size.x,platform.size.y],"obstacles":boxes}
+
+func read_prepared(data: Dictionary, pose: Transform3D) -> bool:
+    if not data.has("area") or not data.has("walk") or not data.has("height"): return false
+    if data.area.size()!=4 or data.walk.size()!=4: return false
+    var local_height: float=float(data.height)
+    platform_area=_prepared_rect(data.area,local_height,pose)
+    platform=_prepared_rect(data.walk,local_height,pose)
+    height=(pose*Vector3(0,local_height,0)).y
+    if platform.size.x<=0.0 or platform.size.y<=0.0 or not is_finite(height): return false
+    obstacles.clear()
+    for values in data.get("obstacles",[]):
+        if values.size()!=4: return false
+        obstacles.append(_prepared_rect(values,local_height,pose))
+    return true
+
+func _prepared_rect(values: Array, local_height: float, pose: Transform3D) -> Rect2:
+    var box: AABB=pose*AABB(Vector3(float(values[0]),local_height,float(values[1])),Vector3(float(values[2]),0,float(values[3])))
+    return Rect2(box.position.x,box.position.z,box.size.x,box.size.z)
+
 func _intersects_walkway(box: AABB) -> bool:
     return box.end.y>height+0.15 and box.position.y<height+1.65 and platform_area.intersects(Rect2(box.position.x,box.position.z,box.size.x,box.size.z).grow(0.02))
 

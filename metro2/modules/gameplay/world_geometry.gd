@@ -269,7 +269,7 @@ func prepare_near(root: Node3D, world_point: Vector3, radius: float=16.0) -> boo
                 collider.shape=shape
                 collider.transform=collision_pose
                 body.add_child(collider)
-                state.parts[key]={"body":body,"bounds":bounds}
+                state.parts[key]={"body":body,"bounds":bounds,"source":weakref(node),"mesh":mesh.get_instance_id()}
                 if not await budget.checkpoint(): return false
     # Retire only this controller's distant collision slices, never render nodes.
     var keep: AABB=area.grow(radius)
@@ -277,7 +277,7 @@ func prepare_near(root: Node3D, world_point: Vector3, radius: float=16.0) -> boo
         var record: Dictionary=state.parts[key]
         if not is_instance_valid(record.body):
             state.parts.erase(key)
-        elif not keep.intersects(record.bounds):
+        elif (record.has("source") and (not is_instance_valid(record.source.get_ref()) or (record.source.get_ref() is MeshInstance3D and record.source.get_ref().mesh.get_instance_id()!=int(record.mesh)))) or not keep.intersects(record.bounds):
             record.body.queue_free()
             state.parts.erase(key)
     for key in _near_shapes.keys():

@@ -29,12 +29,14 @@ var _retention: Dictionary = {}
 var _next_index := -1
 var _player: WeakRef
 var _startup_target:=-1
+var _errors: Dictionary={}
 
 func set_startup_target(index: int) -> void:
     _startup_target=index
     refresh()
 
 func clear_startup_target() -> void:
+    if int(_retry_at.get(_startup_target,0))==9223372036854775807: _retry_at.erase(_startup_target)
     _startup_target=-1
     refresh()
 
@@ -43,10 +45,23 @@ func register_player(player: Node3D) -> void:
     refresh()
 
 func retry_station(index: int) -> void:
-    if index<0 or index>=line.stations.size() or is_loaded(index): return
+    if index<0 or index>=line.stations.size(): return
+    _errors.erase(index)
+    if is_loaded(index):
+        if is_instance_valid(line.passengers): line.passengers.retry_platform(index)
+        return
     _retry_at.erase(index)
     _clock=0.0
     refresh() # The existing single pump owns the in-flight request.
+
+func station_error(index: int) -> String:
+    if _errors.has(index): return str(_errors[index])
+    return line.passengers.platform_error(index) if is_instance_valid(line.passengers) else ""
+
+func _load_failed(index: int, message: String) -> bool:
+    _errors[index]=message
+    loading_changed.emit(message)
+    return false
 
 func retention_reasons(index: int) -> PackedStringArray:
     var result := PackedStringArray()
@@ -169,7 +184,9 @@ func _pump() -> void:
                 next=index
         if next<0: break
         if not await _load_station(next):
-            _retry_at[next]=Time.get_ticks_msec()+int(float(_settings.retry_seconds)*1000.0)
+            # An initial player request reports failure to the role menu.
+            # Only an explicit retry restarts it; normal route streaming retries.
+            _retry_at[next]=9223372036854775807 if next==_startup_target else Time.get_ticks_msec()+int(float(_settings.retry_seconds)*1000.0)
         else:
             _retry_at.erase(next)
         # Position/direction may have changed during a long HTTP/resource load.
@@ -179,15 +196,17 @@ func _pump() -> void:
 func _load_station(index: int) -> bool:
     var record: Dictionary=line.stations[index]
     var id: String=str(record.module_id)
+    _errors.erase(index)
+    if not Catalog.SCENES.has(id): return _load_failed(index,"Станция не зарегистрирована: "+id)
     _loading_id=id
     loading_changed.emit("Загрузка станции: "+id)
     var started: int=Time.get_ticks_msec()
     if is_instance_valid(pack_loader):
         if not await pack_loader.ensure_module(id,self):
-            loading_changed.emit(pack_loader.error_message)
+            var failure: String=pack_loader.error_message
             pack_loader.release_module_resources(id)
             _loading_id=""
-            return false
+            return _load_failed(index,failure)
     if not is_inside_tree(): return false
     if not _wanted.has(index):
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
@@ -219,9 +238,8 @@ func _load_station(index: int) -> bool:
         scene=ResourceLoader.load(scene_path,"PackedScene",ResourceLoader.CACHE_MODE_REUSE) as PackedScene
     if scene==null and not prepared:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
-        loading_changed.emit("Не удалось прочитать станцию: "+id+"; повтор загрузки через 15 с")
         _loading_id=""
-        return false
+        return _load_failed(index,"Не удалось прочитать сцену станции: "+id+" · "+scene_path)
     # Cancelled native requests are still consumed above, releasing their handle.
     if not _wanted.has(index):
         scene=null
@@ -234,7 +252,7 @@ func _load_station(index: int) -> bool:
     if node==null:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         _loading_id=""
-        return false
+        return _load_failed(index,"Не удалось создать станцию: "+id)
     node.position.z=float(record.root_z)
     node.name="LineStation_"+id
     if prepared:
@@ -250,11 +268,13 @@ func _load_station(index: int) -> bool:
     var active_mode: int=node.process_mode
     node.process_mode=Node.PROCESS_MODE_DISABLED
     node.hide()
+    if prepared:
+        node.static_progress.connect(func(message: String): loading_changed.emit(id+" · "+message))
     line.add_child(node)
     # Publish the platform only after every cooperative child builder finishes.
     # The independent prepared base path remains available during this work.
     var preparation_deadline: int=Time.get_ticks_msec()+180000
-    while not budget.pending.is_empty():
+    while not budget.pending.is_empty() and not (prepared and bool(node.get("static_failed"))):
         await get_tree().process_frame
         var expired: bool=Time.get_ticks_msec()>=preparation_deadline
         if not _wanted.has(index) or expired:
@@ -264,17 +284,16 @@ func _load_station(index: int) -> bool:
             if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
             _loading_id=""
             if expired:
-                loading_changed.emit("Не завершена подготовка станции: "+id+"; доступен повтор")
-                return false
+                return _load_failed(index,"Не завершена подготовка геометрии станции: "+id+"; доступен повтор")
             return true
     if prepared and bool(node.get("static_failed")):
+        var failure: String=str(node.get("static_error"))
         budget.cancel()
         await _dispose_station(node)
         _building_budget=null
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
-        loading_changed.emit("Не удалось загрузить готовую геометрию: "+id)
         _loading_id=""
-        return false
+        return _load_failed(index,"Станция "+id+": "+failure)
     if not prepared:
         await Connections.open_connections(node,budget)
         await WalkingGeometry.new().prepare(node,false,true)

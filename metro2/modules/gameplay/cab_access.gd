@@ -1,12 +1,37 @@
 extends RefCounted
 ## Open the original V106 skins, retaining every triangle/material in wall or leaf.
-## This is a one-time, cooperative functional split, before gameplay can start.
+## Cooperative functional split; safe depot walking does not wait for this job.
 const Budget = preload("res://modules/line/build_budget.gd")
+var error_message:=""
+var _budget: RefCounted
+var _originals: Array[Dictionary]=[]
+var _pivots: Array[Node3D]=[]
+var _cancelled:=false
+
+func cancel() -> void:
+    _cancelled=true
+    if _budget!=null: _budget.cancel()
+    # A failed/interrupted split is transactional: retain the original skins.
+    for index in range(_originals.size()-1,-1,-1):
+        var record: Dictionary=_originals[index]
+        if not is_instance_valid(record.node): continue
+        record.node.mesh=record.mesh
+        record.node.material_override=record.material
+        for i in range(record.overrides.size()):
+            record.node.set_surface_override_material(i,record.overrides[i])
+    for pivot in _pivots:
+        if is_instance_valid(pivot):
+            pivot.hide()
+            pivot.queue_free()
+    _originals.clear()
+    _pivots.clear()
+
 
 func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
     if car.has_meta("metro_cab_access_result"): return car.get_meta("metro_cab_access_result")
     var result: Array[Dictionary]=[]
     var budget=Budget.new(car,1500)
+    _budget=budget
     # Original V106 rear partition and external cab skin; axes are car-local.
     var portals: Array[Dictionary]=[]
     for record in definitions:
@@ -15,6 +40,7 @@ func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
         var pivot:=Node3D.new()
         pivot.name=str(portal.name)
         car.add_child(pivot)
+        _pivots.append(pivot)
         pivot.position=portal.hinge
         pivot.set_meta("functional_point",{"kind":"cab_door","units":"metres","source":"original V106 skin","threshold":portal.threshold})
         var pieces:=0
@@ -22,19 +48,26 @@ func prepare(car: Node3D, cab: Node3D, definitions: Array) -> Array[Dictionary]:
         for node in sources:
             var instance:=node as MeshInstance3D
             if instance.mesh==null or not _visible_in_car(instance,car) or cab.is_ancestor_of(instance) or instance.skin!=null: continue
-            if pivot.is_ancestor_of(instance): continue
+            if _pivots.any(func(door): return is_instance_valid(door) and door.is_ancestor_of(instance)): continue
             var pose: Transform3D=car.global_transform.affine_inverse()*instance.global_transform
             var box: AABB=pose*instance.get_aabb()
             if not box.intersects(portal.box): continue
             # Leave floor, seat upholstery and small equipment intact.
             if box.size.y<0.30 or box.position.y>2.8: continue
             if await _split(instance,pose,portal.box,pivot,budget): pieces+=1
-            if not await budget.checkpoint(): return result
+            if not await budget.checkpoint(): return []
         if pieces==0:
             pivot.queue_free()
             continue
         result.append({"pivot":pivot,"threshold":portal.threshold,"side":portal.side,"angle":portal.angle,"open":false,"fraction":0.0})
-    if not result.is_empty(): car.set_meta("metro_cab_access_result",result)
+    if _cancelled: return []
+    if result.is_empty():
+        error_message="Не найдены доступные двери кабины V106"
+        cancel()
+        return []
+    car.set_meta("metro_cab_access_result",result)
+    _originals.clear()
+    _pivots.clear()
     return result
 
 func _visible_in_car(node: Node3D, car: Node3D) -> bool:
@@ -65,11 +98,25 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
         outside.begin(Mesh.PRIMITIVE_TRIANGLES)
         inside.begin(Mesh.PRIMITIVE_TRIANGLES)
         var outside_count:=0
+        var untouched:=PackedInt32Array()
         var inside_count:=0
         for offset in range(0,count,3):
+            if offset%192==0 and not await budget.checkpoint(): return false
+            var ids: Array[int]=[]
+            var points: Array[Vector3]=[]
+            for k in range(3):
+                var index: int=indices[offset+k] if not indices.is_empty() else offset+k
+                ids.append(index)
+                points.append(pose*vertices[index])
+            var triangle:=AABB(points[0],Vector3.ZERO).expand(points[1]).expand(points[2])
+            # Most of the original body is far outside a door. Retain its native
+            # indexed arrays instead of clipping/rebuilding every triangle.
+            if triangle.end.x<opening.position.x or triangle.position.x>opening.end.x or triangle.end.y<opening.position.y or triangle.position.y>opening.end.y or triangle.end.z<opening.position.z or triangle.position.z>opening.end.z:
+                for index in ids: untouched.append(index)
+                continue
             var polygon: Array=[]
             for k in range(3):
-                var i: int=indices[offset+k] if not indices.is_empty() else offset+k
+                var i: int=ids[k]
                 polygon.append({"v":vertices[i],"p":pose*vertices[i],"n":normals[i] if i<normals.size() else Vector3.UP,"uv":uvs[i] if i<uvs.size() else Vector2.ZERO,"uv2":uv2s[i] if i<uv2s.size() else Vector2.ZERO,"c":colors[i] if i<colors.size() else Color.WHITE})
                 if tangents.size()>i*4+3:
                     polygon[-1]["t"]=Vector4(tangents[i*4],tangents[i*4+1],tangents[i*4+2],tangents[i*4+3])
@@ -84,6 +131,11 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
                 inside_count+=_triangles(inside,polygon,Transform3D(pose.basis,pose.origin-pivot.position),true)
             if offset%192==0 and not await budget.checkpoint(): return false
         var material: Material=instance.get_active_material(surface)
+        if not untouched.is_empty():
+            var kept: Array=arrays.duplicate()
+            kept[Mesh.ARRAY_INDEX]=untouched
+            wall.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,kept)
+            wall.surface_set_material(wall.get_surface_count()-1,material)
         if outside_count>0:
             outside.set_material(material)
             outside.commit(wall)
@@ -92,6 +144,10 @@ func _split(instance: MeshInstance3D, pose: Transform3D, opening: AABB, pivot: N
             inside.set_material(material)
             inside.commit(leaf)
     if not removed: return false
+    if _cancelled: return false
+    var overrides: Array[Material]=[]
+    for i in range(instance.get_surface_override_material_count()): overrides.append(instance.get_surface_override_material(i))
+    _originals.append({"node":instance,"mesh":instance.mesh,"material":instance.material_override,"overrides":overrides})
     for i in range(instance.get_surface_override_material_count()): instance.set_surface_override_material(i,null)
     instance.mesh=wall
     instance.material_override=null

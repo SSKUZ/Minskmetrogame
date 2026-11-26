@@ -28,8 +28,13 @@ func _near_action() -> Dictionary:
     var car: Node3D=service.first_car()
     var cab: Node3D=service.train.cab_runtime
     # Native cab's original chair was moved by _fit_cab_to_v106.
+    if not service._cab_ready:
+        var values: Array=service.rules.cab_access[0].threshold
+        var threshold:=Vector3(float(values[0]),float(values[1]),float(values[2]))
+        if player.global_position.distance_to(car.to_global(threshold))<3.0:
+            return {"kind":"prepare_cab","title":"КАБИНА · ПОДГОТОВКА ДВЕРЕЙ" if service._cab_busy else "КАБИНА · ПОВТОРИТЬ ПОДГОТОВКУ"}
     var driver_point: Vector3=cab.to_global(Vector3(-0.55,0.08,2.12))
-    var near_workplace: bool=service.role=="driver" and player.aboard==car and player.global_position.distance_to(driver_point)<1.15
+    var near_workplace: bool=service._cab_ready and service.role=="driver" and player.aboard==car and player.global_position.distance_to(driver_point)<1.15
     for door in cab_doors:
         var point: Vector3=car.to_global(door.threshold)
         var local: Vector3=car.to_local(player.global_position)
@@ -52,6 +57,9 @@ func _near_action() -> Dictionary:
 func activate() -> void:
     current=_near_action()
     match str(current.get("kind","")):
+        "prepare_cab":
+            if service._cab_busy: service.ui.notice("Подготовка оригинальных дверей V106 выполняется")
+            else: service.call_deferred("_prepare")
         "drive": service.occupy_driver()
         "leave_driver": service.leave_driver()
         "stand": stand()
