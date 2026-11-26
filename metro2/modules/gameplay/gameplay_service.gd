@@ -31,9 +31,6 @@ var _respawning:=false
 var _cab_ready:=false
 var _cab_busy:=false
 var _cab_error:=""
-var _cab_job: RefCounted
-var _cab_deadline:=0
-var _cab_attempt:=0
 var _geometry=Geometry.new()
 var _near_busy:=false
 var _near_clock:=0.0
@@ -70,38 +67,13 @@ func initialize(world: Node3D) -> void:
 func _prepare() -> void:
     if _cab_busy or _cab_ready: return
     _cab_busy=true
-    _cab_attempt+=1
-    var generation: int=_cab_attempt
-    _cab_deadline=Time.get_ticks_msec()+int(float(rules.startup.wait_seconds)*1000.0)
-    _cab_error=""
-    var car: Node3D=first_car()
-    if car==null or not is_instance_valid(train.cab_runtime):
-        _cab_error="Отсутствует состав или кабина V106"
-        _cab_busy=false
-        return
     var access=CabAccess.new()
-    _cab_job=access
-    var doors: Array[Dictionary]=await access.prepare(car,train.cab_runtime,rules.cab_access)
-    if generation!=_cab_attempt or not is_inside_tree(): return
-    if doors.is_empty():
-        _cab_error=access.error_message if not access.error_message.is_empty() else "Подготовка дверей V106 прервана"
-    else:
-        # Rebuild the nearby native collision slices after the original skins
-        # change. Interaction is enabled only when the new leaves are physical.
-        car.add_to_group("metro_walking_train")
-        var point: Vector3=player.global_position if running and not virtual_wait else car.to_global(doors[0].threshold)
-        if await _geometry.prepare_near(car,point,float(rules.startup.local_radius)):
-            await get_tree().physics_frame
-            if generation!=_cab_attempt or not is_inside_tree(): return
-            interaction.cab_doors=doors
-            _cab_ready=true
-        else:
-            _cab_error=_geometry.error_message
-    if generation!=_cab_attempt: return
+    var doors: Array[Dictionary]=access.collect(train.train)
+    _cab_ready=doors.size()==2
+    _cab_error=access.error_message
+    if _cab_ready: interaction.cab_doors=doors
     _cab_busy=false
-    _cab_job=null
-    if running:
-        ui.notice("Двери кабины V106 готовы" if _cab_ready else _cab_error+" · подойдите к кабине для повтора")
+    if running and not _cab_error.is_empty(): ui.notice(_cab_error)
     line._start_service_if_ready()
 
 func first_car() -> Node3D:
@@ -501,13 +473,6 @@ func respawn(message: String) -> void:
     _respawning=false
 
 func _process(_delta: float) -> void:
-    if _cab_busy and Time.get_ticks_msec()>=_cab_deadline:
-        _cab_attempt+=1
-        if _cab_job!=null: _cab_job.cancel()
-        _cab_job=null
-        _cab_busy=false
-        _cab_error="Не завершена подготовка дверей V106; доступен повтор у кабины"
-        if running: ui.notice(_cab_error)
     if _starting and Time.get_ticks_msec()>=_stage_deadline:
         _start_failed("Операция прервалась или не завершилась; доступен повтор")
     if not running: return

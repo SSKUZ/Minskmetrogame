@@ -1,6 +1,7 @@
 extends Node3D
 const CAB_RUNTIME = preload("res://scripts/cab_v37.gd")
 const DOOR_SYSTEM = preload("res://scripts/v33_door_controller.gd")
+const NATIVE_CAB_DOORS = preload("res://modules/trains/v106/native_cab_doors.gd")
 const BOGIE_VISUALS = preload("res://scripts/depot/v106_bogies.gd")
 const CAR03_SCENE = preload("res://assets/v106_original/car03/v106_car_03.glb")
 const CAR02_SCENE = preload("res://assets/v106_original/car02/v106_car_02.glb")
@@ -171,6 +172,9 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     add_child(lighting)
     lighting.initialize(self,train,_ui_layer)
     _decorate_consist()
+    # Bind prepared side leaves after legacy cab cleanup and passenger discovery.
+    NATIVE_CAB_DOORS.install(lead,1,self)
+    NATIVE_CAB_DOORS.install(fourth_car,4,self)
     _configure_tunnel()
     print("FOUR_CAR_READY bounds=", _train_bounds, " models=4")
 

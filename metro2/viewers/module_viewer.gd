@@ -27,6 +27,8 @@ var _car_label: Label
 var _home_point := Vector3.ZERO
 var _home_radius := 25.0
 var _view_kind := "external"
+var _cab_door_choice: OptionButton
+var _cab_door_toggle: Button
 
 func _ready() -> void:
     _create_world()
@@ -123,6 +125,21 @@ func _build_ui() -> void:
     _button(_train_tools,"Снаружи",func(): focus_car(selected_car))
     _button(_train_tools,"Салон",func(): inspect_interior("salon"))
     _button(_train_tools,"Кабина №1",func(): inspect_interior("cab"))
+    var door_heading:=Label.new()
+    door_heading.text="ДВЕРИ КАБИНЫ V106"
+    _train_tools.add_child(door_heading)
+    _cab_door_choice=OptionButton.new()
+    _cab_door_choice.add_item("Вагон №1 — боковая дверь",1)
+    _cab_door_choice.add_item("Вагон №4 — боковая дверь",4)
+    _cab_door_choice.item_selected.connect(func(index: int):
+        if _single_car: focus_car(_cab_door_choice.get_item_id(index))
+        _update_cab_door_button())
+    _train_tools.add_child(_cab_door_choice)
+    _cab_door_toggle=_button(_train_tools,"ОТКРЫТЬ ДВЕРЬ",func():
+        var door: Node3D=_selected_cab_door()
+        if is_instance_valid(door):
+            if not door.toggle(): _set_status("Дверь недоступна: состав движется или проём занят")
+            _update_cab_door_button())
     _joystick = Joystick.new()
     _joystick.name = "FlightJoystick"
     _joystick.size = Vector2(160,160)
@@ -135,6 +152,26 @@ func _build_ui() -> void:
     hint.text = "1 палец: вращение · 2: зум · WASD / Q,E: обзор"
     hint.add_theme_font_size_override("font_size",14)
     ui.add_child(hint)
+
+
+func _selected_cab_door() -> Node3D:
+    if not is_instance_valid(active_module) or not _train_tools.visible: return null
+    var consist:=active_module.get("train") as Node3D
+    if consist==null: return null
+    var number: int=_cab_door_choice.get_selected_id()
+    return consist.get_node_or_null("OriginalV106Car%02d/NativeCabSideDoor" % number) as Node3D
+
+func _update_cab_door_button() -> void:
+    var door: Node3D=_selected_cab_door()
+    _cab_door_toggle.disabled=busy or not is_instance_valid(door)
+    if not is_instance_valid(door):
+        _cab_door_toggle.text="ДВЕРЬ НЕДОСТУПНА"
+        return
+    _cab_door_toggle.text="ЗАКРЫТЬ ДВЕРЬ" if bool(door.open) else "ОТКРЫТЬ ДВЕРЬ"
+    _cab_door_toggle.tooltip_text=str(door.state)
+
+func _process(_delta: float) -> void:
+    if is_instance_valid(_cab_door_toggle) and _train_tools.visible: _update_cab_door_button()
 
 func _set_status(message: String) -> void:
     _status.text = message
@@ -297,6 +334,7 @@ func _set_car_visibility() -> void:
 func focus_car(index: int) -> void:
     if busy or not is_instance_valid(active_module) or not (active_key == "v106" or active_key.begins_with("car")): return
     selected_car = clampi(index,1,4)
+    if selected_car in [1,4]: _cab_door_choice.select(0 if selected_car==1 else 1)
     if _single_car:
         _set_car_visibility()
     var car := (active_module.get("train") as Node3D).get_node("OriginalV106Car%02d" % selected_car) as Node3D

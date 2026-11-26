@@ -8,12 +8,14 @@ var _clock:=0.0
 func initialize(owner_service: Node) -> void:
     service=owner_service
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
     if not service.running: return
     for door in cab_doors:
-        door.fraction=move_toward(float(door.fraction),1.0 if door.open else 0.0,delta/0.8)
-        door.pivot.rotation.y=float(door.angle)*float(door.fraction)
-    _clock-=delta
+        var native: Node3D=door.native
+        if bool(door.open)!=bool(native.open): native.set_open(bool(door.open))
+        door.open=native.open
+        door.fraction=native.fraction
+    _clock-=_delta
     if _clock>0.0: return
     _clock=0.15
     current=_near_action()
@@ -36,8 +38,9 @@ func _near_action() -> Dictionary:
     var driver_point: Vector3=cab.to_global(Vector3(-0.55,0.08,2.12))
     var near_workplace: bool=service._cab_ready and service.role=="driver" and player.aboard==car and player.global_position.distance_to(driver_point)<1.15
     for door in cab_doors:
-        var point: Vector3=car.to_global(door.threshold)
-        var local: Vector3=car.to_local(player.global_position)
+        var door_car: Node3D=door.car
+        var point: Vector3=door_car.to_global(door.threshold)
+        var local: Vector3=door_car.to_local(player.global_position)
         var flat: Vector2=Vector2(local.x,local.z)-Vector2(door.threshold.x,door.threshold.z)
         if flat.length()>1.35 or absf(service.train.speed)>0.05: continue
         if int(door.side)!=0 and door.open and float(door.fraction)>=0.99 and player.aboard==null and absf(local.y-float(door.threshold.y))>0.35:
@@ -58,7 +61,7 @@ func activate() -> void:
     current=_near_action()
     match str(current.get("kind","")):
         "prepare_cab":
-            if service._cab_busy: service.ui.notice("Подготовка оригинальных дверей V106 выполняется")
+            if service._cab_busy: service.ui.notice("Подключение готовых боковых дверей V106")
             else: service.call_deferred("_prepare")
         "drive": service.occupy_driver()
         "leave_driver": service.leave_driver()
@@ -76,14 +79,14 @@ func activate() -> void:
             service.player.yaw=float(place.heading)
             service.player.pitch=0.0
         "cab_door":
-            var point: Vector3=service.first_car().to_local(service.player.global_position)
+            var point: Vector3=current.door.car.to_local(service.player.global_position)
             var doorway: Vector3=current.door.threshold
             if current.door.open and Vector2(point.x-doorway.x,point.z-doorway.z).length()<0.42:
                 service.ui.notice("Отойдите от проёма, чтобы закрыть дверь")
             else: current.door.open=not bool(current.door.open)
         "climb":
             var door: Dictionary=current.door
-            var car: Node3D=service.first_car()
+            var car: Node3D=door.car
             var local: Vector3=car.to_local(service.player.global_position)
             var outer: Vector3=door.threshold+Vector3(float(door.side)*0.50,0.04,0)
             var inner: Vector3=door.threshold-Vector3(float(door.side)*0.55,-0.04,0)
@@ -166,9 +169,8 @@ func _passage(car: Node3D, from: Vector3, to: Vector3) -> bool:
         if door.car!=car or not service.line.passengers.layout.usable(door): continue
         var p: Vector3=door.marker.position
         if absf(b.z-p.z)<0.73 and absf(b.y-p.y)<0.50: return true
-    if car==service.first_car():
-        for door in cab_doors:
-            if door.open and float(door.fraction)>0.95 and absf(b.z-door.threshold.z)<0.42 and absf(b.y-door.threshold.y)<0.55: return true
+    for door in cab_doors:
+        if door.car==car and door.open and float(door.fraction)>0.95 and absf(b.z-door.threshold.z)<0.42 and absf(b.y-door.threshold.y)<0.55: return true
     return false
 
 func _clear_reach(from: Vector3, to: Vector3) -> bool:
@@ -184,8 +186,8 @@ func _looking_at(point: Vector3) -> bool:
 
 func close_cab_for_departure() -> bool:
     var clear:=true
-    var local: Vector3=service.first_car().to_local(service.player.global_position)
     for door in cab_doors:
+        var local: Vector3=door.car.to_local(service.player.global_position)
         if float(door.fraction)<=0.01 and not door.open: continue
         var delta: Vector3=local-door.threshold
         if not service.driver_seated and Vector2(delta.x,delta.z).length()<0.48 and absf(delta.y)<0.65:

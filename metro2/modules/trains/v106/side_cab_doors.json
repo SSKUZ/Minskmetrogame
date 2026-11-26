@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "units": "metres, radians, seconds",
+  "coordinate_frame": "native authored 81-717 body; converted through each imported model hierarchy",
+  "source": "Original V106 side glazing centred at z=-8.52, original cab-access side-door datum; rear passenger partition excluded",
+  "door": {
+    "minimum": [
+      -1.37,
+      1.04,
+      -8.92
+    ],
+    "size": [
+      0.15,
+      2.1,
+      0.8
+    ],
+    "hinge": [
+      -1.29,
+      1.04,
+      -8.12
+    ],
+    "threshold": [
+      -1.29,
+      1.033,
+      -8.52
+    ],
+    "side": -1,
+    "angle": 1.65,
+    "duration": 0.8
+  },
+  "models": [
+    {
+      "car": 1,
+      "source": "res://assets/v106_lod1/v106_car01_lod1_mesh289_normals_fixed.glb",
+      "authored_root": "v106-car-1",
+      "resource": "res://modules/trains/v106/prebuilt/side_cab_01.res"
+    },
+    {
+      "car": 4,
+      "source": "res://assets/v106_original/car04/v106_car_04.glb",
+      "authored_root": "car-4-81-717",
+      "resource": "res://modules/trains/v106/prebuilt/side_cab_04.res"
+    }
+  ],
+  "states": [
+    "closed",
+    "opening",
+    "opened",
+    "closing"
+  ],
+  "portability": {
+    "geometry": "prepared original Mesh/ArrayMesh surfaces; retained UVs/materials; original GLBs unchanged",
+    "hinge_axis": [
+      0,
+      1,
+      0
+    ],
+    "interaction": "threshold in the owning car frame",
+    "animation": "smoothstep angular interpolation"
+  }
+}

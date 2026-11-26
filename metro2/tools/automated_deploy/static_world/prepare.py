@@ -21,6 +21,10 @@ def source_files(root, key):
 
 def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
     key = spec['id']
+    if key == 'v106':
+        from v106_doors.prepare import compile_doors
+        compile_doors(root, ci, stage, copied, native)
+        return
     route = json.loads((root/'modules/line/route_layout.json').read_text())
     if key != 'full_line' and key not in route['station_module_ids']:
         return
@@ -74,6 +78,9 @@ def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
 
 
 def prepare_speech(root, stage, key, copied):
+    if key == 'v106':
+        from v106_doors.prepare import stage_sources
+        stage_sources(root, stage, copied)
     if key not in {'full_line','v106'}:
         return
     catalogue_path = stage/'audio/data/audio_catalog.json'
