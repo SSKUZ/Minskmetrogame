@@ -117,6 +117,9 @@ func sync_to_view() -> void:
 
 func _pump() -> void:
     while is_inside_tree():
+        if is_instance_valid(line) and is_instance_valid(line.streamer) and line.streamer.has_priority_work():
+            await get_tree().process_frame
+            continue
         var next := ""
         var priority := INF
         for key in _wanted:

@@ -27,9 +27,16 @@ static func shared(consumer: Node) -> Node:
         root.add_child(service)
     return service
 
+func _station_priority(reference: WeakRef) -> bool:
+    var consumer: Node=reference.get_ref() as Node
+    while _alive(reference) and bool(get_meta("station_preparing",false)) and not bool(consumer.get_meta("metro_station_loading",false)):
+        await get_tree().process_frame
+    return _alive(reference)
+
 func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
     error_message=""
     var reference: WeakRef=weakref(consumer)
+    if not await _station_priority(reference): return null
     var reserved: Array[String]=[]
     for file in description.files+description.get("textures",[]):
         var path: String=str(file.path)
@@ -55,6 +62,9 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
     # Resolve source images without generic Texture2D binary hints first, as
     # required by Godot 4.3 exported CTEX mappings. Keep references only for leases.
     for file in description.get("textures",[])+description.files:
+        if not await _station_priority(reference):
+            _release_paths(reserved)
+            return null
         var path: String=str(file.path)
         if path==str(description.scene) or _decoded.has(path): continue
         await decoding.checkpoint()
@@ -91,6 +101,7 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
 
 func _ensure_chunk(description: Dictionary, reference: WeakRef) -> bool:
     for archive in description.archives:
+        if not await _station_priority(reference): return false
         var files: Array=[]
         for file in description.files:
             if str(file.archive)==str(archive.file): files.append(file)

@@ -12,6 +12,8 @@ var pack_loader: Node
 var streamer: Streamer
 var station_sound_origin: Marker3D
 var _stream_status: Label
+var _stream_retry: Button
+var _stream_retry_index:=-1
 var path = PathData.new()
 var train: Node3D
 var passengers: Node3D
@@ -41,9 +43,23 @@ func _ready() -> void:
     _stream_status=Label.new()
     _stream_status.position=Vector2(16,265)
     layer.add_child(_stream_status)
+    _stream_retry=Button.new()
+    _stream_retry.position=Vector2(16,300)
+    _stream_retry.text="ПОВТОРИТЬ ЗАГРУЗКУ СТАНЦИИ"
+    _stream_retry.hide()
+    layer.add_child(_stream_retry)
+    _stream_retry.pressed.connect(func():
+        var index: int=_stream_retry_index
+        _stream_retry.hide()
+        streamer.retry_station(index))
     streamer=Streamer.new()
     streamer.name="StationStreamingService"
     streamer.station_loaded.connect(_station_loaded)
+    streamer.retry_required.connect(func(index: int, message: String):
+        if not is_instance_valid(gameplay) or not gameplay.running: return
+        _stream_retry_index=index
+        _stream_status.text=message
+        _stream_retry.show())
     streamer.station_unloading.connect(_station_unloading)
     streamer.loading_changed.connect(func(message: String): _stream_status.text=message)
     add_child(streamer)
@@ -77,10 +93,13 @@ func station_instance(index: int) -> Node3D:
 
 func _station_loaded(index: int, station: Node3D) -> void:
     for tunnel in tunnels: tunnel.station_track_changed(index,true)
-    if is_instance_valid(passengers): await passengers.add_platform(stations[index],station)
     _start_service_if_ready()
 
+func prepare_station_service(index: int, station: Node3D) -> void:
+    if is_instance_valid(passengers): passengers.add_platform(stations[index],station)
+
 func _station_unloading(index: int, station: Node3D) -> void:
+    if index==_stream_retry_index: _stream_retry.hide()
     for tunnel in tunnels: tunnel.station_track_changed(index,false)
     if is_instance_valid(passengers): passengers.remove_platform(index)
     if is_instance_valid(train): train.release_station(station)

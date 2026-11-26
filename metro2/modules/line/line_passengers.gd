@@ -148,11 +148,11 @@ func platform_spawn_ready(index: int) -> bool:
     return not region.is_empty() and bool(region.get("ready",false))
 
 func platform_ready(index: int) -> bool:
-    return _platforms.has(index) and bool(_platforms[index].get("ready",false))
+    return _platforms.has(index) and bool(_platforms[index].get("ready",false)) and is_instance_valid(_line.station_instance(index))
 
 func complete() -> bool:
     var station: Dictionary=_line.path.nearest_station(float(_game.distance))
-    if not station.is_empty() and _platforms.has(int(station.index)) and not bool(_platforms[int(station.index)].get("ready",true)):
+    if not station.is_empty() and not _line.streamer.is_service_ready(int(station.index)):
         return false
     if exchange_enabled:
         var terminal: bool=(_active_station==0 and _travel_direction<0) or (_active_station==_line.stations.size()-1 and _travel_direction>0)

@@ -28,7 +28,7 @@ func _refresh_markers() -> void:
 
 func _has_loaded_stop(id: String) -> bool:
     for record in _line.stations:
-        if str(record.info_id)==id: return _line.streamer.is_loaded(int(record.index))
+        if str(record.info_id)==id: return _line.streamer.is_service_ready(int(record.index))
     return false
 
 func _at_route_stop(state: Dictionary, consist: Node3D) -> bool:

@@ -70,7 +70,9 @@
     "approach_guard_m": 60,
     "camera_radius_m": 340,
     "refresh_seconds": 0.25,
-    "retry_seconds": 15
+    "retry_seconds": 15,
+    "max_attempts": 3,
+    "service_timeout_seconds": 180
   },
   "station_datums": {
     "uruchye": {
@@ -345,5 +347,14 @@
       "portal_shape": "rectangle",
       "profile_basis": "Existing portal lining inner wall faces and roof underside; route/stop coordinates unchanged"
     }
+  },
+  "free_camera": {
+    "units": "metres",
+    "station_exterior_margin": 20.0,
+    "station_tunnel_margin": 16.0,
+    "train_end_margin": 16.0,
+    "train_side_margin": 10.0,
+    "train_top_margin": 10.0,
+    "station_retention_margin": 152.0
   }
 }

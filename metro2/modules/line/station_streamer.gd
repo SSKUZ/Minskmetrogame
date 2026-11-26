@@ -8,6 +8,7 @@ const Connections = preload("res://modules/line/station_connection_adapter.gd")
 signal station_loaded(index: int, station: Node3D)
 signal station_unloading(index: int, station: Node3D)
 signal loading_changed(message: String)
+signal retry_required(index: int, message: String)
 var line: Node3D
 var pack_loader: Node
 var instances: Dictionary = {}
@@ -25,6 +26,11 @@ var _settings: Dictionary = {}
 const TRAIN := 1
 const PLAYER := 2
 const CAMERA := 4
+enum State { NOT_REQUESTED, PACK_LOADING, PACK_READY, RESOURCE_PREPARING, SCENE_CREATING, SCENE_READY, SERVICE_READY, FAILED }
+var _states: Dictionary={}
+var _attempts: Dictionary={}
+var _scene_bounds: Dictionary={}
+var _current_index:=-1
 var _retention: Dictionary = {}
 var _next_index := -1
 var _player: WeakRef
@@ -47,9 +53,8 @@ func register_player(player: Node3D) -> void:
 func retry_station(index: int) -> void:
     if index<0 or index>=line.stations.size(): return
     _errors.erase(index)
-    if is_loaded(index):
-        if is_instance_valid(line.passengers): line.passengers.retry_platform(index)
-        return
+    _attempts.erase(index)
+    if is_loaded(index) and is_instance_valid(line.passengers): line.passengers.retry_platform(index)
     _retry_at.erase(index)
     _clock=0.0
     refresh() # The existing single pump owns the in-flight request.
@@ -59,7 +64,10 @@ func station_error(index: int) -> String:
     return line.passengers.platform_error(index) if is_instance_valid(line.passengers) else ""
 
 func _load_failed(index: int, message: String) -> bool:
+    message="Этап %s · %s" % [State.keys()[state(index)],message]
     _errors[index]=message
+    _states[index]=State.FAILED
+    push_error("Station streaming %d: %s" % [index,message])
     loading_changed.emit(message)
     return false
 
@@ -84,6 +92,44 @@ func station(index: int) -> Node3D:
 func is_loaded(index: int) -> bool:
     return is_instance_valid(station(index))
 
+func state(index: int) -> int:
+    return int(_states.get(index,State.NOT_REQUESTED))
+
+func is_service_ready(index: int) -> bool:
+    return is_loaded(index) and state(index)==State.SERVICE_READY and is_instance_valid(line.passengers) and line.passengers.platform_ready(index)
+
+func has_priority_work() -> bool:
+    return _busy and (_loading_id!="" or (_next_index>=0 and not is_service_ready(_next_index)))
+
+func player_station_index() -> int:
+    var player: Node3D=_player.get_ref() as Node3D if _player!=null else null
+    if not is_instance_valid(player) or not bool(player.get("active")) or is_instance_valid(player.get("aboard")): return -1
+    for key in _scene_bounds:
+        if (_scene_bounds[key] as AABB).grow(1.0).has_point(player.global_position): return int(key)
+    # The physical walking character owns its safe platform even while using
+    # a different camera or exploring that station's adjoining passage.
+    if is_instance_valid(line.gameplay) and not line.gameplay.direct_driver:
+        return int(line.gameplay._safe_station)
+    return -1
+
+func station_camera_bounds(index: int) -> AABB:
+    return _scene_bounds.get(index,AABB())
+
+func movement_guard(direction: int) -> Dictionary:
+    if direction==0: return {}
+    var ordered: Array=line.stations.duplicate()
+    if direction<0: ordered.reverse()
+    var bounds: AABB=line.train._train_bounds
+    var leading: float=float(line.train.distance)+(bounds.position.z if direction>0 else bounds.end.z)
+    var trailing: float=float(line.train.distance)+(bounds.end.z if direction>0 else bounds.position.z)
+    for record in ordered:
+        var index: int=int(record.index)
+        if (direction>0 and trailing<float(record.low)) or (direction<0 and trailing>float(record.high)): continue
+        if is_service_ready(index): continue
+        var edge: float=float(record.high)+float(_settings.approach_guard_m) if direction>0 else float(record.low)-float(_settings.approach_guard_m)
+        return {"index":index,"remaining":maxf(0.0,(leading-edge)*float(direction))}
+    return {}
+
 func _process(delta: float) -> void:
     if not is_instance_valid(line): return
     _clock-=delta
@@ -99,6 +145,7 @@ func refresh() -> void:
     # The role menu must not start downloading Uruchye (or any station) before
     # the player selects a role. Passenger startup explicitly pins its station;
     # direct driver startup needs the existing cab, not a station download.
+    if not is_instance_valid(line.gameplay) and _startup_target<0: return
     if is_instance_valid(line.gameplay) and not line.gameplay.running and not line.gameplay._starting and _startup_target<0:
         # Drop requests from an earlier refresh, including those queued while
         # an asynchronous pack download was still yielding.
@@ -126,24 +173,28 @@ func refresh() -> void:
     var bounds := AABB()
     if is_instance_valid(line.train): bounds=line.train._train_bounds
     var virtual_parked: bool=is_instance_valid(line.gameplay) and line.gameplay.virtual_wait
-    var front: float=_z+(bounds.position.z if _direction>0 else bounds.end.z)
-    # First unpassed platform only. Direction reversal recomputes this selection.
-    var ordered: Array=line.stations.duplicate()
-    if _direction<0: ordered.reverse()
-    for record in ordered:
-        if virtual_parked: break
-        if (_direction>0 and front>float(record.low)) or (_direction<0 and front<float(record.high)):
-            _next_index=int(record.index)
-            _wanted[_next_index]=true
+    _current_index=-1
+    for record in line.stations:
+        if _z>=float(record.low) and _z<=float(record.high):
+            _current_index=int(record.index)
             break
-    var player: Node3D=_player.get_ref() as Node3D if _player!=null else null
-    if not is_instance_valid(player):
-        player=get_tree().get_first_node_in_group("metro_player") as Node3D
-    # Current walking inspection uses the free camera as its physical anchor.
-    # A separate pedestrian controller can register its own independent anchor.
-    if not is_instance_valid(player) and is_instance_valid(line.train) and line.train.camera_mode=="flight":
-        player=line.train.camera
+    # A dwelling train already requests the NEXT platform, in either direction.
+    # The current platform is separately retained by the train envelope below.
+    if not virtual_parked:
+        if _current_index>=0:
+            var following: int=_current_index+_direction
+            if following>=0 and following<line.stations.size(): _next_index=following
+        else:
+            var ordered: Array=line.stations.duplicate()
+            if _direction<0: ordered.reverse()
+            for record in ordered:
+                if (_z-float(record.stop_z))*float(_direction)>float(line.layout.stop_tolerance_m):
+                    _next_index=int(record.index)
+                    break
+        if _next_index>=0: _wanted[_next_index]=true
+    if is_instance_valid(line.train): line.train.release_distant_platform_camera()
     var platform: Node3D=line.train.retained_platform_station() if is_instance_valid(line.train) else null
+    var player_station: int=player_station_index()
     for record in line.stations:
         var index: int=int(record.index)
         var low: float=float(record.low)
@@ -152,9 +203,9 @@ func refresh() -> void:
         if not virtual_parked and is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
             reasons|=TRAIN
         if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): reasons|=TRAIN
-        if is_instance_valid(player) and player.global_position.z>=low-30.0 and player.global_position.z<=high+30.0:
+        if index==player_station:
             reasons|=PLAYER
-        if (camera_z>=low-152.0 and camera_z<=high+152.0) or (is_instance_valid(platform) and platform==station(index)):
+        if ((camera_z>=low-152.0 and camera_z<=high+152.0) and (reasons&TRAIN or index==player_station)) or (is_instance_valid(platform) and platform==station(index)):
             reasons|=CAMERA
         if reasons!=0:
             _retention[index]=reasons
@@ -186,6 +237,10 @@ func _pump() -> void:
             var node: Node3D=station(index)
             station_unloading.emit(index,node)
             instances.erase(index)
+            _scene_bounds.erase(index)
+            _states[index]=State.NOT_REQUESTED
+            _attempts.erase(index)
+            _errors.erase(index)
             node.process_mode=Node.PROCESS_MODE_DISABLED
             await _dispose_station(node)
             if is_instance_valid(pack_loader):
@@ -196,20 +251,36 @@ func _pump() -> void:
         var priority: float=INF
         for key in _wanted:
             var index: int=int(key)
-            if is_loaded(index) or Time.get_ticks_msec()<int(_retry_at.get(index,0)): continue
+            if is_service_ready(index) or Time.get_ticks_msec()<int(_retry_at.get(index,0)): continue
+            if int(_attempts.get(index,0))>=int(_settings.get("max_attempts",3)): continue
             var distance: float=absf(_z-float(line.stations[index].stop_z))
+            if index==_next_index: distance-=10000.0
+            if index==_current_index and not is_service_ready(index): distance-=50000.0
             if int(_retention.get(index,0))&PLAYER: distance-=100000.0
             if (_z-float(line.stations[index].stop_z))*float(_direction)<0.0: distance*=1.15
             if distance<priority:
                 priority=distance
                 next=index
         if next<0: break
-        if not await _load_station(next):
+        _attempts[next]=int(_attempts.get(next,0))+1
+        var store: Node=get_tree().root.get_node_or_null("MetroStaticResourceStore")
+        if is_instance_valid(store): store.set_meta("station_preparing",true)
+        var success: bool=await _load_station(next)
+        # The store may first be created by the new station's _ready().
+        store=get_tree().root.get_node_or_null("MetroStaticResourceStore")
+        if is_instance_valid(store): store.set_meta("station_preparing",false)
+        if not success:
             # An initial player request reports failure to the role menu.
             # Only an explicit retry restarts it; normal route streaming retries.
             _retry_at[next]=9223372036854775807 if next==_startup_target else Time.get_ticks_msec()+int(float(_settings.retry_seconds)*1000.0)
+            if int(_attempts[next])>=int(_settings.get("max_attempts",3)):
+                retry_required.emit(next,station_error(next))
         else:
             _retry_at.erase(next)
+            if not is_loaded(next):
+                # Cancellation on reversal/menu selection is not a failed try.
+                _attempts.erase(next)
+                _states[next]=State.NOT_REQUESTED
         # Position/direction may have changed during a long HTTP/resource load.
         refresh()
     _busy=false
@@ -218,6 +289,8 @@ func _load_station(index: int) -> bool:
     var record: Dictionary=line.stations[index]
     var id: String=str(record.module_id)
     _errors.erase(index)
+    if is_loaded(index): return await _prepare_service(index,station(index))
+    _states[index]=State.PACK_LOADING
     if not Catalog.SCENES.has(id): return _load_failed(index,"Станция не зарегистрирована: "+id)
     _loading_id=id
     loading_changed.emit("Загрузка станции: "+id)
@@ -233,7 +306,9 @@ func _load_station(index: int) -> bool:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         _loading_id=""
         return true
+    _states[index]=State.PACK_READY
     var prepared_data: Dictionary=Catalog.prepared_station_data(id)
+    _states[index]=State.RESOURCE_PREPARING
     var prepared: bool=not prepared_data.is_empty()
     var scene_path: String=str(Catalog.SCENES[id])
     var scene: PackedScene
@@ -268,12 +343,14 @@ func _load_station(index: int) -> bool:
         _loading_id=""
         return true
     await get_tree().process_frame
+    _states[index]=State.SCENE_CREATING
     var node: Node3D=Catalog.create_module(id,prepared_data) if prepared else scene.instantiate() as Node3D
     scene=null
     if node==null:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         _loading_id=""
         return _load_failed(index,"Не удалось создать станцию: "+id)
+    node.set_meta("metro_station_loading",true)
     node.position.z=float(record.root_z)
     node.name="LineStation_"+id
     if prepared:
@@ -326,11 +403,21 @@ func _load_station(index: int) -> bool:
         if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
         _loading_id=""
         return true
+    var geometry: AABB=await _measure_station(node,budget)
+    if geometry.size.length_squared()<=0.001:
+        budget.cancel()
+        await _dispose_station(node)
+        _building_budget=null
+        if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
+        _loading_id=""
+        return _load_failed(index,"Нет обязательной геометрии станции: "+id)
+    _scene_bounds[index]=geometry
     _building_budget=null
     budget.release_sources()
     node.process_mode=active_mode
     node.show()
     instances[index]=node
+    _states[index]=State.SCENE_READY
     station_loaded.emit(index,node)
     # Only scene/agent owners retain decoded resources; never keep PackedScenes.
     if is_instance_valid(pack_loader): pack_loader.release_module_resources(id)
@@ -338,8 +425,50 @@ func _load_station(index: int) -> bool:
     var seconds: float=float(Time.get_ticks_msec()-started)/1000.0
     _load_seconds=clampf(maxf(seconds,_load_seconds*0.8),2.0,90.0)
     _loading_id=""
-    loading_changed.emit("")
-    return true
+    return await _prepare_service(index,node)
+
+func _prepare_service(index: int, node: Node3D) -> bool:
+    _states[index]=State.SCENE_READY
+    var deadline: int=Time.get_ticks_msec()+int(float(_settings.get("service_timeout_seconds",180.0))*1000.0)
+    while is_inside_tree() and is_instance_valid(node):
+        if not _wanted.has(index): return true
+        if is_instance_valid(line.passengers):
+            line.prepare_station_service(index,node)
+            var failure: String=line.passengers.platform_error(index)
+            if not failure.is_empty(): return _load_failed(index,failure)
+            if line.passengers.platform_navigation_ready(index) and line.passengers.platform_ready(index):
+                _states[index]=State.SERVICE_READY
+                _errors.erase(index)
+                _retry_at.erase(index)
+                loading_changed.emit("")
+                refresh()
+                return true
+        if Time.get_ticks_msec()>=deadline:
+            return _load_failed(index,"Не завершена подготовка обслуживания: "+str(line.stations[index].module_id)+"; повторите загрузку станции")
+        await get_tree().process_frame
+    return false
+
+func _measure_station(root: Node3D, budget: RefCounted) -> AABB:
+    var measured:=AABB()
+    var found:=false
+    var stack: Array[Node]=[root]
+    while not stack.is_empty():
+        var node: Node=stack.pop_back()
+        var bounds:=AABB()
+        var mesh_node:=false
+        if node is MeshInstance3D and node.mesh!=null:
+            bounds=node.get_aabb()
+            mesh_node=true
+        elif node is MultiMeshInstance3D and node.multimesh!=null:
+            bounds=node.get_aabb()
+            mesh_node=true
+        if mesh_node and bounds.size.length_squared()>0.000001:
+            bounds=(node as Node3D).global_transform*bounds
+            measured=measured.merge(bounds) if found else bounds
+            found=true
+        for child in node.get_children(): stack.append(child)
+        if not await budget.checkpoint(): return AABB()
+    return measured
 
 func _dispose_station(root: Node3D) -> void:
     if root.has_method("release_static_resources"): root.call("release_static_resources")
@@ -376,4 +505,8 @@ func _exit_tree() -> void:
         ResourceLoader.load_threaded_get(_thread_path)
         _thread_path=""
     instances.clear()
+    _scene_bounds.clear()
+    _states.clear()
+    var store: Node=get_tree().root.get_node_or_null("MetroStaticResourceStore")
+    if is_instance_valid(store): store.set_meta("station_preparing",false)
     _wanted.clear()
