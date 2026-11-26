@@ -9,7 +9,9 @@ COMPILER = 'tools/automated_deploy/static_world/prebuild.gd'
 
 
 def source_files(root, key):
-    files = RUNTIME_FILES + [COMPILER]
+    # The compiler preloads navigation to bake platform data from real geometry.
+    # Station stages do not inherit the full-line passenger scripts.
+    files = RUNTIME_FILES + [COMPILER, 'scripts/passengers/passenger_navigation.gd']
     if key != 'full_line':
         files += ['tools/automated_deploy/static_world/station_clock_runtime.gd']
     if key == 'uruchye':
