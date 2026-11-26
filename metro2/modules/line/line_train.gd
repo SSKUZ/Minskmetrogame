@@ -58,8 +58,6 @@ func _install_inspection_ui() -> void:
 
 func _physics_process(delta: float) -> void:
     if not service_ready: return
-    if is_instance_valid(line.passengers):
-        line.passengers.guard_doors(door_system)
     var direction: int=int(cab_runtime.direction)
     var limit: float=-INF if direction>0 else INF
     for tunnel in line.tunnels:
