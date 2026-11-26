@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "units": "metres, radians",
+  "coordinate_frame": "original authored 81-717 body; transformed through owning imported car",
+  "cars": [
+    {
+      "number": 1,
+      "authored_root": "v106-car-1",
+      "driving_workplace": true
+    },
+    {
+      "number": 4,
+      "authored_root": "car-4-81-717",
+      "driving_workplace": false
+    }
+  ],
+  "markers": {
+    "CabEntryPoint": [
+      -1.36,
+      1.033,
+      -8.52
+    ],
+    "CabInteriorSpawn": [
+      0.15,
+      1.073,
+      -8
+    ],
+    "CabExteriorSpawn": [
+      -2.2,
+      1.033,
+      -8.52
+    ]
+  },
+  "interior_alternatives": [
+    [
+      0.35,
+      1.073,
+      -8
+    ],
+    [
+      0.15,
+      1.073,
+      -8.25
+    ],
+    [
+      0.4,
+      1.073,
+      -8.25
+    ]
+  ],
+  "exterior_alternatives": [
+    [
+      -2.6,
+      1.033,
+      -8.52
+    ],
+    [
+      -2.2,
+      1.033,
+      -8.85
+    ],
+    [
+      -2.2,
+      1.033,
+      -8.15
+    ]
+  ],
+  "cab_zone": {
+    "minimum": [
+      -1.3,
+      0.85,
+      -9.55
+    ],
+    "size": [
+      2.6,
+      2.8,
+      1.8
+    ]
+  },
+  "interaction": {
+    "horizontal_range": 1.8,
+    "vertical_range": 2,
+    "max_speed": 0.05,
+    "heading_radians": 0,
+    "preserve_world_view": true,
+    "require_existing_collision": true,
+    "exit_surface": "existing depot floor or registered station platform",
+    "entry_role": "driver or passenger; only car 1 owns train controls"
+  },
+  "sources": {
+    "side_entry": "existing gameplay_rules.json cab_access[0].threshold",
+    "interior": "existing cab workplace and leave_driver positions",
+    "car4_frame": "original GLB authored hierarchy; not copied world coordinates"
+  },
+  "portability": {
+    "geometry": "unchanged original V106",
+    "points": "car-local Marker3D nodes with metre coordinates",
+    "adapter": "native character transfer; implement equivalent placement and safety queries in Luau"
+  }
+}

@@ -1,6 +1,7 @@
 extends Node
+const Geometry = preload("res://modules/gameplay/world_geometry.gd")
 var service: Node
-var cab_doors: Array[Dictionary]=[]
+var cab_points: Array[Dictionary]=[]
 var seat: Dictionary={}
 var current: Dictionary={}
 var _clock:=0.0
@@ -10,9 +11,6 @@ func initialize(owner_service: Node) -> void:
 
 func _process(delta: float) -> void:
     if not service.running: return
-    for door in cab_doors:
-        door.fraction=move_toward(float(door.fraction),1.0 if door.open else 0.0,delta/0.8)
-        door.pivot.rotation.y=float(door.angle)*float(door.fraction)
     _clock-=delta
     if _clock>0.0: return
     _clock=0.15
@@ -27,23 +25,18 @@ func _near_action() -> Dictionary:
     if not seat.is_empty(): return {"kind":"stand","title":"ВСТАТЬ"}
     var car: Node3D=service.first_car()
     var cab: Node3D=service.train.cab_runtime
-    # Native cab's original chair was moved by _fit_cab_to_v106.
-    if not service._cab_ready:
-        var values: Array=service.rules.cab_access[0].threshold
-        var threshold:=Vector3(float(values[0]),float(values[1]),float(values[2]))
-        if player.global_position.distance_to(car.to_global(threshold))<3.0:
-            return {"kind":"prepare_cab","title":"КАБИНА · ПОДГОТОВКА ДВЕРЕЙ" if service._cab_busy else "КАБИНА · ПОВТОРИТЬ ПОДГОТОВКУ"}
     var driver_point: Vector3=cab.to_global(Vector3(-0.55,0.08,2.12))
     var near_workplace: bool=service._cab_ready and service.role=="driver" and player.aboard==car and player.global_position.distance_to(driver_point)<1.15
-    for door in cab_doors:
-        var point: Vector3=car.to_global(door.threshold)
-        var local: Vector3=car.to_local(player.global_position)
-        var flat: Vector2=Vector2(local.x,local.z)-Vector2(door.threshold.x,door.threshold.z)
-        if flat.length()>1.35 or absf(service.train.speed)>0.05: continue
-        if int(door.side)!=0 and door.open and float(door.fraction)>=0.99 and player.aboard==null and absf(local.y-float(door.threshold.y))>0.35:
-            return {"kind":"climb","door":door,"title":"ВОЙТИ В КАБИНУ · ПОДНЯТЬСЯ"}
-        if player.global_position.distance_to(point)<2.1 and (not near_workplace or _looking_at(point)):
-            return {"kind":"cab_door","door":door,"title":"ЗАКРЫТЬ ДВЕРЬ КАБИНЫ" if door.open else "ОТКРЫТЬ ДВЕРЬ КАБИНЫ"}
+    var inside: Dictionary=inside_cab()
+    if not inside.is_empty():
+        if near_workplace and not _looking_at(inside.entry.global_position):
+            return {"kind":"drive","title":"ЗАНЯТЬ МЕСТО МАШИНИСТА"}
+        return {"kind":"exit_cab","title":"ВЫЙТИ ИЗ КАБИНЫ"}
+    if player.aboard==null and service.train.train.visible:
+        for point in cab_points:
+            var offset: Vector3=player.global_position-point.entry.global_position
+            if Vector2(offset.x,offset.z).length()>float(point.rules.horizontal_range) or absf(offset.y)>float(point.rules.vertical_range): continue
+            return {"kind":"enter_cab","cab":point,"title":"ВОЙТИ В КАБИНУ"}
     if near_workplace: return {"kind":"drive","title":"ЗАНЯТЬ МЕСТО МАШИНИСТА"}
     if is_instance_valid(player.aboard):
         for place in service.line.passengers.layout.places:
@@ -57,9 +50,6 @@ func _near_action() -> Dictionary:
 func activate() -> void:
     current=_near_action()
     match str(current.get("kind","")):
-        "prepare_cab":
-            if service._cab_busy: service.ui.notice("Подготовка оригинальных дверей V106 выполняется")
-            else: service.call_deferred("_prepare")
         "drive": service.occupy_driver()
         "leave_driver": service.leave_driver()
         "stand": stand()
@@ -75,20 +65,8 @@ func activate() -> void:
             service.player.capsule.disabled=true
             service.player.yaw=float(place.heading)
             service.player.pitch=0.0
-        "cab_door":
-            var point: Vector3=service.first_car().to_local(service.player.global_position)
-            var doorway: Vector3=current.door.threshold
-            if current.door.open and Vector2(point.x-doorway.x,point.z-doorway.z).length()<0.42:
-                service.ui.notice("Отойдите от проёма, чтобы закрыть дверь")
-            else: current.door.open=not bool(current.door.open)
-        "climb":
-            var door: Dictionary=current.door
-            var car: Node3D=service.first_car()
-            var local: Vector3=car.to_local(service.player.global_position)
-            var outer: Vector3=door.threshold+Vector3(float(door.side)*0.50,0.04,0)
-            var inner: Vector3=door.threshold-Vector3(float(door.side)*0.55,-0.04,0)
-            var points: Array[Vector3]=[car.to_global(Vector3(local.x,outer.y,outer.z)),car.to_global(outer),car.to_global(inner)]
-            service.player.climb_door(points)
+        "enter_cab": enter_cab(current.cab)
+        "exit_cab": exit_cab()
 
 func stand() -> void:
     if seat.is_empty(): return
@@ -166,9 +144,6 @@ func _passage(car: Node3D, from: Vector3, to: Vector3) -> bool:
         if door.car!=car or not service.line.passengers.layout.usable(door): continue
         var p: Vector3=door.marker.position
         if absf(b.z-p.z)<0.73 and absf(b.y-p.y)<0.50: return true
-    if car==service.first_car():
-        for door in cab_doors:
-            if door.open and float(door.fraction)>0.95 and absf(b.z-door.threshold.z)<0.42 and absf(b.y-door.threshold.y)<0.55: return true
     return false
 
 func _clear_reach(from: Vector3, to: Vector3) -> bool:
@@ -183,14 +158,100 @@ func _looking_at(point: Vector3) -> bool:
     return offset.normalized().dot(gaze.normalized())>0.45
 
 func close_cab_for_departure() -> bool:
-    var clear:=true
-    var local: Vector3=service.first_car().to_local(service.player.global_position)
-    for door in cab_doors:
-        if float(door.fraction)<=0.01 and not door.open: continue
-        var delta: Vector3=local-door.threshold
-        if not service.driver_seated and Vector2(delta.x,delta.z).length()<0.48 and absf(delta.y)<0.65:
-            clear=false
-            continue
-        door.open=false
-        if float(door.fraction)>0.01: clear=false
-    return clear
+    # Original side doors remain closed; instant access has no door animation.
+    return true
+
+func inside_cab() -> Dictionary:
+    var player: Node3D=service.player
+    if not is_instance_valid(player.aboard): return {}
+    for point in cab_points:
+        if point.car==player.aboard and (point.zone as AABB).has_point(point.car.to_local(player.global_position)):
+            return point
+    return {}
+
+func enter_cab(point: Dictionary) -> void:
+    if not service.running or not service.player.active or service.player.aboard!=null: return
+    if absf(float(service.train.speed))>float(point.rules.max_speed):
+        service.ui.notice("Войти в кабину можно только после остановки")
+        return
+    var offset: Vector3=service.player.global_position-point.entry.global_position
+    if Vector2(offset.x,offset.z).length()>float(point.rules.horizontal_range) or absf(offset.y)>float(point.rules.vertical_range): return
+    var target: Vector3=_safe_cab_position(point,true)
+    if not is_finite(target.y):
+        service.ui.notice("В кабине пока нет свободной подготовленной точки входа")
+        return
+    _transfer(point.car,target,service.player.eye.global_basis)
+
+func exit_cab() -> void:
+    var point: Dictionary=inside_cab()
+    if point.is_empty() or not service.running: return
+    if absf(float(service.train.speed))>float(point.rules.max_speed):
+        service.ui.notice("Выход из кабины запрещён во время движения")
+        return
+    var target: Vector3=_safe_cab_position(point,false)
+    if not is_finite(target.y):
+        service.ui.notice("Безопасный выход недоступен: нужна готовая платформа или пол депо")
+        return
+    var view: Basis=service.train.camera.global_basis
+    if service.driver_seated: service.leave_driver()
+    _transfer(null,target,view)
+
+func _safe_cab_position(point: Dictionary, interior: bool) -> Vector3:
+    var car: Node3D=point.car
+    var marker: Marker3D=point.interior if interior else point.exterior
+    var candidates: Array[Vector3]=[marker.global_position]
+    var alternatives: Array=point.interior_alternatives if interior else point.exterior_alternatives
+    for local in alternatives: candidates.append(car.to_global(local))
+    var player: CharacterBody3D=service.player
+    for candidate in candidates:
+        # Only inspect already prepared physics. Interaction never loads models
+        # or starts a collision/geometry preparation operation.
+        if interior and not service._geometry.covers(car,candidate,0.5): continue
+        var mask: int=Geometry.TRAIN if interior else Geometry.WORLD
+        var ray:=PhysicsRayQueryParameters3D.create(candidate+Vector3.UP*(0.75 if interior else 2.0),candidate-Vector3.UP*(0.4 if interior else 3.0),mask,[player.get_rid()])
+        var hit: Dictionary=player.get_world_3d().direct_space_state.intersect_ray(ray)
+        if hit.is_empty() or (hit.normal as Vector3).dot(Vector3.UP)<0.65: continue
+        var surface_owner: Node=hit.collider as Node
+        var floor: Vector3=hit.position
+        if interior:
+            if not is_instance_valid(surface_owner) or not car.is_ancestor_of(surface_owner) or absf(floor.y-candidate.y)>0.28: continue
+        elif not _exterior_surface(floor,surface_owner): continue
+        var query:=PhysicsShapeQueryParameters3D.new()
+        query.shape=player.capsule.shape
+        query.transform=Transform3D(Basis.IDENTITY,floor+Vector3.UP*(float(player.rules.height)*0.5+0.06))
+        query.collision_mask=player.collision_mask
+        query.exclude=[player.get_rid()]
+        if not player.get_world_3d().direct_space_state.intersect_shape(query,1).is_empty(): continue
+        return floor
+    return Vector3(marker.global_position.x,NAN,marker.global_position.z)
+
+func _exterior_surface(floor: Vector3, owner: Node) -> bool:
+    if not is_instance_valid(owner): return false
+    if floor.z>96.0:
+        var depot: Node3D=service.line.get_node_or_null("OperatingDepot")
+        return is_instance_valid(depot) and depot.is_ancestor_of(owner) and service._geometry.covers(depot,floor,0.5)
+    for record in service.line.stations:
+        var index: int=int(record.index)
+        if not service.line.passengers.platform_spawn_ready(index): continue
+        var station: Node3D=service.line.station_instance(index)
+        if not is_instance_valid(station) or not station.is_ancestor_of(owner): continue
+        var nav: RefCounted=service.line.passengers._platforms[index].navigation
+        var area: Rect2=nav.platform.grow(-float(service.rules.walking.radius)-0.05)
+        if area.has_point(Vector2(floor.x,floor.z)) and absf(floor.y-float(nav.height))<0.25: return true
+    return false
+
+func _transfer(car: Node3D, floor: Vector3, view: Basis) -> void:
+    var player: CharacterBody3D=service.player
+    player.attach_car(car)
+    player.global_position=floor+Vector3.UP*0.04
+    player.velocity=Vector3.ZERO
+    player.stick=Vector2.ZERO
+    player._climb.clear()
+    player._safe_position=player.global_position
+    var local_view: Basis=player.global_basis.inverse()*view
+    player.yaw=local_view.get_euler().y
+    player.pitch=local_view.get_euler().x
+    player._eye_pose()
+    player.capsule.set_deferred("disabled",false)
+    service.train.activate_character_view(player.eye)
+    service.line.streamer.refresh()
