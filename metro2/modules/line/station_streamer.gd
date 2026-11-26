@@ -100,6 +100,11 @@ func refresh() -> void:
     # the player selects a role. Passenger startup explicitly pins its station;
     # direct driver startup needs the existing cab, not a station download.
     if is_instance_valid(line.gameplay) and not line.gameplay.running and not line.gameplay._starting and _startup_target<0:
+        # Drop requests from an earlier refresh, including those queued while
+        # an asynchronous pack download was still yielding.
+        _wanted.clear()
+        _retention.clear()
+        _next_index=-1
         return
     var camera_z: float=INF
     if is_instance_valid(line.train):
