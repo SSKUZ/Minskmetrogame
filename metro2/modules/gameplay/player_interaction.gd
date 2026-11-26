@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
     if not service._cab_ready and not service._cab_busy and service._cab_error.is_empty() and service.train.train.visible and absf(service.train.speed)<0.05:
         var cab: Node3D=service.train.cab_runtime
         if is_instance_valid(cab) and service.player.global_position.distance_to(cab.global_position)<12.0:
-            service.call_deferred("_prepare")
+            service.call_deferred("prepare_cab_access_points")
     current=_near_action()
     service.ui.interact.text=str(current.get("title","ВЗАИМОДЕЙСТВИЕ"))
     service.ui.interact.disabled=current.is_empty()

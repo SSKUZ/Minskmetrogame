@@ -130,7 +130,7 @@ func _start_menu() -> void:
     var column:=VBoxContainer.new()
     menu.add_child(column)
     var title:=Label.new()
-    title.text="МИНСКОЕ МЕТРО 2.0\nВыберите игровую роль"
+    title.text="МИНСКОЕ МЕТРО 2.0\nВыберите игровую роль\n"+service.STARTUP_REVISION
     title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
     column.add_child(title)
     _button(column,"МАШИНИСТ · НАЧАТЬ В КАБИНЕ",func(): service.start_role("driver",0))

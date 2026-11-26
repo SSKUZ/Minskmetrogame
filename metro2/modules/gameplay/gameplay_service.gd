@@ -1,4 +1,5 @@
 extends Node
+const STARTUP_REVISION := "ТЗ 64.3 · доступ в кабину по точкам"
 const Player = preload("res://modules/gameplay/player_controller.gd")
 const Interaction = preload("res://modules/gameplay/player_interaction.gd")
 const Automatic = preload("res://modules/gameplay/automatic_service.gd")
@@ -63,10 +64,12 @@ func initialize(world: Node3D) -> void:
     train.info_binding._button.hide()
     _legacy_ui(false)
 
-func _prepare() -> void:
-    if direct_driver or not is_instance_valid(player): return
+func prepare_cab_access_points() -> void:
+    # Optional interaction only: neither role startup may depend on this task.
+    if not running or _starting or direct_driver or not is_instance_valid(player): return
     if _cab_busy or _cab_ready: return
     _cab_busy=true
+    _cab_error=""
     var access=CabAccess.new()
     interaction.cab_points=access.prepare_points(train.train)
     _cab_ready=interaction.cab_points.size()==2
@@ -75,7 +78,6 @@ func _prepare() -> void:
         _cab_error="Не удалось подготовить обе точки доступа в кабину"
     _cab_busy=false
     if running and not _cab_error.is_empty(): ui.notice(_cab_error)
-    line._start_service_if_ready()
 
 
 func _ensure_player() -> void:
