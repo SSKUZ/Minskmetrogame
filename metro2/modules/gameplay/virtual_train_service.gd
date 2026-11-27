@@ -382,14 +382,18 @@ func _create_secondary() -> Dictionary:
     background.add_child(automatic)
     background.automatic=automatic
     automatic.initialize(background)
-    for key in service.line.streamer.instances:
-        await passengers.add_platform(service.line.stations[int(key)],service.line.station_instance(int(key)))
+    # Register the pending lease before yielding: the existing streamer's
+    # ownership check then protects platforms whose navigation is being read.
+    var slot: Dictionary={"context":context,"background":background,"automatic":automatic,"id":"","active":false}
+    slots.append(slot)
+    for key in service.line.streamer.instances.keys():
+        var instance: Node3D=service.line.station_instance(int(key))
+        if is_instance_valid(instance): await passengers.add_platform(service.line.stations[int(key)],instance)
     if not background._geometry.prepare_train(background):
+        slots.erase(slot)
         context.queue_free()
         _notice("collisions",background._geometry.error_message)
         return {}
-    var slot: Dictionary={"context":context,"background":background,"automatic":automatic,"id":"","active":false}
-    slots.append(slot)
     return slot
 
 func _retire(slot: Dictionary) -> void:
