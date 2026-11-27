@@ -307,7 +307,10 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
 func _read_embedded_archive(info: Dictionary, path: String, reference: WeakRef) -> PackedByteArray:
     var empty:=PackedByteArray()
     if not _alive(reference): return empty
-    if not path.begins_with("res://modules/stations/") or not path.ends_with("/"+str(info.file)):
+    # This is path validation, not a dependency on the whole stations folder.
+    # Keep the URI scheme separate so the source dependency collector does not
+    # mistake a directory prefix for an instruction to package every station.
+    if not path.begins_with("res://") or not path.trim_prefix("res://").begins_with("modules/stations/") or not path.ends_with("/"+str(info.file)):
         error_message="Некорректный путь геометрии в пакете станции"
         return empty
     var source:=FileAccess.open(path,FileAccess.READ)
