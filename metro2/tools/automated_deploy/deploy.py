@@ -225,7 +225,8 @@ def plan():
         route=json.loads((ROOT/'modules/line/route_layout.json').read_text())
         for key in route['station_module_ids']:
             if (manifest['packs'].get(key,{}).get('static_resource_compression')!='zstd-v1' or
-                manifest['packs'].get(key,{}).get('station_seating_schema')!=1):
+                manifest['packs'].get(key,{}).get('station_seating_schema')!=1 or
+                manifest['packs'].get(key,{}).get('embedded_station_archives')!=1):
                 chosen.add(key)
                 static_modules.add(key)
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
@@ -388,6 +389,11 @@ def build(key):
     native(['--editor','--path',str(stage),'--import'],CI/'logs'/(key+'-import.log'))
     bundle=CI/'bundles'/key;bundle.mkdir(parents=True,exist_ok=True)
     compile_world(ROOT,CI,stage,bundle,spec,p,copied,native)
+    if key in route_ids:
+        archive_prefix=f'res://modules/stations/{key}/prebuilt/archives/'
+        live_archives={'res://'+name for name in copied if ('res://'+name).startswith(archive_prefix)}
+        # Old embedded generations stay in Git history, not in the new PCK.
+        own=[name for name in own if not name.startswith(archive_prefix) or name in live_archives]
     # Recompilation replaces the tunnel base resource graph in full. Old
     # hash-addressed meshes are retained in Git, not accumulated in the new PCK.
     if key=='full_line':
@@ -434,6 +440,9 @@ def build(key):
         entry['static_resource_compression']='zstd-v1'
     if key in route_ids:
         entry['station_seating_schema']=1
+        prepared_index=stage/f'modules/stations/{key}/prebuilt/index.json'
+        if prepared_index.is_file() and json.loads(prepared_index.read_text()).get('embedded_station_archives')==1:
+            entry['embedded_station_archives']=1
     if key!='boot' and size>32*1024*1024:
         chunks=[]
         with pack.open('rb') as f:

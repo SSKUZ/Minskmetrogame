@@ -231,6 +231,11 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
     return success
 
 func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
+    # New station packs include their native geometry. Do not perform another
+    # HTTP request after the station's complete PCK has already been verified.
+    var embedded: String=str(info.get("embedded_path",""))
+    if not embedded.is_empty():
+        return await _read_embedded_archive(info,embedded,reference)
     var cache_key: String=str(info.sha256)
     if _archive_cache.has(cache_key):
         _archive_order.erase(cache_key)
@@ -298,6 +303,43 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
             _archive_order.append(cache_key)
             _archive_bytes+=downloaded.size()
     return downloaded
+
+func _read_embedded_archive(info: Dictionary, path: String, reference: WeakRef) -> PackedByteArray:
+    var empty:=PackedByteArray()
+    if not _alive(reference): return empty
+    if not path.begins_with("res://modules/stations/") or not path.ends_with("/"+str(info.file)):
+        error_message="Некорректный путь геометрии в пакете станции"
+        return empty
+    var source:=FileAccess.open(path,FileAccess.READ)
+    if source==null or source.get_length()!=int(info.bytes):
+        error_message="В пакете станции отсутствует полная геометрия: "+str(info.file)+". Повторите загрузку страницы."
+        if source!=null: source.close()
+        return empty
+    var consumer: Node=reference.get_ref() as Node
+    progress.emit(consumer.get_instance_id(),"Подготовка геометрии из пакета станции")
+    var bytes:=PackedByteArray()
+    var digest:=HashingContext.new()
+    digest.start(HashingContext.HASH_SHA256)
+    var budget=Budget.new(self,1500)
+    while source.get_position()<source.get_length():
+        if not _alive(reference):
+            source.close()
+            return empty
+        var block: PackedByteArray=source.get_buffer(262144)
+        if block.is_empty():
+            source.close()
+            error_message="Прервано чтение геометрии из пакета: "+str(info.file)
+            return empty
+        digest.update(block)
+        bytes.append_array(block)
+        if not await budget.checkpoint():
+            source.close()
+            return empty
+    source.close()
+    if bytes.size()!=int(info.bytes) or digest.finish().hex_encode()!=str(info.sha256):
+        error_message="Нарушена целостность геометрии в пакете: "+str(info.file)
+        return empty
+    return bytes
 
 func _trim_archives(incoming: int) -> void:
     for path in _staged.keys():

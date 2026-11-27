@@ -41,7 +41,8 @@ def world_files(pack):
         def collect(value):
             if isinstance(value, dict):
                 name = value.get('file', '')
-                if isinstance(name, str) and re.fullmatch(r'world-[0-9a-f]+\.bin', name):
+                if (isinstance(name, str) and re.fullmatch(r'world-[0-9a-f]+\.bin', name)
+                        and not value.get('embedded_path')):
                     record = {key: value[key] for key in ('file', 'bytes', 'sha256')}
                     if not isinstance(record['bytes'], int) or record['bytes'] <= 0:
                         raise RuntimeError('Invalid static archive size: '+name)

@@ -60,9 +60,30 @@ def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
         (cache/'complete.json').write_text(json.dumps({'source_commit':plan['head']}))
     target = stage/index_name
     target.parent.mkdir(parents=True,exist_ok=True)
-    shutil.copy2(cache/'index.json',target)
+    prepared_index = json.loads((cache/'index.json').read_text())
+    if key != 'full_line' and not prepared_index.get('legacy'):
+        # One verified optional station pack owns all its prepared geometry.
+        # Keep native user:// dependency paths; only the archive transport moves
+        # into the PCK. No geometry, materials or scene hierarchy is changed.
+        embedded = set()
+        for chunk in prepared_index.get('open_chunks', []) + prepared_index.get('closed_chunks', []):
+            for archive in chunk.get('archives', []):
+                relative = f'modules/stations/{key}/prebuilt/archives/' + archive['file']
+                archive['embedded_path'] = 'res://' + relative
+                if relative in embedded:
+                    continue
+                source = cache/archive['file']
+                if not source.is_file():
+                    raise RuntimeError('Missing prepared station archive: '+archive['file'])
+                destination = stage/relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, destination)
+                copied.append(relative)
+                embedded.add(relative)
+        prepared_index['embedded_station_archives'] = 1
+    target.write_text(json.dumps(prepared_index, separators=(',', ':')))
     copied.append(index_name)
-    if json.loads((cache/'index.json').read_text()).get('legacy'):
+    if prepared_index.get('legacy'):
         return
     if key == 'full_line':
         for file in (cache/'base').glob('*.res'):
@@ -71,8 +92,11 @@ def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
             target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(file,target)
             copied.append(relative)
-    for file in cache.glob('world-*.bin'):
-        shutil.copy2(file,bundle/file.name)
+    if key == 'full_line':
+        # Tunnel detail remains independently streamed. Station archives are
+        # already inside their own PCK and must not be published twice.
+        for file in cache.glob('world-*.bin'):
+            shutil.copy2(file,bundle/file.name)
 
 
 def prepare_speech(root, stage, key, copied):
