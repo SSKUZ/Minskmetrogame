@@ -1,7 +1,5 @@
 extends RefCounted
 ## One existing physical lease. One pending station call, never rolling virtual headways.
-const Context=preload("res://modules/gameplay/dispatch_context.gd")
-const Background=preload("res://modules/gameplay/dispatch_service.gd")
 var service: Node
 var pending: Dictionary={}
 var terminal_call: Dictionary={}
@@ -29,27 +27,12 @@ func initialize(owner_service: Node) -> void:
 
 func register_current_train() -> void:
     if not slots.is_empty(): return
-    var context=Context.new()
-    service.line.add_child(context)
-    context.configure(service.line)
-    context.train=service.train
-    context.passengers=service.line.passengers
-    context.gameplay=service
-    context.ready_for_service=service.line.ready_for_service
-    context.train.reparent(context,true)
-    context.passengers.reparent(context,true)
-    service.automatic.reparent(context)
-    context.train.line=context
-    context.train.info_binding._line=context
-    context.train.info_binding.route_root=context
-    context.train.info_binding.audio.bind_game(context.train,context)
-    context.passengers._line=context
-    var background=Background.new()
-    context.add_child(background)
-    background.configure(self,context)
-    background.automatic=service.automatic
-    background.running=false
-    slots.append({"context":context,"background":background,"automatic":service.automatic,"id":"player","active":not service.virtual_wait})
+    # The shuttle owns the SAME original train for its entire lifetime. Keep
+    # its scene, passengers, automatic controller and audio on the original
+    # line. Reparenting the whole V106 hierarchy here caused an unnecessary
+    # SceneTree exit/enter on the first driver-to-passenger handover.
+    slots.append({"context":service.line,"automatic":service.automatic,
+        "id":"player","active":not service.virtual_wait})
 
 func cancel() -> void:
     _enabled=false
@@ -534,4 +517,5 @@ func _now() -> float:
 
 func report_delay(key: String, message: String) -> void:
     _notice(key,message)
+
 

@@ -146,6 +146,10 @@ func prepare_region(root: Node3D, point: Vector3, radius: float=18.0) -> bool:
     var local: Vector3=root.to_local(point)
     var area:=AABB(local-Vector3.ONE*radius,Vector3.ONE*radius*2.0)
     var state: Dictionary=root.get_meta("metro_walk_lite_region",{})
+    # A role/camera change does not invalidate already prepared walking space.
+    # Only extend it when the requested region actually exceeds that coverage.
+    if not state.is_empty() and bool(state.ready) and (state.area as AABB).encloses(area):
+        return true
     if state.is_empty():
         var body:=StaticBody3D.new()
         body.name="LightWalkingConstraints"
@@ -157,6 +161,9 @@ func prepare_region(root: Node3D, point: Vector3, radius: float=18.0) -> bool:
         root.set_meta("metro_walk_lite_region",state)
     var budget=Budget.new(root,1500)
     for i in range(data.records.size()):
+        # Skipped records also consume main-thread time. Previously the budget
+        # yielded only after creating a shape, leaving full-table scans unsliced.
+        if i%128==0 and not await budget.checkpoint(): return false
         var record: Dictionary=data.records[i]
         var bounds:=AABB(v(record.bounds[0]),v(record.bounds[1]))
         if not area.intersects(bounds) or state.parts.has(i): continue
@@ -243,10 +250,10 @@ func prepare_train(service: Node) -> bool:
             body_static.collision_layer=TRAIN
             body_static.collision_mask=0
             body_static.set_meta("metro_native_walk",true)
-            car.add_child(body_static)
             _box(body_static,"SaloonFloor",Vector3(0,floor_static-0.07,(lo_static+hi_static)*0.5),Vector3(2.7,0.14,hi_static-lo_static))
             for end in [lo_static,hi_static]:
                 _box(body_static,"EndPartition",Vector3(0,floor_static+1.1,end),Vector3(2.7,2.2,0.12))
+            car.add_child(body_static)
             car.set_meta("metro_walk_lite_train",{"body":body_static,"floor":floor_static,"bounds":AABB(Vector3(-1.34,floor_static,lo_static),Vector3(2.68,2.2,hi_static-lo_static)),"portals":[]})
             continue
         var lo:=INF
@@ -265,7 +272,8 @@ func prepare_train(service: Node) -> bool:
         body.collision_layer=TRAIN
         body.collision_mask=0
         body.set_meta("metro_native_walk",true)
-        car.add_child(body)
+        # Assemble the small constraint hierarchy off-tree, then attach once.
+        # No meshes, passenger doors or their animations are rebuilt here.
         _box(body,"SaloonFloor",Vector3(0,floor-0.07,(lo+hi)*0.5),Vector3(2.7,0.14,hi-lo))
         for end in [lo,hi]: _box(body,"EndPartition",Vector3(0,floor+1.1,end),Vector3(2.7,2.2,0.12))
         var portals: Array=[]
@@ -286,6 +294,7 @@ func prepare_train(service: Node) -> bool:
         for place in layout.places:
             if place.car!=car or not place.seated: continue
             _box(body,"OriginalSeatLimit",Vector3(place.position.x,(floor+float(place.height))*0.5,place.position.z),Vector3(0.53,maxf(0.15,float(place.height)-floor),0.52))
+        car.add_child(body)
         car.set_meta("metro_walk_lite_train",{"body":body,"floor":floor,"bounds":AABB(Vector3(-1.34,floor,lo),Vector3(2.68,2.2,hi-lo)),"portals":portals})
     update_doors(service)
     return true
@@ -311,4 +320,5 @@ func update_doors(service: Node) -> void:
             shape.size=Vector3(sqrt(dx*dx+dy*dy),0.10,1.32)
             portal.bridge.position=Vector3((outside.x+inner_x)*0.5,(outside.y+float(state.floor))*0.5-0.05,door.marker.position.z)
             portal.bridge.rotation.z=atan(dy/dx)
+
 
