@@ -14,13 +14,21 @@ class PreviewTrain extends Node3D:
     var speed := 11.5
     var camera_mode := "walk"
 
+class PreviewUI extends Node:
+    var camera_touch_id := -1
+    var stick: Control
+    var interact: Button
+
+class PreviewLine extends Node:
+    var stations: Array=[]
+
 class PreviewService extends Node:
     var running := true
     var role := "passenger"
     var player: PreviewPlayer
     var train: PreviewTrain
-    var ui: Node
-    var line: Node
+    var ui: PreviewUI
+    var line: PreviewLine
     var start_station := 0
 
 var phone: Control
@@ -46,16 +54,16 @@ func _ready() -> void:
     player.add_child(player.eye)
     service.train=PreviewTrain.new()
     add_child(service.train)
-    service.line=Node.new()
+    service.line=PreviewLine.new()
     add_child(service.line)
-    service.ui=Node.new()
+    service.ui=PreviewUI.new()
     add_child(service.ui)
-    service.ui.set("camera_touch_id",-1)
-    # The preview needs the same lightweight touch-control surface as gameplay.
-    var stick:=Control.new()
-    stick.set_script(preload("res://viewers/flight_joystick.gd"))
-    service.ui.add_child(stick)
-    service.ui.set_meta("preview_stick",stick)
+    service.ui.stick=preload("res://viewers/flight_joystick.gd").new()
+    service.ui.add_child(service.ui.stick)
+    service.ui.stick.hide()
+    service.ui.interact=Button.new()
+    service.ui.add_child(service.ui.interact)
+    service.ui.interact.hide()
     var controls:=CanvasLayer.new()
     add_child(controls)
     var root:=Control.new()
