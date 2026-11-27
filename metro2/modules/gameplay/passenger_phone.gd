@@ -53,7 +53,7 @@ func initialize(owner_service: Node, parent: Control) -> void:
     feed.size_flags_horizontal=Control.SIZE_EXPAND_FILL
     scroll.add_child(feed)
     weather=Label.new()
-    weather.text="ПОГОДА В МИНСКЕ\\nНажмите на телефон для обновления."
+    weather.text="ПОГОДА В МИНСКЕ\nНажмите на телефон для обновления."
     weather.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
     feed.add_child(weather)
     var heading:=Label.new()
@@ -72,7 +72,6 @@ func initialize(owner_service: Node, parent: Control) -> void:
     add_child(news_request)
     news_request.request_completed.connect(_news_received)
     close_phone()
-    resized.connect(_layout_phone)
     get_viewport().size_changed.connect(_layout_phone)
     _layout_phone()
 
@@ -124,7 +123,7 @@ func _process(_delta: float) -> void:
         service.ui.interact.hide()
 
 func _refresh() -> void:
-    var now:=Time.get_unix_time_from_system()
+    var now: float=Time.get_unix_time_from_system()
     if now-weather_updated>900 and weather_request.get_http_client_status()==HTTPClient.STATUS_DISCONNECTED:
         weather_request.request(WEATHER_URL)
     if now-news_updated>900 and news_request.get_http_client_status()==HTTPClient.STATUS_DISCONNECTED:
@@ -132,12 +131,12 @@ func _refresh() -> void:
 
 func _weather_received(_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
     if code!=200:
-        weather.text="ПОГОДА В МИНСКЕ\\nНе удалось получить данные."
+        weather.text="ПОГОДА В МИНСКЕ\nНе удалось получить данные."
         return
     var data=JSON.parse_string(body.get_string_from_utf8())
-    if not data is Dictionary or not data.has("current"): return
+    if not (data is Dictionary) or not data.has("current"): return
     var current: Dictionary=data.current
-    weather.text="ПОГОДА В МИНСКЕ\\n%s °C · ощущается как %s °C\\nВетер: %s км/ч · осадки: %s мм\\nОбновлено: %s" % [str(current.get("temperature_2m","—")),str(current.get("apparent_temperature","—")),str(current.get("wind_speed_10m","—")),str(current.get("precipitation","—")),str(current.get("time","—"))]
+    weather.text="ПОГОДА В МИНСКЕ\n%s °C · ощущается как %s °C\nВетер: %s км/ч · осадки: %s мм\nОбновлено: %s" % [str(current.get("temperature_2m","—")),str(current.get("apparent_temperature","—")),str(current.get("wind_speed_10m","—")),str(current.get("precipitation","—")),str(current.get("time","—"))]
     weather_updated=int(Time.get_unix_time_from_system())
 
 func _news_received(_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -145,7 +144,7 @@ func _news_received(_result: int, code: int, _headers: PackedStringArray, body: 
         _news_message("Новости временно недоступны.")
         return
     var data=JSON.parse_string(body.get_string_from_utf8())
-    if not data is Dictionary or not data.get("articles",null) is Array:
+    if not (data is Dictionary) or not (data.get("articles",null) is Array):
         _news_message("Источник новостей не ответил.")
         return
     for child in news.get_children(): child.queue_free()
@@ -155,7 +154,7 @@ func _news_received(_result: int, code: int, _headers: PackedStringArray, body: 
         var url:=str(article.get("url",""))
         if headline.is_empty() or not url.begins_with("https://"): continue
         var button:=Button.new()
-        button.text=headline+"\\n"+str(article.get("domain",""))
+        button.text=headline+"\n"+str(article.get("domain",""))
         button.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
         button.custom_minimum_size.y=74
         button.pressed.connect(func(): OS.shell_open(url))
