@@ -113,10 +113,14 @@ func _reset_touches() -> void:
 func _resize() -> void:
     _reset_touches()
     var viewport_size: Vector2=get_viewport().get_visible_rect().size
-    var scale_factor: float=minf(1.0,viewport_size.x/560.0)
     if viewport_size.x<=0.0 or viewport_size.y<=0.0: return
-    root.scale=Vector2.ONE*maxf(scale_factor,0.1)
-    root.size=viewport_size/maxf(scale_factor,0.1)
+    # Keep authored HUD coordinates stable and scale for the shortest edge.
+    # This applies to Web landscape now and native Android landscape later.
+    var scale_factor: float=minf(1.0,viewport_size.x/960.0,viewport_size.y/540.0)
+    scale_factor=maxf(scale_factor,0.42)
+    root.scale=Vector2.ONE*scale_factor
+    root.size=viewport_size/scale_factor
+    if is_instance_valid(passenger_phone): passenger_phone._layout_phone()
 
 func _button(parent: Node, title: String, callback: Callable) -> Button:
     var button:=Button.new()
