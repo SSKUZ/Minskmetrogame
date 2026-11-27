@@ -3,6 +3,7 @@ const Catalog = preload("res://modules/core/module_catalog.gd")
 const CameraRig = preload("res://viewers/inspection_camera.gd")
 const Joystick = preload("res://viewers/flight_joystick.gd")
 const PackLoader = preload("res://viewers/module_pack_loader.gd")
+const PhonePreview = preload("res://viewers/passenger_phone_preview.gd")
 var _pack_loader: Node
 const INSPECTION_TRAIN := "res://viewers/v106_inspection.tscn"
 const AD_STATUS := "ADVERTISING: ENABLED — V49 FIXED MOUNTS"
@@ -101,6 +102,7 @@ func _build_ui() -> void:
     _menu_scroll.add_child(list)
     for group in [
         ["ИГРА",[["Депо — Площадь Ленина","full_line"]]],
+        ["ИНТЕРАКТИВНЫЕ МОДУЛИ",[["Смартфон пассажира · предпросмотр","passenger_phone"]]],
         ["ПОЕЗДА",[["Состав V106 · 4 вагона","v106"],["Вагон №1","car1"],["Вагон №2","car2"],["Вагон №3","car3"],["Вагон №4","car4"]]],
         ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"],["Восток","vostok"],["Московская","moskovskaya"],["Парк Челюскинцев","park_chelyuskintsev"],["Академия наук","akademiya_nauk"],["Площадь Якуба Коласа","yakuba_kolasa"],["Площадь Победы","ploshchad_pobedy"],["Октябрьская","oktyabrskaya"],["Площадь Ленина","ploshchad_lenina"],["Институт культуры","institut_kultury"],["Грушевка","grushevka"]]],
         ["ТОННЕЛИ",[["Стандартный участок · 16 м","tunnel_16m"]]],
@@ -143,11 +145,29 @@ func _set_status(message: String) -> void:
 
 func open_module(key: String) -> void:
     if busy: return
-    if not (Catalog.SCENES.has(key) or key in ["car1","car2","car3","car4"]):
+    if not (Catalog.SCENES.has(key) or key in ["car1","car2","car3","car4","passenger_phone"]):
         _set_status("Неизвестный модуль: " + key)
         return
     busy = true
     _set_status("Загрузка: " + key)
+    # Lightweight phone showcase never downloads a train or station package.
+    if key=="passenger_phone":
+        await unload_module()
+        active_module=PhonePreview.new()
+        active_key=key
+        add_child(active_module)
+        rig.enabled=false
+        rig.clear_gestures()
+        rig.camera.clear_current(false)
+        _joystick.hide()
+        _train_tools.hide()
+        _hint.hide()
+        _diagnostics.hide()
+        _menu.hide()
+        _set_status("Смартфон пассажира · отдельный предпросмотр")
+        busy=false
+        _publish_state()
+        return
     # Cancels an in-flight streamed station before the next viewer request.
     if active_key=="full_line": await unload_module()
     if not await _pack_loader.ensure_module(key):
