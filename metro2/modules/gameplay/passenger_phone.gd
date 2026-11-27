@@ -17,6 +17,8 @@ var opened := false
 var route_label: Label
 var _phone_visual: Node3D
 var _phone_animation := 0.0
+var _route_refresh_elapsed := 0.0
+var _last_route_text := ""
 
 func initialize(owner_service: Node, parent: Control) -> void:
     service=owner_service
@@ -89,15 +91,15 @@ func _layout_phone() -> void:
     # shorter screen height, without obscuring all of the carriage.
     var bounds: Vector2=get_viewport().get_visible_rect().size / maxf(root_scale(),0.01)
     var landscape: bool=bounds.x>=bounds.y
-    var safe_height: float=maxf(bounds.y-32.0,160.0)
+    var safe_height: float=maxf(bounds.y-24.0,160.0)
     var height: float=minf(safe_height*0.88,620.0)
     var width: float=minf(bounds.x*0.76,height*0.64)
-    width=maxf(width,170.0)
+    width=minf(maxf(width,145.0),bounds.x-24.0)
     panel.offset_left=-width*0.5
     panel.offset_right=width*0.5
     panel.offset_top=-height*0.5
     panel.offset_bottom=height*0.5
-    scroll.custom_minimum_size=Vector2(maxf(width-28.0,120.0),maxf(height-90.0,100.0))
+    scroll.custom_minimum_size=Vector2(maxf(width-28.0,100.0),maxf(height-90.0,90.0))
     opener.offset_top=58.0 if landscape else 120.0
     opener.offset_bottom=104.0 if landscape else 170.0
 
@@ -124,6 +126,7 @@ func open_phone() -> void:
     if not available(): return
     opened=true
     _phone_animation=0.0
+    _route_refresh_elapsed=1.0
     panel.show()
     opener.hide()
     service.player.stick=Vector2.ZERO
@@ -139,6 +142,8 @@ func close_phone() -> void:
     opened=false
     if panel!=null: panel.hide()
     if is_instance_valid(_phone_visual): _phone_visual.hide()
+    if is_instance_valid(service) and is_instance_valid(service.player):
+        service.player.stick=Vector2.ZERO
     if opener!=null: opener.visible=available() if is_instance_valid(service) else false
 
 func _process(delta: float) -> void:
@@ -152,7 +157,10 @@ func _process(delta: float) -> void:
         if is_instance_valid(_phone_visual):
             _phone_visual.show()
             _phone_visual.position.y=lerpf(-0.45,-0.23,_phone_animation)
-        _update_route()
+        _route_refresh_elapsed+=delta
+        if _route_refresh_elapsed>=1.0:
+            _route_refresh_elapsed=0.0
+            _update_route()
         service.player.stick=Vector2.ZERO
         service.ui.stick.hide()
         service.ui.interact.hide()
@@ -161,9 +169,15 @@ func _update_route() -> void:
     if not is_instance_valid(route_label): return
     var train_speed: float=float(service.train.speed)*3.6
     var station_name: String="В пути"
-    var nearest: Dictionary={} # Station name is optional until route metadata is available.
-    if not nearest.is_empty(): station_name=str(nearest.get("module_id",nearest.get("index","Станция")))
-    route_label.text="МЕТРО · %s\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
+    if is_instance_valid(service.player.aboard):
+        station_name="В составе"
+    elif service.start_station>=0 and service.start_station<service.line.stations.size():
+        var record=service.line.stations[service.start_station]
+        station_name=str(record.module_id)
+    var label_text: String="МЕТРО · %s\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
+    if label_text!=_last_route_text:
+        route_label.text=label_text
+        _last_route_text=label_text
 
 func _ensure_visual() -> void:
     if is_instance_valid(_phone_visual) or not is_instance_valid(service.player): return
