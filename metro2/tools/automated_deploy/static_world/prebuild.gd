@@ -53,7 +53,9 @@ func _station() -> void:
     var open_station: Node3D=await _source_station(true)
     if open_station==null: return
     await Connections.open_connections(open_station)
+    open_station.set_meta("metro_capture_open_benches",true)
     await _adapt(open_station,open_station)
+    open_station.remove_meta("metro_capture_open_benches")
     if not _unsupported.is_empty():
         _legacy_index()
         open_station.free()
@@ -132,6 +134,8 @@ func _adapt(node: Node, station: Node) -> void:
             return
         node.set_script(null)
     node.scene_file_path=""
+    if not bool(station.get_meta("metro_capture_open_benches",false)) and node.has_meta("metro_bench_capture"):
+        node.remove_meta("metro_bench_capture")
     if node.has_meta("metro_line_work"): node.remove_meta("metro_line_work")
     for child in node.get_children(): await _adapt(child,station)
 
@@ -585,3 +589,4 @@ func _json(path: String, data: Variant) -> void:
 func _fail(message: String) -> void:
     push_error(message)
     quit(1)
+

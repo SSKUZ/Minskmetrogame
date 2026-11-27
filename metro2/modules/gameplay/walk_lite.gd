@@ -1,5 +1,6 @@
 extends RefCounted
 ## Simple invisible constraints. No mesh faces, triangulation or render edits.
+const Seats=preload("res://modules/gameplay/station_seating.gd")
 const Budget=preload("res://modules/line/build_budget.gd")
 const WORLD:=1<<16
 const TRAIN:=1<<17
@@ -22,6 +23,7 @@ static func box_record(box: AABB, pose: Transform3D, label: String) -> Dictionar
 
 func describe_station(root: Node3D, navigation: Dictionary={}) -> Dictionary:
     var records: Array=[]
+    var bench_seats: Array=[]
     var seen: Dictionary={}
     var nodes: Array[Node]=[root]
     var inverse: Transform3D=root.global_transform.affine_inverse()
@@ -30,6 +32,12 @@ func describe_station(root: Node3D, navigation: Dictionary={}) -> Dictionary:
     var platform_box:=AABB()
     while not nodes.is_empty():
         var node: Node=nodes.pop_back()
+        if node is Node3D and node.has_meta(Seats.CAPTURE):
+            var center_x: float=-5.37
+            if not navigation.is_empty():
+                var area: Array=navigation.get("area",[])
+                if area.size()==4: center_x=float(area[0])+float(area[2])*0.5
+            bench_seats.append_array(Seats.extract(node,inverse*node.global_transform,center_x))
         if node is CollisionObject3D and node.has_meta("metro_native_walk"): continue
         nodes.append_array(node.get_children())
         if not await budget.checkpoint(): return {}
@@ -125,7 +133,7 @@ func describe_station(root: Node3D, navigation: Dictionary={}) -> Dictionary:
             obstacles.append([obstacle.position.x,obstacle.position.z,obstacle.size.x,obstacle.size.z])
         navigation={"height":platform_box.end.y,"area":[area.position.x,area.position.y,area.size.x,area.size.y],
             "walk":[walk.position.x,walk.position.y,walk.size.x,walk.size.y],"obstacles":obstacles}
-    return {"schema":1,"units":"metres","records":records,"floor_verified":floor_found,"navigation":navigation}
+    return {"schema":1,"units":"metres","records":records,"floor_verified":floor_found,"navigation":navigation,"bench_seats":bench_seats}
 
 func prepare_region(root: Node3D, point: Vector3, radius: float=18.0) -> bool:
     if root==null:
@@ -303,3 +311,4 @@ func update_doors(service: Node) -> void:
             shape.size=Vector3(sqrt(dx*dx+dy*dy),0.10,1.32)
             portal.bridge.position=Vector3((outside.x+inner_x)*0.5,(outside.y+float(state.floor))*0.5-0.05,door.marker.position.z)
             portal.bridge.rotation.z=atan(dy/dx)
+

@@ -220,13 +220,12 @@ def plan():
     if static_inputs:
         chosen.add('full_line')
         static_modules.add('full_line')
-        # A Pages size recovery must cover the live station archives as well
-        # as the line PCK. Migrate only the existing route stations that still
-        # lack native lossless compression; their ancestry guards remain active.
-        # Subsequent compiler changes do not rebuild already migrated stations.
+        # Migrate registered route stations once to portable authored bench
+        # anchors, retaining every existing module ancestry/version guard.
         route=json.loads((ROOT/'modules/line/route_layout.json').read_text())
         for key in route['station_module_ids']:
-            if manifest['packs'].get(key,{}).get('static_resource_compression')!='zstd-v1':
+            if (manifest['packs'].get(key,{}).get('static_resource_compression')!='zstd-v1' or
+                manifest['packs'].get(key,{}).get('station_seating_schema')!=1):
                 chosen.add(key)
                 static_modules.add(key)
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
@@ -382,7 +381,8 @@ def build(key):
         if path.suffix.lower() in {'.png','.jpg','.jpeg','.webp','.svg'}:
             side=Path(str(path)+'.import')
             if side.exists():side.write_text(side.read_text().replace('mipmaps/generate=false','mipmaps/generate=true'))
-    from static_world.prepare import prepare_speech, compile_world
+    from static_world.prepare import prepare_speech, compile_world, prepare_benches
+    if key in route_ids: prepare_benches(stage)
     prepare_speech(ROOT,stage,key,copied)
     driver({'mode':'prepare'},stage,key+'-prepare-saved-models')
     native(['--editor','--path',str(stage),'--import'],CI/'logs'/(key+'-import.log'))
@@ -432,6 +432,8 @@ def build(key):
            'world_files':world_files(pack)}
     if key=='full_line' or key in route_ids:
         entry['static_resource_compression']='zstd-v1'
+    if key in route_ids:
+        entry['station_seating_schema']=1
     if key!='boot' and size>32*1024*1024:
         chunks=[]
         with pack.open('rb') as f:
@@ -533,3 +535,4 @@ if __name__=='__main__':
     if args.mode=='plan':plan()
     elif args.mode=='build':build(args.module)
     else:publish()
+

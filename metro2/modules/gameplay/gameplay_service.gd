@@ -73,9 +73,7 @@ func _ensure_player() -> void:
 
 func _park_player() -> void:
     if not is_instance_valid(player): return
-    if not interaction.seat.is_empty():
-        line.passengers.layout.release(interaction.seat)
-        interaction.seat={}
+    interaction.release_seat()
     player.seated=false
     player.active=false
     player.stick=Vector2.ZERO
@@ -575,10 +573,8 @@ func respawn(message: String) -> void:
     ui.flash.color.a=0.65
     player.active=false
     player.capsule.set_deferred("disabled",true)
-    if not interaction.seat.is_empty():
-        line.passengers.layout.release(interaction.seat)
-        interaction.seat={}
-        player.seated=false
+    interaction.release_seat()
+    player.seated=false
     if is_instance_valid(player.aboard): player.attach_car(null)
     player.global_position=Vector3(-5.37,1.25,float(line.stations[_safe_station].root_z)+40.0)
     line.streamer.refresh()
@@ -626,3 +622,4 @@ func _hold_cab() -> void:
     train.info_binding.applying_auto_input=true
     train.cab_runtime.command("master",-1.0)
     train.info_binding.applying_auto_input=false
+

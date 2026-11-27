@@ -5,7 +5,7 @@ import hashlib, io, json, os, shutil, subprocess, wave
 RUNTIME_FILES = ['modules/line/static_station.gd', 'modules/line/static_resource_store.gd',
                  'modules/line/build_budget.gd', 'modules/line/station_connection_adapter.gd',
                  'modules/line/route_layout.json', 'modules/gameplay/world_geometry.gd',
-                 'modules/gameplay/walk_lite.gd']
+                 'modules/gameplay/walk_lite.gd', 'modules/gameplay/station_seating.gd']
 COMPILER = 'tools/automated_deploy/static_world/prebuild.gd'
 
 
@@ -34,6 +34,7 @@ def compile_world(root, ci, stage, bundle, spec, plan, copied, native):
         if name not in copied:
             copied.append(name)
     digest = hashlib.sha256(b'godot-4.3-static-world-v1')
+    digest.update(Path(__file__).read_bytes())
     geometry_sources = set(spec['sources']) | set(source_files(root, key))
     if key == 'full_line':
         geometry_sources = {s for s in geometry_sources if s.startswith(('modules/line/', 'scripts/tunnel', 'scripts/depot/route_profile'))}
@@ -125,3 +126,102 @@ def prepare_speech(root, stage, key, copied):
         copied.append(relative)
     catalogue_path.write_text(json.dumps(catalogue,ensure_ascii=False))
     if 'audio/data/audio_catalog.json' not in copied: copied.append('audio/data/audio_catalog.json')
+
+
+
+def prepare_benches(stage):
+    """Capture real construction arguments in staged scripts, not guessed mesh names.
+
+    Only authored bench functions and the two known curved cross-sections opt
+    in. Capture helpers return the original size, leaving all geometry intact.
+    The same portable anchors are baked into walking_lite for static stations
+    or collected by its existing fallback for a legacy station.
+    """
+    import re
+
+    helper = 'preload("res://modules/gameplay/station_seating.gd")'
+
+    def arguments(text, opening):
+        # Split a GDScript call without evaluating it. Balanced constructors,
+        # nested arrays and quoted labels may contain commas of their own.
+        depth, quote, escape, start, parts = 1, None, False, opening+1, []
+        for pos in range(opening+1, len(text)):
+            char = text[pos]
+            if quote:
+                if escape: escape = False
+                elif char == '\\': escape = True
+                elif char == quote: quote = None
+                continue
+            if char in "\"'": quote = char
+            elif char in '([{': depth += 1
+            elif char in ')]}':
+                depth -= 1
+                if depth == 0:
+                    parts.append((start, pos))
+                    return parts
+            elif char == ',' and depth == 1:
+                parts.append((start, pos)); start = pos+1
+        raise RuntimeError('Unterminated bench geometry call')
+
+    for folder in [stage/'modules/stations', stage/'scripts/station']:
+        for path in folder.rglob('*.gd'):
+            source = path.read_text()
+            if 'station_seating.gd' in source: continue
+            blocks = list(re.finditer(r'^func\s+(\w+)\(([^\n]*)\)[^\n]*:\s*\n', source, re.M))
+            edits = []
+            for number, block in enumerate(blocks):
+                end = blocks[number+1].start() if number+1 < len(blocks) else len(source)
+                body = source[block.end():end]
+                name, parameters = block.group(1), block.group(2)
+                if name == '_bench' and 'CurvedOakBenchSlats' in body and 'side: int' in parameters:
+                    # This constructor's explicit seat segment is at FY+.49.
+                    edits.append((block.end(), block.end(), f'    {helper}.borisovsky_row(self,x,z,FY,side)\n'))
+                    continue
+                if name == '_furniture_block' and 'Semicircular wooden bench' in body:
+                    # Sparse positions on the real arc; never fill the cylinder
+                    # interior with the rectangular bound of the whole bench.
+                    for call in re.finditer(r'\b_box\s*\(', body):
+                        opening = block.end()+call.end()-1
+                        parts = arguments(source, opening)
+                        size = source[slice(*parts[0])].strip()
+                        if re.sub(r'\s+', '', size) != 'Vector3(0.07,0.14,0.58)': continue
+                        point = source[slice(*parts[1])].strip()
+                        edits.append((*parts[0], f'{helper}.curved(self,{size},{point},FLOOR,radial,j)'))
+                    continue
+                if name == '_order_pylon' and 'Vector3(0.049,0.065,3.65)' in body:
+                    # Ploshchad Lenina's two real wooden benches are authored
+                    # alongside the pylon, not in a separately named function.
+                    for call in re.finditer(r'\bbox\s*\(', body):
+                        parts = arguments(source, block.end()+call.end()-1)
+                        size = source[slice(*parts[0])].strip()
+                        if re.sub(r'\s+', '', size) != 'Vector3(0.049,0.065,3.65)': continue
+                        point = source[slice(*parts[1])].strip()
+                        value = f'{helper}.capture(self,{size},{point},p.y,Basis.IDENTITY,"lenina_pylon_bench",p,Basis.IDENTITY)'
+                        edits.append((*parts[0], value))
+                    continue
+                if 'bench' not in name.lower(): continue
+                parameter = re.search(r'\b(\w+)\s*:\s*Vector3\b', parameters)
+                if not parameter:
+                    parameter = re.search(r'var\s+(p)\s*:?=\s*Vector3\(', body)
+                if not parameter: continue
+                origin = parameter.group(1)
+                angle = re.search(r'\b(yaw|angle|rotation)\s*:\s*float', parameters)
+                frame = f'Basis(Vector3.UP,{angle.group(1)})' if angle else 'Basis.IDENTITY'
+                for call in re.finditer(r'\b(box|_box|_b|_rounded_bench_box|_round_box|_rounded_plan_box)\s*\(', body):
+                    # Ignore commented-out calls; these are not construction.
+                    line_start = body.rfind('\n', 0, call.start())+1
+                    if '#' in body[line_start:call.start()]: continue
+                    opening = block.end()+call.end()-1
+                    parts = arguments(source, opening)
+                    offset = 1 if call.group(1) == '_b' else 0
+                    if len(parts) < offset+3: continue
+                    size = source[slice(*parts[offset])].strip()
+                    point = source[slice(*parts[offset+1])].strip()
+                    pose = source[slice(*parts[offset+3])].strip() if len(parts)>offset+3 and call.group(1) not in {'_rounded_bench_box','_round_box','_rounded_plan_box'} else 'Basis.IDENTITY'
+                    tag = path.relative_to(stage).as_posix()+':'+name
+                    value = f'{helper}.capture(self,{size},{point},{origin}.y,{pose},"{tag}",{origin},{frame})'
+                    edits.append((*parts[offset], value))
+            if edits:
+                for start, end, value in sorted(edits, reverse=True):
+                    source = source[:start]+value+source[end:]
+                path.write_text(source)

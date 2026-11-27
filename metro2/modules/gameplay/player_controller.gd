@@ -8,6 +8,7 @@ var yaw:=0.0
 var pitch:=0.0
 var active:=false
 var seated:=false
+var seated_eye_height:=1.20
 var aboard: Node3D
 var current_car_id:=""
 var eye: Node3D
@@ -48,7 +49,23 @@ func look(relative: Vector2) -> void:
     _eye_pose()
 
 func _eye_pose() -> void:
+    # Feet follow the current floor, including steps and the moving car. Eye
+    # offsets are world metres, never inherited model/character scale units.
+    var up: Vector3=aboard.global_basis.y.normalized() if is_instance_valid(aboard) else Vector3.UP
+    eye.global_position=global_position+up*(seated_eye_height if seated else float(rules.eye_height))
     eye.rotation=Vector3(pitch,yaw,0)
+
+func set_seated(value: bool, eye_height: float=1.20) -> void:
+    seated=value
+    seated_eye_height=eye_height
+    # Keep a metre-sized capsule after reparenting into an imported car.
+    global_basis=global_basis.orthonormalized()
+    velocity=Vector3.ZERO
+    stick=Vector2.ZERO
+    _climb.clear()
+    _safe_position=global_position
+    capsule.set_deferred("disabled",value)
+    _eye_pose()
 
 func attach_car(car: Node3D) -> void:
     if aboard==car: return
@@ -56,6 +73,7 @@ func attach_car(car: Node3D) -> void:
     var view: Basis=eye.global_basis
     reparent(car if is_instance_valid(car) else service.line,true)
     aboard=car
+    global_basis=global_basis.orthonormalized()
     current_car_id=str(car.name) if is_instance_valid(car) else ""
     set_meta("dispatch_train_id",str(service.train.get_meta("dispatch_train_id","player")) if is_instance_valid(car) else "")
     var local_view: Basis=global_basis.inverse()*view
@@ -142,3 +160,4 @@ func _step(delta: float) -> void:
     parameters.motion=-rise-up_direction*0.08
     if PhysicsServer3D.body_test_motion(get_rid(),parameters,result) and result.get_collision_normal().dot(up_direction)>0.65:
         global_position+=rise+result.get_travel()
+

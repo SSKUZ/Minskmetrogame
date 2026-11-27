@@ -118,30 +118,56 @@
   "dispatch": {
     "schema": 1,
     "units": "metres, seconds, monotonic clock",
-    "handover_departure_seconds": 10.0,
-    "dwell_seconds": 10.0,
+    "handover_departure_seconds": 10,
+    "dwell_seconds": 10,
     "door_closing_lead_seconds": 2.5,
-    "terminal_dwell_seconds": 20.0,
-    "headway_seconds": 120.0,
+    "terminal_dwell_seconds": 20,
+    "headway_seconds": 120,
     "direction_offsets_seconds": {
-      "1": 0.0,
-      "-1": 60.0
+      "1": 0,
+      "-1": 60
     },
     "track_x": {
       "1": 0.992,
       "-1": -11.732
     },
     "maximum_physical_trains": 2,
-    "minimum_gap_m": 80.0,
+    "minimum_gap_m": 80,
     "refresh_seconds": 0.25,
-    "prepare_lead_seconds": 20.0,
-    "maximum_lateness_seconds": 45.0,
-    "retry_seconds": 15.0,
+    "prepare_lead_seconds": 20,
+    "maximum_lateness_seconds": 45,
+    "retry_seconds": 15,
     "maximum_spawn_attempts": 3,
-    "visual_prepare_timeout_seconds": 45.0,
-    "operation_timeout_seconds": 25.0,
-    "boarding_grace_seconds": 5.0,
+    "visual_prepare_timeout_seconds": 45,
+    "operation_timeout_seconds": 25,
+    "boarding_grace_seconds": 5,
     "ownership": "car parent and dispatch_train_id; occupied/manual leases cannot be recycled",
     "resources": "one hidden reusable lease; second visible lease shares original models and is released offscreen"
+  },
+  "seating": {
+    "eye_height": 1.2,
+    "interaction_range": 1.25,
+    "floor_clearance": 0.06,
+    "npc_clearance": 0.04,
+    "stand_forward": [
+      0.65,
+      0.9,
+      1.15
+    ],
+    "stand_along": [
+      0,
+      -0.45,
+      0.45
+    ],
+    "train_aisle_x": [
+      0,
+      -0.25,
+      0.25
+    ],
+    "train_along": [
+      0,
+      -0.6,
+      0.6
+    ]
   }
 }

@@ -1,4 +1,5 @@
 extends Node
+const StationSeats = preload("res://modules/gameplay/station_seating.gd")
 const Geometry = preload("res://modules/gameplay/world_geometry.gd")
 var service: Node
 var cab_points: Array[Dictionary]=[]
@@ -52,6 +53,19 @@ func _near_action() -> Dictionary:
             if player.global_position.distance_to(target)>0.85: continue
             if _clear_reach(player.global_position+Vector3.UP*0.65,target+Vector3.UP*0.55):
                 return {"kind":"sit","place":place,"title":"СЕСТЬ"}
+    else:
+        for record in service.line.stations:
+            var index: int=int(record.index)
+            if not service.line.passengers.platform_spawn_ready(index): continue
+            var station: Node3D=service.line.station_instance(index)
+            if not is_instance_valid(station): continue
+            for place in StationSeats.runtime_places(station):
+                if bool(place.used): continue
+                var target: Vector3=station.to_global(place.position)
+                if player.global_position.distance_to(target)>float(service.rules.seating.interaction_range): continue
+                var front: Vector3=station.global_basis*place.forward
+                if _people_clear(target,Vector3.UP) and _clear_reach(player.global_position+Vector3.UP*1.7,target+front.normalized()*0.65+Vector3.UP*1.7):
+                    return {"kind":"sit","place":place,"title":"СЕСТЬ НА ЛАВОЧКУ"}
     return {}
 
 func activate() -> void:
@@ -60,40 +74,123 @@ func activate() -> void:
         "drive": service.occupy_driver()
         "leave_driver": service.leave_driver()
         "stand": stand()
-        "sit":
-            var place: Dictionary=current.place
-            if place.used: return
-            place.used=true
-            seat=place
-            service.player.seated=true
-            service.player.global_position=place.car.to_global(place.position)
-            service.player.basis=Basis.IDENTITY
-            service.player.eye.position.y=float(place.height)-float(place.position.y)+0.75
-            service.player.capsule.disabled=true
-            service.player.yaw=float(place.heading)
-            service.player.pitch=0.0
+        "sit": sit(current.place)
         "enter_cab": enter_cab(current.cab)
         "exit_cab": exit_cab()
 
+func _anchor(place: Dictionary) -> Node3D:
+    if place.get("kind", "train")=="station":
+        return place.anchor.get_ref() as Node3D
+    return place.get("car") as Node3D
+
+func sit(place: Dictionary) -> void:
+    var owner_node: Node3D=_anchor(place)
+    if bool(place.get("used",false)) or not is_instance_valid(owner_node): return
+    var player: CharacterBody3D=service.player
+    var target: Vector3=owner_node.to_global(place.position)
+    var up: Vector3=owner_node.global_basis.y.normalized()
+    if not _people_clear(target,up):
+        service.ui.notice("Место занято пассажиром")
+        return
+    place.used=true
+    seat=place
+    player.global_position=target
+    # Preserve the carrier and its orientation; assigning local IDENTITY here
+    # used to reintroduce the imported car's scale into the player and camera.
+    player.set_seated(true,float(place.get("eye_height",service.rules.seating.eye_height)))
+    if place.get("kind","train")=="station":
+        var forward: Vector3=(player.global_basis.inverse()*owner_node.global_basis*place.forward).normalized()
+        player.yaw=atan2(-forward.x,-forward.z)
+    else:
+        var view: Basis=owner_node.global_basis.orthonormalized()*Basis(Vector3.UP,float(place.heading))
+        player.yaw=(player.global_basis.inverse()*view).get_euler().y
+    player.pitch=0.0
+    player._eye_pose()
+
+func release_seat() -> void:
+    if not seat.is_empty(): seat.used=false
+    seat={}
+    if is_instance_valid(service.player): service.player.seated=false
+
+func _exit_tree() -> void:
+    if not seat.is_empty(): seat.used=false
+    seat={}
+
 func stand() -> void:
     if seat.is_empty(): return
-    var player: Node3D=service.player
-    var car: Node3D=seat.car
-    var point:=Vector3(float(seat.position.x)*0.25,1.033,float(seat.position.z))
+    var owner_node: Node3D=_anchor(seat)
+    if not is_instance_valid(owner_node):
+        service.respawn("Посадочное место недоступно. Возвращение на платформу")
+        return
+    var player: CharacterBody3D=service.player
+    var up: Vector3=owner_node.global_basis.y.normalized()
+    var candidates: Array[Vector3]=[]
+    var is_station: bool=seat.get("kind","train")=="station"
+    if is_station:
+        var forward: Vector3=seat.forward
+        var along: Vector3=Vector3.UP.cross(forward).normalized()
+        for distance in service.rules.seating.stand_forward:
+            for offset in service.rules.seating.stand_along:
+                candidates.append(owner_node.to_global(seat.position+forward*float(distance)+along*float(offset)))
+    else:
+        var state: Dictionary=owner_node.get_meta("metro_walk_lite_train",{})
+        if state.is_empty():
+            service.ui.notice("Пол вагона ещё не подготовлен для вставания")
+            return
+        for offset in service.rules.seating.train_along:
+            for x in service.rules.seating.train_aisle_x:
+                candidates.append(owner_node.to_global(Vector3(float(x),float(state.floor),float(seat.position.z)+float(offset))))
+    for candidate in candidates:
+        var floor: Vector3=_stand_floor(owner_node,candidate,up,is_station)
+        if not is_finite(floor.y): continue
+        player.global_position=floor+up*float(service.rules.seating.floor_clearance)
+        release_seat()
+        player.set_seated(false)
+        return
+    service.ui.notice("Рядом нет свободной безопасной точки для вставания. Освободите проход и повторите.")
+
+func _stand_floor(owner_node: Node3D, candidate: Vector3, up: Vector3, station: bool) -> Vector3:
+    var invalid:=Vector3(candidate.x,NAN,candidate.z)
+    var player: CharacterBody3D=service.player
+    if not service._geometry.covers(owner_node,candidate,0.05): return invalid
+    var space: PhysicsDirectSpaceState3D=player.get_world_3d().direct_space_state
+    # A short ray rejects benches, stairs on another level and missing floors.
+    # Do not exclude the car's body: it also owns real walls and seat geometry.
+    var ray:=PhysicsRayQueryParameters3D.create(candidate+up*0.22,candidate-up*0.28,Geometry.WORLD if station else Geometry.TRAIN,[player.get_rid()])
+    var hit: Dictionary=space.intersect_ray(ray)
+    if hit.is_empty() or (hit.normal as Vector3).dot(up)<0.65: return invalid
+    var collider: Node=hit.collider as Node
+    if not is_instance_valid(collider) or not owner_node.is_ancestor_of(collider): return invalid
+    var floor: Vector3=hit.position
+    if absf((floor-candidate).dot(up))>0.20 or not _people_clear(floor,up): return invalid
     var query:=PhysicsShapeQueryParameters3D.new()
     query.shape=player.capsule.shape
-    query.transform=Transform3D(car.global_basis,car.to_global(point)+car.global_basis.y*float(player.rules.height)*0.5)
+    query.transform=Transform3D(owner_node.global_basis.orthonormalized(),floor+up*(float(player.rules.height)*0.5+float(service.rules.seating.floor_clearance)))
+    query.margin=0.01
     query.collision_mask=player.collision_mask
     query.exclude=[player.get_rid()]
-    if not player.get_world_3d().direct_space_state.intersect_shape(query,1).is_empty():
-        service.ui.notice("Проход занят. Дождитесь свободного места.")
-        return
-    player.global_position=car.to_global(point)
-    service.line.passengers.layout.release(seat)
-    seat={}
-    player.seated=false
-    player.capsule.disabled=false
-    player.eye.position.y=float(player.rules.eye_height)
+    if not space.intersect_shape(query,1).is_empty(): return invalid
+    # At shoulder height, the bench/seat is below the ray while real walls
+    # still prevent choosing a free point through the back of a compartment.
+    if not _clear_reach(player.global_position+up*1.70,floor+up*1.70): return invalid
+    return floor
+
+func _people_clear(point: Vector3, up: Vector3) -> bool:
+    # NPCs are Node3D agents, not physics bodies; a shape query alone misses them.
+    var managers: Array=[service.line.passengers]
+    for lease in service.timetable.slots:
+        var context: Node=lease.get("context")
+        if is_instance_valid(context) and context.passengers not in managers:
+            managers.append(context.passengers)
+    for manager in managers:
+        for agent in manager.agents:
+            if not is_instance_valid(agent) or not agent.is_inside_tree(): continue
+            var offset: Vector3=agent.global_position-point
+            var vertical: float=offset.dot(up)
+            if absf(vertical)>1.0: continue
+            var radius: float=float(service.player.rules.radius)+float(agent.radius)+float(service.rules.seating.npc_clearance)
+            if (offset-up*vertical).length()<radius: return false
+    return true
 
 func doorway_clear() -> bool:
     if service.direct_driver or not is_instance_valid(service.player) or service.driver_seated or not service.player.active: return true
@@ -307,3 +404,4 @@ func _prepare_cab_points() -> void:
             service._cab_error="Не удалось подготовить точки входа в кабину"
     service._cab_busy=false
     if not service._cab_error.is_empty(): service.ui.notice(service._cab_error)
+
