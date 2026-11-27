@@ -1,5 +1,5 @@
 extends RefCounted
-## Portable virtual records are separate from at most two physical V106 leases.
+## One existing physical lease. One pending station call, never rolling virtual headways.
 const Context=preload("res://modules/gameplay/dispatch_context.gd")
 const Background=preload("res://modules/gameplay/dispatch_service.gd")
 var service: Node
@@ -8,13 +8,9 @@ var terminal_call: Dictionary={}
 var records: Dictionary={}
 var slots: Array[Dictionary]=[]
 var serial:=0
-var _epoch:=0.0
 var _clock:=0.0
 var _observed:=-1
 var _enabled:=false
-var _spawning:=false
-var _offsets: Dictionary={}
-var _durations: Dictionary={}
 var _terminal: Dictionary={}
 var _notices: Dictionary={}
 var available:=true
@@ -24,30 +20,12 @@ var _prefetch_targets: Dictionary={}
 func initialize(owner_service: Node) -> void:
     service=owner_service
     _policy=service.rules.get("dispatch",{})
-    var required: Array=["handover_departure_seconds","dwell_seconds","door_closing_lead_seconds","terminal_dwell_seconds","headway_seconds","direction_offsets_seconds","track_x","maximum_physical_trains","minimum_gap_m","refresh_seconds","prepare_lead_seconds","maximum_lateness_seconds","retry_seconds","maximum_spawn_attempts","visual_prepare_timeout_seconds","operation_timeout_seconds","boarding_grace_seconds"]
+    var required: Array=["handover_departure_seconds","dwell_seconds","door_closing_lead_seconds","terminal_dwell_seconds","track_x","refresh_seconds","retry_seconds","operation_timeout_seconds","boarding_grace_seconds","shuttle"]
     for key in required:
         if not _policy.has(key): available=false
-    if not available:
-        push_error("Train dispatch: отсутствуют данные расписания")
-        return
-    if float(_policy.headway_seconds)<=0.0 or int(_policy.maximum_physical_trains)<1 or int(_policy.maximum_physical_trains)>2 or not _policy.track_x.has("1") or not _policy.track_x.has("-1") or not _policy.direction_offsets_seconds.has("1") or not _policy.direction_offsets_seconds.has("-1"):
-        available=false
-        push_error("Train dispatch: некорректные направления или интервалы расписания")
-        return
-    _epoch=_now()
-    for direction in [1,-1]:
-        var indices: Array=range(service.line.stations.size())
-        if direction<0: indices.reverse()
-        var offsets: Dictionary={}
-        var elapsed:=0.0
-        var previous:=-1
-        for index in indices:
-            if previous>=0:
-                elapsed+=float(_policy.dwell_seconds)+_travel(absf(float(service.line.stations[index].stop_z)-float(service.line.stations[previous].stop_z)))
-            offsets[index]=elapsed
-            previous=index
-        _offsets[direction]=offsets
-        _durations[direction]=elapsed+float(_policy.dwell_seconds)
+    if available:
+        available=int(_policy.maximum_physical_trains)==1 and _policy.track_x.has("1") and _policy.track_x.has("-1") and float(_policy.shuttle.target_interval_seconds)>0.0
+    if not available: push_error("Train dispatch: отсутствуют корректные параметры одного челночного состава")
 
 func register_current_train() -> void:
     if not slots.is_empty(): return
@@ -78,7 +56,7 @@ func cancel() -> void:
     _prefetch_targets.clear()
     pending.clear()
     terminal_call.clear()
-    # A manual driver's own lease is never retired or repositioned.
+    records.clear()
 
 func schedule(index: int) -> void:
     if not available:
@@ -87,37 +65,40 @@ func schedule(index: int) -> void:
     register_current_train()
     _enabled=true
     _observed=index
-    _refresh_records()
+    # Passenger startup already hides the original consist before showing the
+    # player. It can immediately become the first approaching train.
+    if not bool(slots[0].active): _plan(index,_outbound(index,1),_now(),"REUSABLE")
 
 func handover(train: Node3D) -> void:
     if not available: return
     register_current_train()
     _enabled=true
+    pending.clear()
+    _prefetch_targets.clear()
     var slot: Dictionary=_slot(train)
     if slot.is_empty(): return
     serial+=1
-    var id: String="handover:%d" % serial
-    slot.id=id
+    slot.id="shuttle:%d" % serial
     slot.active=true
-    var index: int=station_at_vehicle(train,slot.context.passengers)
-    var direction: int=int(slot.automatic.direction)
-    if direction not in [1,-1]:
-        _notice("direction","Не определено направление отправления")
-        return
-    var offset: float=float(_offsets[direction].get(index,0.0))
-    records[id]=_record(id,direction,_now()-offset)
-    train.set_meta("dispatch_train_id",id)
-    _prefetch(index+direction)
+    slot.last_call=station_at_vehicle(train,slot.context.passengers)
+    slot.departure_seen=false
+    records.clear()
+    records[str(slot.id)]={"id":slot.id,"direction":int(slot.automatic.direction),"state":"DWELL","boarding_available":false}
+    train.set_meta("dispatch_train_id",str(slot.id))
+    # Existing arrival/doors/INFO logic owns the handover dwell. Departure is
+    # timed below only when actual velocity first becomes nonzero.
+    _prefetch(int(slot.last_call)+int(slot.automatic.direction))
 
 func begin_call(index: int, direction: int, visit: int, train: Node3D=null) -> void:
     var actor: Node3D=train if is_instance_valid(train) else service.train
     var slot: Dictionary=_slot(actor)
-    if not slot.is_empty() and records.has(str(slot.id)):
-        var data: Dictionary=records[str(slot.id)]
-        data.last_served_station=index
-        data.state="DWELL"
-        data.boarding_available=false
-        data.next_station=index+direction
+    if not slot.is_empty():
+        slot.last_call=index
+        slot.departure_seen=false
+    if not pending.is_empty() and int(pending.station)==index and pending.state=="APPROACHING":
+        pending.state="ARRIVED"
+        pending.actual_arrival_at=_now()
+        pending.reason=""
     var following: int=index+direction
     _prefetch(following if following>=0 and following<service.line.stations.size() else index-direction)
     if following>=0 and following<service.line.stations.size(): return
@@ -125,309 +106,360 @@ func begin_call(index: int, direction: int, visit: int, train: Node3D=null) -> v
     if int(_terminal.get(token,{}).get("visit",-1))!=visit:
         _terminal[token]={"visit":visit,"ready_at":_now()+float(_policy.terminal_dwell_seconds)}
 
+func _outbound(index: int, desired: int) -> int:
+    if index<=0: return 1
+    if index>=service.line.stations.size()-1: return -1
+    return desired
+
+func _plan(index: int, direction: int, departure: float, state: String) -> void:
+    serial+=1
+    pending={"id":"shuttle:%d" % serial,"station":index,"direction":_outbound(index,direction),
+        "departed_at":departure,"arrival_at":departure+float(_policy.shuttle.target_interval_seconds),
+        "state":state,"reason":"","attempts":0,"retry_at":0.0}
+    _observed=index
+    _prefetch_targets.clear()
+
+func platform_shuttle_station() -> int:
+    if not _enabled or service.role!="passenger" or not is_instance_valid(service.player) or not service.player.active or is_instance_valid(service.player.aboard): return -1
+    return service.line.streamer.player_station_index()
+
+func update() -> void:
+    if not service.running or not available: return
+    register_current_train()
+    # Never allocate a second lease or generate future timetable records.
+    var slot: Dictionary=slots[0]
+    slot.context.ready_for_service=service.line.ready_for_service
+    var train: Node3D=slot.context.train
+    if service.role!="passenger": return
+    if _occupied(train):
+        pending.clear()
+        return
+    var station: int=platform_shuttle_station()
+    if station<0: return
+    _clock-=service.get_physics_process_delta_time()
+    if _clock>0.0: return
+    _clock=float(_policy.refresh_seconds)
+    _observed=station
+    var automatic: Node=slot.automatic
+    if bool(slot.active) and automatic.phase==automatic.Phase.RUN and absf(float(train.speed))>float(_policy.shuttle.departure_speed_mps):
+        if not bool(slot.get("departure_seen",false)):
+            slot.departure_seen=true
+            var origin: int=int(slot.get("last_call",station))
+            # Only the station where the physical player is waiting owns this
+            # cycle. Changing the active station cancels the former pending call.
+            if origin==station:
+                _plan(station,-int(automatic.direction),_now(),"CLEARING")
+                service.line.streamer.refresh()
+    if pending.is_empty():
+        if not bool(slot.active): _plan(station,_outbound(station,1),_now(),"REUSABLE")
+        else: return
+    if int(pending.station)!=station:
+        pending.clear()
+        return
+    if pending.state in ["ARRIVED","BLOCKED"]: return
+    if pending.state=="CLEARING":
+        pending.reason="Состав ещё покидает область наблюдения или слышимости"
+        if _reusable(slot,station):
+            _retire(slot)
+            pending.state="REUSABLE"
+        elif _now()-float(pending.departed_at)>float(_policy.shuttle.release_timeout_seconds):
+            _block_call("Состав не освобождён: видимость, звук, двери или занятость. Доступен повтор отправления.")
+            return
+    if pending.state=="REUSABLE":
+        if not service.line.streamer.is_service_ready(station) or not service.line.passengers.platform_ready(station):
+            pending.reason="Подготовка платформы"
+            return
+        if _now()<float(pending.retry_at): return
+        var candidate: Dictionary=_approach(station,int(pending.direction),train)
+        if candidate.is_empty():
+            _block_call("На существующей линии нет безопасной точки подхода к этой платформе")
+            return
+        var launch: float=float(pending.arrival_at)-float(candidate.travel_seconds)
+        if _now()<launch: return
+        if int(pending.attempts)>=int(_policy.maximum_spawn_attempts):
+            _block_call("Не удалось подготовить безопасное прибытие. Доступен повтор.")
+            return
+        pending.attempts=int(pending.attempts)+1
+        if not _activate(pending,slot,station,candidate):
+            pending.retry_at=_now()+float(_policy.retry_seconds)
+            return
+    if pending.state=="APPROACHING":
+        if automatic.phase==automatic.Phase.BLOCKED:
+            _block_call(str(automatic.error_message))
+        else:
+            var distance: float=float(train.distance)
+            if absf(distance-float(pending.get("progress_z",distance)))>0.5:
+                pending.progress_z=distance
+                pending.progress_at=_now()
+            if _now()-float(pending.get("progress_at",_now()))>float(_policy.shuttle.approach_timeout_seconds):
+                var problem: String=service.line.streamer.station_error(station)
+                var reason: String="Нет продвижения к платформе: "+(problem if not problem.is_empty() else "ожидание готового базового пути или остановки")
+                automatic._block(reason)
+                _block_call(reason)
+            elif _now()>float(pending.arrival_at):
+                pending.reason="Состав приближается; ожидание штатной остановки"
+
+func _block_call(reason: String) -> void:
+    pending.state="BLOCKED"
+    pending.reason=reason
+    _notice("shuttle",reason)
+
+func _reusable(slot: Dictionary, index: int) -> bool:
+    var train: Node3D=slot.context.train
+    if _occupied(train) or service.role!="passenger" or platform_shuttle_station()!=index: return false
+    if not train.door_system.can_move() or not service.interaction.doorway_clear() or not slot.context.passengers.doors_clear(): return false
+    for door in slot.context.passengers.layout.doors:
+        if door.active!=null or not door.enter.is_empty() or not door.exit.is_empty(): return false
+    # One conservative whole-consist envelope, including every posed car.
+    var box: AABB=_physical_bounds(train)
+    if not _outside_station_view(box,index): return false
+    return _audio_quiet(train)
+
+func _physical_bounds(train: Node3D) -> AABB:
+    var box:=AABB()
+    var found:=false
+    for posed in train._pose_cars:
+        if not is_instance_valid(posed.node): continue
+        var part: AABB=posed.node.global_transform*(train._pose_cache[posed.node] as AABB)
+        box=box.merge(part) if found else part
+        found=true
+    return box if found else service.line.path.frame_at(float(train.distance),float(train.track_x))*train._train_bounds
+
+func _outside_station_view(box: AABB, index: int) -> bool:
+    var region: AABB=service.line.streamer.station_camera_bounds(index)
+    if region.size.length_squared()<1.0: return false
+    var policy: Dictionary=service.line.layout.free_camera
+    var allowed: AABB=region.grow(float(policy.station_exterior_margin))
+    allowed.position.z=region.position.z-float(policy.station_tunnel_margin)
+    allowed.size.z=region.size.z+2.0*float(policy.station_tunnel_margin)
+    # Protect ALL legal station camera positions, not only its current gaze.
+    # Camera far clipping proves invisibility without unprepared tunnel-ray
+    # colliders, which formerly could prevent recycling indefinitely.
+    var range_m: float=float(service.train.camera.far)+float(_policy.shuttle.visibility_margin_m)
+    var separation:=Vector3(maxf(0.0,maxf(allowed.position.x-box.end.x,box.position.x-allowed.end.x)),
+        maxf(0.0,maxf(allowed.position.y-box.end.y,box.position.y-allowed.end.y)),
+        maxf(0.0,maxf(allowed.position.z-box.end.z,box.position.z-allowed.end.z)))
+    if separation.length()<=range_m: return false
+    for observer in [service.player.global_position,service.train.camera.global_position]:
+        var nearest:=Vector3(clampf(observer.x,box.position.x,box.end.x),clampf(observer.y,box.position.y,box.end.y),clampf(observer.z,box.position.z,box.end.z))
+        if observer.distance_to(nearest)<=range_m: return false
+    return true
+
+func _audio_quiet(train: Node3D) -> bool:
+    var audio: Node=train.info_binding.audio
+    if audio.announcer.is_busy(): return false
+    var threshold: float=float(_policy.shuttle.recycle_below_db)
+    for player in audio.train_audio._players:
+        if player.playing and float(player.volume_db)>threshold: return false
+    for channel in ["cab","doors"]:
+        var player: AudioStreamPlayer=audio.effects._players.get(channel)
+        if is_instance_valid(player) and player.playing and float(player.volume_db)>threshold: return false
+    return true
+
+func _retire(slot: Dictionary) -> void:
+    var train: Node3D=slot.context.train
+    if _occupied(train) or service.role!="passenger": return
+    slot.automatic.disable()
+    slot.context.passengers.retire_virtual_service()
+    train.info_binding.audio.train_audio.stop_layers()
+    for channel in ["cab","doors"]:
+        var player: AudioStreamPlayer=train.info_binding.audio.effects._players.get(channel)
+        if is_instance_valid(player): player.stop()
+    train.service_ready=false
+    train.train.hide()
+    train.speed=0.0
+    _collisions(train,false)
+    slot.active=false
+    service.virtual_wait=true
+    records.clear()
+    _terminal.erase(train.get_instance_id())
+    service.line.streamer.refresh()
+
+func _activate(data: Dictionary, slot: Dictionary, index: int, candidate: Dictionary) -> bool:
+    var train: Node3D=slot.context.train
+    if bool(slot.active) or _occupied(train) or platform_shuttle_station()!=index: return false
+    if not _outside_station_view(candidate.bounds,index):
+        data.reason="Точка подхода находится в области наблюдения"
+        return false
+    if train.cab_runtime.emergency:
+        data.reason="Включён аварийный тормоз"
+        return false
+    if not train.door_system.can_move():
+        data.reason="Не закрыты пассажирские двери"
+        return false
+    # The existing instance was hidden only after all four cars and their
+    # sounds cleared the player. Never reload or instantiate V106 here.
+    train.service_ready=false
+    train.distance=float(candidate.z)
+    train.train.position.z=train.distance
+    train.track_x=float(_policy.track_x[str(candidate.direction)])
+    train.cab_runtime.direction=int(candidate.direction)
+    train.throttle=false
+    train.brake=false
+    train.cab_runtime.controller_value=0.0
+    train.cab_runtime.brake_demand=0.0
+    train.cab_runtime.applied_brake=0.0
+    train.cab_runtime.traction_actual=0.0
+    train.speed=float(candidate.speed)
+    train._last_speed=train.speed
+    train.info_binding.audio._last_speed=train.speed
+    train.info_binding.audio._motion_sampled=false
+    train._posed_distance=NAN
+    train._place_consist()
+    # Assert the actual posed envelope too, before showing any geometry.
+    if not _outside_station_view(_physical_bounds(train),index):
+        train.speed=0.0
+        data.reason="Габариты состава ещё входят в область наблюдения"
+        return false
+    slot.id=str(data.id)
+    slot.active=true
+    slot.departure_seen=true
+    records.clear()
+    records[str(data.id)]=data
+    train.set_meta("dispatch_train_id",str(data.id))
+    service.virtual_wait=false
+    train.info_binding.passenger_mode=true
+    train.info_binding.audio.info.set_mode("auto")
+    slot.automatic.approach_station(index,int(candidate.direction))
+    slot.automatic.update_info()
+    _collisions(train,true)
+    train.train.show()
+    train.service_ready=true
+    data.state="APPROACHING"
+    data.progress_at=_now()
+    data.progress_z=float(train.distance)
+    data.reason=""
+    service.line.streamer.refresh()
+    for tunnel in service.line.tunnels: tunnel.sync_to_view()
+    return true
+
+func _approach(index: int, direction: int, train: Node3D) -> Dictionary:
+    if direction not in [1,-1]: return {}
+    var incoming: int=-direction if (index==0 and direction>0) or (index==service.line.stations.size()-1 and direction<0) else direction
+    var bounds: AABB=train._train_bounds
+    var stop: float=float(service.line.stations[index].stop_z)
+    var region: AABB=service.line.streamer.station_camera_bounds(index)
+    var clearance: float=float(service.train.camera.far)+float(_policy.shuttle.visibility_margin_m)+float(service.line.layout.free_camera.station_tunnel_margin)+float(_policy.shuttle.pose_margin_m)+1.0
+    # Put the nearest end of the whole train beyond the legal camera region.
+    var z: float=region.end.z+clearance-bounds.position.z if incoming>0 else region.position.z-clearance-bounds.end.z
+    var box:=AABB()
+    var found:=false
+    for probe in range(int(_policy.shuttle.spawn_probes)):
+        var frame: Transform3D=service.line.path.frame_at(z,float(_policy.track_x[str(incoming)]))
+        box=(frame*bounds).grow(float(_policy.shuttle.pose_margin_m))
+        if box.position.z<service.line.path.lower_z+8.0 or box.end.z>96.0-8.0: return {}
+        var tunnel_only:=true
+        for end in [box.position.z,box.end.z,box.get_center().z]:
+            if service.line.path.in_station(float(end),8.0): tunnel_only=false
+        if tunnel_only and _outside_station_view(box,index):
+            found=true
+            break
+        z+=float(incoming)*float(_policy.shuttle.spawn_probe_step_m)
+    if not found: return {}
+    var distance: float=(z-stop)*float(incoming)
+    if distance<1.0: return {}
+    var deceleration: float=float(service.rules.service.braking_deceleration)
+    var speed: float=minf(float(service.rules.service.cruise_speed),sqrt(2.0*deceleration*maxf(0.0,distance-float(_policy.shuttle.braking_reserve_m))))
+    # A rolling approach avoids accelerating the reused train from rest in a
+    # distant tunnel. Speed is installed ONLY while fully hidden.
+    var braking: float=speed*speed/(2.0*deceleration)
+    var travel: float=maxf(0.0,distance-braking)/maxf(speed,0.1)+speed/deceleration
+    return {"z":z,"direction":incoming,"speed":speed,"bounds":box,"travel_seconds":travel}
+
+func adopt(car: Node3D) -> bool:
+    register_current_train()
+    var slot: Dictionary=slots[0]
+    if not bool(slot.active) or car not in slot.context.passengers.layout.cars: return false
+    pending.clear()
+    _prefetch_targets.clear()
+    # The character will immediately be parented to this same car; no lease,
+    # camera, audio or passenger ownership transfer is necessary.
+    var next: int=int(slot.automatic.target)
+    if service.station_at_train()>=0: next+=int(slot.automatic.direction)
+    if next>=0 and next<service.line.stations.size():
+        _prefetch_targets[next]=_now()+float(_policy.shuttle.prefetch_seconds)
+    return true
+
+func streaming_requests() -> Array:
+    var station: int=platform_shuttle_station()
+    if station>=0: return [{"index":station,"priority":25000.0}]
+    var result: Array=[]
+    for slot in slots:
+        if not bool(slot.active): continue
+        var train: Node3D=slot.context.train
+        var direction: int=int(train.cab_runtime.direction)
+        var next: int=int(slot.automatic.target)
+        result.append({"index":next,"priority":20000.0})
+        if station_at_vehicle(train,slot.context.passengers)>=0: next+=direction
+        if next>=0 and next<service.line.stations.size(): result.append({"index":next,"priority":5000.0})
+    for key in _prefetch_targets.keys():
+        if _now()>float(_prefetch_targets[key]): _prefetch_targets.erase(key)
+        else: result.append({"index":int(key),"priority":5000.0})
+    return result
+
+func _prefetch(index: int) -> void:
+    if index<0 or index>=service.line.stations.size() or platform_shuttle_station()>=0: return
+    _prefetch_targets[index]=_now()+float(_policy.shuttle.prefetch_seconds)
+    service.line.streamer.refresh()
+
+func traffic_remaining(_actor: Node3D, _direction: int) -> float:
+    return INF # Exactly one physical consist; it cannot collide with a second lease.
+
+func has_blocked_dispatch() -> bool:
+    return pending.get("state","")=="BLOCKED" or service.automatic.phase==service.automatic.Phase.BLOCKED
+
+func retry_dispatch() -> void:
+    if service.role!="passenger": return
+    if not pending.is_empty() and pending.state=="BLOCKED":
+        if bool(slots[0].active) and int(slots[0].automatic.target)==int(pending.station):
+            slots[0].automatic.approach_station(int(pending.station),int(service.train.cab_runtime.direction))
+            pending.state="APPROACHING"
+            pending.progress_at=_now()
+            pending.progress_z=float(service.train.distance)
+        else:
+            if service.automatic.phase==service.automatic.Phase.BLOCKED: service.automatic.retry_departure()
+            pending.state="CLEARING" if bool(slots[0].active) else "REUSABLE"
+        pending.attempts=0
+        pending.retry_at=0.0
+        # A retry keeps the original deadline; it never invents another train.
+    elif service.automatic.phase==service.automatic.Phase.BLOCKED:
+        service.automatic.retry_departure()
+    _clock=0.0
+
+func status_text() -> String:
+    if not available: return "Нет корректных данных расписания"
+    if service.role!="passenger": return ""
+    if _occupied(service.train):
+        return "К Площади Ленина" if int(service.automatic.direction)>0 else "К Уручью"
+    var slot: Dictionary=_slot(service.train)
+    if not slot.is_empty() and bool(slot.active) and service.automatic.phase==service.automatic.Phase.DWELL:
+        return "Отправление примерно через %d с" % maxi(0,ceili(float(service.automatic._departure_at)-_now()))
+    if pending.is_empty(): return "Ожидание отправления состава"
+    var label: String="К Пл. Ленина" if int(pending.direction)>0 else "К Уручью"
+    if pending.state=="ARRIVED": return label+" · посадка"
+    var remaining: float=float(pending.arrival_at)-_now()
+    if pending.state=="BLOCKED" or remaining<=0.0:
+        return label+" · задержка: "+str(pending.get("reason","Ожидание безопасного прибытия"))
+    return label+": %d с" % ceili(remaining)
+
+func note_hidden(train: Node3D) -> void:
+    if _occupied(train): return
+    var slot: Dictionary=_slot(train)
+    if slot.is_empty(): return
+    slot.active=false
+    service.virtual_wait=true
+
 func terminal_ready(visit: int, train: Node3D=null) -> bool:
     var actor: Node3D=train if is_instance_valid(train) else service.train
     var call: Dictionary=_terminal.get(actor.get_instance_id(),{})
     return int(call.get("visit",-1))==visit and _now()>=float(call.get("ready_at",INF))
 
-func update() -> void:
-    if not service.running or not available: return
-    register_current_train()
-    for slot in slots.duplicate():
-        if not is_instance_valid(slot.context): continue
-        var train: Node3D=slot.context.train
-        slot.context.ready_for_service=service.line.ready_for_service
-        if not bool(slot.active): continue
-        _update_physical_record(slot)
-        if train==service.train and service.role=="driver": continue
-        if _occupied(train) or not _outside_view(train,float(train.distance)): continue
-        var actor: CharacterBody3D=service.player
-        if not is_instance_valid(actor) or not actor.active: continue
-        var away: float=absf(actor.global_position.z-float(train.distance))
-        if away<float(service.rules.service.retire_distance): continue
-        if not slot.context.gameplay.interaction.doorway_clear() or not slot.context.passengers.doors_clear(): continue
-        _retire(slot)
-    _clock-=service.get_physics_process_delta_time()
-    if _clock>0.0: return
-    _clock=float(_policy.refresh_seconds)
-    if not _enabled or service.role!="passenger" or not is_instance_valid(service.player) or not service.player.active: return
-    if is_instance_valid(service.player.aboard): return
-    _observed=service.line.streamer.player_station_index()
-    if _observed<0: return
-    _refresh_records()
-    if not service.line.streamer.is_service_ready(_observed): return
-    var candidates: Array=[]
-    for id in records:
-        var data: Dictionary=records[id]
-        if _physical_id(str(id)) or str(data.state) in ["COMPLETE","BLOCKED"]: continue
-        if int(data.get("last_served_station",-1))==_observed: continue
-        var arrival: float=float(data.origin_at)+float(_offsets[int(data.direction)][_observed])
-        if arrival<_now()-float(_policy.maximum_lateness_seconds): continue
-        data.arrival_at=arrival
-        data.next_station=_observed
-        candidates.append(data)
-    candidates.sort_custom(func(a: Dictionary,b: Dictionary):return float(a.arrival_at)<float(b.arrival_at))
-    for data in candidates:
-        if _spawning: break
-        var probe: Dictionary=_approach(_observed,int(data.direction),service.train)
-        if probe.is_empty():
-            if float(data.arrival_at)<=_now(): _notice("direction:%s" % data.id,"Нет безопасной точки появления для направления по расписанию")
-            continue
-        var travel: float=_travel(absf(float(probe.z)-float(service.line.stations[_observed].stop_z)))
-        if _now()<float(data.arrival_at)-travel-float(_policy.prepare_lead_seconds): continue
-        _prefetch(_observed+int(data.direction))
-        if Time.get_ticks_msec()<int(data.get("retry_at",0)): continue
-        if int(data.get("attempts",0))>=int(_policy.maximum_spawn_attempts):
-            data.state="BLOCKED"
-            continue
-        var free: Dictionary={}
-        for slot in slots:
-            if not bool(slot.active) and not _occupied(slot.context.train): free=slot;break
-        if free.is_empty() and slots.size()>=int(_policy.maximum_physical_trains):
-            _notice("pool","Прибытие задерживается: оба состава ещё используются")
-            continue
-        if not _track_clear(float(probe.z),int(data.direction),service.train):
-            _notice("track","Прибытие задерживается: участок пути занят")
-            continue
-        if not _outside_view(service.train,float(probe.z),true,int(data.direction)):
-            if float(data.arrival_at)<=_now(): _notice("visibility","Прибытие ожидает безопасного участка вне области наблюдения")
-            continue
-        _spawning=true
-        data.attempts=int(data.get("attempts",0))+1
-        _activate(data,free,_observed)
-        break
-    if not candidates.is_empty():
-        var next: Dictionary=candidates[0]
-        pending={"id":next.id,"station":_observed,"direction":next.direction,"arrival_at":next.arrival_at}
-
-func _record(id: String, direction: int, origin: float) -> Dictionary:
-    return {"id":id,"direction":direction,"track_x":float(_policy.track_x[str(direction)]),
-        "segment_from":-1,"segment_to":0 if direction>0 else service.line.stations.size()-1,
-        "next_station":0 if direction>0 else service.line.stations.size()-1,
-        "origin_at":origin,"arrival_at":origin,"dwell_seconds":float(_policy.dwell_seconds),
-        "state":"VIRTUAL","boarding_available":false,"last_served_station":-1,"attempts":0,"retry_at":0}
-
-func _refresh_records() -> void:
-    var headway: float=maxf(20.0,float(_policy.headway_seconds))
-    for direction in [1,-1]:
-        var phase: float=float(_policy.direction_offsets_seconds[str(direction)])
-        var sequence: int=floori((_now()-_epoch-phase)/headway)
-        var count: int=ceili(float(_durations[direction])/headway)+2
-        for n in range(sequence-count,sequence+2):
-            var id: String="%d:%d" % [direction,n]
-            if not records.has(id): records[id]=_record(id,direction,_epoch+phase+float(n)*headway)
-    for id in records.keys():
-        if _physical_id(str(id)): continue
-        var data: Dictionary=records[id]
-        var age: float=_now()-float(data.origin_at)
-        if age>float(_durations[int(data.direction)])+headway:
-            records.erase(id)
-            continue
-        if str(data.state)=="BLOCKED": continue
-        data.state="COMPLETE" if age>float(_durations[int(data.direction)]) else "RUN"
-        data.boarding_available=false
-        var indices: Array=range(service.line.stations.size())
-        if int(data.direction)<0: indices.reverse()
-        var previous:=-1
-        for index in indices:
-            var eta: float=float(data.origin_at)+float(_offsets[int(data.direction)][index])
-            if _now()<=eta+float(data.dwell_seconds):
-                data.segment_from=previous
-                data.segment_to=index
-                data.next_station=index
-                data.arrival_at=eta
-                data.state="DWELL" if _now()>=eta else "RUN"
-                break
-            previous=index
-
-func _update_physical_record(slot: Dictionary) -> void:
-    if not records.has(str(slot.id)): return
-    var data: Dictionary=records[str(slot.id)]
-    var automatic: Node=slot.automatic
-    data.direction=int(automatic.direction)
-    data.track_x=float(slot.context.train.track_x)
-    data.next_station=int(automatic.target)
-    data.segment_from=int(data.get("last_served_station",-1))
-    data.segment_to=int(automatic.target)
-    data.state="BLOCKED" if automatic.phase==automatic.Phase.BLOCKED else ("RUN" if automatic.phase==automatic.Phase.RUN else "DWELL")
-    if automatic.phase==automatic.Phase.RUN:
-        data.arrival_at=_now()+_travel(absf(float(slot.context.train.distance)-float(service.line.stations[int(automatic.target)].stop_z)))
-    data.boarding_available=absf(slot.context.train.speed)<0.05 and bool(slot.context.train.door_system.target_open) and float(slot.context.train.door_system.openness)>=0.99 and slot.context.passengers.platform_ready(int(automatic.target))
-
-func _activate(data: Dictionary, slot: Dictionary, index: int) -> void:
-    var planned_arrival: float=float(data.arrival_at)
-    if slot.is_empty(): slot=await _create_secondary()
-    if slot.is_empty():
-        data.retry_at=Time.get_ticks_msec()+int(float(_policy.retry_seconds)*1000.0)
-        _spawning=false
-        return
-    var train: Node3D=slot.context.train
-    var direction: int=int(data.direction)
-    var launch_at: float=planned_arrival-_travel(absf(float(_approach(index,direction,train).get("z",train.distance))-float(service.line.stations[index].stop_z)))
-    while _now()<launch_at:
-        if not is_instance_valid(service):
-            _spawning=false
-            return
-        if not service.is_inside_tree() or service.role!="passenger" or is_instance_valid(service.player.aboard):
-            _discard_idle(slot)
-            _spawning=false
-            return
-        await service.get_tree().process_frame
-    if not is_instance_valid(service):
-        _spawning=false
-        return
-    if not service.is_inside_tree() or service.role!="passenger" or not service.running or is_instance_valid(service.player.aboard) or index!=_observed:
-        data.attempts=maxi(0,int(data.attempts)-1)
-        _discard_idle(slot)
-        _spawning=false
-        return
-    var candidate: Dictionary=_approach(index,direction,train)
-    if candidate.is_empty() or not _track_clear(float(candidate.get("z",0)),direction,train) or not _outside_view(train,float(candidate.get("z",0)),true,direction):
-        data.retry_at=Time.get_ticks_msec()+int(float(_policy.retry_seconds)*1000.0)
-        _discard_idle(slot)
-        _spawning=false
-        return
-    # Only a hidden and unoccupied lease may be rebound to another virtual ID.
-    if _occupied(train) or bool(slot.active):
-        _notice("occupied","Состав занят игроком; перенос отменён")
-        _spawning=false
-        return
-    var authority: Node=slot.context.gameplay
-    train.service_ready=false
-    train.distance=float(candidate.z)
-    train.route_end_distance=minf(float(train.route_end_distance),float(candidate.z))
-    train.train.position.z=train.distance
-    train.track_x=float(_policy.track_x[str(direction)])
-    train.cab_runtime.direction=int(candidate.direction)
-    train.speed=0.0
-    train.cab_runtime.controller_value=-1.0
-    train.cab_runtime.brake_demand=1.0
-    train.door_system.request_close()
-    train._posed_distance=NAN
-    train._place_consist()
-    slot.id=str(data.id)
-    slot.active=true
-    authority.virtual_wait=false
-    slot.context.ready_for_service=service.line.ready_for_service
-    slot.context.show()
-    train.train.show()
-    _collisions(train,true)
-    train.service_ready=true
-    train.info_binding.passenger_mode=true
-    train.info_binding.audio.info.set_mode("auto")
-    train.set_meta("dispatch_train_id",str(data.id))
-    slot.automatic.approach_station(index,int(candidate.direction))
-    data.arrival_at=planned_arrival
-    data.state="ACTIVE"
-    data.boarding_available=false
-    service.line.streamer.refresh()
-    for tunnel in service.line.tunnels: tunnel.sync_to_view()
-    _spawning=false
-
-func _create_secondary() -> Dictionary:
-    if slots.size()>=int(_policy.maximum_physical_trains): return {}
-    var context=Context.new()
-    context.hide()
-    service.line.add_child(context)
-    context.configure(service.line)
-    var background=Background.new()
-    context.add_child(background)
-    context.gameplay=background
-    var script: Script=load("res://modules/line/line_train.gd") as Script
-    if script==null or not script.can_instantiate():
-        context.queue_free()
-        _notice("visual","Не загружен существующий контроллер V106")
-        return {}
-    var train: Node3D=script.new()
-    context.train=train
-    train.line=context
-    train.set_meta("dispatch_background",true)
-    context.add_child(train)
-    service.train.camera.make_current()
-    var deadline: int=Time.get_ticks_msec()+int(float(_policy.visual_prepare_timeout_seconds)*1000.0)
-    while is_instance_valid(train) and is_instance_valid(service) and (not is_instance_valid(train.info_binding) or not is_instance_valid(train._flight_ui) or train._pose_cars.size()!=4):
-        train._place_consist()
-        if service.role!="passenger" or (is_instance_valid(service.player) and is_instance_valid(service.player.aboard)):
-            context.queue_free()
-            return {}
-        if Time.get_ticks_msec()>=deadline or not service.is_inside_tree():
-            context.queue_free()
-            _notice("visual","Не завершена подготовка состава V106; будет повторная попытка")
-            return {}
-        await service.get_tree().process_frame
-    if not is_instance_valid(train) or not is_instance_valid(service) or not service.is_inside_tree(): return {}
-    train.train.hide()
-    train._ui_layer.hide()
-    train.camera.clear_current()
-    if is_instance_valid(train.info_binding._button): train.info_binding._button.hide()
-    service.train.camera.make_current()
-    train.cab_runtime.set_process_input(false)
-    train.cab_runtime.set_process_unhandled_input(false)
-    var passenger_script: Script=load("res://modules/line/line_passengers.gd") as Script
-    if passenger_script==null or not passenger_script.can_instantiate():
-        context.queue_free()
-        _notice("passengers","Не загружена существующая пассажирская система")
-        return {}
-    var passengers: Node3D=passenger_script.new()
-    context.passengers=passengers
-    context.add_child(passengers)
-    passengers.initialize_line(context,train)
-    background.configure(self,context)
-    var automatic_script: Script=load("res://modules/gameplay/automatic_service.gd") as Script
-    if automatic_script==null or not automatic_script.can_instantiate():
-        context.queue_free()
-        _notice("automatic","Не загружен автоматический контроллер")
-        return {}
-    var automatic: Node=automatic_script.new()
-    background.add_child(automatic)
-    background.automatic=automatic
-    automatic.initialize(background)
-    # Register the pending lease before yielding: the existing streamer's
-    # ownership check then protects platforms whose navigation is being read.
-    var slot: Dictionary={"context":context,"background":background,"automatic":automatic,"id":"","active":false}
-    slots.append(slot)
-    for key in service.line.streamer.instances.keys():
-        var instance: Node3D=service.line.station_instance(int(key))
-        if is_instance_valid(instance): await passengers.add_platform(service.line.stations[int(key)],instance)
-    if not background._geometry.prepare_train(background):
-        slots.erase(slot)
-        context.queue_free()
-        _notice("collisions",background._geometry.error_message)
-        return {}
-    return slot
-
-func _retire(slot: Dictionary) -> void:
-    var train: Node3D=slot.context.train
-    if _occupied(train) or (train==service.train and service.role=="driver"): return
-    if records.has(str(slot.id)):
-        var data: Dictionary=records[str(slot.id)]
-        var target: int=int(slot.automatic.target)
-        data.origin_at=_now()+_travel(absf(float(train.distance)-float(service.line.stations[target].stop_z)))-float(_offsets[int(data.direction)][target])
-        data.state="VIRTUAL"
-        data.boarding_available=false
-    slot.automatic.disable()
-    slot.context.gameplay.virtual_wait=true
-    slot.context.passengers.retire_virtual_service()
-    train.service_ready=false
-    train.train.hide()
-    train.speed=0.0
-    train.cab_runtime.controller_value=-1.0
-    train.cab_runtime.brake_demand=1.0
-    _collisions(train,false)
-    slot.active=false
-    if train==service.train:
-        service.virtual_wait=true # One hidden lease remains reusable; no new GLBs.
-    else:
-        _terminal.erase(train.get_instance_id())
-        slots.erase(slot)
-        slot.context.hide()
-        slot.context.queue_free() # Release the second scene, audio, NPC and resource references.
-    service.line.streamer.refresh()
 
 func service_for_car(car: Node3D) -> Node:
     for slot in slots:
         if bool(slot.active) and car in slot.context.passengers.layout.cars: return slot.context.gameplay
     return service if car in service.line.passengers.layout.cars else null
+
 
 func boarding_cars() -> Array:
     var cars: Array=[]
@@ -436,46 +468,6 @@ func boarding_cars() -> Array:
     if slots.is_empty(): cars.assign(service.line.passengers.layout.cars)
     return cars
 
-func adopt(car: Node3D) -> bool:
-    register_current_train()
-    var desired: Dictionary={}
-    for slot in slots:
-        if bool(slot.active) and car in slot.context.passengers.layout.cars: desired=slot;break
-    if desired.is_empty(): return false
-    var train: Node3D=desired.context.train
-    if train==service.train: return true
-    if service.role!="passenger" or absf(train.speed)>0.05 or is_instance_valid(service.player.aboard): return false
-    var old: Dictionary=_slot(service.train)
-    if not old.is_empty():
-        old.background.running=true
-        old.background.virtual_wait=not bool(old.active)
-        old.context.gameplay=old.background
-        old.automatic.service=old.background
-        old.context.train.set_meta("dispatch_background",true)
-        old.context.train._ui_layer.hide()
-        old.context.train._flight_ui.stick=Vector2.ZERO
-        old.context.train.cab_runtime.set_process_input(false)
-        old.context.train.cab_runtime.set_process_unhandled_input(false)
-        old.context.train.camera.clear_current()
-    desired.background.running=false
-    desired.context.gameplay=service
-    desired.automatic.service=service
-    service.train=train
-    service.line.train=train
-    service.line.passengers=desired.context.passengers
-    service.automatic=desired.automatic
-    service.virtual_wait=false
-    service._cab_ready=false
-    service._cab_busy=false
-    service._cab_error=""
-    service.interaction.cab_points.clear()
-    train.set_meta("dispatch_background",false)
-    train.cab_runtime.set_process_input(true)
-    train.cab_runtime.set_process_unhandled_input(true)
-    train.activate_character_view(service.player.eye)
-    for tunnel in service.line.tunnels: tunnel.configure(train.train,train._train_bounds,train.camera)
-    service.line.streamer.refresh()
-    return true
 
 func station_at_vehicle(train: Node3D, passengers: Node3D) -> int:
     if absf(train.speed)>0.05: return -1
@@ -488,20 +480,24 @@ func station_at_vehicle(train: Node3D, passengers: Node3D) -> int:
             if absf(door.marker.global_position.y-float(navigation.height))<0.6 and navigation.platform_area.has_point(Vector2(point.x,point.z)): return index
     return -1
 
+
 func station_loaded(index: int, instance: Node3D) -> void:
     for slot in slots:
         if slot.context.passengers!=service.line.passengers:
             slot.context.passengers.add_platform(service.line.stations[index],instance)
+
 
 func station_unloading(index: int, instance: Node3D) -> void:
     for slot in slots:
         if slot.context.passengers!=service.line.passengers: slot.context.passengers.remove_platform(index)
         slot.context.train.release_station(instance)
 
+
 func can_unload_platform(index: int) -> bool:
     for slot in slots:
         if not slot.context.passengers.can_unload_platform(index): return false
     return true
+
 
 func envelopes() -> Array:
     var result: Array=[]
@@ -509,125 +505,21 @@ func envelopes() -> Array:
         if bool(slot.active): result.append({"train":slot.context.train,"bounds":slot.context.train._train_bounds})
     return result
 
-func streaming_requests() -> Array:
-    var result: Array=[]
-    for slot in slots:
-        if not bool(slot.active): continue
-        var train: Node3D=slot.context.train
-        var direction: int=int(train.cab_runtime.direction)
-        if slot.context.gameplay.role=="passenger" and slot.automatic.phase!=slot.automatic.Phase.IDLE:
-            var next: int=int(slot.automatic.target)
-            result.append({"index":next,"priority":20000.0})
-            if station_at_vehicle(train,slot.context.passengers)>=0:
-                var following: int=next+direction
-                next=following if following>=0 and following<service.line.stations.size() else next-direction
-            if next>=0 and next<service.line.stations.size(): result.append({"index":next,"priority":5000.0})
-        var bounds: AABB=train._train_bounds
-        for record in service.line.stations:
-            if float(train.distance)+bounds.end.z>=float(record.low)-152.0 and float(train.distance)+bounds.position.z<=float(record.high)+152.0:
-                result.append({"index":int(record.index),"priority":25000.0})
-    for key in _prefetch_targets.keys():
-        if _now()>float(_prefetch_targets[key]):
-            _prefetch_targets.erase(key)
-            continue
-        result.append({"index":int(key),"priority":5000.0})
-    if _enabled and pending.has("direction") and pending.has("station"):
-        var next: int=int(pending.station)+int(pending.direction)
-        if next>=0 and next<service.line.stations.size(): result.append({"index":next,"priority":5000.0})
-    return result
-
-func _prefetch(index: int) -> void:
-    if index<0 or index>=service.line.stations.size(): return
-    _prefetch_targets[index]=_now()+float(_policy.headway_seconds)
-    # refresh() consumes streaming_requests; it owns all station work.
-    service.line.streamer.refresh()
 
 func _slot(train: Node3D) -> Dictionary:
     for slot in slots:
         if slot.context.train==train: return slot
     return {}
 
-func _physical_id(id: String) -> bool:
-    for slot in slots:
-        if bool(slot.active) and str(slot.id)==id: return true
-    return false
 
 func _occupied(train: Node3D) -> bool:
     return is_instance_valid(service.player) and is_instance_valid(service.player.aboard) and train.train.is_ancestor_of(service.player.aboard)
 
-func _track_clear(z: float, direction: int, actor: Node3D) -> bool:
-    var x: float=float(_policy.track_x[str(direction)])
-    for slot in slots:
-        if not bool(slot.active): continue
-        var other: Node3D=slot.context.train
-        if absf(float(other.track_x)-x)>3.0: continue
-        var bounds: AABB=other._train_bounds
-        var margin: float=float(_policy.minimum_gap_m)+float(other.speed)*float(other.speed)/(2.0*float(service.rules.service.braking_deceleration))+absf(float(other.speed))+2.0
-        if z+actor._train_bounds.end.z+margin>float(other.distance)+bounds.position.z and z+actor._train_bounds.position.z-margin<float(other.distance)+bounds.end.z: return false
-    return true
-
-func traffic_remaining(actor: Node3D, direction: int) -> float:
-    var remaining:=INF
-    for slot in slots:
-        var other: Node3D=slot.context.train
-        if not bool(slot.active) or other==actor or absf(float(other.track_x)-float(actor.track_x))>3.0: continue
-        var lead: float=float(actor.distance)+(actor._train_bounds.position.z if direction>0 else actor._train_bounds.end.z)
-        var rear: float=float(other.distance)+(other._train_bounds.end.z if direction>0 else other._train_bounds.position.z)
-        var gap: float=(lead-rear)*float(direction)-float(_policy.minimum_gap_m)
-        if int(other.cab_runtime.direction)*direction<0:
-            gap-=float(other.speed)*float(other.speed)/(2.0*float(service.rules.service.braking_deceleration))+absf(float(other.speed))+2.0
-        if (float(actor.distance)-float(other.distance))*float(direction)>0.0: remaining=minf(remaining,maxf(0.0,gap))
-    return remaining
-
-func _approach(index: int, direction: int, train: Node3D) -> Dictionary:
-    if direction not in [1,-1]: return {}
-    # At a route origin, arrive from the existing line and turn around through
-    # the original terminal service. Never invent track beyond the end, change
-    # the scheduled outbound direction or move a visible train across tracks.
-    var incoming: int=-direction if (index==0 and direction>0) or (index==service.line.stations.size()-1 and direction<0) else direction
-    var bounds: AABB=train._train_bounds
-    var stop: float=float(service.line.stations[index].stop_z)
-    var z: float=clampf(stop+float(incoming)*float(service.rules.service.appearance_distance),service.line.path.lower_z-bounds.position.z+8.0,96.0-bounds.end.z-8.0)
-    if (z-stop)*float(incoming)<float(service.rules.service.minimum_approach): return {}
-    for end in [z+bounds.position.z,z+bounds.end.z,z+bounds.get_center().z]:
-        if service.line.path.in_station(float(end),8.0): return {}
-    return {"z":z,"direction":incoming}
-
-func _outside_view(train: Node3D, z: float, spawning: bool=false, direction: int=1) -> bool:
-    if not spawning and _occupied(train): return false
-    var bounds: AABB=train._train_bounds.grow(float(service.line.layout.free_camera.train_end_margin))
-    var observers: Array[Vector3]=[]
-    if is_instance_valid(service.player) and service.player.active: observers.append(service.player.global_position)
-    if is_instance_valid(service.train.camera): observers.append(service.train.camera.global_position)
-    for observer in observers:
-        var closest: float=clampf(observer.z,z+bounds.position.z,z+bounds.end.z)
-        if absf(closest-observer.z)<float(service.rules.service.visibility_clearance): return false
-    # Never rebind a lease while any part of its envelope is in the active
-    # camera frustum. Turning away or an already travelled bend permits reuse.
-    var camera: Camera3D=service.train.camera
-    if is_instance_valid(camera):
-        var x: float=float(_policy.track_x[str(direction)]) if spawning else float(train.track_x)
-        var frame: Transform3D=service.line.path.frame_at(z,x)
-        var samples: Array[Vector3]=[bounds.get_center(),Vector3(bounds.get_center().x,bounds.get_center().y,bounds.position.z),Vector3(bounds.get_center().x,bounds.get_center().y,bounds.end.z)]
-        for corner in range(8): samples.append(bounds.get_endpoint(corner))
-        for local in samples:
-            var point: Vector3=frame*local
-            if camera.is_position_in_frustum(point):
-                var query:=PhysicsRayQueryParameters3D.create(camera.global_position,point,1<<16)
-                var hit: Dictionary=service.line.get_world_3d().direct_space_state.intersect_ray(query)
-                if hit.is_empty(): return false
-    return true
 
 func _collisions(train: Node3D, enabled: bool) -> void:
     for body in train.train.find_children("*","CollisionObject3D",true,false):
         if body.has_meta("metro_native_walk"): body.collision_layer=(1<<17) if enabled else 0
 
-func _travel(distance: float) -> float:
-    var acceleration: float=float(service.rules.service.acceleration_estimate)
-    var deceleration: float=float(service.rules.service.braking_deceleration)
-    var peak: float=minf(float(service.rules.service.cruise_speed),sqrt(2.0*distance/(1.0/acceleration+1.0/deceleration)))
-    var used: float=peak*peak*0.5*(1.0/acceleration+1.0/deceleration)
-    return peak/acceleration+peak/deceleration+maxf(0.0,distance-used)/maxf(peak,0.1)
 
 func _notice(key: String, message: String) -> void:
     if _now()<float(_notices.get(key,0.0)): return
@@ -635,65 +527,11 @@ func _notice(key: String, message: String) -> void:
     service.ui.notice(message)
     push_warning("Train dispatch: "+message)
 
+
 func _now() -> float:
     return float(Time.get_ticks_msec())/1000.0
 
-func _discard_idle(slot: Dictionary) -> void:
-    if not is_instance_valid(service): return
-    if slot.is_empty() or not is_instance_valid(slot.context) or slot.context.train==service.train or bool(slot.active): return
-    slots.erase(slot)
-    slot.context.queue_free()
 
 func report_delay(key: String, message: String) -> void:
     _notice(key,message)
 
-func has_blocked_dispatch() -> bool:
-    for slot in slots:
-        if slot.automatic.phase==slot.automatic.Phase.BLOCKED: return true
-    for data in records.values():
-        if str(data.state)=="BLOCKED": return true
-    return false
-
-func retry_dispatch() -> void:
-    if service.role!="passenger": return
-    for slot in slots:
-        if slot.automatic.phase==slot.automatic.Phase.BLOCKED: slot.automatic.retry_departure()
-    for data in records.values():
-        if str(data.state)=="BLOCKED":
-            data.state="VIRTUAL"
-            data.attempts=0
-            data.retry_at=0
-    _clock=0.0
-
-func status_text() -> String:
-    if not available: return "Нет корректных данных расписания"
-    if service.role!="passenger": return ""
-    var slot: Dictionary=_slot(service.train)
-    if not slot.is_empty() and bool(slot.active) and slot.automatic.phase==slot.automatic.Phase.DWELL:
-        return "Отправление примерно через %d с" % maxi(0,ceili(float(slot.automatic._departure_at)-_now()))
-    if is_instance_valid(service.player) and is_instance_valid(service.player.aboard):
-        var direction: int=int(service.train.cab_runtime.direction)
-        var station: int=service.station_at_train()
-        if station>=0 and (station+direction<0 or station+direction>=service.line.stations.size()): direction=-direction
-        return "К Площади Ленина" if direction>0 else "К Уручью"
-    var times: Dictionary={1:INF,-1:INF}
-    for data in records.values():
-        if str(data.state) in ["COMPLETE","BLOCKED"] or int(data.get("last_served_station",-1))==_observed: continue
-        var direction: int=int(data.direction)
-        var eta: float=float(data.origin_at)+float(_offsets[direction].get(_observed,INF))
-        if eta>=_now(): times[direction]=minf(float(times[direction]),eta)
-    var text: PackedStringArray=[]
-    for direction in [1,-1]:
-        if is_finite(float(times[direction])):
-            text.append(("К Пл. Ленина" if direction>0 else "К Уручью")+": %d с" % maxi(0,ceili(float(times[direction])-_now())))
-    return " · ".join(text)
-
-func note_hidden(train: Node3D) -> void:
-    if _occupied(train): return
-    var slot: Dictionary=_slot(train)
-    if slot.is_empty(): return
-    slot.active=false
-    slot.context.gameplay.virtual_wait=true
-    if records.has(str(slot.id)):
-        records[str(slot.id)].state="VIRTUAL"
-        records[str(slot.id)].boarding_available=false

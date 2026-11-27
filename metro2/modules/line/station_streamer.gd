@@ -182,7 +182,8 @@ func refresh() -> void:
             break
     # A dwelling train already requests the NEXT platform, in either direction.
     # The current platform is separately retained by the train envelope below.
-    if not virtual_parked:
+    var platform_shuttle: bool=is_instance_valid(line.gameplay) and line.gameplay.timetable.platform_shuttle_station()>=0
+    if not virtual_parked and not platform_shuttle:
         if _current_index>=0:
             var following: int=_current_index+_direction
             if following>=0 and following<line.stations.size(): _next_index=following
@@ -520,3 +521,4 @@ func _exit_tree() -> void:
     var store: Node=get_tree().root.get_node_or_null("MetroStaticResourceStore")
     if is_instance_valid(store): store.set_meta("station_preparing",false)
     _wanted.clear()
+

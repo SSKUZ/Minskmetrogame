@@ -116,33 +116,40 @@
     "refresh_seconds": 1
   },
   "dispatch": {
-    "schema": 1,
+    "schema": 2,
     "units": "metres, seconds, monotonic clock",
     "handover_departure_seconds": 10,
     "dwell_seconds": 10,
     "door_closing_lead_seconds": 2.5,
     "terminal_dwell_seconds": 20,
-    "headway_seconds": 120,
-    "direction_offsets_seconds": {
-      "1": 0,
-      "-1": 60
-    },
     "track_x": {
       "1": 0.992,
       "-1": -11.732
     },
-    "maximum_physical_trains": 2,
-    "minimum_gap_m": 80,
+    "maximum_physical_trains": 1,
     "refresh_seconds": 0.25,
-    "prepare_lead_seconds": 20,
-    "maximum_lateness_seconds": 45,
-    "retry_seconds": 15,
+    "retry_seconds": 3,
     "maximum_spawn_attempts": 3,
-    "visual_prepare_timeout_seconds": 45,
     "operation_timeout_seconds": 25,
     "boarding_grace_seconds": 5,
     "ownership": "car parent and dispatch_train_id; occupied/manual leases cannot be recycled",
-    "resources": "one hidden reusable lease; second visible lease shares original models and is released offscreen"
+    "resources": "one existing V106 instance; no second lease or remote line simulation",
+    "shuttle": {
+      "target_interval_seconds": 30,
+      "departure_speed_mps": 0.05,
+      "visibility_margin_m": 4,
+      "pose_margin_m": 8,
+      "braking_reserve_m": 12,
+      "recycle_below_db": -48,
+      "release_timeout_seconds": 120,
+      "prefetch_seconds": 60,
+      "direction_policy": "alternate at intermediate stations; existing line-side approach and terminal reversal only at endpoints",
+      "time_policy": "one immutable departure-based arrival deadline; show delay if safety or track preparation prevents target",
+      "ownership": "recycle only while actual character remains on platform; all four cars outside every permitted camera position and all vehicle sound channels below threshold",
+      "approach_timeout_seconds": 60,
+      "spawn_probes": 8,
+      "spawn_probe_step_m": 16
+    }
   },
   "seating": {
     "eye_height": 1.2,
