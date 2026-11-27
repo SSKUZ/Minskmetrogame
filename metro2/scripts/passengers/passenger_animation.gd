@@ -40,18 +40,14 @@ func play(clip: String, loop: bool = true) -> void:
 func finished() -> bool:
     return _missing or player == null or not player.is_playing()
 
-func balance(dt: float, time: float, speed: float, acceleration: float, seated: bool, riding: bool) -> void:
-    var sensitivity := 0.04 if seated else 0.16
-    var running := clampf(speed*3.6/22.0,0,1)
-    var tf := sensitivity*(clampf(acceleration,-1.2,1.2)*0.023+running*(sin(time*0.89+phase)*0.004+sin(time*1.73+phase*2.17)*0.002)) if riding else 0.0
-    var tl := sensitivity*running*sin(time*0.72+phase*1.61)*0.006 if riding else 0.0
-    var remaining := minf(dt,0.25)
-    while remaining > 0.000001:
-        var h := minf(remaining,1.0/90.0)
-        remaining -= h
-        vf += ((tf-forward)*48-vf*12)*h
-        forward += vf*h
-        vl += ((tl-lateral)*48-vl*12)*h
-        lateral += vl*h
-    visual.rotation.x = clampf(forward,-0.018,0.018)
-    visual.rotation.z = clampf(lateral,-0.018,0.018)
+func balance(dt: float, _time: float, _speed: float, acceleration: float, seated: bool, riding: bool) -> void:
+    # Respond to actual acceleration only. Periodic sway made seated riders
+    # rock constantly even at a steady speed; the original idle clips remain.
+    var target_forward := 0.0
+    if riding and not seated:
+        target_forward = clampf(acceleration, -1.2, 1.2) * 0.009
+    var blend_step := clampf(dt * 3.0, 0.0, 1.0)
+    forward = lerpf(forward, target_forward, blend_step)
+    lateral = lerpf(lateral, 0.0, blend_step)
+    visual.rotation.x = clampf(forward, -0.012, 0.012)
+    visual.rotation.z = clampf(lateral, -0.012, 0.012)
