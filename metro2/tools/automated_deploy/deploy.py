@@ -274,7 +274,15 @@ def plan():
         relevant_parts=[p for p in part_changes if any(p.startswith(h) and (v==key or v=='integration') for h,v in POLICY['category_hints'].items())]
         expected=cfg['mainPack'] if key=='boot' else manifest['packs'].get(key,{}).get('sha256')
         build_deps=[]
-        for requirement in POLICY.get('build_support_dependencies',{}).get(key,[]):
+        requirements=list(POLICY.get('build_support_dependencies',{}).get(key,[]))
+        # The unpacked boot contains legacy station scripts with preload()
+        # references to exported-only Uruchye images. Godot's editor scans
+        # those scripts even when compiling another station. Restore their
+        # real published dependencies for native import only; never add an
+        # eager Uruchye dependency to the runtime station manifest.
+        if category=='station' and key!='uruchye' and 'uruchye' not in requirements:
+            requirements.append('uruchye')
+        for requirement in requirements:
             if requirement not in manifest['packs']:raise RuntimeError('Missing build support pack '+requirement)
             for dep in manifest['modules'].get(requirement,[requirement]):
                 if dep!=key and dep not in deps and dep not in build_deps:build_deps.append(dep)
