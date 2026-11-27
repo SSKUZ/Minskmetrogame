@@ -95,7 +95,7 @@ func _layout_phone() -> void:
     scroll.custom_minimum_size=Vector2(maxf(width-32.0,120.0),maxf(height-90.0,160.0))
 
 func root_scale() -> float:
-    return get_parent().scale.x if get_parent() is Control else 1.0
+    return (get_parent() as Control).scale.x if get_parent() is Control else 1.0
 
 func _phone_style() -> StyleBoxFlat:
     var style:=StyleBoxFlat.new()
@@ -154,7 +154,7 @@ func _update_route() -> void:
     if not is_instance_valid(route_label): return
     var train_speed: float=float(service.train.speed)*3.6
     var station_name: String="В пути"
-    var nearest: Dictionary=service.line.path.nearest_station(float(service.train.distance))
+    var nearest: Dictionary=service.line.path.nearest_station(float(service.line.get("distance")))
     if not nearest.is_empty(): station_name=str(nearest.get("module_id",nearest.get("index","Станция")))
     route_label.text="МЕТРО · %s\\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
 
