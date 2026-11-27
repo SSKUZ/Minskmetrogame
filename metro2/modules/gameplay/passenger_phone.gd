@@ -14,6 +14,9 @@ var news_request: HTTPRequest
 var weather_updated := 0
 var news_updated := 0
 var opened := false
+var route_label: Label
+var _phone_visual: Node3D
+var _phone_animation := 0.0
 
 func initialize(owner_service: Node, parent: Control) -> void:
     service=owner_service
@@ -30,6 +33,7 @@ func initialize(owner_service: Node, parent: Control) -> void:
     opener.pressed.connect(toggle)
     add_child(opener)
     panel=PanelContainer.new()
+    panel.add_theme_stylebox_override("panel", _phone_style())
     panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
     panel.mouse_filter=Control.MOUSE_FILTER_STOP
     add_child(panel)
@@ -56,6 +60,10 @@ func initialize(owner_service: Node, parent: Control) -> void:
     weather.text="ПОГОДА В МИНСКЕ\nНажмите на телефон для обновления."
     weather.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
     feed.add_child(weather)
+    route_label=Label.new()
+    route_label.text="МЕТРО · поездка"
+    route_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+    feed.add_child(route_label)
     var heading:=Label.new()
     heading.text="НОВОСТИ БЕЛАРУСИ"
     feed.add_child(heading)
@@ -77,14 +85,26 @@ func initialize(owner_service: Node, parent: Control) -> void:
 
 func _layout_phone() -> void:
     if panel==null: return
-    var bounds:=get_viewport_rect().size
-    var width:=clampf(bounds.x*0.78,230.0,430.0)
-    var height:=clampf(bounds.y*0.80,250.0,760.0)
+    var bounds:=get_viewport().get_visible_rect().size / maxf(root_scale(),0.01)
+    var width:=minf(bounds.x*0.78,430.0)
+    var height:=minf(bounds.y*0.80,760.0)
     panel.offset_left=-width*0.5
     panel.offset_right=width*0.5
     panel.offset_top=-height*0.5
     panel.offset_bottom=height*0.5
-    scroll.custom_minimum_size=Vector2(width-32.0,height-90.0)
+    scroll.custom_minimum_size=Vector2(maxf(width-32.0,120.0),maxf(height-90.0,160.0))
+
+func root_scale() -> float:
+    return get_parent().scale.x if get_parent() is Control else 1.0
+
+func _phone_style() -> StyleBoxFlat:
+    var style:=StyleBoxFlat.new()
+    style.bg_color=Color("#101722")
+    style.border_color=Color("#657888")
+    style.set_border_width_all(6)
+    style.set_corner_radius_all(24)
+    style.set_content_margin_all(12)
+    return style
 
 func available() -> bool:
     return service.running and service.role=="passenger" and is_instance_valid(service.player) and service.player.active and service.train.camera_mode=="walk"
@@ -96,6 +116,7 @@ func toggle() -> void:
 func open_phone() -> void:
     if not available(): return
     opened=true
+    _phone_animation=0.0
     panel.show()
     opener.hide()
     service.player.stick=Vector2.ZERO
@@ -104,23 +125,63 @@ func open_phone() -> void:
     service.ui.stick.reset()
     service.ui.stick.hide()
     service.ui.interact.hide()
+    _ensure_visual()
     _refresh()
 
 func close_phone() -> void:
     opened=false
     if panel!=null: panel.hide()
+    if is_instance_valid(_phone_visual): _phone_visual.hide()
     if opener!=null: opener.visible=available() if is_instance_valid(service) else false
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if not available():
         if opened: close_phone()
         opener.hide()
         return
     opener.visible=not opened
     if opened:
+        _phone_animation=move_toward(_phone_animation,1.0,delta*3.0)
+        if is_instance_valid(_phone_visual):
+            _phone_visual.show()
+            _phone_visual.position.y=lerpf(-0.45,-0.23,_phone_animation)
+        _update_route()
         service.player.stick=Vector2.ZERO
         service.ui.stick.hide()
         service.ui.interact.hide()
+
+func _update_route() -> void:
+    if not is_instance_valid(route_label): return
+    var train_speed: float=float(service.train.speed)*3.6
+    var station_name: String="В пути"
+    var nearest: Dictionary=service.line.path.nearest_station(float(service.train.distance))
+    if not nearest.is_empty(): station_name=str(nearest.get("module_id",nearest.get("index","Станция")))
+    route_label.text="МЕТРО · %s\\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
+
+func _ensure_visual() -> void:
+    if is_instance_valid(_phone_visual) or not is_instance_valid(service.player): return
+    # Camera-relative portable geometry: a hand supporting the lower corner
+    # of the large interactive screen. It is not a substitute for a rigged hand.
+    _phone_visual=Node3D.new()
+    _phone_visual.name="PassengerPhoneHand"
+    service.player.eye.add_child(_phone_visual)
+    _phone_visual.position=Vector3(0.26,-0.45,-0.48)
+    var skin:=StandardMaterial3D.new()
+    skin.albedo_color=Color("#b98567")
+    var cuff:=StandardMaterial3D.new()
+    cuff.albedo_color=Color("#343e55")
+    _visual_box(_phone_visual,Vector3(0.09,0.22,0.10),Vector3(0.04,-0.10,0.0),skin)
+    _visual_box(_phone_visual,Vector3(0.12,0.15,0.11),Vector3(-0.01,0.03,0.0),skin)
+    _visual_box(_phone_visual,Vector3(0.13,0.13,0.14),Vector3(0.05,-0.21,0.02),cuff)
+
+func _visual_box(parent: Node3D, size: Vector3, offset: Vector3, material: Material) -> void:
+    var mesh:=BoxMesh.new()
+    mesh.size=size
+    mesh.material=material
+    var node:=MeshInstance3D.new()
+    node.mesh=mesh
+    node.position=offset
+    parent.add_child(node)
 
 func _refresh() -> void:
     var now: float=Time.get_unix_time_from_system()
