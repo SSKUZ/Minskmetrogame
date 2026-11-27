@@ -133,7 +133,42 @@ func describe_station(root: Node3D, navigation: Dictionary={}) -> Dictionary:
             obstacles.append([obstacle.position.x,obstacle.position.z,obstacle.size.x,obstacle.size.z])
         navigation={"height":platform_box.end.y,"area":[area.position.x,area.position.y,area.size.x,area.size.y],
             "walk":[walk.position.x,walk.position.y,walk.size.x,walk.size.y],"obstacles":obstacles}
-    return {"schema":1,"units":"metres","records":records,"floor_verified":floor_found,"navigation":navigation,"bench_seats":bench_seats}
+    var result: Dictionary={"schema":1,"units":"metres","records":records,"floor_verified":floor_found,"navigation":navigation,"bench_seats":bench_seats}
+    verify_floor(result)
+    return result
+
+static func verify_floor(data: Dictionary) -> bool:
+    if bool(data.get("floor_verified",false)): return true
+    var navigation: Dictionary=data.get("navigation",{})
+    if not navigation.has("height") or not navigation.has("area"): return false
+    var area: Array=navigation.area
+    if area.size()!=4: return false
+    var footprint:=Rect2(float(area[0]),float(area[1]),float(area[2]),float(area[3]))
+    var height: float=float(navigation.height)
+    var supports:=false
+    for record in data.get("records",[]):
+        # Split structural slabs are real floor too. Verify their recorded
+        # native boxes, not a node name or the enclosing bounds of a mesh.
+        if str(record.get("label",""))!="existing_physical_box": continue
+        var bounds:=AABB(v(record.bounds[0]),v(record.bounds[1]))
+        if bounds.size.x<0.8 or bounds.size.z<1.0 or bounds.size.y>0.6: continue
+        if absf(bounds.end.y-height)>0.12: continue
+        if footprint.intersects(Rect2(bounds.position.x,bounds.position.z,bounds.size.x,bounds.size.z)):
+            supports=true
+            break
+    if not supports: return false
+    var safe_records: Array=[]
+    for record in data.records:
+        var bounds:=AABB(v(record.bounds[0]),v(record.bounds[1]))
+        var native: bool=str(record.get("label",""))=="existing_physical_box"
+        # A batched floor AABB can bridge the real interchange opening. Use
+        # the authored structural slabs instead; never fill the hole.
+        var broad_floor: bool=bounds.size.x>0.8 and bounds.size.z>1.0 and bounds.size.y<0.6 and absf(bounds.end.y-height)<0.12
+        if not native and broad_floor: continue
+        safe_records.append(record)
+    data.records=safe_records
+    data.floor_verified=true
+    return true
 
 func prepare_region(root: Node3D, point: Vector3, radius: float=18.0) -> bool:
     if root==null:

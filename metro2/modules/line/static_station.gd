@@ -22,6 +22,7 @@ func _ready() -> void:
     _store=Store.shared(self)
     _store.progress.connect(_resource_progress)
     var chunks: Array=manifest.get("open_chunks",[]) if line_open else manifest.get("closed_chunks",[])
+    _store.register_station_archives(self,chunks)
     var completed:=0
     if chunks.is_empty():
         static_failed=true
@@ -85,6 +86,7 @@ func static_loading_complete() -> bool:
 func release_static_resources() -> void:
     set_meta("static_cancelled",true)
     if is_instance_valid(_store):
+        _store.release_staged_consumer(get_instance_id())
         for token in _leases: _store.release_token(token)
     _leases.clear()
 

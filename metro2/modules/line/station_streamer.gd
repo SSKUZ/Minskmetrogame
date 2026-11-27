@@ -195,6 +195,14 @@ func refresh() -> void:
                     _next_index=int(record.index)
                     break
         if _next_index>=0: _wanted[_next_index]=true
+    if is_instance_valid(line.gameplay) and line.gameplay.role=="passenger" and not virtual_parked and not platform_shuttle:
+        var automatic: Node=line.gameplay.automatic
+        if automatic.phase==automatic.Phase.RUN:
+            _next_index=int(automatic.target)
+            # Rebuild the future demand below from the single authoritative
+            # target. Do not retain a position-derived second future station.
+            _wanted.clear()
+            if _next_index>=0: _wanted[_next_index]=true
     if is_instance_valid(line.train): line.train.release_distant_platform_camera()
     var platform: Node3D=line.train.retained_platform_station() if is_instance_valid(line.train) else null
     var player_station: int=player_station_index()
@@ -203,12 +211,19 @@ func refresh() -> void:
         var low: float=float(record.low)
         var high: float=float(record.high)
         var reasons: int=0
-        if not virtual_parked and is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
+        if not virtual_parked and is_instance_valid(line.train) and _z+bounds.end.z>=low and _z+bounds.position.z<=high:
             reasons|=TRAIN
         if is_instance_valid(line.passengers) and (not line.passengers.can_unload_platform(index) or not line.gameplay.timetable.can_unload_platform(index)): reasons|=TRAIN
         if index==player_station:
             reasons|=PLAYER
-        if ((camera_z>=low-152.0 and camera_z<=high+152.0) and (reasons&TRAIN or index==player_station)) or (is_instance_valid(platform) and platform==station(index)):
+        var visible_from_train:=false
+        if not virtual_parked and is_instance_valid(line.train) and _scene_bounds.has(index) and is_instance_valid(line.train.camera):
+            var actual: AABB=_scene_bounds[index]
+            var camera: Camera3D=line.train.camera
+            var eye: Vector3=camera.global_position
+            var nearest:=Vector3(clampf(eye.x,actual.position.x,actual.end.x),clampf(eye.y,actual.position.y,actual.end.y),clampf(eye.z,actual.position.z,actual.end.z))
+            visible_from_train=eye.distance_to(nearest)<=float(camera.far)
+        if visible_from_train or index==player_station or (is_instance_valid(platform) and platform==station(index)):
             reasons|=CAMERA
         if reasons!=0:
             _retention[index]=reasons
@@ -218,6 +233,8 @@ func refresh() -> void:
         for request in line.gameplay.timetable.streaming_requests():
             var index: int=int(request.index)
             if index<0 or index>=line.stations.size(): continue
+            if player_station>=0 and index!=player_station: continue
+            if player_station<0 and index!=_next_index and not _retention.has(index): continue
             _wanted[index]=true
             _dispatch_priorities[index]=maxf(float(_dispatch_priorities.get(index,0.0)),float(request.priority))
     if not _busy:
@@ -439,6 +456,9 @@ func _load_station(index: int) -> bool:
     return await _prepare_service(index,node)
 
 func _prepare_service(index: int, node: Node3D) -> bool:
+    var walking: Dictionary=node.get_meta("metro_walk_lite_data",{})
+    if not WalkLite.verify_floor(walking):
+        return _load_failed(index,"Нет подтверждённых опорных плит пола: "+str(line.stations[index].module_id))
     _states[index]=State.SCENE_READY
     var deadline: int=Time.get_ticks_msec()+int(float(_settings.get("service_timeout_seconds",180.0))*1000.0)
     while is_inside_tree() and is_instance_valid(node):

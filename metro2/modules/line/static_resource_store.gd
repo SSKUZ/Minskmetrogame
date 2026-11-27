@@ -11,6 +11,8 @@ var _leases: Dictionary = {}
 var _consumer_tokens: Dictionary = {}
 var _lease_serial := 0
 var _resident_bytes := 0
+var _staged: Dictionary={}
+var _staged_bytes:=0
 const MAX_ARCHIVE_CACHE_BYTES := 24 * 1024 * 1024
 var _archive_cache: Dictionary={}
 var _archive_order: Array[String]=[]
@@ -27,6 +29,33 @@ static func shared(consumer: Node) -> Node:
         root.add_child(service)
     return service
 
+func register_station_archives(consumer: Node, chunks: Array) -> void:
+    # Build a path catalogue from the EXISTING index. Extract each shared
+    # archive once, rather than fetching it again for each station fragment.
+    var archives: Dictionary={}
+    for chunk in chunks:
+        for file in chunk.get("files",[]):
+            var key: String=str(file.get("archive",""))
+            if key.is_empty(): continue
+            if not archives.has(key): archives[key]={}
+            archives[key][str(file.path)]=file
+    consumer.set_meta("metro_station_archives",archives)
+    var token: int=consumer.get_instance_id()
+    if not _consumer_tokens.has(token):
+        _consumer_tokens[token]=[]
+        consumer.tree_exiting.connect(_release_consumer.bind(token),CONNECT_ONE_SHOT)
+
+func _drop_staged(path: String) -> void:
+    if not _staged.has(path): return
+    _staged_bytes-=int(_staged[path].bytes)
+    _staged.erase(path)
+    if not _users.has(path) and FileAccess.file_exists(path):
+        DirAccess.remove_absolute(path)
+
+func release_staged_consumer(consumer_id: int) -> void:
+    for path in _staged.keys():
+        if int(_staged[path].consumer)==consumer_id: _drop_staged(str(path))
+
 func _station_priority(reference: WeakRef) -> bool:
     var consumer: Node=reference.get_ref() as Node
     while _alive(reference) and bool(get_meta("station_preparing",false)) and not bool(consumer.get_meta("metro_station_loading",false)):
@@ -41,8 +70,12 @@ func instantiate_chunk(description: Dictionary, consumer: Node) -> Node3D:
     for file in description.files+description.get("textures",[]):
         var path: String=str(file.path)
         if not _users.has(path):
+            # An eagerly extracted file moves into the ordinary lease budget.
+            if _staged.has(path):
+                _staged_bytes-=int(_staged[path].bytes)
+                _staged.erase(path)
             _trim_archives(int(file.bytes))
-            if _resident_bytes+_archive_bytes+int(file.bytes)>MAX_RESIDENT_BYTES:
+            if _resident_bytes+_archive_bytes+_staged_bytes+int(file.bytes)>MAX_RESIDENT_BYTES:
                 error_message="Недостаточно свободной памяти для геометрии"
                 _release_paths(reserved)
                 return null
@@ -126,11 +159,18 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
         error_message="Подготовленный участок отсутствует"
         return false
     _pending[key]=true
+    var owner_node: Node=reference.get_ref() as Node
+    var catalogue: Dictionary=owner_node.get_meta("metro_station_archives",{})
+    var all_files: Array=files.duplicate()
+    var requested: Dictionary={}
+    for file in files: requested[str(file.path)]=true
+    for file in catalogue.get(str(archive.file),{}).values():
+        if not requested.has(str(file.path)): all_files.append(file)
     var bytes: PackedByteArray=await _download(archive,reference)
     var success: bool=bytes.size()==int(archive.bytes) and not bytes.is_empty()
     if success:
         var writing=Budget.new(self,1500)
-        for file in files:
+        for file in all_files:
             var path: String=str(file.path)
             var file_wait: int=Time.get_ticks_msec()
             while _pending.has(path):
@@ -143,15 +183,31 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
             if not success: break
             if not _alive(reference): success=false;break
             if FileAccess.file_exists(path): continue
+            var eager: bool=not requested.has(path) and not _users.has(path)
+            if eager:
+                # Optional future files never evict a live resource or exceed
+                # the same cap. If room is unavailable, retain on-demand loading.
+                _trim_archives(0)
+                if _resident_bytes+_archive_bytes+_staged_bytes+int(file.bytes)>MAX_RESIDENT_BYTES: continue
+                _staged[path]={"bytes":int(file.bytes),"consumer":owner_node.get_instance_id(),"pending":true}
+                _staged_bytes+=int(file.bytes)
             var offset: int=int(file.offset)
             var length: int=int(file.bytes)
-            if offset<0 or length<0 or offset+length>bytes.size(): success=false;break
+            if offset<0 or length<0 or offset+length>bytes.size():
+                if eager:
+                    _drop_staged(path)
+                    continue
+                success=false
+                break
             _pending[path]=true
             DirAccess.make_dir_recursive_absolute(path.get_base_dir())
             var partial := path+".partial"
             var output := FileAccess.open(partial,FileAccess.WRITE)
             if output==null:
                 _pending.erase(path)
+                if eager:
+                    _drop_staged(path)
+                    continue
                 success=false
                 break
             for position in range(offset,offset+length,262144):
@@ -162,7 +218,13 @@ func _ensure_archive(archive: Dictionary, files: Array, reference: WeakRef) -> b
             output.close()
             if success: success=DirAccess.rename_absolute(partial,path)==OK
             if not success and FileAccess.file_exists(partial): DirAccess.remove_absolute(partial)
+            if eager and _staged.has(path):
+                if success: _staged[path].pending=false
+                else: _drop_staged(path)
             _pending.erase(path)
+            if not success and eager and _alive(reference):
+                success=true # Optional staging failure must not fail a live chunk.
+                continue
             if not success: break
     _pending.erase(key)
     if not success and error_message.is_empty(): error_message="Не удалось распаковать архив: "+str(archive.file)
@@ -227,18 +289,21 @@ func _download(info: Dictionary, reference: WeakRef) -> PackedByteArray:
     request.queue_free()
     if downloaded.is_empty():
         if error_message.is_empty(): error_message="Не удалось загрузить архив: "+str(info.file)
-    # Station fragments also share archive dependencies. Use the same bounded
-    # cache as tunnel groups instead of downloading their archive repeatedly.
-    elif downloaded.size()<=MAX_ARCHIVE_CACHE_BYTES:
+    # Station archives are extracted through their index catalogue. Keep raw
+    # archive bytes only for tunnel groups, avoiding a second station RAM copy.
+    elif downloaded.size()<=MAX_ARCHIVE_CACHE_BYTES and _alive(reference) and not (reference.get_ref() as Node).has_meta("metro_station_archives"):
         _trim_archives(downloaded.size())
-        if _resident_bytes+_archive_bytes+downloaded.size()<=MAX_RESIDENT_BYTES:
+        if _resident_bytes+_archive_bytes+_staged_bytes+downloaded.size()<=MAX_RESIDENT_BYTES:
             _archive_cache[cache_key]=downloaded
             _archive_order.append(cache_key)
             _archive_bytes+=downloaded.size()
     return downloaded
 
 func _trim_archives(incoming: int) -> void:
-    while not _archive_order.is_empty() and (_archive_bytes+incoming>MAX_ARCHIVE_CACHE_BYTES or _resident_bytes+_archive_bytes+incoming>MAX_RESIDENT_BYTES):
+    for path in _staged.keys():
+        if _resident_bytes+_archive_bytes+_staged_bytes+incoming<=MAX_RESIDENT_BYTES: break
+        if not bool(_staged[path].pending): _drop_staged(str(path))
+    while not _archive_order.is_empty() and (_archive_bytes+incoming>MAX_ARCHIVE_CACHE_BYTES or _resident_bytes+_archive_bytes+_staged_bytes+incoming>MAX_RESIDENT_BYTES):
         var key: String=_archive_order.pop_front()
         _archive_bytes-=(_archive_cache[key] as PackedByteArray).size()
         _archive_cache.erase(key)
@@ -256,6 +321,7 @@ func release_token(token: int) -> void:
     _release_paths(lease.paths)
 
 func _release_consumer(consumer_id: int) -> void:
+    release_staged_consumer(consumer_id)
     for token in _consumer_tokens.get(consumer_id,[]).duplicate(): release_token(int(token))
     _consumer_tokens.erase(consumer_id)
     if _consumer_tokens.is_empty():

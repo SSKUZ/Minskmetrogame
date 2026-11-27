@@ -71,6 +71,7 @@ func handover(train: Node3D) -> void:
     # Existing arrival/doors/INFO logic owns the handover dwell. Departure is
     # timed below only when actual velocity first becomes nonzero.
     _prefetch(int(slot.last_call)+int(slot.automatic.direction))
+    service.line.streamer.refresh()
 
 func begin_call(index: int, direction: int, visit: int, train: Node3D=null) -> void:
     var actor: Node3D=train if is_instance_valid(train) else service.train
@@ -358,7 +359,7 @@ func adopt(car: Node3D) -> bool:
     # The character will immediately be parented to this same car; no lease,
     # camera, audio or passenger ownership transfer is necessary.
     var next: int=int(slot.automatic.target)
-    if service.station_at_train()>=0: next+=int(slot.automatic.direction)
+    if slot.automatic.phase!=slot.automatic.Phase.RUN: next+=int(slot.automatic.direction)
     if next>=0 and next<service.line.stations.size():
         _prefetch_targets[next]=_now()+float(_policy.shuttle.prefetch_seconds)
     return true
@@ -366,19 +367,15 @@ func adopt(car: Node3D) -> bool:
 func streaming_requests() -> Array:
     var station: int=platform_shuttle_station()
     if station>=0: return [{"index":station,"priority":25000.0}]
-    var result: Array=[]
-    for slot in slots:
-        if not bool(slot.active): continue
-        var train: Node3D=slot.context.train
-        var direction: int=int(train.cab_runtime.direction)
-        var next: int=int(slot.automatic.target)
-        result.append({"index":next,"priority":20000.0})
-        if station_at_vehicle(train,slot.context.passengers)>=0: next+=direction
-        if next>=0 and next<service.line.stations.size(): result.append({"index":next,"priority":5000.0})
-    for key in _prefetch_targets.keys():
-        if _now()>float(_prefetch_targets[key]): _prefetch_targets.erase(key)
-        else: result.append({"index":int(key),"priority":5000.0})
-    return result
+    if service.role!="passenger" or service.virtual_wait: return []
+    var automatic: Node=service.automatic
+    if automatic.phase==automatic.Phase.IDLE: return []
+    # RUN.target already IS the next station, even while the departing train
+    # still touches its old platform. Adding direction here requested N+2.
+    var next: int=int(automatic.target)
+    if automatic.phase!=automatic.Phase.RUN: next+=int(automatic.direction)
+    if next<0 or next>=service.line.stations.size(): return []
+    return [{"index":next,"priority":20000.0}]
 
 func _prefetch(index: int) -> void:
     if index<0 or index>=service.line.stations.size() or platform_shuttle_station()>=0: return
