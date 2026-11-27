@@ -99,8 +99,10 @@ func _process(delta: float) -> void:
     var calm: bool=agent.path.is_empty() and agent.state in ["seated","riding","waiting","queued","waitingNextTrain"]
     blend=move_toward(blend,1.0 if calm else 0.0,delta*1.8)
     skeleton.clear_bones_global_pose_override()
-    if phone!=null: phone.visible=calm and activity==1
-    if leaflet!=null: leaflet.visible=calm and activity==2
+    # Props appear only once the holding pose has blended in.
+    var can_hold := bones.has("rightarm") and bones.has("rightforearm") and bones.has("righthand")
+    if phone!=null: phone.visible=calm and activity==1 and can_hold and blend>0.85
+    if leaflet!=null: leaflet.visible=calm and activity==2 and can_hold and blend>0.85
     if blend<=0.001:
         agent.visual.rotation.y=move_toward(agent.visual.rotation.y,0.0,delta*0.8)
         _active=false
@@ -116,24 +118,27 @@ func _process(delta: float) -> void:
     if is_instance_valid(peer) and peer.space==agent.space and peer.path.is_empty() and peer.global_position.distance_squared_to(agent.global_position)<9.0:
         var direction: Vector3=agent.global_basis.inverse()*(peer.global_position-agent.global_position)
         social_turn=clampf(atan2(direction.x,direction.z),-0.55,0.55)
-    agent.visual.rotation.y=sin(age*0.17+phase)*0.025*blend if seated else (social_turn*0.20+sin(age*0.12+phase)*0.07)*blend
+    # Keep seated hips aligned with their seat; standing peers turn subtly.
+    agent.visual.rotation.y=0.0 if seated else social_turn*0.12*blend
     var torso := _pose("spine2") if bones.has("spine2") else Transform3D.IDENTITY
     var reading := activity in [1,2]
     if bones.has("spine2"):
-        var turn: float=sin(age*0.19+phase)*0.018+(social_turn*0.16 if not reading else 0.0)
+        var turn: float=social_turn*0.10 if not reading and not seated else 0.0
         torso.basis=Basis(Vector3.UP,turn)*torso.basis
         _apply_bone("spine2",torso,blend)
     if bones.has("head"):
         var head := _pose("head")
-        var glance := social_turn+sin(age*0.13+phase)*0.12 if not reading else sin(age*0.11+phase)*0.018
+        var glance := social_turn*0.65 if not reading else 0.0
         head.basis=head.basis*Basis.from_euler(Vector3(0.13 if reading else 0.0,glance,0.0))
         _apply_bone("head",head,blend)
-    if reading:
-        var target := torso.origin+Vector3(-0.08,-0.05,0.28 if seated else 0.26)
-        target.y+=sin(age*0.35+phase)*0.002
-        _arm("right",target,blend)
-        if seated or agent.space!="train": _arm("left",target+Vector3(0.10,-0.015,0.01),blend)
-    if not seated and agent.space=="train" and is_instance_valid(agent.car):
+    if reading and can_hold:
+        # One hand holds the prop; the other retains the authored idle pose.
+        # Target is relative to the actual right shoulder, not a shared
+        # absolute position that pushes different skeletons into cuffs pose.
+        var shoulder := _pose("rightarm").origin
+        var target := shoulder+Vector3(-0.035,-0.22,0.17)
+        _arm("right",target,blend*0.75)
+    if not seated and agent.space=="train" and is_instance_valid(agent.car) and agent.slot.has("grip"):
         # The reserved slot supplies a real car-local grip on the handrail.
         var world: Vector3=agent.car.to_global(agent.slot.get("grip",agent.position+Vector3(0,1.15,0)))
         var grip := skeleton.to_local(world)
