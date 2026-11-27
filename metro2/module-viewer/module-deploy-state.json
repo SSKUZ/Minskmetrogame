@@ -88,8 +88,8 @@
       ]
     },
     "full_line": {
-      "source_commit": "963b17df0fec7f7a9c4e1a87d77d8e98651d5c6b",
-      "pack_sha256": "ae18067604ffa9e42bd8afda6cb43299456fc7b0a76599525a73c538493327c8",
+      "source_commit": "a96a607a79e2485294c78625ed33991784d27c35",
+      "pack_sha256": "f5db8b1385a863d12d78f2d056fd99ce12f417837ec63c4b26ede10571805647",
       "category": "module",
       "scene": "modules/line/full_line.tscn",
       "dependencies": [
