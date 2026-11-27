@@ -85,14 +85,21 @@ func initialize(owner_service: Node, parent: Control) -> void:
 
 func _layout_phone() -> void:
     if panel==null: return
-    var bounds:=get_viewport().get_visible_rect().size / maxf(root_scale(),0.01)
-    var width:=minf(bounds.x*0.78,430.0)
-    var height:=minf(bounds.y*0.80,760.0)
+    # Landscape phone/tablet: readable portrait-shaped device within the
+    # shorter screen height, without obscuring all of the carriage.
+    var bounds: Vector2=get_viewport().get_visible_rect().size / maxf(root_scale(),0.01)
+    var landscape: bool=bounds.x>=bounds.y
+    var safe_height: float=maxf(bounds.y-32.0,160.0)
+    var height: float=minf(safe_height*0.88,620.0)
+    var width: float=minf(bounds.x*0.76,height*0.64)
+    width=maxf(width,170.0)
     panel.offset_left=-width*0.5
     panel.offset_right=width*0.5
     panel.offset_top=-height*0.5
     panel.offset_bottom=height*0.5
-    scroll.custom_minimum_size=Vector2(maxf(width-32.0,120.0),maxf(height-90.0,160.0))
+    scroll.custom_minimum_size=Vector2(maxf(width-28.0,120.0),maxf(height-90.0,100.0))
+    opener.offset_top=58.0 if landscape else 120.0
+    opener.offset_bottom=104.0 if landscape else 170.0
 
 func root_scale() -> float:
     return (get_parent() as Control).scale.x if get_parent() is Control else 1.0
@@ -154,9 +161,9 @@ func _update_route() -> void:
     if not is_instance_valid(route_label): return
     var train_speed: float=float(service.train.speed)*3.6
     var station_name: String="В пути"
-    var nearest: Dictionary=service.line.path.nearest_station(float(service.line.get("distance")))
+    var nearest: Dictionary={} # Station name is optional until route metadata is available.
     if not nearest.is_empty(): station_name=str(nearest.get("module_id",nearest.get("index","Станция")))
-    route_label.text="МЕТРО · %s\\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
+    route_label.text="МЕТРО · %s\nСкорость состава: %.0f км/ч" % [station_name,train_speed]
 
 func _ensure_visual() -> void:
     if is_instance_valid(_phone_visual) or not is_instance_valid(service.player): return
