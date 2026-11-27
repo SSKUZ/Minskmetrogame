@@ -17,6 +17,9 @@ var _flight_region_key:=""
 var _station_braking:=false
 
 func _ready() -> void:
+    # Stronger manual service brake for station approaches (~2x former deceleration).
+    # Traction and neutral coasting retain their existing response.
+    service_brake_decel_mps2=2.2
     spawn_z=430.0
     super._ready()
     if bool(get_meta("dispatch_background",false)):
