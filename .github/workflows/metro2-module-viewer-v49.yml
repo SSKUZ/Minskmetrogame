@@ -1,5 +1,6 @@
 name: Metro2 automatic changed-module Web deployment
 on:
+  # Recovery pushes must change a watched file: empty commits do not match paths.
   push:
     branches:
       - feature/metro2-automated-module-deploy
