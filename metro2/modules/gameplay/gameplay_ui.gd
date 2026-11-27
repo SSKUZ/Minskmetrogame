@@ -1,6 +1,8 @@
 extends CanvasLayer
 const Joystick = preload("res://viewers/flight_joystick.gd")
+const PassengerPhone = preload("res://modules/gameplay/passenger_phone.gd")
 var service: Node
+var passenger_phone: Control
 var root: Control
 var menu: PanelContainer
 var station: OptionButton
@@ -96,6 +98,8 @@ func initialize(owner_service: Node) -> void:
     _start_menu()
     _absence_panel()
     _loading_panel()
+    passenger_phone=PassengerPhone.new()
+    passenger_phone.initialize(service,root)
     set_play_visible(false)
     get_viewport().size_changed.connect(_resize)
     get_window().focus_exited.connect(_reset_touches)
@@ -104,6 +108,7 @@ func initialize(owner_service: Node) -> void:
 func _reset_touches() -> void:
     camera_touch_id=-1
     if is_instance_valid(stick): stick.reset()
+    if is_instance_valid(passenger_phone): passenger_phone.close_phone()
 
 func _resize() -> void:
     _reset_touches()
@@ -245,6 +250,7 @@ func set_play_visible(enabled: bool) -> void:
     camera_touch_id=-1
     stick.reset()
     _play_visible=enabled
+    if not enabled and is_instance_valid(passenger_phone): passenger_phone.close_phone()
     root.show()
     for item in [role_button.get_parent(),status,stick,interact]: item.visible=enabled
     menu.visible=not enabled
@@ -283,6 +289,7 @@ func _process(delta: float) -> void:
         stick.reset()
         _touch_context=context
     if not service.running or not _play_visible: return
+    if passenger_phone.opened: return
     dispatch_retry.visible=service.role=="passenger" and service.timetable.has_blocked_dispatch()
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
     view_menu.get_popup().set_item_disabled(0,service.direct_driver)
@@ -303,6 +310,9 @@ func _process(delta: float) -> void:
     if not timetable_status.is_empty(): status.text+="\n"+timetable_status
 
 func _unhandled_input(event: InputEvent) -> void:
+    if passenger_phone.opened:
+        if event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE: passenger_phone.close_phone()
+        return
     if not service.running: return
     if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_E:
         service.interaction.activate()
@@ -327,6 +337,7 @@ func _notification(what: int) -> void:
             if is_instance_valid(service.train._flight_ui): service.train._flight_ui.stick=Vector2.ZERO
 
 func _input(event: InputEvent) -> void:
+    if passenger_phone.opened: return
     if not service.running or service.driver_seated or service.train.camera_mode!="walk": return
     if event is InputEventScreenDrag and event.index==camera_touch_id:
         service.player.look(event.relative)
