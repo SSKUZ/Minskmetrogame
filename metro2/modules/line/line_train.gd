@@ -19,6 +19,10 @@ var _station_braking:=false
 func _ready() -> void:
     spawn_z=430.0
     super._ready()
+    if bool(get_meta("dispatch_background",false)):
+        if is_instance_valid(_ui_layer): _ui_layer.hide()
+        if is_instance_valid(camera): camera.clear_current()
+        if is_instance_valid(line.world.train.camera): line.world.train.camera.make_current()
     route_end_distance=line.path.lower_z+80.0
     set_physics_process(false)
 
@@ -27,6 +31,10 @@ func _attach_fourth_car(third_car: Node3D, third_bounds: AABB) -> void:
     _install_inspection_ui()
     _set_camera_mode("cabin")
     set_physics_process(true)
+    if bool(get_meta("dispatch_background",false)):
+        _ui_layer.hide()
+        camera.clear_current()
+        line.world.train.camera.make_current()
 
 func _create_info_binding() -> Node:
     return LineInfo.new()
@@ -64,7 +72,7 @@ func _physics_process(delta: float) -> void:
     var direction: int=int(cab_runtime.direction)
     var limit: float=-INF if direction>0 else INF
     for tunnel in line.tunnels:
-        tunnel.update_motion(direction,speed)
+        if not bool(get_meta("dispatch_background",false)): tunnel.update_motion(direction,speed)
         if direction==0: continue
         var tunnel_limit: float=tunnel.approach_limit(distance,direction,_train_bounds)
         limit=maxf(limit,tunnel_limit) if direction>0 else minf(limit,tunnel_limit)
@@ -80,7 +88,7 @@ func _physics_process(delta: float) -> void:
     # existing base-track guard it never clamps speed or rewrites position.
     var saved_brake: float=float(cab_runtime.brake_demand)
     _station_braking=false
-    var guard: Dictionary=line.streamer.movement_guard(direction)
+    var guard: Dictionary=line.streamer.movement_guard(direction,self)
     if not guard.is_empty():
         var remaining: float=float(guard.remaining)
         var stopping: float=speed*speed/(2.0*float(line.layout.streaming.braking_deceleration_mps2))+speed+2.0
@@ -90,6 +98,10 @@ func _physics_process(delta: float) -> void:
             var index: int=int(guard.index)
             var problem: String=line.streamer.station_error(index)
             line._stream_status.text="Ожидание платформы: "+str(line.stations[index].module_id)+(" · "+problem if not problem.is_empty() else " · подготовка станции")
+    if is_instance_valid(line.gameplay):
+        var traffic: float=line.gameplay.timetable.traffic_remaining(self,direction)
+        if traffic<=speed*speed/(2.0*float(line.layout.streaming.braking_deceleration_mps2))+speed+2.0:
+            cab_runtime.brake_demand=maxf(float(cab_runtime.brake_demand),1.0)
     _in_motion_step=true
     super._physics_process(delta)
     cab_runtime.brake_demand=saved_brake
@@ -185,6 +197,7 @@ func platform_camera_available() -> bool:
     return is_instance_valid(_station) and absf(distance-_station_stop_z)<180.0
 
 func _update_camera() -> void:
+    if bool(get_meta("dispatch_background",false)): return
     if _in_motion_step: return
     if not is_instance_valid(camera) or not is_instance_valid(train): return
     if camera_mode=="walk" and is_instance_valid(line.gameplay) and is_instance_valid(line.gameplay.player) and is_instance_valid(line.gameplay.player.eye):
@@ -289,10 +302,12 @@ func driver_has_control() -> bool:
     return is_instance_valid(line.gameplay) and line.gameplay.running and line.gameplay.role=="driver" and line.gameplay.driver_seated
 
 func _input(event: InputEvent) -> void:
+    if bool(get_meta("dispatch_background",false)): return
     if is_instance_valid(line.gameplay) and (not line.gameplay.running or camera_mode=="walk"): return
     super._input(event)
 
 func _unhandled_input(event: InputEvent) -> void:
+    if bool(get_meta("dispatch_background",false)): return
     if is_instance_valid(line.gameplay) and (not line.gameplay.running or camera_mode=="walk"): return
     super._unhandled_input(event)
 

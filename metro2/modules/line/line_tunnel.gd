@@ -74,10 +74,12 @@ func _process(delta: float) -> void:
         _refresh_clock=0.2
         sync_to_view()
 
-func _include_slots(required: Dictionary, z0: float, z1: float, ahead: bool=false) -> void:
-    var lead: float=clampf(_speed*12.0+_speed*_speed/1.3+64.0,192.0,1024.0) if ahead else 0.0
-    var low: float=z0-VISIBLE_DISTANCE-GUARD_DISTANCE-(lead if _direction>0 else 0.0)
-    var high: float=z1+VISIBLE_DISTANCE+GUARD_DISTANCE+(lead if _direction<0 else 0.0)
+func _include_slots(required: Dictionary, z0: float, z1: float, ahead: bool=false, travel_direction: int=0, travel_speed: float=-1.0) -> void:
+    var direction: int=travel_direction if travel_direction!=0 else _direction
+    var velocity: float=travel_speed if travel_speed>=0.0 else _speed
+    var lead: float=clampf(velocity*12.0+velocity*velocity/1.3+64.0,192.0,1024.0) if ahead else 0.0
+    var low: float=z0-VISIBLE_DISTANCE-GUARD_DISTANCE-(lead if direction>0 else 0.0)
+    var high: float=z1+VISIBLE_DISTANCE+GUARD_DISTANCE+(lead if direction<0 else 0.0)
     for slot in range(floori(low/16.0),floori(high/16.0)+1): required[slot]=true
 
 func sync_to_view() -> void:
@@ -88,6 +90,11 @@ func sync_to_view() -> void:
     var player: Node3D=line.gameplay.player if is_instance_valid(line) and is_instance_valid(line.gameplay) else null
     if is_instance_valid(player) and player.active:
         _include_slots(required,player.global_position.z,player.global_position.z)
+    if is_instance_valid(line.gameplay):
+        for envelope in line.gameplay.timetable.envelopes():
+            var actor: Node3D=envelope.train
+            var actor_bounds: AABB=envelope.bounds
+            _include_slots(required,float(actor.distance)+actor_bounds.position.z,float(actor.distance)+actor_bounds.end.z,true,int(actor.cab_runtime.direction),absf(float(actor.speed)))
     _sync_base(required)
     # The long braking horizon belongs to base track only. Detail resources
     # retain the original view distance plus a short time-based prefetch band.
@@ -98,6 +105,12 @@ func sync_to_view() -> void:
     _include_slots(detail_slots,_camera.global_position.z,_camera.global_position.z)
     if is_instance_valid(player) and player.active:
         _include_slots(detail_slots,player.global_position.z,player.global_position.z)
+    if is_instance_valid(line.gameplay):
+        for envelope in line.gameplay.timetable.envelopes():
+            var actor: Node3D=envelope.train
+            if absf(float(actor.distance)-_camera.global_position.z)>VISIBLE_DISTANCE+GUARD_DISTANCE: continue
+            var actor_bounds: AABB=envelope.bounds
+            _include_slots(detail_slots,float(actor.distance)+actor_bounds.position.z,float(actor.distance)+actor_bounds.end.z)
     _wanted.clear()
     for slot in detail_slots:
         for span in path.tunnel_pieces(float(slot)*16.0,float(slot+1)*16.0):

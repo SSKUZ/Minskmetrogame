@@ -92,6 +92,7 @@ func station_instance(index: int) -> Node3D:
     return streamer.station(index) if is_instance_valid(streamer) else null
 
 func _station_loaded(index: int, station: Node3D) -> void:
+    if is_instance_valid(gameplay): gameplay.timetable.station_loaded(index,station)
     for tunnel in tunnels: tunnel.station_track_changed(index,true)
     _start_service_if_ready()
 
@@ -99,6 +100,7 @@ func prepare_station_service(index: int, station: Node3D) -> void:
     if is_instance_valid(passengers): passengers.add_platform(stations[index],station)
 
 func _station_unloading(index: int, station: Node3D) -> void:
+    if is_instance_valid(gameplay): gameplay.timetable.station_unloading(index,station)
     if index==_stream_retry_index: _stream_retry.hide()
     for tunnel in tunnels: tunnel.station_track_changed(index,false)
     if is_instance_valid(passengers): passengers.remove_platform(index)

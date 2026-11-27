@@ -171,6 +171,7 @@ func _driver_to_passenger() -> void:
     line.streamer.register_player(player)
     _set_automatic(true)
     automatic.enable(demand)
+    timetable.handover(train)
     # Cab access points are optional legacy interaction data, not a startup task.
     _respawning=false
     ui.notice("Режим пассажира · управление передано автоматике")
@@ -494,9 +495,11 @@ func switch_role(next_role: String) -> void:
         ui.warning.hide()
         _set_automatic(true)
         automatic.enable(demand)
-        ui.notice("Управление передано автоматике. Стоянка — около 30 секунд.")
+        timetable.handover(train)
+        ui.notice("Управление передано автоматике. Отправление — примерно через 10 секунд.")
 
 func _set_automatic(enabled: bool) -> void:
+    if not enabled: line.passengers.open_boarding_window()
     var binding: Node=train.info_binding
     binding.passenger_mode=enabled
     binding.audio.info.set_mode("auto" if enabled else "manual")
@@ -537,7 +540,7 @@ func _physics_process(delta: float) -> void:
         if line.passengers.platform_ready(index):
             var nav=line.passengers._platforms[index].navigation
             if nav.platform_area.has_point(Vector2(player.global_position.x,player.global_position.z)) and absf(player.global_position.y-float(nav.height))<0.5: _safe_station=index
-    if role=="passenger" and is_instance_valid(player) and player.active: timetable.update()
+    timetable.update()
 
 func _retire_train(initial: bool=false) -> void:
     if is_instance_valid(player) and is_instance_valid(player.aboard): return
@@ -551,6 +554,7 @@ func _retire_train(initial: bool=false) -> void:
     train.cab_runtime.controller_value=0.0
     train.cab_runtime.brake_demand=1.0
     if not initial: line.passengers.retire_virtual_service()
+    timetable.note_hidden(train)
 
 func _train_collisions(enabled: bool) -> void:
     for body in train.train.find_children("*","CollisionObject3D",true,false):

@@ -142,7 +142,7 @@ func update_car_membership(previous: Vector3) -> void:
             player.velocity=Vector3.ZERO
         if not corrected.is_equal_approx(local): player.position=corrected
     else:
-        for car in layout.cars:
+        for car in service.timetable.boarding_cars():
             var state: Dictionary=car.get_meta("metro_walk_lite_train",{})
             if state.is_empty(): continue
             var local: Vector3=car.to_local(player.global_position)
@@ -157,10 +157,11 @@ func update_car_membership(previous: Vector3) -> void:
             return
 
 func _passage(car: Node3D, from: Vector3, to: Vector3) -> bool:
-    if absf(float(service.train.speed))>0.05: return false
+    var owner_service: Node=service.timetable.service_for_car(car)
+    if not is_instance_valid(owner_service) or absf(float(owner_service.train.speed))>0.05: return false
     var a: Vector3=car.to_local(from)
     var b: Vector3=car.to_local(to)
-    var layout=service.line.passengers.layout
+    var layout=owner_service.line.passengers.layout
     for door in layout.doors:
         if door.car!=car or not layout.usable(door) or not layout.platform_selected: continue
         var p: Vector3=door.marker.position

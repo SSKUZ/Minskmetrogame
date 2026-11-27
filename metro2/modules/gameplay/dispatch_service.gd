@@ -29,6 +29,15 @@ class DoorGuard extends RefCounted:
             var point: Vector3=door.car.to_local(actor.global_position)
             if absf(point.x-door.marker.position.x)<0.44 and absf(point.z-door.marker.position.z)<0.92 and absf(point.y-door.marker.position.y)<0.65: return false
         return true
+    func guard_doors() -> void:
+        if doorway_clear(): return
+        var actor: CharacterBody3D=owner_service.coordinator.service.player
+        var doors: Node=owner_service.train.door_system
+        for door in owner_service.line.passengers.layout.doors:
+            var point: Vector3=door.car.to_local(actor.global_position)
+            if absf(point.x-door.marker.position.x)<0.44 and absf(point.z-door.marker.position.z)<0.92 and float(doors.side_open[int(door.side)])>0.01:
+                doors.side_targets[int(door.side)]=true
+                doors.target_open=true
 
 func configure(dispatcher: RefCounted, context: Node3D) -> void:
     coordinator=dispatcher
@@ -48,4 +57,5 @@ func station_at_train() -> int:
 func _physics_process(_delta: float) -> void:
     if not running or virtual_wait: return
     player=coordinator.service.player
+    interaction.guard_doors()
     _geometry.update_doors(self)

@@ -21,6 +21,7 @@ var back_button: Button
 var station_panel: PanelContainer
 var station_confirm: Button
 var _play_visible:=false
+var dispatch_retry: Button
 var view_menu: MenuButton
 var _touch_context:=""
 
@@ -37,6 +38,8 @@ func initialize(owner_service: Node) -> void:
     top.position=Vector2(12,12)
     top.custom_minimum_size.x=536
     role_button=_button(top,"РЕЖИМ ПАССАЖИРА",func(): service.switch_role("passenger" if service.role=="driver" else "driver"))
+    dispatch_retry=_button(top,"ПОВТОРИТЬ ОТПРАВЛЕНИЕ / ПРИБЫТИЕ",func(): service.timetable.retry_dispatch())
+    dispatch_retry.hide()
     walk_button=_button(top,"ВЫЙТИ ИЗ КАБИНЫ",func(): service.walk_action())
     var view:=MenuButton.new()
     view_menu=view
@@ -280,6 +283,7 @@ func _process(delta: float) -> void:
         stick.reset()
         _touch_context=context
     if not service.running or not _play_visible: return
+    dispatch_retry.visible=service.role=="passenger" and service.timetable.has_blocked_dispatch()
     role_button.text="РЕЖИМ МАШИНИСТА" if service.role=="passenger" else "РЕЖИМ ПАССАЖИРА"
     view_menu.get_popup().set_item_disabled(0,service.direct_driver)
     if service.direct_driver:
@@ -295,6 +299,8 @@ func _process(delta: float) -> void:
     walk_button.disabled=false
     stick.visible=not service.driver_seated and not service.player.seated and service.train.camera_mode in ["walk","flight"]
     status.text=("МАШИНИСТ" if service.role=="driver" else "ПАССАЖИР")+" · "+("В составе" if is_instance_valid(service.player.aboard) else "На станции / в депо")
+    var timetable_status: String=service.timetable.status_text()
+    if not timetable_status.is_empty(): status.text+="\n"+timetable_status
 
 func _unhandled_input(event: InputEvent) -> void:
     if not service.running: return

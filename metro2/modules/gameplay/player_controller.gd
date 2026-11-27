@@ -52,10 +52,12 @@ func _eye_pose() -> void:
 
 func attach_car(car: Node3D) -> void:
     if aboard==car: return
+    if is_instance_valid(car) and not service.timetable.adopt(car): return
     var view: Basis=eye.global_basis
     reparent(car if is_instance_valid(car) else service.line,true)
     aboard=car
     current_car_id=str(car.name) if is_instance_valid(car) else ""
+    set_meta("dispatch_train_id",str(service.train.get_meta("dispatch_train_id","player")) if is_instance_valid(car) else "")
     var local_view: Basis=global_basis.inverse()*view
     yaw=local_view.get_euler().y
     pitch=local_view.get_euler().x

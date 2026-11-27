@@ -31,6 +31,7 @@ var _states: Dictionary={}
 var _attempts: Dictionary={}
 var _scene_bounds: Dictionary={}
 var _current_index:=-1
+var _dispatch_priorities: Dictionary={}
 var _retention: Dictionary = {}
 var _next_index := -1
 var _player: WeakRef
@@ -115,17 +116,18 @@ func player_station_index() -> int:
 func station_camera_bounds(index: int) -> AABB:
     return _scene_bounds.get(index,AABB())
 
-func movement_guard(direction: int) -> Dictionary:
+func movement_guard(direction: int, actor: Node3D=null) -> Dictionary:
     if direction==0: return {}
     var ordered: Array=line.stations.duplicate()
     if direction<0: ordered.reverse()
-    var bounds: AABB=line.train._train_bounds
-    var leading: float=float(line.train.distance)+(bounds.position.z if direction>0 else bounds.end.z)
-    var trailing: float=float(line.train.distance)+(bounds.end.z if direction>0 else bounds.position.z)
+    var vehicle: Node3D=actor if is_instance_valid(actor) else line.train
+    var bounds: AABB=vehicle._train_bounds
+    var leading: float=float(vehicle.distance)+(bounds.position.z if direction>0 else bounds.end.z)
+    var trailing: float=float(vehicle.distance)+(bounds.end.z if direction>0 else bounds.position.z)
     for record in ordered:
         var index: int=int(record.index)
         if (direction>0 and trailing<float(record.low)) or (direction<0 and trailing>float(record.high)): continue
-        if is_service_ready(index): continue
+        if is_service_ready(index) and vehicle.line.passengers.platform_ready(index): continue
         var edge: float=float(record.high)+float(_settings.approach_guard_m) if direction>0 else float(record.low)-float(_settings.approach_guard_m)
         return {"index":index,"remaining":maxf(0.0,(leading-edge)*float(direction))}
     return {}
@@ -202,7 +204,7 @@ func refresh() -> void:
         var reasons: int=0
         if not virtual_parked and is_instance_valid(line.train) and _z+bounds.end.z>=low-152.0 and _z+bounds.position.z<=high+152.0:
             reasons|=TRAIN
-        if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): reasons|=TRAIN
+        if is_instance_valid(line.passengers) and (not line.passengers.can_unload_platform(index) or not line.gameplay.timetable.can_unload_platform(index)): reasons|=TRAIN
         if index==player_station:
             reasons|=PLAYER
         if ((camera_z>=low-152.0 and camera_z<=high+152.0) and (reasons&TRAIN or index==player_station)) or (is_instance_valid(platform) and platform==station(index)):
@@ -210,6 +212,13 @@ func refresh() -> void:
         if reasons!=0:
             _retention[index]=reasons
             _wanted[index]=true
+    _dispatch_priorities.clear()
+    if is_instance_valid(line.gameplay):
+        for request in line.gameplay.timetable.streaming_requests():
+            var index: int=int(request.index)
+            if index<0 or index>=line.stations.size(): continue
+            _wanted[index]=true
+            _dispatch_priorities[index]=maxf(float(_dispatch_priorities.get(index,0.0)),float(request.priority))
     if not _busy:
         _busy=true
         call_deferred("_pump")
@@ -233,7 +242,7 @@ func _pump() -> void:
             var index: int=int(key)
             refresh() # Re-evaluate TRAIN/PLAYER/CAMERA after every awaited disposal.
             if _wanted.has(index): continue
-            if is_instance_valid(line.passengers) and not line.passengers.can_unload_platform(index): continue
+            if is_instance_valid(line.passengers) and (not line.passengers.can_unload_platform(index) or not line.gameplay.timetable.can_unload_platform(index)): continue
             var node: Node3D=station(index)
             station_unloading.emit(index,node)
             instances.erase(index)
@@ -256,6 +265,7 @@ func _pump() -> void:
             var distance: float=absf(_z-float(line.stations[index].stop_z))
             if index==_next_index: distance-=10000.0
             if index==_current_index and not is_service_ready(index): distance-=50000.0
+            distance-=float(_dispatch_priorities.get(index,0.0))
             if int(_retention.get(index,0))&PLAYER: distance-=100000.0
             if (_z-float(line.stations[index].stop_z))*float(_direction)<0.0: distance*=1.15
             if distance<priority:

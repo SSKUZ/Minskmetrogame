@@ -18,6 +18,7 @@ var _probe_index := -1
 var _probe_z := NAN
 var _next_person_id := 0
 var _station_calls: Dictionary={}
+var _dispatch_closing:=false
 const WalkLite = preload("res://modules/gameplay/walk_lite.gd")
 const BuildBudget = preload("res://modules/line/build_budget.gd")
 
@@ -234,6 +235,9 @@ func update_service(station: Dictionary, velocity: float, change: float) -> void
                     d.exit.erase(person)
         _was_stopped=false
         return
+    if _dispatch_closing:
+        exchange_enabled=false
+        return
     if not _was_stopped: _visit_serial+=1
     _was_stopped=true
     var direction: int=int(_game.cab_runtime.direction)
@@ -308,6 +312,9 @@ func simulation_agents() -> Array:
 func _refresh_activity() -> void:
     _simulation.clear()
     var camera_z: float=_game.camera.global_position.z
+    var shared_world: Node3D=_line.get("world") as Node3D
+    if is_instance_valid(shared_world) and is_instance_valid(shared_world.train.camera):
+        camera_z=shared_world.train.camera.global_position.z
     var train_z: float=float(_game.distance)
     for person in agents:
         var active: bool=person.space=="train" or person.state in ["boarding","alighting","returning"]
@@ -361,3 +368,14 @@ func retire_virtual_service() -> void:
     _active_station=-1
     _was_stopped=false
     _next_probe=0
+
+func close_boarding_window() -> void:
+    if _dispatch_closing: return
+    if not doors_clear(): return
+    _dispatch_closing=true
+    boarding.cancel_waiters()
+    exchange_enabled=false
+
+func open_boarding_window() -> void:
+    _dispatch_closing=false
+    _next_assignment=0
