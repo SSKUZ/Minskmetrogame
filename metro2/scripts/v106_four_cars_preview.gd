@@ -13,6 +13,8 @@ var throttle := false
 var brake := false
 var hud: Label
 @export var route_end_distance := 12.0
+# Service braking is configurable per route; keep existing preview dynamics by default.
+var service_brake_decel_mps2 := 1.05
 @export var tunnel_script: Script
 var distance := 300.0
 var orbit_yaw := 0.35
@@ -414,7 +416,6 @@ func _physics_process(delta: float) -> void:
     # All rates are m/s²; neither releasing traction nor applying the service
     # brake may instantly cancel momentum.
     const MAX_TRACTION_ACCEL := 0.95
-    const SERVICE_BRAKE_DECEL := 1.05
     const COAST_DECEL := 0.035
     const MAX_SPEED := 22.0
     var direction := 1
@@ -429,7 +430,7 @@ func _physics_process(delta: float) -> void:
         adhesion = clampf(float(input.adhesion),0.75,1.15)
     if brake_request > 0.001:
         # Service brake ramps in through cab_runtime; speed integrates smoothly.
-        speed = maxf(speed-dt*SERVICE_BRAKE_DECEL*brake_request*adhesion,0.0)
+        speed = maxf(speed-dt*service_brake_decel_mps2*brake_request*adhesion,0.0)
     elif traction_request > 0.001:
         # Tractive effort weakens toward line speed.
         var speed_factor := clampf(1.0-speed/MAX_SPEED*0.45,0.45,1.0)
