@@ -33,6 +33,8 @@
   "boot_sources": [
     "modules/core/module_catalog.gd",
     "viewers/module_viewer.gd",
+    "viewers/passenger_phone_preview.gd",
+    "modules/gameplay/passenger_phone.gd",
     "viewers/module_viewer.tscn",
     "viewers/inspection_camera.gd",
     "viewers/flight_joystick.gd",
