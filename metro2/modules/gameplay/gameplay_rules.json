@@ -114,5 +114,34 @@
     "local_radius": 16,
     "prefetch_margin": 8,
     "refresh_seconds": 1
+  },
+  "dispatch": {
+    "schema": 1,
+    "units": "metres, seconds, monotonic clock",
+    "handover_departure_seconds": 10.0,
+    "dwell_seconds": 10.0,
+    "door_closing_lead_seconds": 2.5,
+    "terminal_dwell_seconds": 20.0,
+    "headway_seconds": 120.0,
+    "direction_offsets_seconds": {
+      "1": 0.0,
+      "-1": 60.0
+    },
+    "track_x": {
+      "1": 0.992,
+      "-1": -11.732
+    },
+    "maximum_physical_trains": 2,
+    "minimum_gap_m": 80.0,
+    "refresh_seconds": 0.25,
+    "prepare_lead_seconds": 20.0,
+    "maximum_lateness_seconds": 45.0,
+    "retry_seconds": 15.0,
+    "maximum_spawn_attempts": 3,
+    "visual_prepare_timeout_seconds": 45.0,
+    "operation_timeout_seconds": 25.0,
+    "boarding_grace_seconds": 5.0,
+    "ownership": "car parent and dispatch_train_id; occupied/manual leases cannot be recycled",
+    "resources": "one hidden reusable lease; second visible lease shares original models and is released offscreen"
   }
 }

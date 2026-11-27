@@ -1,6 +1,6 @@
 extends Node
 ## One authority, driving the existing cab/physics and the existing INFO queue.
-enum Phase { IDLE, RUN, ARRIVAL, OPENING, DWELL, WARNING, CLOSING, TERMINAL }
+enum Phase { IDLE, RUN, ARRIVAL, OPENING, DWELL, WARNING, CLOSING, TERMINAL, BLOCKED }
 var service: Node
 var phase:=Phase.IDLE
 var target:=0
@@ -14,6 +14,9 @@ var _warning_requested:=false
 var _terminal_reversed:=false
 var _warning_heard:=false
 var _departed_context:=false
+var _departure_at:=-1.0
+var _phase_at:=0.0
+var error_message:=""
 
 func initialize(owner_service: Node) -> void:
     service=owner_service
@@ -21,7 +24,20 @@ func initialize(owner_service: Node) -> void:
     service.train.info_binding.audio.info.departure_started.connect(_departure_started)
 
 func enable(initial_master: float=NAN) -> void:
-    direction=1 if int(service.train.cab_runtime.direction)>=0 else -1
+    if not service.timetable.available:
+        _block("Нет корректных данных автоматического расписания")
+        return
+    service.timetable.register_current_train()
+    error_message=""
+    _phase_at=_now()
+    _departure_at=_now()+float(service.rules.dispatch.handover_departure_seconds)
+    direction=int(service.train.cab_runtime.direction)
+    if direction not in [1,-1]:
+        direction=1 if absf(float(service.train.track_x)-float(service.rules.dispatch.track_x["1"]))<0.5 else (-1 if absf(float(service.train.track_x)-float(service.rules.dispatch.track_x["-1"]))<0.5 else 0)
+    if direction==0:
+        _block("Не определено направление движения поезда")
+        return
+    service.train.cab_runtime.direction=direction
     _master=initial_master if is_finite(initial_master) else float(service.train.cab_runtime.controller_value)
     var stopped: int=service.station_at_train()
     if absf(service.train.speed)<0.05 and stopped>=0:
@@ -45,6 +61,9 @@ func disable() -> void:
     service.train.info_binding.audio.announcer.clear_pending()
 
 func approach_station(index: int, travel_direction: int) -> void:
+    error_message=""
+    _phase_at=_now()
+    _departure_at=-1.0
     target=index
     direction=travel_direction
     service.train.cab_runtime.direction=direction
@@ -79,7 +98,11 @@ func _physics_process(delta: float) -> void:
     var remaining: float=(float(train.distance)-float(record.stop_z))*float(direction)
     var speed: float=absf(train.speed)
     update_info()
+    if phase in [Phase.ARRIVAL,Phase.OPENING,Phase.WARNING,Phase.CLOSING,Phase.TERMINAL] and _now()-_phase_at>float(service.rules.dispatch.operation_timeout_seconds):
+        _block("Не завершён этап отправления: "+str(Phase.keys()[phase])+". Доступен повтор отправления.")
     match phase:
+        Phase.BLOCKED:
+            _drive(-1.0,delta)
         Phase.RUN:
             if speed<0.05 and not service.interaction.close_cab_for_departure():
                 _drive(-1.0,delta)
@@ -88,6 +111,7 @@ func _physics_process(delta: float) -> void:
             if speed<0.045 and ((remaining<=0.8 and remaining>=-1.5) or service.station_at_train()==target):
                 _drive(-1.0,delta)
                 phase=Phase.ARRIVAL
+                _phase_at=_now()
                 return
             var limit: float=float(service.rules.service.cruise_speed)
             var desired: float=minf(limit,sqrt(2.0*float(service.rules.service.braking_deceleration)*maxf(remaining-0.30,0.0)))
@@ -99,7 +123,8 @@ func _physics_process(delta: float) -> void:
             _drive(-1.0,delta)
             if speed>0.05: return
             if not service.line.streamer.is_loaded(target) or not service.line.passengers.platform_ready(target): return
-            service.timetable.begin_call(target,direction,visit)
+            service.timetable.begin_call(target,direction,visit,train)
+            service.line.passengers.open_boarding_window()
             info.on_auto_approach()
             var nav=service.line.passengers._platforms[target].navigation
             var layout=service.line.passengers.layout
@@ -111,11 +136,14 @@ func _physics_process(delta: float) -> void:
             train.cab_runtime.door_side=side
             # Close the non-platform side inherited from a manual driver.
             doors.side_targets[-side]=false
-            if doors.request_side(side,speed): phase=Phase.OPENING
+            if doors.request_side(side,speed):
+                phase=Phase.OPENING
+                _phase_at=_now()
         Phase.OPENING:
             _drive(-1.0,delta)
             if float(doors.openness)<0.99: return
-            dwell_left=float(service.rules.service.dwell)
+            if _departure_at<0.0: _departure_at=_now()+float(service.rules.dispatch.dwell_seconds)
+            dwell_left=maxf(0.0,_departure_at-_now()-float(service.rules.dispatch.door_closing_lead_seconds))
             _warning_requested=false
             _warning_heard=false
             departure_event=""
@@ -123,11 +151,22 @@ func _physics_process(delta: float) -> void:
         Phase.DWELL:
             _drive(-1.0,delta)
             dwell_left=maxf(0.0,dwell_left-delta)
-            if dwell_left>0.0 or not service.line.passengers.complete() or not _doorway_clear(): return
+            if dwell_left>0.0: return
+            if _now()>_departure_at+float(service.rules.dispatch.operation_timeout_seconds) and binding.audio.announcer.is_busy():
+                _block("Не завершено объявление информатора. Доступен повтор отправления.")
+                return
+            # Dispatch closes the boarding window; a distant station and
+            # unstarted NPC requests cannot hold the present train forever.
+            # Anyone actually crossing a doorway remains protected.
+            if not _doorway_clear():
+                if _now()>_departure_at+float(service.rules.dispatch.boarding_grace_seconds): service.timetable.report_delay("doorway","Отправление задерживается: освободите дверной проём")
+                return
             var next: int=target+direction
             if next<0 or next>=service.line.stations.size():
                 phase=Phase.TERMINAL
+                _phase_at=_now()
                 return
+            service.line.passengers.close_boarding_window()
             if not _warning_requested and not binding.audio.announcer.is_busy():
                 _warning_requested=true
                 info.on_auto_departure()
@@ -140,15 +179,17 @@ func _physics_process(delta: float) -> void:
                         info._departure_used=true
                     else:
                         _warning_requested=false
-                        service.ui.notice("Нет подготовленного объявления о закрытии дверей")
+                        _block("Нет подготовленного объявления о закрытии дверей")
                         return
                 phase=Phase.WARNING
+                _phase_at=_now()
         Phase.WARNING:
             _drive(-1.0,delta)
             _warning_heard=_warning_heard or binding.audio.announcer.has_audio_started(departure_event)
             if _warning_heard and _doorway_clear():
                 doors.request_close()
                 phase=Phase.CLOSING
+                _phase_at=_now()
         Phase.CLOSING:
             _drive(-1.0,delta)
             if not _doorway_clear():
@@ -157,6 +198,7 @@ func _physics_process(delta: float) -> void:
             if not doors.can_move(): return
             if not service.interaction.close_cab_for_departure(): return
             target+=direction
+            _departure_at=-1.0
             _departed_context=true
             visit+=1
             _visit_key=""
@@ -164,7 +206,7 @@ func _physics_process(delta: float) -> void:
         Phase.TERMINAL:
             _drive(-1.0,delta)
             if not service.line.passengers.complete() or not _doorway_clear(): return
-            if not service.timetable.terminal_ready(visit): return
+            if not service.timetable.terminal_ready(visit,train): return
             # Finish disembarkation before changing direction/destination context.
             direction=-direction
             train.cab_runtime.direction=direction
@@ -173,6 +215,7 @@ func _physics_process(delta: float) -> void:
             # The terminal call already observed the timetable's full dwell.
             # Keep this physical consist when the player is aboard.
             dwell_left=0.0
+            _departure_at=_now()
             _warning_requested=false
             _warning_heard=false
             departure_event=""
@@ -219,3 +262,18 @@ func _drive(request: float, delta: float) -> void:
 
 func _departure_started(event_id: String, _seconds: float) -> void:
     if service.role=="passenger" and phase==Phase.DWELL: departure_event=event_id
+
+func _now() -> float:
+    return float(Time.get_ticks_msec())/1000.0
+
+func _block(reason: String) -> void:
+    if phase==Phase.BLOCKED: return
+    error_message=reason
+    phase=Phase.BLOCKED
+    service.ui.notice(reason)
+    push_warning("Automatic dispatch: "+reason)
+
+func retry_departure() -> void:
+    if service.role!="passenger" or service.virtual_wait: return
+    if absf(service.train.speed)>0.05: return
+    enable(float(service.train.cab_runtime.controller_value))
