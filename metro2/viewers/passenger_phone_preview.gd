@@ -38,7 +38,6 @@ func _ready() -> void:
     var camera:=Camera3D.new()
     camera.current=true
     camera.fov=65.0
-    add_child(camera)
     var background:=WorldEnvironment.new()
     var env:=Environment.new()
     env.background_mode=Environment.BG_COLOR
@@ -52,6 +51,7 @@ func _ready() -> void:
     add_child(player)
     player.eye=Node3D.new()
     player.add_child(player.eye)
+    player.eye.add_child(camera)
     service.train=PreviewTrain.new()
     add_child(service.train)
     service.line=PreviewLine.new()
