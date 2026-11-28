@@ -1428,9 +1428,9 @@
       ]
     },
     "mihalovo": {
-      "file": "mihalovo-ae488f0e69d0a0a2476a.pck",
-      "sha256": "ae488f0e69d0a0a2476adc12bec6f6ff4214f437e9b5ed0a474e48a4c3e3011c",
-      "bytes": 1677408,
+      "file": "mihalovo-1e277ecbbc102bb3da02.pck",
+      "sha256": "1e277ecbbc102bb3da0252d2cde8f0e9d3396389056622877bf2424d0725de26",
+      "bytes": 2521536,
       "warmup": [
         "res://modules/stations/mihalovo/art/birds_panorama.jpg",
         "res://modules/stations/mihalovo/art/exit.svg",
