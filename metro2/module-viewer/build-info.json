@@ -742,9 +742,9 @@
       "embedded_station_archives": 1
     },
     "institut_kultury": {
-      "file": "institut_kultury-32e83755ed7ade24750b.pck",
-      "sha256": "32e83755ed7ade24750b1c64dbd31ce89f7767baf04b1889207f468b62edfdc2",
-      "bytes": 3513856,
+      "file": "institut_kultury-8ddb447bf4e79eca203c.pck",
+      "sha256": "8ddb447bf4e79eca203c707966aff2dda52a03ed3831a25e191fea4ad54c8f39",
+      "bytes": 4978432,
       "warmup": [
         "res://modules/stations/institut_kultury/art/advert.jpg",
         "res://modules/stations/institut_kultury/art/exit_surazhskaya.svg",
@@ -764,7 +764,8 @@
         "res://modules/stations/institut_kultury/art/vault_plaster.jpg",
         "res://modules/stations/institut_kultury/art/vestibule_marble.jpg",
         "res://modules/stations/institut_kultury/art/wall_granite.jpg",
-        "res://modules/stations/institut_kultury/art/wall_route.svg"
+        "res://modules/stations/institut_kultury/art/wall_route.svg",
+        "res://modules/stations/institut_kultury/art/wall_route_photo.jpg"
       ],
       "world_files": []
     },

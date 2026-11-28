@@ -65,8 +65,8 @@
       "dependencies": []
     },
     "institut_kultury": {
-      "source_commit": "a1a9096a2207de36366db6c446a128b1c4cb53e4",
-      "pack_sha256": "32e83755ed7ade24750b1c64dbd31ce89f7767baf04b1889207f468b62edfdc2",
+      "source_commit": "1cfa44a6c321cc4613c86b454f0e642758ae2f71",
+      "pack_sha256": "8ddb447bf4e79eca203c707966aff2dda52a03ed3831a25e191fea4ad54c8f39",
       "category": "station",
       "scene": "modules/stations/institut_kultury/institut_kultury.tscn",
       "dependencies": []
