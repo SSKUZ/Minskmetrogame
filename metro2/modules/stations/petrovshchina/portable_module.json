@@ -42,7 +42,8 @@
         ],
         "roof": "shallow parabolic native mesh, column-free",
         "star_seed": 1112026,
-        "source_dependency_fix": "6a248992a6b2cc63a5068df0f276d3f4aff1c913"
+        "source_dependency_fix": "6a248992a6b2cc63a5068df0f276d3f4aff1c913",
+        "viewer_registration_base_commit": "743df62db5865c23fa7f932bc7bf43ea1ce0a779"
       }
     },
     {
