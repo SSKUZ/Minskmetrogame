@@ -42,7 +42,9 @@
         "stair_width_m": 5.45,
         "stair_mid_landing_m": 1.25,
         "column_radius_m": 0.5,
-        "layout_resource": "res://modules/stations/mihalovo/art/station_layout.json"
+        "layout_resource": "res://modules/stations/mihalovo/art/station_layout.json",
+        "glass_thickness_m": 0.012,
+        "seat_edge_thickness_m": 0.055
       }
     },
     {
@@ -105,6 +107,16 @@
     },
     {
       "id": "photo_metal_relief",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "tile_joints",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "fluorescent_housings",
       "source_class": "StandardMaterial3D",
       "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
     }

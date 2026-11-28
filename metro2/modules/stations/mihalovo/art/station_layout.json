@@ -51,5 +51,55 @@
     51.4,
     64.2
   ],
-  "estimated_dimensions": true
+  "estimated_dimensions": true,
+  "ceiling_frames": [
+    {
+      "start_z_m": 3.0,
+      "end_z_m": 7.8
+    },
+    {
+      "start_z_m": 9.1,
+      "end_z_m": 13.9
+    },
+    {
+      "start_z_m": 15.2,
+      "end_z_m": 20.0
+    },
+    {
+      "start_z_m": 21.3,
+      "end_z_m": 26.1
+    },
+    {
+      "start_z_m": 27.4,
+      "end_z_m": 32.2
+    },
+    {
+      "start_z_m": 33.5,
+      "end_z_m": 38.3
+    },
+    {
+      "start_z_m": 39.6,
+      "end_z_m": 44.4
+    },
+    {
+      "start_z_m": 45.7,
+      "end_z_m": 50.5
+    },
+    {
+      "start_z_m": 51.8,
+      "end_z_m": 56.6
+    },
+    {
+      "start_z_m": 57.9,
+      "end_z_m": 62.7
+    },
+    {
+      "start_z_m": 64.0,
+      "end_z_m": 68.8
+    },
+    {
+      "start_z_m": 70.1,
+      "end_z_m": 74.9
+    }
+  ]
 }

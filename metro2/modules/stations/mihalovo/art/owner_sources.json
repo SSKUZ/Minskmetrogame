@@ -5,5 +5,32 @@
   "video_duration_s": 7.584,
   "date": "2026-11-22",
   "review": "All 190 photo thumbnails, selected full-resolution architectural details and frames across video reviewed. Repeated image copies retained in source archive.",
-  "geometry_notes": "Two column rows; central end stairs with rounded side openings; smoke tinted point-fixed upper glass; cream vertical cladding, navy ceiling, lift burgundy panels, steel birds/rainbow artwork. Coordinates are photo-scaled, not surveyed."
+  "geometry_notes": "Two column rows; central end stairs with rounded side openings; smoke tinted point-fixed upper glass; cream vertical cladding, navy ceiling, lift burgundy panels, steel birds/rainbow artwork. Coordinates are photo-scaled, not surveyed.",
+  "refinement": {
+    "base_commit": "a5adb74e337010a5327de2e36fb5795044b95169",
+    "preserved": "Platform and rail datum, two column rows, stair flights and openings, lift/core locations, original owner textures and relief grids.",
+    "detail_references": {
+      "ceiling_frames": [
+        "20261122_170455.jpg",
+        "20261122_170456.jpg"
+      ],
+      "granite_triangles_and_seats": [
+        "20261122_170312.jpg",
+        "20261122_170552.jpg"
+      ],
+      "stairs_glass_and_cladding": [
+        "20261122_170406.jpg",
+        "20261122_170434.jpg",
+        "20261122_170737.jpg"
+      ],
+      "wayfinding": [
+        "20261122_170437.jpg",
+        "20261122_170515.jpg"
+      ],
+      "lift": [
+        "20261122_170449.jpg"
+      ]
+    },
+    "dimensions": "Detail dimensions inferred from photos; existing structural coordinates retained."
+  }
 }

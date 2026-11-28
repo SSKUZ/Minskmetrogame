@@ -1,1 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="370" viewBox="0 0 1800 370"><rect width="1800" height="370" fill="#e9e7d9"/><path d="M20 290H1780" stroke="#25467e" stroke-width="10"/><circle cx="45" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(53,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Уручча</text></g><circle cx="167" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(175,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Барысаўскі тракт</text></g><circle cx="289" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(297,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Усход</text></g><circle cx="411" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(419,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Маскоўская</text></g><circle cx="533" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(541,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Парк Чалюскінцаў</text></g><circle cx="655" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(663,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Акадэмія навук</text></g><circle cx="777" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(785,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Плошча Якуба Коласа</text></g><circle cx="899" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(907,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Плошча Перамогі</text></g><circle cx="1021" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1029,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Кастрычніцкая</text></g><circle cx="1143" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1151,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Плошча Леніна</text></g><circle cx="1265" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1273,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Інстытут культуры</text></g><circle cx="1387" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1395,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Грушаўка</text></g><circle cx="1509" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1517,260) rotate(-52)"><text fill="#b9902c" font-size="23" font-family="DejaVu Sans">Міхалова</text></g><circle cx="1631" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1639,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Пятроўшчына</text></g><circle cx="1753" cy="290" r="12" fill="white" stroke="#29487d" stroke-width="7"/><g transform="translate(1761,260) rotate(-52)"><text fill="#25365f" font-size="23" font-family="DejaVu Sans">Малінаўка</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="2700" height="570" viewBox="0 0 2700 570">
+<path d="M8 552L380 8H2690L2318 552Z" fill="#efeee3" stroke="#b3b6b6" stroke-width="8"/>
+<path d="M25 500L348 28H497L174 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(121,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Уручча</text><text x="0" y="34" font-size="27">Уручье</text></g>
+<circle cx="103" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M178 500L501 28H650L327 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(274,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Барысаўскі тракт</text><text x="0" y="34" font-size="27">Борисовский тракт</text></g>
+<circle cx="256" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M331 500L654 28H803L480 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(427,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Усход</text><text x="0" y="34" font-size="27">Восток</text></g>
+<circle cx="409" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M484 500L807 28H956L633 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(580,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Маскоўская</text><text x="0" y="34" font-size="27">Московская</text></g>
+<circle cx="562" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M637 500L960 28H1109L786 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(733,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Парк Чалюскінцаў</text><text x="0" y="34" font-size="27">Парк Челюскинцев</text></g>
+<circle cx="715" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M790 500L1113 28H1262L939 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(886,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Акадэмія навук</text><text x="0" y="34" font-size="27">Академия наук</text></g>
+<circle cx="868" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M943 500L1266 28H1415L1092 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1039,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Плошча Якуба Коласа</text><text x="0" y="34" font-size="27">Площадь Якуба Коласа</text></g>
+<circle cx="1021" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1096 500L1419 28H1568L1245 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1192,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Плошча Перамогі</text><text x="0" y="34" font-size="27">Площадь Победы</text></g>
+<circle cx="1174" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1249 500L1572 28H1721L1398 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1345,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Кастрычніцкая</text><text x="0" y="34" font-size="27">Октябрьская</text></g>
+<circle cx="1327" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1402 500L1725 28H1874L1551 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1498,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Плошча Леніна</text><text x="0" y="34" font-size="27">Площадь Ленина</text></g>
+<circle cx="1480" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1555 500L1878 28H2027L1704 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1651,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Інстытут культуры</text><text x="0" y="34" font-size="27">Институт культуры</text></g>
+<circle cx="1633" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1708 500L2031 28H2180L1857 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1804,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Грушаўка</text><text x="0" y="34" font-size="27">Грушевка</text></g>
+<circle cx="1786" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M1861 500L2184 28H2333L2010 500Z" fill="#e5bd46" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(1957,455) rotate(-56)" font-family="DejaVu Sans" fill="#252a3c"><text x="0" y="0" font-size="28" font-weight="bold">Міхалова</text><text x="0" y="34" font-size="27">Михалово</text></g>
+<circle cx="1939" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M2014 500L2337 28H2486L2163 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(2110,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Пятроўшчына</text><text x="0" y="34" font-size="27">Петровщина</text></g>
+<circle cx="2092" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M2167 500L2490 28H2639L2316 500Z" fill="#323b6f" stroke="#c4c7cc" stroke-width="3"/>
+<g transform="translate(2263,455) rotate(-56)" font-family="DejaVu Sans" fill="#fff"><text x="0" y="0" font-size="28" font-weight="bold">Малінаўка</text><text x="0" y="34" font-size="27">Малиновка</text></g>
+<circle cx="2245" cy="500" r="17" fill="#fff" stroke="#273f78" stroke-width="7"/>
+<path d="M43 500H2230" fill="none" stroke="#273f78" stroke-width="6"/><text x="1250" y="552" font-family="DejaVu Sans" font-size="25" fill="#344764">МАСКОЎСКАЯ ЛІНІЯ / МОСКОВСКАЯ ЛИНИЯ</text></svg>

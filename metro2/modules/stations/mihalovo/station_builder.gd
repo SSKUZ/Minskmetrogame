@@ -161,8 +161,7 @@ func board(file: String,p: Vector3,size: Vector2) -> void:
     box(Vector3(size.x+0.09,size.y+0.08,0.09),p,metal)
     for side in [-1.0,1.0]:
         picture(file,size,p+Vector3(0,0,side*0.052),0.0 if side>0.0 else PI)
-    for dx in [-0.44,0.44]:
-        rod(p+Vector3(size.x*float(dx),size.y*0.5,0),p+Vector3(size.x*float(dx),size.y*0.5+0.70,0),0.018,metal)
+    box(Vector3(0.22,0.72,0.07),p+Vector3(0,size.y*0.5+0.36,0),black)
 
 func extrusion(points: PackedVector2Array,z0: float,z1: float,mat: Material) -> void:
     for i in range(points.size()):

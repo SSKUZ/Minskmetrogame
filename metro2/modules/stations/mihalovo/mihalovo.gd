@@ -16,6 +16,8 @@ var navy: StandardMaterial3D
 var burgundy: StandardMaterial3D
 var glass: StandardMaterial3D
 var yellow: StandardMaterial3D
+var joint: StandardMaterial3D
+var lamp_case: StandardMaterial3D
 var relief_meshes: Dictionary={}
 
 func _ready() -> void:
@@ -34,6 +36,8 @@ func _ready() -> void:
     navy=_material(Color("#1e2537"),0.12,0.64)
     burgundy=_material(Color("#302231"),0.28,0.25)
     yellow=_material(Color("#dfba39"),0.0,0.65)
+    joint=_material(Color("#87877e"),0.15,0.65)
+    lamp_case=_material(Color("#deddd1"),0.18,0.40)
     glass=_material(Color(0.17,0.23,0.25,0.48),0.14,0.09)
     glass.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
     glass.cull_mode=BaseMaterial3D.CULL_DISABLED
@@ -65,16 +69,20 @@ func _platform() -> void:
     for row in range(175):
         for col in range(16):
             box(Vector3(0.598,0.009,0.598),Vector3(CX-4.8+(float(col)+0.5)*0.6,FY+0.008,ZA+(float(row)+0.5)*0.6),floor_light)
-    # Repeated broad dark granite rectangles, pale triangular sails and perimeter ribbons.
+    # 170312 / 170552: opposing granite triangles, separated by a pale diagonal.
     for z in [6.0,19.0,31.8,44.6,57.4,70.2,83.0]:
-        box(Vector3(5.7,0.012,5.2),Vector3(CX,FY+0.017,float(z)),floor_dark)
-        var y = FY+0.026
-        triangle(Vector3(CX-2.85,y,float(z)-2.58),Vector3(CX+1.9,y,float(z)-2.58),Vector3(CX-0.45,y,float(z)+0.2),floor_light,Vector3.UP)
-        triangle(Vector3(CX+2.85,y,float(z)+2.58),Vector3(CX-1.9,y,float(z)+2.58),Vector3(CX+0.45,y,float(z)-0.2),floor_light,Vector3.UP)
+        var y = FY+0.023
+        triangle(Vector3(CX-2.85,y,float(z)-2.6),Vector3(CX+2.85,y,float(z)-2.6),Vector3(CX-2.85,y,float(z)+1.95),floor_dark,Vector3.UP)
+        triangle(Vector3(CX+2.85,y,float(z)+2.6),Vector3(CX-2.85,y,float(z)+2.6),Vector3(CX+2.85,y,float(z)-1.95),floor_dark,Vector3.UP)
+        triangle(Vector3(CX-2.23,y+0.003,float(z)-2.0),Vector3(CX+0.78,y+0.003,float(z)-2.0),Vector3(CX-2.23,y+0.003,float(z)+0.40),floor_light,Vector3.UP)
+        triangle(Vector3(CX+2.23,y+0.003,float(z)+2.0),Vector3(CX-0.78,y+0.003,float(z)+2.0),Vector3(CX+2.23,y+0.003,float(z)-0.40),floor_light,Vector3.UP)
     for side in [-1.0,1.0]:
         box(Vector3(0.26,0.015,105),Vector3(CX+side*4.84,FY+0.016,MID),floor_light)
         box(Vector3(0.12,0.012,105),Vector3(CX+side*4.59,FY+0.024,MID),yellow)
         box(Vector3(0.18,0.012,105),Vector3(CX+side*4.40,FY+0.023,MID),floor_dark)
+        # Longitudinal guidance grooves alongside the yellow warning line (170437).
+        for dx in [-0.065,-0.025,0.025,0.065]:
+            box(Vector3(0.006,0.004,105),Vector3(CX+side*4.40+float(dx),FY+0.031,MID),black)
         for i in range(875):
             for dx in [-0.035,0.0,0.035]:
                 cylinder(0.007,0.003,Vector3(CX+side*4.59+float(dx),FY+0.032,ZA+float(i)*0.12),yellow)
@@ -93,7 +101,7 @@ func _track_walls() -> void:
                 var x0 = x-side*0.075*pow(float(j)/8.0,2.0)
                 var x1 = x-side*0.075*pow(float(j+1)/8.0,2.0)
                 quad(Vector3(x0,y0,z-0.416),Vector3(x1,y1,z-0.416),Vector3(x1,y1,z+0.416),Vector3(x0,y0,z+0.416),cream,Vector3(-side,0,0))
-            box(Vector3(0.025,1.96,0.015),Vector3(x-side*0.09,2.83,z-0.417),metal)
+            box(Vector3(0.025,1.96,0.015),Vector3(x-side*0.09,2.83,z-0.417),joint)
         box(Vector3(0.26,0.58,105),Vector3(x-side*0.08,4.10,MID),navy)
         for z in [-3.0,16.0,35.0,54.0,73.0,88.0]:
             _relief("name",Vector2(3.35,0.53),Vector3(x-side*0.15,2.78,float(z)),-side*PI/2.0)
@@ -120,11 +128,13 @@ func _roof() -> void:
         _light_strip(Vector3(CX+side*2.98,SOFFIT-0.11,ZA),Vector3(CX+side*2.98,SOFFIT-0.11,ZB),0.12)
     # End stairwells interrupt the central roof: no ceiling slab cuts across their upper flights.
     box(Vector3(5.96,0.18,76.8),Vector3(CX,CENTRAL_ROOF+0.09,39.6),navy)
-    for z in range(13):
-        var zz = 3.0+float(z)*6.1
+    for data in layout.ceiling_frames:
+        _ceiling_frame(float(data.start_z_m),float(data.end_z_m))
+    # Small flush discs in the cream side soffits, without adding separate lights.
+    for z in layout.column_z_m:
         for side in [-1.0,1.0]:
-            _light_strip(Vector3(CX+side*2.15,CENTRAL_ROOF-0.08,zz),Vector3(CX+side*2.15,CENTRAL_ROOF-0.08,zz+4.8),0.10)
-        _light_strip(Vector3(CX-2.15,CENTRAL_ROOF-0.08,zz),Vector3(CX+2.15,CENTRAL_ROOF-0.08,zz),0.10)
+            cylinder(0.075,0.012,Vector3(CX+side*4.7,SOFFIT-0.012,float(z)+2.0),metal)
+            cylinder(0.051,0.014,Vector3(CX+side*4.7,SOFFIT-0.021,float(z)+2.0),lamp_case)
     for i in range(15):
         for side in [-1.0,1.0]:
             _lamp(Vector3(CX+side*2.7,5.18,ZA+4.0+float(i)*6.85),0.95,8.3)
@@ -132,8 +142,21 @@ func _roof() -> void:
 func _light_strip(a: Vector3,b: Vector3,width: float) -> void:
     var length = a.distance_to(b)
     var basis = Basis(Vector3.UP,atan2((b-a).x,(b-a).z))
-    box(Vector3(width+0.035,0.07,length),((a+b)*0.5)+Vector3(0,0.025,0),metal,basis)
-    box(Vector3(width,0.025,length-0.025),(a+b)*0.5,glow,basis)
+    # Physical fluorescent housings and short opaque couplers, visible in 170455.
+    var count = maxi(1,int(ceilf(length/1.60)))
+    var pitch = length/float(count)
+    var direction = (b-a).normalized()
+    for i in range(count):
+        var centre = a+direction*((float(i)+0.5)*pitch)
+        box(Vector3(width+0.045,0.07,pitch-0.012),centre+Vector3(0,0.025,0),lamp_case,basis)
+        box(Vector3(width,0.025,maxf(0.02,pitch-0.19)),centre,glow,basis)
+
+func _ceiling_frame(z0: float,z1: float) -> void:
+    var y = CENTRAL_ROOF-0.08
+    for side in [-1.0,1.0]:
+        _light_strip(Vector3(CX+side*2.15,y,z0),Vector3(CX+side*2.15,y,z1),0.10)
+    for z in [z0,z1]:
+        _light_strip(Vector3(CX-2.15,y,float(z)),Vector3(CX+2.15,y,float(z)),0.10)
 
 func _lamp(p: Vector3,energy: float,radius: float,shadows: bool=false) -> void:
     var light = OmniLight3D.new();light.name="FluorescentFill";light.position=p
@@ -151,7 +174,11 @@ func _column(offset: float,z: float) -> void:
     _round(0.50,SOFFIT-FY-0.30,Vector3(x,(SOFFIT+FY+0.30)*0.5,z),cream)
     _round(0.57,0.07,Vector3(x,SOFFIT-0.025,z),black)
     for a in [0.0,PI/2.0,PI,PI*1.5]:
-        rod(Vector3(x+0.502*cos(float(a)),FY+0.30,z+0.502*sin(float(a))),Vector3(x+0.502*cos(float(a)),SOFFIT-0.07,z+0.502*sin(float(a))),0.004,metal)
+        rod(Vector3(x+0.502*cos(float(a)),FY+0.30,z+0.502*sin(float(a))),Vector3(x+0.502*cos(float(a)),SOFFIT-0.07,z+0.502*sin(float(a))),0.0025,joint)
+    # Horizontal cladding joint at the upper panel seam, not an ornamental ring.
+    var seam = TorusMesh.new();seam.inner_radius=0.499;seam.outer_radius=0.502
+    seam.rings=64;seam.ring_segments=6;seam.material=joint
+    var seam_node = MeshInstance3D.new();seam_node.mesh=seam;seam_node.position=Vector3(x,FY+2.75,z);add_child(seam_node)
     for h in [0.09,0.25]:
         var mesh = TorusMesh.new();mesh.inner_radius=0.61;mesh.outer_radius=0.65;mesh.rings=64;mesh.ring_segments=12;mesh.material=metal
         var node = MeshInstance3D.new();node.mesh=mesh;node.position=Vector3(x,FY+float(h),z);add_child(node)
@@ -173,6 +200,11 @@ func _bench(z: float) -> void:
             var z0 = z+0.43*sin(a);var z1 = z+0.43*sin(b)
             var y0 = FY+0.44+0.065*cos(a);var y1 = FY+0.44+0.065*cos(b)
             quad(Vector3(x-0.262,y0,z0),Vector3(x+0.262,y0,z0),Vector3(x+0.262,y1,z1),Vector3(x-0.262,y1,z1),seat_wood,Vector3.UP)
+            # Solid timber edge and underside; the retained curved seat is not a sheet.
+            for side in [-1.0,1.0]:
+                var xx = x+side*0.262
+                quad(Vector3(xx,y0,z0),Vector3(xx,y1,z1),Vector3(xx,y1-0.055,z1),Vector3(xx,y0-0.055,z0),seat_wood,Vector3(side,0,0))
+        box(Vector3(0.524,0.045,0.84),Vector3(x,FY+0.417,z),seat_wood)
         box(Vector3(0.018,0.05,0.82),Vector3(x+0.27,FY+0.46,z),metal)
 
 func _stair_node(direction: float,start: float) -> void:
@@ -186,8 +218,14 @@ func _stair_node(direction: float,start: float) -> void:
         var z = start+direction*(float(i)*run+(landing if i>=15 else 0.0))
         _solid(Vector3(width,h,run+0.006),Vector3(CX,FY+h*0.5,z),stair_stone)
         box(Vector3(width,0.014,0.042),Vector3(CX,FY+h+0.01,z-direction*0.128),yellow if i in [0,14,15,29] else metal)
-        for side in [-1.0,1.0]:box(Vector3(0.42,0.017,run+0.008),Vector3(CX+side*(width*0.5-0.21),FY+h+0.012,z),floor_dark)
+        for side in [-1.0,1.0]:
+            box(Vector3(0.42,0.017,run+0.008),Vector3(CX+side*(width*0.5-0.21),FY+h+0.012,z),floor_dark)
+            box(Vector3(0.42,rise,0.012),Vector3(CX+side*(width*0.5-0.21),FY+h-rise*0.5,z-direction*(run*0.5+0.004)),floor_dark)
+        for dz in [-0.09,-0.065,-0.04]:
+            box(Vector3(width-0.88,0.003,0.004),Vector3(CX,FY+h+0.004,z+direction*float(dz)),joint)
     _solid(Vector3(width,0.20,landing),Vector3(CX,FY+15.0*rise-0.10,start+direction*(14.5*run+landing*0.5)),stair_stone)
+    for side in [-1.0,1.0]:
+        box(Vector3(0.42,0.017,landing),Vector3(CX+side*(width*0.5-0.21),FY+15.0*rise+0.012,start+direction*(14.5*run+landing*0.5)),floor_dark)
     var end = start+direction*(29.5*run+landing)
     _solid(Vector3(width,0.22,5.0),Vector3(CX,UPPER-0.11,end+direction*2.5),floor_light)
     for side in [-1.0,1.0]:
@@ -199,9 +237,12 @@ func _stair_node(direction: float,start: float) -> void:
             var c = b+Vector3(0,0,direction*landing)
             var d = Vector3(x,UPPER+float(h),end)
             rod(a,b,0.024,metal);rod(b,c,0.024,metal);rod(c,d,0.024,metal)
-            for i in range(9):
-                var t = float(i)/8.0
-                rod(a.lerp(d,t)-Vector3(0,0.13,0),a.lerp(d,t)+Vector3(side*0.11,0,0),0.012,metal)
+            # Brackets follow each flight and its horizontal landing separately.
+            for span in [[a,b],[b,c],[c,d]]:
+                var count = maxi(1,int(ceilf(span[0].distance_to(span[1])/1.25)))
+                for i in range(count):
+                    var p: Vector3=span[0].lerp(span[1],(float(i)+0.5)/float(count))
+                    rod(p-Vector3(0,0.13,0),p+Vector3(side*0.11,0,0),0.012,metal)
         # Upper landing balustrade is smoke glass, with individual clamps and steel cap rails.
         _glass_panel(Vector3(CX+side*2.76,UPPER+0.66,end+direction*2.2),Vector2(4.2,1.25),PI/2.0)
         rod(Vector3(CX+side*2.77,UPPER+1.30,end),Vector3(CX+side*2.77,UPPER+1.30,end+direction*4.5),0.026,metal)
@@ -214,7 +255,7 @@ func _stair_node(direction: float,start: float) -> void:
     box(Vector3(5.48,2.35,0.13),Vector3(CX,UPPER+1.65,art_z),navy)
     _relief("birds",Vector2(5.25,1.97),Vector3(CX,UPPER+1.68,art_z-direction*0.079),0.0 if direction<0.0 else PI)
     for sign_z in [start-direction*1.6]:
-        board("exit.svg",Vector3(CX,4.33,float(sign_z)),Vector2(3.8,0.57))
+        board("exit.svg",Vector3(CX,4.33,float(sign_z)),Vector2(1.65,0.53))
     # Drainage grilles directly before first riser.
     box(Vector3(width,0.02,0.34),Vector3(CX,FY+0.025,start-direction*0.40),black)
     for i in range(100):box(Vector3(0.018,0.025,0.32),Vector3(CX-width*0.5+float(i)*width/100.0,FY+0.04,start-direction*0.40),metal)
@@ -256,14 +297,15 @@ func _stair_cheek(side: float,direction: float,start: float,width: float) -> voi
         if i%5==0:
             var segments: Array = [[FY,lo0],[hi0,UPPER]] if inside else [[FY,UPPER]]
             for limits in segments:
-                box(Vector3(0.005,maxf(0.005,float(limits[1])-float(limits[0])),0.004),Vector3(x+side*0.088,(float(limits[0])+float(limits[1]))*0.5,z0),metal)
+                box(Vector3(0.005,maxf(0.005,float(limits[1])-float(limits[0])),0.004),Vector3(x+side*0.088,(float(limits[0])+float(limits[1]))*0.5,z0),joint)
+        for row in range(1,8):
+            var y = FY+float(row)*0.55
+            if inside and y>minf(lo0,lo1) and y<maxf(hi0,hi1):continue
+            box(Vector3(0.005,0.003,absf(z1-z0)),Vector3(x+side*0.088,y,(z0+z1)*0.5),joint)
     box(Vector3(0.22,0.10,total),Vector3(x,UPPER+0.025,start+direction*total*0.5),metal)
     for i in range(7):
         var z = start+direction*(0.78+float(i)*1.52)
         _glass_panel(Vector3(x,UPPER+0.96,z),Vector2(1.50,1.79),PI/2.0)
-        for dz in [-0.66,0.66]:
-            for h in [0.23,1.60]:
-                sphere(Vector3(0.04,0.075,0.075),Vector3(x+side*0.028,UPPER+float(h),z+float(dz)),metal)
     # Sideways access corridor: enough clearance outside the cheeks for walking.
     for t in [0.9,10.1]:
         var body = StaticBody3D.new();body.position=Vector3(x,FY+2.16,start+direction*float(t))
@@ -271,9 +313,18 @@ func _stair_cheek(side: float,direction: float,start: float,width: float) -> voi
         var collision = CollisionShape3D.new();collision.shape=shape;body.add_child(collision);add_child(body)
 
 func _glass_panel(p: Vector3,size: Vector2,yaw: float) -> void:
-    var mesh = QuadMesh.new();mesh.size=size;mesh.material=glass
+    var mesh = BoxMesh.new();mesh.size=Vector3(size.x,size.y,0.012);mesh.material=glass
     var node = MeshInstance3D.new();node.name="SmokeTintedPointFixedGlass";node.mesh=mesh;node.position=p;node.rotation.y=yaw
     node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;add_child(node)
+    var basis = Basis(Vector3.UP,yaw)
+    for side in [-1.0,1.0]:
+        var edge = p+basis*Vector3(side*size.x*0.5,0,0)
+        rod(edge-Vector3(0,size.y*0.5,0),edge+Vector3(0,size.y*0.5,0),0.003,joint)
+        for h in [-0.37,0.37]:
+            var clamp_point = p+basis*Vector3(side*(size.x*0.5-0.09),h*size.y,0)
+            var normal = basis*Vector3(0,0,0.045)
+            rod(clamp_point-normal,clamp_point+normal,0.022,metal)
+    box(Vector3(size.x,0.025,0.018),p+Vector3(0,-size.y*0.5,0),metal,basis)
 
 func _lift() -> void:
     var data: Dictionary=layout.lift
@@ -285,7 +336,9 @@ func _lift() -> void:
     for side in [-1.0,1.0]:
         box(Vector3(0.14,2.40,0.12),Vector3(CX+side*0.76,FY+1.20,front-0.03),metal)
         box(Vector3(0.69,2.24,0.025),Vector3(CX+side*0.35,FY+1.13,front-0.102),metal)
-        box(Vector3(0.014,2.22,0.014),Vector3(CX,FY+1.13,front-0.12),black)
+    box(Vector3(0.014,2.22,0.014),Vector3(CX,FY+1.13,front-0.12),black)
+    box(Vector3(1.48,0.012,0.22),Vector3(CX,FY+0.016,front-0.13),metal)
+    box(Vector3(1.40,0.014,0.025),Vector3(CX,FY+0.025,front-0.235),yellow)
     box(Vector3(1.67,0.24,0.12),Vector3(CX,FY+2.42,front-0.035),metal)
     picture("lift.svg",Vector2(0.95,0.15),Vector3(CX,FY+2.43,front-0.102),PI)
     box(Vector3(0.10,0.28,0.035),Vector3(CX-0.99,FY+1.18,front-0.03),metal)
@@ -301,7 +354,9 @@ func _lift() -> void:
             for dz in [-length*0.5,length*0.5]:rod(Vector3(CX+side*0.86,FY+float(h),z+float(dz)),Vector3(CX+side*(w*0.5+0.13),FY+float(h),z+float(dz)),0.027,metal)
     _lamp(Vector3(CX-2.1,5.9,z-1.1),0.55,5.0,true)
     for side in [-1.0,1.0]:
-        box(Vector3(0.012,0.012,length),Vector3(CX+side*(w*0.5+0.014),FY+2.62,z),metal)
+        for h in [2.62,4.12]:
+            box(Vector3(w,0.012,0.012),Vector3(CX,FY+float(h),z+side*(length*0.5+0.014)),metal)
+            box(Vector3(0.012,0.012,length),Vector3(CX+side*(w*0.5+0.014),FY+float(h),z),metal)
 
 func _service_core() -> void:
     var data: Dictionary=layout.service_core
@@ -316,7 +371,19 @@ func _service_core() -> void:
         picture("no_smoking.svg",Vector2(0.15,0.15),Vector3(x+side*0.035,FY+2.48,z-1.0),side*PI/2.0,true)
         box(Vector3(0.025,0.45,length-0.30),Vector3(x+side*0.02,FY+3.86,z),black)
         for i in range(8):box(Vector3(0.04,0.014,length-0.35),Vector3(x+side*0.04,FY+3.67+float(i)*0.049,z),metal)
-    board("exit.svg",Vector3(CX,4.22,z+length*0.5+0.12),Vector2(2.65,0.42))
+    # 170513–170517: tiled end faces, grey skirting and a route panel below vents.
+    for side in [-1.0,1.0]:
+        var face_z = z+side*(length*0.5+0.012)
+        box(Vector3(w,0.30,0.025),Vector3(CX,FY+0.15,face_z),stair_stone)
+        for i in range(1,5):
+            box(Vector3(0.004,4.2,0.009),Vector3(CX-w*0.5+float(i)*0.6,FY+2.1,face_z),joint)
+        for i in range(1,7):
+            box(Vector3(w,0.003,0.009),Vector3(CX,FY+float(i)*0.6,face_z),joint)
+        for offset in [-0.9,0.0,0.9]:
+            var centre = Vector3(CX+float(offset),FY+3.95,face_z+side*0.01)
+            box(Vector3(0.8,0.44,0.025),centre,black)
+            for j in range(8):box(Vector3(0.78,0.014,0.03),centre+Vector3(0,-0.18+float(j)*0.05,side*0.017),metal)
+        picture("wall_route.svg",Vector2(2.65,0.55),Vector3(CX,FY+3.33,face_z+side*0.02),0.0 if side>0.0 else PI,true)
 
 func _relief(kind: String,size: Vector2,p: Vector3,yaw: float) -> void:
     if not relief_meshes.has(kind):
@@ -359,8 +426,8 @@ func _equipment() -> void:
         for z in [0.0,72.0]:
             var p = Vector3(CX+side*3.38,4.20,float(z))
             box(Vector3(1.05,0.58,0.10),p,black)
-            for face in [-1.0,1.0]:picture("exit.svg",Vector2(0.98,0.48),p+Vector3(0,0,face*0.056),0.0 if face>0.0 else PI)
-            rod(p+Vector3(0,0.30,0),p+Vector3(0,1.38,0),0.018,metal)
+            for face in [-1.0,1.0]:picture("exit.svg",Vector2(0.98,0.32),p+Vector3(0,0,face*0.056),0.0 if face>0.0 else PI)
+            box(Vector3(0.22,1.18,0.08),p+Vector3(0,0.89,0),black)
         for direction in [-1.0,1.0]:
             var z = (ZA+1.3) if direction<0.0 else (ZB-1.3)
             var p = Vector3(CX+side*4.12,4.65,z)

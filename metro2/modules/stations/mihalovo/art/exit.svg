@@ -1,1 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="180" viewBox="0 0 1200 180"><rect width="1200" height="180" fill="#f2f0dd"/><rect x="0" width="220" height="180" fill="#e6c55b"/><text x="50" y="120" font-size="100">↑</text><text x="250" y="80" font-size="48" font-family="DejaVu Sans" fill="#242e58">ВЫХАД У ГОРАД / ВЫХОД В ГОРОД</text><text x="250" y="140" font-size="38" font-family="DejaVu Sans" fill="#242e58">вул. Гурскага · пр. Дзяржынскага</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="480" viewBox="0 0 1500 480">
+<rect x="3" y="3" width="1494" height="474" rx="12" fill="#b9bcba"/>
+<rect x="20" y="20" width="1460" height="440" fill="#f0f0e8"/>
+<path d="M20 20H1480V250H20Z" fill="#292a59"/>
+<path d="M35 40H1465V105H35Z" fill="#2e665e"/>
+<g font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">
+<text x="750" y="91" font-size="54" fill="#fff">ВЫХАД   ВЫХОД</text>
+<text x="750" y="171" font-size="51" fill="#fff">праспект Дзяржынскага</text>
+<text x="750" y="229" font-size="51" fill="#fff">проспект Дзержинского</text>
+<text x="385" y="324" font-size="47" fill="#232636">вуліца Гурскага</text>
+<text x="385" y="387" font-size="47" fill="#232636">улица Гурского</text>
+<text x="1105" y="324" font-size="47" fill="#232636">вуліца Уманская</text>
+<text x="1105" y="387" font-size="47" fill="#232636">улица Уманская</text>
+</g><path d="M78 72H185M155 46L185 72L155 98M1310 72H1417M1387 46L1417 72L1387 98" fill="none" stroke="#ead774" stroke-width="15"/>
+</svg>
