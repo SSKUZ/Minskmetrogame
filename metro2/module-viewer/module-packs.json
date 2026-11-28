@@ -806,9 +806,9 @@
       "embedded_station_archives": 1
     },
     "institut_kultury": {
-      "file": "institut_kultury-8ddb447bf4e79eca203c.pck",
-      "sha256": "8ddb447bf4e79eca203c707966aff2dda52a03ed3831a25e191fea4ad54c8f39",
-      "bytes": 4978432,
+      "file": "institut_kultury-6e2c0e0670e53769e58b.pck",
+      "sha256": "6e2c0e0670e53769e58b2d5eb30fbc6288e010d734d9542502e33bb8bebb39fb",
+      "bytes": 5191136,
       "warmup": [
         "res://modules/stations/institut_kultury/art/advert.jpg",
         "res://modules/stations/institut_kultury/art/exit_surazhskaya.svg",
