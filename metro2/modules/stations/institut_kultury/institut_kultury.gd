@@ -9,7 +9,14 @@ const RY := 4.25
 const ARCH_FIRST := -3.60
 const ARCH_PITCH := 7.20
 const ARCH_COUNT := 13
-const VITRAL_RECESS := -0.12
+const VITRAL_RECESS := -0.04
+const SHELL_FRONT_INSET := 0.30
+const SHELL_BACK_INSET := 0.16
+const COFFER_DEPTH := 0.14
+const APRON_BOTTOM := 2.10
+const APRON_LOWER_INSET := 0.40
+const APRON_TILT := 0.095
+const SIGN_BAY_CYCLE := 4
 const INFORMATION_POSTS := [10.8,39.6,68.4]
 var wall_stone: StandardMaterial3D
 var floor_russet: StandardMaterial3D
@@ -26,7 +33,7 @@ func _ready() -> void:
     super._ready();begin_station()
     for child in get_children():
         if child is OmniLight3D:child.queue_free()
-    white=_material(Color("#deded6"),0.0,0.88)
+    white=_material(Color("#e4e3dd"),0.0,0.88)
     wall_stone=_photo("wall_granite.jpg",Vector2(0.95,0.55),0.39)
     floor_russet=_photo("floor_russet.jpg",Vector2(0.60,0.60),0.47)
     floor_taupe=_photo("floor_taupe.jpg",Vector2(0.60,0.60),0.48)
@@ -36,7 +43,7 @@ func _ready() -> void:
     granite=wall_stone;yellow=_material(Color("#d6b240"),0.0,0.65)
     metal.albedo_color=Color("#a4a6a0");metal.roughness=0.37
     plaster=ShaderMaterial.new();plaster.shader=preload("res://modules/stations/institut_kultury/plaster.gdshader")
-    plaster.set_shader_parameter("paint_color",Color("#deded6"))
+    plaster.set_shader_parameter("paint_color",Color("#e4e3dd"))
     for tint in ["#9d7c30","#bda34a","#d0b85b","#8d7135","#b99339","#a19058","#735738","#c2af72"]:
         var mat := _material(Color(tint),0.18,0.28)
         mat.emission_enabled=true;mat.emission=Color(tint);mat.emission_energy_multiplier=0.09
@@ -102,20 +109,23 @@ func _track_walls() -> void:
                 box(Vector3(0.006,0.545,0.004),Vector3(x-side*0.155,0.775+float(row)*0.55,z),black)
         for bay in range(ARCH_COUNT-1):
             var z: float=ARCH_FIRST+(float(bay)+0.5)*ARCH_PITCH
-            box(Vector3(0.19,1.03,ARCH_PITCH-0.90),Vector3(x-side*0.08,2.66,z),white)
-            if bay%2==0:_station_name(Vector3(x-side*0.19,2.63,z),-side*PI/2.0,"ИНСТИТУТ КУЛЬТУРЫ" if side<0 else "ІНСТЫТУТ КУЛЬТУРЫ")
-            else:picture("wall_route_photo.jpg",Vector2(6.15,1.0),Vector3(x-side*0.19,2.66,z),-side*PI/2.0)
-        rod(Vector3(x-side*0.24,3.20,NORTH),Vector3(x-side*0.24,3.20,SOUTH),0.014,metal)
+            # Full repeating rhythm: station name / empty apron / route board / empty apron.
+            var phase: int=bay%SIGN_BAY_CYCLE
+            if phase==0:
+                _station_name(Vector3(_apron_face_x(side,2.62),2.62,z),-side*PI/2.0,"ИНСТИТУТ КУЛЬТУРЫ" if side<0 else "ІНСТЫТУТ КУЛЬТУРЫ")
+            elif phase==2:
+                _wall_route_board(Vector3(_apron_face_x(side,2.66),2.66,z),-side*PI/2.0)
+        rod(Vector3(x-side*0.36,3.20,NORTH),Vector3(x-side*0.36,3.20,SOUTH),0.014,metal)
         for i in range(53):
             var z: float=NORTH+float(i)*1.8
-            box(Vector3(0.035,0.07,0.035),Vector3(x-side*0.23,3.20,z),metal)
+            box(Vector3(0.035,0.07,0.035),Vector3(x-side*0.34,3.20,z),metal)
 
 func _station_name(p: Vector3,yaw: float,text: String) -> void:
     var mesh := TextMesh.new();mesh.font=load(ART+"station_serif.ttf");mesh.text=text
     mesh.font_size=127;mesh.pixel_size=0.01;mesh.depth=0.032;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
     var bronze := _material(Color("#98988e"),0.48,0.42);mesh.material=bronze
     var bounds: AABB=mesh.get_aabb()
-    var node := MeshInstance3D.new();node.name="RaisedStationName";node.mesh=mesh;node.position=p;node.rotation.y=yaw
+    var node := MeshInstance3D.new();node.name="RaisedStationName";node.mesh=mesh;node.position=p;node.basis=Basis(Vector3.UP,yaw)*Basis(Vector3.RIGHT,-APRON_TILT)
     node.scale=Vector3(4.95/maxf(bounds.size.x,0.001),0.285/maxf(bounds.size.y,0.001),1.0);add_child(node)
 
 func _roof(a: float,z: float,inset: float=0.0) -> Vector3:
@@ -124,8 +134,50 @@ func _roof(a: float,z: float,inset: float=0.0) -> Vector3:
 func _vault_normal(a: float) -> Vector3:
     return Vector3(-RY*cos(a),-RX*sin(a),0).normalized()
 
+func _shell_inset(a: float,back: bool=false) -> float:
+    var coffer_a: float=acos(2.6/RX)
+    var inset: float=SHELL_BACK_INSET if back else SHELL_FRONT_INSET
+    if a>coffer_a and a<PI-coffer_a:inset-=COFFER_DEPTH
+    return inset
+
+func _apron_face_x(side: float,y: float) -> float:
+    var t: float=clampf((SPRING-y)/(SPRING-APRON_BOTTOM),0.0,1.0)
+    return CX+side*(RX-lerpf(SHELL_FRONT_INSET,APRON_LOWER_INSET,t)-0.026)
+
+func _wall_route_board(p: Vector3,yaw: float) -> void:
+    var mat := StandardMaterial3D.new()
+    mat.albedo_texture=load(ART+"wall_route_photo.jpg");mat.roughness=0.74
+    mat.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+    var mesh := QuadMesh.new();mesh.size=Vector2(5.85,0.84);mesh.material=mat
+    var node := MeshInstance3D.new();node.name="PhotographedRouteBoard"
+    node.mesh=mesh;node.position=p
+    node.basis=Basis(Vector3.UP,yaw)*Basis(Vector3.RIGHT,-APRON_TILT)
+    node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(node)
+
+func _shell_apron(side: float,z0: float,z1: float) -> void:
+    # The vault folds down over the granite as a separate solid plaster skin.
+    # Its lower edge projects further into the hall; the exposed underside is real geometry.
+    var front_top := Vector2(CX+side*(RX-SHELL_FRONT_INSET),SPRING)
+    var front_lower := Vector2(CX+side*(RX-APRON_LOWER_INSET),APRON_BOTTOM+0.018)
+    var bevel := Vector2(front_lower.x+side*0.018,APRON_BOTTOM)
+    var back_lower := Vector2(CX+side*(RX-APRON_LOWER_INSET+SHELL_FRONT_INSET-SHELL_BACK_INSET),APRON_BOTTOM)
+    var back_top := Vector2(CX+side*(RX-SHELL_BACK_INSET),SPRING)
+    var points: Array[Vector2]=[front_top,front_lower,bevel,back_lower,back_top]
+    var normals: Array[Vector3]=[Vector3(-side,APRON_TILT,0).normalized(),Vector3(-side,-1,0).normalized(),Vector3.DOWN,Vector3(side,0,0)]
+    for j in range(points.size()-1):
+        var a: Vector2=points[j];var b: Vector2=points[j+1]
+        quad(Vector3(a.x,a.y,z0),Vector3(b.x,b.y,z0),Vector3(b.x,b.y,z1),Vector3(a.x,a.y,z1),plaster,normals[j])
+    # Close both ends of each apron beside the recessed mosaic.
+    for edge in range(2):
+        var z: float=z0 if edge==0 else z1
+        var normal := Vector3(0,0,-1 if edge==0 else 1)
+        for j in range(1,points.size()-1):
+            triangle(Vector3(front_top.x,front_top.y,z),Vector3(points[j].x,points[j].y,z),Vector3(points[j+1].x,points[j+1].y,z),plaster,normal)
+
 func _vault_bay(z0: float,z1: float) -> void:
-    # Smooth plaster bays stop at each stained-glass recess, with a raised central coffer.
+    # One continuous curved skin from both granite aprons up to the ceiling.
+    # Every bay, including empty signage bays, has the same thickness and plaster finish.
     var coffer_a: float=acos(2.6/RX)
     var angles: Array[float]=[0.0,coffer_a,PI-coffer_a,PI]
     for j in range(1,96):angles.append(float(j)*PI/96.0)
@@ -134,14 +186,21 @@ func _vault_bay(z0: float,z1: float) -> void:
         var a: float=angles[j];var b: float=angles[j+1]
         if b-a<0.00001:continue
         var middle: bool=(a+b)*0.5>coffer_a and (a+b)*0.5<PI-coffer_a
-        var inset: float=-0.09 if middle else 0.0
-        quad(_roof(a,z0,inset),_roof(b,z0,inset),_roof(b,z1,inset),_roof(a,z1,inset),plaster,_vault_normal((a+b)*0.5))
+        var inset: float=SHELL_FRONT_INSET-(COFFER_DEPTH if middle else 0.0)
+        var back: float=SHELL_BACK_INSET-(COFFER_DEPTH if middle else 0.0)
+        var normal: Vector3=_vault_normal((a+b)*0.5)
+        quad(_roof(a,z0,inset),_roof(b,z0,inset),_roof(b,z1,inset),_roof(a,z1,inset),plaster,normal)
+        quad(_roof(a,z0,back),_roof(a,z1,back),_roof(b,z1,back),_roof(b,z0,back),white,-normal)
+        for edge in range(2):
+            var z: float=z0 if edge==0 else z1
+            quad(_roof(a,z,inset),_roof(b,z,inset),_roof(b,z,back),_roof(a,z,back),plaster,Vector3(0,0,-1 if edge==0 else 1))
     for a in [coffer_a,PI-coffer_a]:
-        quad(_roof(a,z0),_roof(a,z1),_roof(a,z1,-0.09),_roof(a,z0,-0.09),white,Vector3.RIGHT if a>PI/2 else Vector3.LEFT)
-        var p: Vector3=_roof(a,(z0+z1)*0.5,-0.045)
+        quad(_roof(a,z0,SHELL_FRONT_INSET),_roof(a,z1,SHELL_FRONT_INSET),_roof(a,z1,SHELL_FRONT_INSET-COFFER_DEPTH),_roof(a,z0,SHELL_FRONT_INSET-COFFER_DEPTH),plaster,Vector3.RIGHT if a>PI/2 else Vector3.LEFT)
+        var p: Vector3=_roof(a,(z0+z1)*0.5,SHELL_FRONT_INSET-COFFER_DEPTH*0.5)
         box(Vector3(0.023,0.018,z1-z0),p,glow)
     for z in [z0,z1]:
-        _arc_strip(coffer_a,PI-coffer_a,z-0.025,z+0.025,0.0,white)
+        _arc_strip(coffer_a,PI-coffer_a,z-0.025,z+0.025,SHELL_FRONT_INSET,white)
+    _shell_apron(-1.0,z0,z1);_shell_apron(1.0,z0,z1)
 
 func _vault() -> void:
     var cursor: float=NORTH
@@ -155,9 +214,15 @@ func _recess_reveal(z: float) -> void:
     # A real opening in the vault; light and glass sit beyond its plaster lip.
     _arc_strip(0,PI,z-0.39,z+0.39,VITRAL_RECESS-0.02,black)
     for side in [-1.0,1.0]:
-        for j in range(96):
-            var a: float=float(j)*PI/96.0;var b: float=float(j+1)*PI/96.0
-            quad(_roof(a,z+side*0.47),_roof(b,z+side*0.47),_roof(b,z+side*0.39,VITRAL_RECESS),_roof(a,z+side*0.39,VITRAL_RECESS),white,Vector3(0,0,-side))
+        var coffer_a: float=acos(2.6/RX)
+        var angles: Array[float]=[0.0,coffer_a,PI-coffer_a,PI]
+        for j in range(1,96):angles.append(float(j)*PI/96.0)
+        angles.sort()
+        for j in range(angles.size()-1):
+            var a: float=angles[j];var b: float=angles[j+1]
+            if b-a<0.00001:continue
+            var face: float=_shell_inset((a+b)*0.5)
+            quad(_roof(a,z+side*0.47,face),_roof(b,z+side*0.47,face),_roof(b,z+side*0.39,VITRAL_RECESS),_roof(a,z+side*0.39,VITRAL_RECESS),plaster,Vector3(0,0,-side))
         _arc_strip(0,PI,z+side*0.39-0.009,z+side*0.39+0.009,VITRAL_RECESS+0.012,metal)
 
 func _arc_strip(a0: float,a1: float,z0: float,z1: float,inset: float,mat: Material) -> void:

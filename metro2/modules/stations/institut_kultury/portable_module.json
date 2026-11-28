@@ -39,8 +39,8 @@
         "stained_arches": 13,
         "arch_pitch_m": 7.2,
         "first_arch_z_m": -3.6,
-        "vitral_recess_m": 0.12,
-        "central_coffer_recess_m": 0.09,
+        "vitral_recess_m": 0.34,
+        "central_coffer_recess_m": 0.14,
         "information_post_count": 3,
         "information_post_faces": 4,
         "information_post_z_m": [
@@ -51,6 +51,18 @@
         "information_post_section_m": [
           1.01,
           1.01
+        ],
+        "vitral_back_surface_inset_m": -0.04,
+        "plaster_shell_front_inset_m": 0.3,
+        "plaster_shell_back_inset_m": 0.16,
+        "plaster_shell_thickness_m": 0.14,
+        "apron_bottom_y_m": 2.1,
+        "apron_lower_inset_m": 0.4,
+        "sign_bay_cycle": [
+          "station_name",
+          "empty",
+          "route_board",
+          "empty"
         ]
       }
     },
@@ -91,7 +103,7 @@
         "path": "res://modules/stations/institut_kultury/plaster.gdshader",
         "adaptation": "required",
         "parameters": {
-          "paint_color": "#deded6"
+          "paint_color": "#e4e3dd"
         }
       }
     },
@@ -467,7 +479,7 @@
   "limitations": [
     {
       "code": "photo_scaled_architecture",
-      "detail": "Vault proportions, 13 repeated arches, 0.12 m vitral recess, 0.09 m central coffer, vestibule depth and three square information-pylon positions are photo-scaled estimates. Three pylons and four information faces follow the owner correction. Station Base platform/gauge/connection dimensions are retained; no survey or exact spatial scan is claimed."
+      "detail": "Vault proportions, 13 repeated arches, 0.34 m niche depth relative to the plaster skin, 0.14 m shell thickness, apron projection and coffer depth are photo-scaled estimates, including the owner-supplied 10429.jpg. The white curved skin has closed front/back/end/underside faces and overlays the brown wall. Signage repeats name/empty/route/empty. Three square information pylons are retained. Station Base dimensions and connection points are unchanged; no survey or scan is claimed."
     },
     {
       "code": "material_adaptation",
