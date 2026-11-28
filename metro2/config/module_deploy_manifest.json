@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "godot": "4.3",
-  "integration_base_commit": "e3d24a3d7bc6a75e675a471c324c718473e8e09d",
+  "integration_base_commit": "2900287e6bad1174a11e8645875a764e951f863a",
   "source_branch": "feature/metro2-automated-module-deploy",
   "branch_prefix": "feature/metro2-auto/",
   "pages_branch": "gh-pages",
