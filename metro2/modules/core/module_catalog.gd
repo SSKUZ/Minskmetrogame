@@ -1,6 +1,7 @@
 extends RefCounted
 ## Paths, not preloads: creating a station/depot never loads train GLBs.
 const SCENES := {
+    "petrovshchina":"res://modules/stations/petrovshchina/petrovshchina.tscn",
     "mihalovo":"res://modules/stations/mihalovo/mihalovo.tscn",
     "full_line":"res://modules/line/full_line.tscn",
     "grushevka":"res://modules/stations/grushevka/grushevka.tscn",

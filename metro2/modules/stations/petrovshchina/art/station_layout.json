@@ -1,0 +1,56 @@
+{
+  "platform_length_m": 105,
+  "platform_width_m": 10,
+  "platform_top_y_m": 1.1805,
+  "vault_apex_y_m": 7.25,
+  "vault_edge_y_m": 5.8,
+  "vault_half_width_m": 8.6,
+  "truss_centres_relative_x_m": [
+    -4.65,
+    4.65
+  ],
+  "truss_width_m": 1.2,
+  "truss_bottom_y_m": 5.55,
+  "truss_top_y_m": 6.18,
+  "truss_bay_length_m": 1.5,
+  "star_seed": 1112026,
+  "star_count": 850,
+  "bench_z_m": [
+    14.0,
+    31.0,
+    48.0,
+    65.0
+  ],
+  "bench_seats": 8,
+  "name_z_m": [
+    -1.0,
+    19.0,
+    39.0,
+    59.0,
+    79.0
+  ],
+  "route_z_m": [
+    8.0,
+    28.0,
+    48.0,
+    68.0
+  ],
+  "stairs": [
+    {
+      "direction": -1,
+      "start_z_m": -9.888,
+      "exit_art": "exit_north.jpg"
+    },
+    {
+      "direction": 1,
+      "start_z_m": 89.112,
+      "exit_art": "exit_south.jpg"
+    }
+  ],
+  "stairs_per_end": 30,
+  "stair_rise_m": 0.144,
+  "stair_run_m": 0.3,
+  "stair_landing_m": 1.25,
+  "stair_width_m": 6.4,
+  "architectural_dimensions_estimated": true
+}

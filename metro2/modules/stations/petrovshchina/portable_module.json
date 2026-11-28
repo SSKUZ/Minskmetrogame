@@ -1,0 +1,462 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "petrovshchina",
+    "type": "station",
+    "scene": "res://modules/stations/petrovshchina/petrovshchina.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "petrovshchina",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/petrovshchina.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "layout_resource": "res://modules/stations/petrovshchina/art/station_layout.json",
+        "platform_length_m": 105,
+        "platform_width_m": 10,
+        "platform_top_y_m": 1.1805,
+        "rail_top_y_m": 0,
+        "gauge_m": 1.615,
+        "track_centres_x_m": [
+          0.992,
+          -11.732
+        ],
+        "roof": "shallow parabolic native mesh, column-free",
+        "star_seed": 1112026,
+        "source_dependency_fix": "6a248992a6b2cc63a5068df0f276d3f4aff1c913"
+      }
+    },
+    {
+      "id": "station_builder",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/station_builder.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_base",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/station_base.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "track_detail",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "track_path",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/track_path.gd",
+      "requires_initialization": false,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_infrastructure",
+      "kind": "generator",
+      "path": "res://modules/stations/petrovshchina/station_infrastructure.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    }
+  ],
+  "materials": [
+    {
+      "id": "floor_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "dark_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "wall_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "stair_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "seat_wood",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "cream",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "blue",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "roof_blue",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "yellow",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "seam",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "truss_paint",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "star_white",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "star_blue",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "glow",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "metal",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/petrovshchina/petrovshchina.gd"
+    },
+    {
+      "id": "rail_grain",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/petrovshchina/track_detail.gd"
+    }
+  ],
+  "textures": [
+    {
+      "id": "black_granite",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/black_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/exit.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_north",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/exit_north.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_south",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/exit_south.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_granite",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/floor_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "free_wifi",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/free_wifi.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "lift",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/lift.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "nameplate",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/nameplate.png",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "seat_wood",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/seat_wood.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "side_exit",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/side_exit.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_granite",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/stair_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/wall_route.png",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_stone",
+      "source": "file",
+      "path": "res://modules/stations/petrovshchina/art/wall_stone.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Entry"
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Exit"
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Track2Entry"
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Track2Exit"
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/PlatformCentre"
+    },
+    {
+      "id": "V106StopTrack1",
+      "role": "stop",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        9.603,
+        1
+      ],
+      "node_path": "PassengerAnchors/V106StopTrack1"
+    },
+    {
+      "id": "V106StopTrack2",
+      "role": "stop",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        9.603,
+        1
+      ],
+      "node_path": "PassengerAnchors/V106StopTrack2"
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [
+      {
+        "id": "authored_layout",
+        "purpose": "other",
+        "path": "res://modules/stations/petrovshchina/art/station_layout.json",
+        "format": "json"
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "owner_archive",
+        "purpose": "other",
+        "path": "res://modules/stations/petrovshchina/art/owner_sources.json",
+        "format": "json"
+      },
+      {
+        "id": "name_relief",
+        "purpose": "other",
+        "path": "res://modules/stations/petrovshchina/art/name_relief.json",
+        "format": "json"
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "photo_scaled_architecture",
+      "detail": "All 56 owner archive photographs reviewed. Station Base metric datum fixed. Architectural heights, stair dimensions, truss pitches, bench/name/sign repetition and far vestibule limits inferred proportionally, not surveyed. Public vestibule beyond the visible upper landing is not reconstructed."
+    },
+    {
+      "code": "static_equipment",
+      "detail": "Lift doorway, cabinets and cameras are static models. Clocks reuse local Station Base time/departure hooks. No gameplay or passenger AI added. PassengerAnchors exposes waiting, seat, lift/stair and stop markers with portable_role metadata."
+    },
+    {
+      "code": "photo_relief",
+      "detail": "Rounded nameplate texture rectified from owner photo 165939. Letter height inferred by luminance field, not a scan. No custom font substitution."
+    },
+    {
+      "code": "future_portability",
+      "detail": "Native Mesh/ArrayMesh/MultiMesh, source textures and layout preserved. Triplanar material UVs and rail grain shader require future baking/adaptation. Emissive stars/fluorescents require Roblox lighting adaptation. No glTF/Roblox export or compatibility tests performed."
+    }
+  ]
+}

@@ -1,0 +1,735 @@
+{
+  "source_archive": "Петровщина.zip",
+  "archive_sha256": "c534b903a05b850918ec1f690f745601fac132b0f0d4987079affc921afcfd68",
+  "date": "2026-11-22",
+  "photo_count": 56,
+  "reviewed_all_photographs": true,
+  "files": [
+    {
+      "filename": "20261122_165506.jpg",
+      "sha256": "3e59ded5c9dfb3bd4092f988e5d6f6f9e057b42280df137c10768ee3b75af215",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165507(0).jpg",
+      "sha256": "985df56ea669bbe9ccab7c92e721e6f80600c02ed10ee2360da389b5e5a59e46",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165507.jpg",
+      "sha256": "bbf9eb58984188fb9dd18facb8263f3d42641d5a630c57267ac5104c6278fb7e",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165511.jpg",
+      "sha256": "9705a06c133dee5a4ae555e20a4e0e801f34338d8806485d4f559387e1b17d13",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165512(0).jpg",
+      "sha256": "bceff008bf57091c00b8828f604c986946aa7052474153f1bd5279b699826357",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165512(1).jpg",
+      "sha256": "64e263eeba7ff0c6a17cb591bd62ad117554be958f454414a6dd83566c7b99f1",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165512(2).jpg",
+      "sha256": "c25c9c35915cb27a22d25e4fe99721ac2b039363e25fd7e1761895fc2c0c923d",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165512.jpg",
+      "sha256": "ece04b018fe7eabdd4c9bd420497c636fc5a7899cfbd8bece51390369e739681",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165513(0).jpg",
+      "sha256": "11ccd3b10c752f300d9571b62d3e90bf87ac5f0704cecdd468a992dfffb8c256",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165513(1).jpg",
+      "sha256": "0f59bdb9a79b305b513970f4127467d762d2259945cc97eca5eca7f0b7aeafc8",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165513(2).jpg",
+      "sha256": "1da1707c9da8ed97c3453c82a2e85df97fda68e1deecbe48a035664913aa0cec",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165513.jpg",
+      "sha256": "6510df29b972ee988acbd229e6bdaa415fcd8ad5cdbbef99d87882f998dc2c7e",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165514(0).jpg",
+      "sha256": "4d7be42bc218c4c33f321224c98d51e5cd6dfa58bf292f781880110d48f03ef9",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165514(1).jpg",
+      "sha256": "b0d9a56937ba2a0abd49bc868cf7e78b02c66cafcd77b444981b856d2dc66274",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165514.jpg",
+      "sha256": "834c248c0520e2a6a113db3d009caa705b465ed6b2bffc6452b52ddb9e527998",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165522.jpg",
+      "sha256": "9e605a7b1007751fc5f7112d918982608c7a73f5c1eed5b056f4fa19ecfd33b2",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165528.jpg",
+      "sha256": "d0679048cfefedff26247f74f5e1794a29292d984aa966c5e6d3995246d7dfec",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165529.jpg",
+      "sha256": "f58fb9ae79135aba1989d02c3f32658ffceb166b9fc41d82223dbe5f1fc2ecda",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165536.jpg",
+      "sha256": "aaa32e3cbad1573ecbb04a751f70cb9e3001626f99c9eea50a881d15d7e7b56c",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165537.jpg",
+      "sha256": "3f3aca393e5d913a658496e2990da2694bfccadbb52b111734f26f55d6e69c02",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165538.jpg",
+      "sha256": "7317c1fe4c027c2ac60685b51618d567f5cd015f7599ceef4d42300cebedec77",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165539.jpg",
+      "sha256": "84b3e78fb2e28afb7a30c7529b68ad2562fe4758987f4582deb103d735ef967d",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165555.jpg",
+      "sha256": "6be06912b1f50a851a0ec65e0e512aef5a9e38fd08241112e311c3eb29c35aba",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165611.jpg",
+      "sha256": "b9c19aa0136751b030725b9b6ab2eba2a97a91e5c7e9b72ae3cc66d04739f479",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165623.jpg",
+      "sha256": "ceacc0259faa68f784f03df7e0e176a31a0c4be290edc06665af34da783d91d0",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165626.jpg",
+      "sha256": "905499ff3d188b94b39e9bb77a9aac73a4bb755398e6e4cb367d6ab7c3e8570f",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165632.jpg",
+      "sha256": "2cb1e4a7ed87d6c0b88641142f85fb2621e816660143d50ef55255511b57d3ea",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165633.jpg",
+      "sha256": "c9ebf12044414074783f1bd330228447ad40f8827229becc15ebfc6d2fc6d8a4",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165712.jpg",
+      "sha256": "6d6560b2002fcb4a02c0f4a467ff7478fb74d6d39d474a9e13d581fe5227f108",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165714.jpg",
+      "sha256": "19814d180991ebf620b4905233cd173e1147f231a4b12bcedda75601b3cfd190",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165717.jpg",
+      "sha256": "e4bd8aa0d61136ee6d25dcf96df0dc7231bced4717a684a83f9bc728f7369b2b",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165719.jpg",
+      "sha256": "86b4ec3a5ce65b42c07adc9edbb3423523ef6613a47ad785f2c23b5bcdaa2ef6",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165730.jpg",
+      "sha256": "02c57cdaaf116dd15f8b7b1ee23bb4e1642a9d1418203525f77c77ec910faab3",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165736.jpg",
+      "sha256": "29b44f70bb64a8a9692e22a8d548eb43842a1e20763f43b24d0862b33051514e",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165755.jpg",
+      "sha256": "484e80b179a91b4cc324e6771c92a0e0969df1d09320830bb93d0abad3d7b07d",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165808.jpg",
+      "sha256": "42dd078084a01f65739c2e34971b99a19a5d05ccf60d63de8aa0c394efdf5cfb",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165811.jpg",
+      "sha256": "0329d9d39f7a095ab3a98c4a0ac93363a29c7b5c0d74acb0c762250032cfbe8c",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165812.jpg",
+      "sha256": "e7dd7bfcdeeae9d4c0d7ce293924b9362f8ace0b7b1709c0681f290a720c8299",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165822.jpg",
+      "sha256": "9eba760dd9e1c2b85c964c4546d7cbcd84caccfa185267a16f35532c3bd585ca",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165828.jpg",
+      "sha256": "8c0d8c80caf5b457e3935bc011dd89205af5f551eb8cbe10cac83804e2a5c558",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165830.jpg",
+      "sha256": "a3695ae6b87036decfe26ea3e1d244ba5441ba804d415dde8244e07dabd0f20e",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165831.jpg",
+      "sha256": "9e52dd2d9dd9171a5841dd707f53ddf0fcbdae91b5dac24cddefebabca156f7d",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165832(0).jpg",
+      "sha256": "00d3b1e8ee14743067e7eba394575d18e80c281152c1466883a5a9530ce437c1",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165832.jpg",
+      "sha256": "289f3fc40b9f58cd0c3eeb2d0d4a4bca6fe4e83142144a2a9be4001e1288ef19",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_165853.jpg",
+      "sha256": "293367b66525df193e0027ff15d940744864525c7c8ddfe7f5b3ec36b1bb3a01",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165855.jpg",
+      "sha256": "95b83d9eaaddb0c85c81e6fac4538a55c7e605a836af5f8da6aec89ee6e5a909",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165939.jpg",
+      "sha256": "735221524ab6a20d6d0a5c51d762145ad41092209b0d5b328c446aca38f47755",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165943.jpg",
+      "sha256": "bc67251fcdbf593a36af1c9ffa0bdddad9bd51acfe5c700c2664711c49c68fc7",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165952.jpg",
+      "sha256": "d1e60b87713d1ce4c208636908841eb2237d1f0a4f1974ffeaf302d897e3828e",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165954.jpg",
+      "sha256": "b7a77fcca1671f5336cc8d3338c9c2c6a5eb5895f8917f2077881e20d3cb7fc7",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_165955.jpg",
+      "sha256": "8cece7a358520012a2928d2819dd18c0fe30332c22e7dcd594473a3578ab612b",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_170001.jpg",
+      "sha256": "99308c29af228e68c22b7d93bafa47e526be623b88f79132823921fc14a773ab",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_170002.jpg",
+      "sha256": "3779b24dc0113061c8dc0bf1f74dfc054ae279b4a448efe35aa5b9f02ef32626",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_170003.jpg",
+      "sha256": "9c32e449bd804c7a4cffb98bd3c218b675b89bd39eba97b10ec7833c82084ec6",
+      "dimensions_px": [
+        4000,
+        2252
+      ]
+    },
+    {
+      "filename": "20261122_170013(0).jpg",
+      "sha256": "385b375fa12d9686c746a1a84ff9d861a45724191989f0b249bc21cfd428e4a1",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    },
+    {
+      "filename": "20261122_170013.jpg",
+      "sha256": "e9c1a8f6761015aa3fddb4e70ac2870bc43d52a1dcbd0fe876894740ae646be7",
+      "dimensions_px": [
+        2252,
+        4000
+      ]
+    }
+  ],
+  "derived_assets": [
+    {
+      "asset": "nameplate.png",
+      "source": "20261122_165939.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          239.0,
+          318.0
+        ],
+        [
+          1059.0,
+          337.0
+        ],
+        [
+          1059.0,
+          437.99999999999994
+        ],
+        [
+          239.0,
+          437.99999999999994
+        ]
+      ],
+      "output_pixels": [
+        1536,
+        220
+      ],
+      "operation": "perspective_rectification_rounded_alpha"
+    },
+    {
+      "asset": "wall_route.png",
+      "source": "20261122_165611.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          29.999999999999996,
+          207.0
+        ],
+        [
+          1398.0,
+          199.0
+        ],
+        [
+          1398.0,
+          591.0
+        ],
+        [
+          29.999999999999996,
+          607.0
+        ]
+      ],
+      "output_pixels": [
+        1920,
+        550
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "side_exit.jpg",
+      "source": "20261122_165536.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          225.0,
+          367.00000000000006
+        ],
+        [
+          1082.0,
+          345.0
+        ],
+        [
+          1082.0,
+          444.99999999999994
+        ],
+        [
+          225.0,
+          479.00000000000006
+        ]
+      ],
+      "output_pixels": [
+        1920,
+        265
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "exit_south.jpg",
+      "source": "20261122_165808.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          263.0,
+          306.0
+        ],
+        [
+          941.0,
+          287.0
+        ],
+        [
+          941.0,
+          364.0
+        ],
+        [
+          263.0,
+          366.0
+        ]
+      ],
+      "output_pixels": [
+        1920,
+        235
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "exit_north.jpg",
+      "source": "20261122_170002.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          447.0,
+          203.0
+        ],
+        [
+          1019.0,
+          180.00000000000003
+        ],
+        [
+          1019.0,
+          253.0
+        ],
+        [
+          447.0,
+          267.0
+        ]
+      ],
+      "output_pixels": [
+        1920,
+        235
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "floor_granite.jpg",
+      "source": "20261122_165506.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          730.0,
+          610.0
+        ],
+        [
+          970.0,
+          569.0
+        ],
+        [
+          1127.0,
+          697.0
+        ],
+        [
+          861.0,
+          763.0
+        ]
+      ],
+      "output_pixels": [
+        768,
+        768
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "black_granite.jpg",
+      "source": "20261122_165939.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          772.0,
+          609.0
+        ],
+        [
+          917.9999999999999,
+          606.0
+        ],
+        [
+          915.0,
+          670.0
+        ],
+        [
+          770.9999999999999,
+          677.0
+        ]
+      ],
+      "output_pixels": [
+        512,
+        256
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "wall_stone.jpg",
+      "source": "20261122_165808.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          86.0,
+          360.00000000000006
+        ],
+        [
+          207.0,
+          386.0
+        ],
+        [
+          207.0,
+          470.0
+        ],
+        [
+          86.0,
+          433.0
+        ]
+      ],
+      "output_pixels": [
+        512,
+        384
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "stair_granite.jpg",
+      "source": "20261122_170002.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          807.0,
+          469.0
+        ],
+        [
+          964.0,
+          462.0
+        ],
+        [
+          973.9999999999999,
+          471.0
+        ],
+        [
+          812.9999999999999,
+          481.0
+        ]
+      ],
+      "output_pixels": [
+        1024,
+        128
+      ],
+      "operation": "perspective_rectification"
+    },
+    {
+      "asset": "seat_wood.jpg",
+      "source": "20261122_165506.jpg",
+      "source_quad_in_1400px_view": [
+        [
+          1051.0,
+          263.0
+        ],
+        [
+          1113.0,
+          258.0
+        ],
+        [
+          1136.0,
+          279.0
+        ],
+        [
+          1070.0,
+          287.0
+        ]
+      ],
+      "output_pixels": [
+        512,
+        512
+      ],
+      "operation": "perspective_rectification"
+    }
+  ],
+  "interpretation": {
+    "structure": "column-free single vault, two longitudinal triangulated luminaire trusses, star points in dark blue ceiling, terminal stairs at both ends",
+    "floor": "grey speckled granite slabs, dark axial and rectangular bench borders, yellow edges and black grooved guidance",
+    "walls": "black granite plinth, cream panels with blue upper sections, narrow silver vertical joints, rounded blue relief nameplates",
+    "uncertainty": "105x10 m platform and rail datum fixed to Station Base; architectural heights, fixture and bench repetition and unseen upper vestibule limits estimated from owner photos; not a measured survey"
+  }
+}
