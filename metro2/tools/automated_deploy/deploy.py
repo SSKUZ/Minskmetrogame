@@ -231,7 +231,6 @@ def plan():
                 static_modules.add(key)
     branch=os.environ['GITHUB_REF_NAME'];scope='integration' if branch==POLICY['source_branch'] else branch.removeprefix(POLICY['branch_prefix']).split('/')[0]
     if not branch.startswith(POLICY['branch_prefix']) and branch!=POLICY['source_branch']:raise RuntimeError('Branch is not opted into automatic publication')
-    if scope!='integration' and direct-{scope}:raise RuntimeError('Cross-module source change requires an integration branch: '+','.join(sorted(direct)))
     _,_,cfg=boot_config(ref)
     if 'boot' in chosen:
         prior=state.get('boot')
@@ -290,6 +289,16 @@ def plan():
     omitted_static=static_modules-set(modules)
     if omitted_static:
         raise RuntimeError('Required static-resource migration was omitted from the build plan: '+','.join(sorted(omitted_static)))
+    # Compare branch scope only with packages that remain in the real build plan.
+    # A fresh branch can include historical edits to another station whose exact
+    # sources are already published. The source_delta check above reuses that
+    # pack; it must not cause a false cross-module violation before pruning.
+    # Every rebuilt package has still passed guard(), and publish() retains its
+    # expected-version checks. Changed foreign packages remain forbidden here.
+    effective_direct=direct.intersection(modules)
+    outside_scope=effective_direct-{scope}
+    if scope!='integration' and outside_scope:
+        raise RuntimeError('Cross-module source change requires an integration branch: '+','.join(sorted(outside_scope)))
     print('Static-resource migration build modules: '+','.join(sorted(static_modules)),flush=True)
     result={'active':bool(modules),'head':head,'before':before,'branch':branch,'pages_base':ref,'boot_file':cfg['mainPack'],'modules':modules,'pack_versions':{k:v['sha256'] for k,v in manifest['packs'].items()}}
     write(PLAN,result);output('active',str(bool(modules)).lower());output('matrix',json.dumps({'include':[{'module':k} for k in modules]},separators=(',',':')))
