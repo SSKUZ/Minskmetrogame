@@ -1,0 +1,66 @@
+{
+  "units": "metres",
+  "source_photos": [
+    "20261122_164931.jpg",
+    "20261122_164945.jpg",
+    "20261122_164957.jpg"
+  ],
+  "body_length_m": 0.245,
+  "body_width_m": 0.085,
+  "head_radius_m": 0.036,
+  "beak_length_m": 0.04,
+  "wing_halfspan_m": 0.23,
+  "forked_tail_length_m": 0.145,
+  "variants": [
+    {
+      "id": "swept",
+      "wing_lift_m": 0.025,
+      "wing_sweep_m": 0.095
+    },
+    {
+      "id": "raised",
+      "wing_lift_m": 0.15,
+      "wing_sweep_m": 0.03
+    },
+    {
+      "id": "folded",
+      "wing_lift_m": 0.055,
+      "wing_sweep_m": 0.165
+    }
+  ],
+  "wing_outline_normalized": [
+    [
+      0.1,
+      0.34
+    ],
+    [
+      0.45,
+      0.44
+    ],
+    [
+      0.82,
+      0.18
+    ],
+    [
+      1.0,
+      -0.38
+    ],
+    [
+      0.81,
+      -0.16
+    ],
+    [
+      0.56,
+      -0.26
+    ],
+    [
+      0.25,
+      -0.16
+    ],
+    [
+      0.08,
+      -0.12
+    ]
+  ],
+  "inference": "sculptural proportions and hidden feather surfaces inferred from owner photographs; native thick wing meshes and forked tail, not billboard birds"
+}

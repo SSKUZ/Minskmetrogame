@@ -1,0 +1,583 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "malinovka",
+    "type": "station",
+    "scene": "res://modules/stations/malinovka/malinovka.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "malinovka",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/malinovka.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "layout_resource": "res://modules/stations/malinovka/art/station_layout.json",
+        "platform_length_m": 105,
+        "platform_width_m": 10,
+        "platform_top_y_m": 1.1805,
+        "rail_top_y_m": 0,
+        "gauge_m": 1.615,
+        "track_centres_x_m": [
+          0.992,
+          -11.732
+        ],
+        "self_contained_dependency_fix_source": "6a248992a6b2cc63a5068df0f276d3f4aff1c913",
+        "viewer_registration_base_commit": "48a4db91dfb807363bf4ffe623fc154829cca3fa"
+      }
+    },
+    {
+      "id": "carved_column",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/carved_column.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "profile_resource": "res://modules/stations/malinovka/art/column_carving.json",
+        "height_field": "res://modules/stations/malinovka/art/column_relief.png",
+        "continuous_radial_mesh": true,
+        "material_surfaces": [
+          "rough_raised_bark",
+          "smooth_recessed_fields"
+        ],
+        "birds_per_column": 3
+      }
+    },
+    {
+      "id": "bird_sculpture",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/bird_sculpture.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "profile_resource": "res://modules/stations/malinovka/art/bird_profiles.json",
+        "variants": [
+          "swept",
+          "raised",
+          "folded"
+        ],
+        "solid_components": [
+          "body",
+          "breast",
+          "head",
+          "eyes",
+          "beak",
+          "thick_wings",
+          "feather_ridges",
+          "forked_tail",
+          "legs",
+          "toes"
+        ]
+      }
+    },
+    {
+      "id": "station_builder",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/station_builder.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_base",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/station_base.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "track_detail",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "track_path",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/track_path.gd",
+      "requires_initialization": false,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_infrastructure",
+      "kind": "generator",
+      "path": "res://modules/stations/malinovka/station_infrastructure.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    }
+  ],
+  "materials": [
+    {
+      "id": "floor_light",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "floor_dark",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "wall_dark",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "wall_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "stair_stone",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "seat_wood",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "cream",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "column_enamel",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "green",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "pale_green",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "burgundy",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "yellow",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "seam",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "metal",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "amber",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/malinovka.gd"
+    },
+    {
+      "id": "rough_raised_bark",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/carved_column.gd"
+    },
+    {
+      "id": "smooth_recessed_fields",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/carved_column.gd"
+    },
+    {
+      "id": "sculpture_bronze",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/malinovka/bird_sculpture.gd"
+    },
+    {
+      "id": "rail_grain",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/malinovka/track_detail.gd"
+    }
+  ],
+  "textures": [
+    {
+      "id": "bark_stone",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/bark_stone.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "column_relief",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/column_relief.png",
+      "usage": "other"
+    },
+    {
+      "id": "departure_route",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/departure_route.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/exit.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_north",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/exit_north.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit_south",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/exit_south.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_dark",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/floor_dark.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_granite",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/floor_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "free_wifi",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/free_wifi.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "lift",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/lift.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "name_height",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/name_height.png",
+      "usage": "other"
+    },
+    {
+      "id": "name_wall",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/name_wall.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_boarding",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/no_boarding.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "raspberry_panels",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/raspberry_panels.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "seat_wood",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/seat_wood.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "side_exit",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/side_exit.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_granite",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/stair_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "station_screen",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/station_screen.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_granite",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/wall_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/wall_route.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_stone",
+      "source": "file",
+      "path": "res://modules/stations/malinovka/art/wall_stone.jpg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Entry"
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Exit"
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Track2Entry"
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Track2Exit"
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/PlatformCentre"
+    },
+    {
+      "id": "V106StopTrack1",
+      "role": "stop",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        9.603,
+        1
+      ],
+      "node_path": "PassengerAnchors/V106StopTrack1"
+    },
+    {
+      "id": "V106StopTrack2",
+      "role": "stop",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        9.603,
+        1
+      ],
+      "node_path": "PassengerAnchors/V106StopTrack2"
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [
+      {
+        "id": "authored_layout",
+        "purpose": "other",
+        "path": "res://modules/stations/malinovka/art/station_layout.json",
+        "format": "json"
+      },
+      {
+        "id": "column_carving",
+        "purpose": "other",
+        "path": "res://modules/stations/malinovka/art/column_carving.json",
+        "format": "json"
+      },
+      {
+        "id": "bird_profiles",
+        "purpose": "other",
+        "path": "res://modules/stations/malinovka/art/bird_profiles.json",
+        "format": "json"
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "owner_archive",
+        "purpose": "other",
+        "path": "res://modules/stations/malinovka/art/owner_sources.json",
+        "format": "json"
+      }
+    ]
+  },
+  "adapter_hints": [
+    {
+      "id": "carved_column_geometry",
+      "reason": "Extract the initialized ContinuousCarvedTreeSurface ArrayMesh with both material surfaces. Preserve bird child transforms and part names, green plinths and metal/amber capitals."
+    },
+    {
+      "id": "passenger_markers",
+      "reason": "Read PassengerAnchors seat/waiting/stair/lift/stop markers and their portable_role metadata; these are static integration points, not passenger AI."
+    }
+  ],
+  "limitations": [
+    {
+      "code": "photo_scaled_architecture",
+      "detail": "All 47 owner photos reviewed. Fixed V106 Station Base rail/platform datum. Architectural dimensions, 2x14 column grid, central 2x4 decorated columns, bench repetition and unseen sides inferred from photographs, not a measured survey. No unseen street vestibule reconstructed."
+    },
+    {
+      "code": "sculpture_inference",
+      "detail": "Raised/recessed column radius field, roughness transitions and bronze bird silhouettes reconstructed from photos 164931/164945/164957/165158/165225. Hidden circumferential carving and bird feather surfaces inferred. This is not a photogrammetry scan."
+    },
+    {
+      "code": "static_equipment",
+      "detail": "Bird sculptures, lift doorways, equipment and station information displays are static. Clocks retain the local Station Base departure hook. No train model or passenger AI dependency."
+    },
+    {
+      "code": "future_portability",
+      "detail": "Native Mesh/ArrayMesh/MultiMesh, per-surface materials, source textures, radius height fields, carving paths, bird profiles and anchors retained. Rail grain shader and world triplanar UVs require future baking/adaptation; Godot lights require Roblox adaptation. No Roblox export or compatibility testing performed."
+    }
+  ]
+}

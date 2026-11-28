@@ -104,7 +104,7 @@ func _build_ui() -> void:
         ["ИГРА",[["Депо — Площадь Ленина","full_line"]]],
         ["ИНТЕРАКТИВНЫЕ МОДУЛИ",[["Смартфон пассажира · предпросмотр","passenger_phone"]]],
         ["ПОЕЗДА",[["Состав V106 · 4 вагона","v106"],["Вагон №1","car1"],["Вагон №2","car2"],["Вагон №3","car3"],["Вагон №4","car4"]]],
-        ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"],["Восток","vostok"],["Московская","moskovskaya"],["Парк Челюскинцев","park_chelyuskintsev"],["Академия наук","akademiya_nauk"],["Площадь Якуба Коласа","yakuba_kolasa"],["Площадь Победы","ploshchad_pobedy"],["Октябрьская","oktyabrskaya"],["Площадь Ленина","ploshchad_lenina"],["Институт культуры","institut_kultury"],["Грушевка","grushevka"],["Михалово","mihalovo"],["Петровщина","petrovshchina"]]],
+        ["СТАНЦИИ",[["Уручье","uruchye"],["Борисовский тракт","borisovsky_trakt"],["Восток","vostok"],["Московская","moskovskaya"],["Парк Челюскинцев","park_chelyuskintsev"],["Академия наук","akademiya_nauk"],["Площадь Якуба Коласа","yakuba_kolasa"],["Площадь Победы","ploshchad_pobedy"],["Октябрьская","oktyabrskaya"],["Площадь Ленина","ploshchad_lenina"],["Институт культуры","institut_kultury"],["Грушевка","grushevka"],["Михалово","mihalovo"],["Петровщина","petrovshchina"],["Малиновка","malinovka"]]],
         ["ТОННЕЛИ",[["Стандартный участок · 16 м","tunnel_16m"]]],
         ["ДЕПО",[["Электродепо","depot"]]]]:
         var heading := Label.new()
@@ -256,7 +256,7 @@ func open_module(key: String) -> void:
             "vostok", "moskovskaya", "park_chelyuskintsev", "akademiya_nauk", "yakuba_kolasa", "ploshchad_pobedy":
                 _home_point = Vector3(-4.0,2.7,48.0)
                 _home_radius = 3.0
-            "mihalovo", "petrovshchina":
+            "mihalovo", "petrovshchina", "malinovka":
                 _home_point = Vector3(-5.37,2.8,34.0)
                 _home_radius = 3.0
             "grushevka":
@@ -285,7 +285,7 @@ func open_module(key: String) -> void:
                 _home_radius = 160.0
         rig.move_speed = 28.0 if key == "depot" else 7.0
         reset_view()
-        if key == "mihalovo":
+        if key in ["mihalovo", "malinovka"]:
             # Start inside the clear platform aisle, not in a nearby wall or column.
             # The previous 3 m orbit placed the camera against station geometry.
             rig.enter_interior(Transform3D(Basis.IDENTITY, Vector3(-5.37, 2.85, 39.612)))
@@ -309,8 +309,8 @@ func unload_module() -> void:
     await get_tree().process_frame
 
 func _configure_light(key: String) -> void:
-    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya","ploshchad_lenina","institut_kultury","grushevka","mihalovo","petrovshchina"] else 0.65
-    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya","ploshchad_lenina","institut_kultury","grushevka","mihalovo","petrovshchina"] else 1.05
+    _environment.ambient_light_energy = 0.085 if key == "tunnel_16m" else 0.42 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya","ploshchad_lenina","institut_kultury","grushevka","mihalovo","petrovshchina","malinovka"] else 0.65
+    _sun.light_energy = 0.025 if key == "tunnel_16m" else 0.15 if key in ["uruchye","borisovsky_trakt","vostok","moskovskaya","park_chelyuskintsev","akademiya_nauk","yakuba_kolasa","ploshchad_pobedy","oktyabrskaya","ploshchad_lenina","institut_kultury","grushevka","mihalovo","petrovshchina","malinovka"] else 1.05
     _environment.background_color = Color(0.006,0.008,0.012) if key == "tunnel_16m" else Color(0.08,0.10,0.13)
 
 func _set_car_visibility() -> void:
