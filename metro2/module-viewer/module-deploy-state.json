@@ -118,8 +118,8 @@
       ]
     },
     "mihalovo": {
-      "source_commit": "a60072adf31f4b5972b5a3955b23c8b41e98c1ab",
-      "pack_sha256": "1e277ecbbc102bb3da0252d2cde8f0e9d3396389056622877bf2424d0725de26",
+      "source_commit": "6a248992a6b2cc63a5068df0f276d3f4aff1c913",
+      "pack_sha256": "031bd426b82e3ce4711c2a473644d00eb906e50d6c3ea0dc9e739599742cad0e",
       "category": "station",
       "scene": "modules/stations/mihalovo/mihalovo.tscn",
       "dependencies": []

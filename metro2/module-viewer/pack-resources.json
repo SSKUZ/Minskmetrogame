@@ -34068,7 +34068,9 @@
       "res://modules/stations/mihalovo/portable_module.json",
       "res://modules/stations/mihalovo/station_base.gd",
       "res://modules/stations/mihalovo/station_builder.gd",
-      "res://modules/stations/mihalovo/track_detail.gd"
+      "res://modules/stations/mihalovo/station_infrastructure.gd",
+      "res://modules/stations/mihalovo/track_detail.gd",
+      "res://modules/stations/mihalovo/track_path.gd"
     ]
   }
 }
