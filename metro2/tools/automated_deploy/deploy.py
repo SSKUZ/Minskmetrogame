@@ -526,12 +526,22 @@ def publish():
         # An isolated index merges against the latest tree without checking out or deleting other modules.
         index=CI/'publication.index';index.unlink(missing_ok=True);env=dict(os.environ,GIT_INDEX_FILE=str(index))
         print('Publication: indexing '+str(len(files))+' files ('+str(sum(p.stat().st_size for p in files.values())//(1024*1024))+' MiB)',flush=True)
+        print('Publication: loading published tree metadata',flush=True)
         git('read-tree',base,env=env)
         # The root marker bypasses Jekyll and its inclusion policy entirely.
         git('update-index','--force-remove','.nojekyll',env=env)
+        print('Publication: hashing selected replacement files',flush=True)
         for path,local in files.items():
             sha=git('hash-object','-w',str(local)).decode().strip();git('update-index','--add','--cacheinfo','100644,'+sha+','+path,env=env)
-        tree=git('write-tree',env=env).decode().strip()
+        # read-tree preserves entries from the already published remote tree.
+        # With blob:none those unchanged blobs are deliberately absent locally.
+        # Default write-tree checks every entry and lazily fetches old payloads,
+        # serially hydrating unrelated station/train archives before a tiny push.
+        # Only new/replaced files above are hashed locally; inherited object IDs
+        # remain anchored to base on the same remote. Version/dependency guards
+        # and the ordinary non-force push still apply.
+        print('Publication: writing tree; retaining remote objects by ID',flush=True)
+        tree=git('write-tree','--missing-ok',env=env).decode().strip()
         commit=git('-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit-tree',tree,'-p',base,input=('Update selected Metro2 packs from '+head+'\n').encode()).decode().strip()
         # Native archives are already content-addressed; delta search across large
         # binary packs wastes CPU and can lazily fetch old blobs in this partial
