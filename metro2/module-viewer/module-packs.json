@@ -59,6 +59,9 @@
     ],
     "mihalovo": [
       "mihalovo"
+    ],
+    "petrovshchina": [
+      "petrovshchina"
     ]
   },
   "names": {
@@ -78,7 +81,8 @@
     "institut_kultury": "Институт культуры",
     "grushevka": "Грушевка",
     "full_line": "Депо — Площадь Ленина",
-    "mihalovo": "Михалово"
+    "mihalovo": "Михалово",
+    "petrovshchina": "Петровщина"
   },
   "packs": {
     "depot": {
@@ -1512,6 +1516,28 @@
         "res://modules/stations/mihalovo/art/wall_granite.jpg",
         "res://modules/stations/mihalovo/art/wall_marble.jpg",
         "res://modules/stations/mihalovo/art/wall_route.svg"
+      ],
+      "world_files": []
+    },
+    "petrovshchina": {
+      "file": "petrovshchina-17bd276b1aad8dc51449.pck",
+      "sha256": "17bd276b1aad8dc51449bd32677f04bf8c8cf0958bfefd80b8ab18195d8b9e2a",
+      "bytes": 3540864,
+      "warmup": [
+        "res://modules/stations/petrovshchina/art/black_granite.jpg",
+        "res://modules/stations/petrovshchina/art/exit.svg",
+        "res://modules/stations/petrovshchina/art/exit_north.jpg",
+        "res://modules/stations/petrovshchina/art/exit_south.jpg",
+        "res://modules/stations/petrovshchina/art/floor_granite.jpg",
+        "res://modules/stations/petrovshchina/art/free_wifi.svg",
+        "res://modules/stations/petrovshchina/art/lift.svg",
+        "res://modules/stations/petrovshchina/art/nameplate.png",
+        "res://modules/stations/petrovshchina/art/no_smoking.svg",
+        "res://modules/stations/petrovshchina/art/seat_wood.jpg",
+        "res://modules/stations/petrovshchina/art/side_exit.jpg",
+        "res://modules/stations/petrovshchina/art/stair_granite.jpg",
+        "res://modules/stations/petrovshchina/art/wall_route.png",
+        "res://modules/stations/petrovshchina/art/wall_stone.jpg"
       ],
       "world_files": []
     }

@@ -123,11 +123,18 @@
       "category": "station",
       "scene": "modules/stations/mihalovo/mihalovo.tscn",
       "dependencies": []
+    },
+    "petrovshchina": {
+      "source_commit": "48a4db91dfb807363bf4ffe623fc154829cca3fa",
+      "pack_sha256": "17bd276b1aad8dc51449bd32677f04bf8c8cf0958bfefd80b8ab18195d8b9e2a",
+      "category": "station",
+      "scene": "modules/stations/petrovshchina/petrovshchina.tscn",
+      "dependencies": []
     }
   },
   "boot": {
-    "source_commit": "743df62db5865c23fa7f932bc7bf43ea1ce0a779",
-    "file": "boot-d2b5d9fb227ef7d28d65.pck",
-    "bytes": 150112
+    "source_commit": "48a4db91dfb807363bf4ffe623fc154829cca3fa",
+    "file": "boot-93c82e555d4368b292b9.pck",
+    "bytes": 150304
   }
 }
