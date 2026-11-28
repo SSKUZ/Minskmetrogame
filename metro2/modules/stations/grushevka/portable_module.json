@@ -34,16 +34,15 @@
         "platform_width_m": 10,
         "platform_top_y_m": 1.1805,
         "column_radius_m": 0.62,
-        "column_count": 9,
-        "column_first_z_m": -0.8,
-        "column_pitch_m": 10.2,
         "crown_radius_m": 3.57,
         "lattice_pitch_m": 0.12,
         "ceiling_y_m": 5.45,
         "public_stair_exits": 1,
         "stair_rise_m": 0.15,
         "stair_tread_m": 0.3,
-        "stairs_per_flight": 16
+        "stairs_per_flight": 16,
+        "layout_resource": "res://modules/stations/grushevka/art/station_layout.json",
+        "layout_revision": "owner-plan-10431-photo-topology"
       }
     },
     {
@@ -72,21 +71,30 @@
       "id": "yellow_metal_ceramic",
       "source_class": "StandardMaterial3D",
       "source_path": "res://modules/stations/grushevka/grushevka.gd",
-      "metallic": 0.22,
-      "roughness": 0.24
+      "metallic": 0.16,
+      "roughness": 0.28
     },
     {
       "id": "green_roof",
       "source_class": "StandardMaterial3D",
       "source_path": "res://modules/stations/grushevka/grushevka.gd",
-      "metallic": 0.58,
-      "roughness": 0.28
+      "metallic": 0.42,
+      "roughness": 0.34
     },
     {
       "id": "native_grain",
       "source_class": "ShaderMaterial",
       "source_path": "res://modules/stations/grushevka/track_detail.gd",
       "shader": {
+        "adaptation": "required"
+      }
+    },
+    {
+      "id": "pear_bas_relief",
+      "source_class": "ShaderMaterial",
+      "source_path": "res://modules/stations/grushevka/art/pear_surface.gdshader",
+      "shader": {
+        "path": "res://modules/stations/grushevka/art/pear_surface.gdshader",
         "adaptation": "required"
       }
     }
@@ -174,6 +182,18 @@
       "id": "wall_route",
       "source": "file",
       "path": "res://modules/stations/grushevka/art/wall_route.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "lift",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/lift.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "accessible",
+      "source": "file",
+      "path": "res://modules/stations/grushevka/art/accessible.svg",
       "usage": "albedo"
     }
   ],
@@ -338,6 +358,167 @@
         1
       ],
       "node_path": "PassengerAnchors/ServiceApproach"
+    },
+    {
+      "id": "LiftDoorApproach",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3.02,
+        1.1805,
+        5.0,
+        1
+      ],
+      "node_path": "PassengerAnchors/LiftDoorApproach"
+    },
+    {
+      "id": "LiftBypassLeft",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8.17,
+        1.1805,
+        5.0,
+        1
+      ],
+      "node_path": "PassengerAnchors/LiftBypassLeft"
+    },
+    {
+      "id": "LongCoreBypassLeft",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8.22,
+        1.1805,
+        14.4,
+        1
+      ],
+      "node_path": "PassengerAnchors/LongCoreBypassLeft"
+    },
+    {
+      "id": "ServiceEndAlcoveLeft",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8.370000000000001,
+        1.1805,
+        91.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/ServiceEndAlcoveLeft"
+    },
+    {
+      "id": "LiftBypassRight",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.5700000000000003,
+        1.1805,
+        5.0,
+        1
+      ],
+      "node_path": "PassengerAnchors/LiftBypassRight"
+    },
+    {
+      "id": "LongCoreBypassRight",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.52,
+        1.1805,
+        14.4,
+        1
+      ],
+      "node_path": "PassengerAnchors/LongCoreBypassRight"
+    },
+    {
+      "id": "ServiceEndAlcoveRight",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.37,
+        1.1805,
+        91.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/ServiceEndAlcoveRight"
     }
   ],
   "zones": [],
@@ -373,6 +554,13 @@
         "purpose": "equipment",
         "path": "res://modules/stations/grushevka/driver_mirrors.gd",
         "format": "gdscript"
+      },
+      {
+        "id": "authored_station_layout",
+        "purpose": "other",
+        "path": "res://modules/stations/grushevka/art/station_layout.json",
+        "format": "json",
+        "notes": "Owner drawing 10431.jpg defines topology; photo-based coordinates, isolated stair column, one lift door, elongated central block, round columns, occupied/empty bench bays and two terminating service-side approaches are separate data."
       }
     ]
   },
@@ -380,15 +568,15 @@
   "limitations": [
     {
       "code": "photo_scaled_architecture",
-      "detail": "Column count/spacing, ceiling modules and vestibule depth are photo-scaled estimates, not a measured survey. Original Station Base connection axes, island and rail datum are retained."
+      "detail": "Topology follows owner drawing 10431.jpg and photographs 171121/171151/171217/171343/171333. One isolated round pillar precedes the lift; the main row contains eleven photo-estimated pillars, not the four schematic symbols. Core dimensions, pitch and partly occluded bench bays are photo-scaled estimates, not a survey. Station Base axes, platform width, length and rail datum are retained."
     },
     {
       "code": "sculptural_inference",
-      "detail": "Pear volume and branch depth are inferred from photos. Occluded tree paths are reconstructed symmetrically; no people are baked into the panel. Letter depth is inferred from photo color masks, not a scan."
+      "detail": "Central pear is a flattened, smooth 2.02 m bas-relief, broad below and narrow at the neck, with bronze seed details, a short stalk and pointed leaf. Its profile/depth and partly occluded branch paths are inferred from 171147/171529; no people are baked into artwork and no exact scan is claimed."
     },
     {
       "code": "upper_circulation",
-      "detail": "Single public stair exit and opposite rounded service core follow the supplied views. Fare-control side passages beyond the photographed gallery are approximated and terminate in dim continuation."
+      "detail": "Only one public stair end is authored. The lift has three blank sides and one static split-door entrance; shaft/cabin and lift operation are not invented. The opposite central service core has side approaches ending at the platform wall and independent adjacent track portals. Far vestibule corridors remain approximated."
     },
     {
       "code": "future_engine_adaptation",

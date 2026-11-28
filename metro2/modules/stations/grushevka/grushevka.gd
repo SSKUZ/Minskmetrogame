@@ -3,9 +3,6 @@ extends "res://modules/stations/grushevka/station_builder.gd"
 const ART := "res://modules/stations/grushevka/art/"
 const NORTH := -8.0
 const SOUTH := 92.112
-const COLUMN_FIRST := -0.8
-const COLUMN_PITCH := 10.2
-const COLUMN_COUNT := 9
 const CEILING_Y := 5.45
 var light_stone: StandardMaterial3D
 var dark_stone: StandardMaterial3D
@@ -18,9 +15,12 @@ var ceiling_green: StandardMaterial3D
 var lattice_gold: StandardMaterial3D
 var tactile: StandardMaterial3D
 var name_mesh: ArrayMesh
+var layout: Dictionary
+var pear_material: ShaderMaterial
 
 func _ready() -> void:
     super._ready();begin_station()
+    layout=JSON.parse_string(FileAccess.get_file_as_string(ART+"station_layout.json"))
     for child in get_children():
         if child is OmniLight3D:child.queue_free()
     light_stone=_photo("floor_light.jpg",Vector2(0.60,0.60),0.37)
@@ -29,19 +29,20 @@ func _ready() -> void:
     marble_stone=_photo("marble.jpg",Vector2(0.95,0.60),0.37)
     stairs_stone=_photo("stair_granite.jpg",Vector2(1.10,0.30),0.62)
     service_stone=_photo("service_stone.jpg",Vector2(0.70,0.50),0.40)
-    column_yellow=_material(Color("#d1b15f"),0.22,0.24)
+    column_yellow=_material(Color("#d4b768"),0.16,0.28)
     column_yellow.metallic_specular=0.62
-    ceiling_green=_material(Color("#3e4b40"),0.58,0.28)
+    ceiling_green=_material(Color("#344138"),0.42,0.34)
     lattice_gold=_material(Color("#bca551"),0.40,0.46)
     tactile=_material(Color("#d6b13c"),0.0,0.69)
     white=_material(Color("#e0ddc9"),0.13,0.47)
     granite=dark_stone
     _floor();_walls();_ceiling()
-    for i in range(COLUMN_COUNT):
-        var z: float=COLUMN_FIRST+float(i)*COLUMN_PITCH
-        _column(z);_crown(z);_canopy_lights(z)
-        if i<COLUMN_COUNT-1 and i%2==0:_bench(z+COLUMN_PITCH*0.5)
-        if i%3==1:_televisions(z)
+    for i in range(layout.column_z_m.size()):
+        var z: float=float(layout.column_z_m[i])
+        _column(z);_crown(z,3.57 if i==0 else float(layout.main_column_pitch_m)*0.5);_canopy_lights(z)
+    for z in layout.bench_z_m:_bench(float(z))
+    for z in layout.television_z_m:_televisions(float(z))
+    _lift_core();_elongated_core();_circulation_markers()
     _stair_exit();_service_end();_railway();_driver_equipment();_small_details()
     flush()
 
@@ -63,8 +64,8 @@ func _floor() -> void:
     for row in range(175):
         for col in range(16):
             box(Vector3(0.597,0.010,0.597),Vector3(CX-4.8+(float(col)+0.5)*0.6,FY+0.008,ZA+(float(row)+0.5)*0.6),light_stone)
-    for i in range(COLUMN_COUNT):
-        var z: float=COLUMN_FIRST+float(i)*COLUMN_PITCH
+    for i in range(layout.column_z_m.size()):
+        var z: float=float(layout.column_z_m[i])
         box(Vector3(2.18,0.012,2.18),Vector3(CX,FY+0.017,z),dark_stone)
         # Asymmetric black triangular inlays clustered between the pillars, as in 171110/171306.
         for side in [-1.0,1.0]:
@@ -86,16 +87,16 @@ func _walls() -> void:
     var length: float=SOUTH-NORTH
     for side in [-1.0,1.0]:
         var x: float=CX+side*8.90
-        _solid(Vector3(0.25,1.10,length),Vector3(x,0.55,(NORTH+SOUTH)*0.5),green_stone)
-        for row in range(2):
+        _solid(Vector3(0.25,2.00,length),Vector3(x,1.00,(NORTH+SOUTH)*0.5),green_stone)
+        for row in range(4):
             for i in range(106):
                 var z: float=NORTH+(float(i)+0.5)*length/106.0
                 box(Vector3(0.007,0.004,length/106.0),Vector3(x-side*0.129,0.10+float(row)*0.50,z),black)
                 box(Vector3(0.007,0.49,0.004),Vector3(x-side*0.129,0.35+float(row)*0.5,z),black)
-        box(Vector3(0.24,2.42,length),Vector3(x,2.31,(NORTH+SOUTH)*0.5),white)
+        box(Vector3(0.24,1.52,length),Vector3(x,2.76,(NORTH+SOUTH)*0.5),white)
         for i in range(121):
             var z: float=NORTH+float(i)*length/120.0
-            box(Vector3(0.018,2.42,0.014),Vector3(x-side*0.13,2.31,z),metal)
+            box(Vector3(0.018,1.52,0.014),Vector3(x-side*0.13,2.76,z),metal)
         box(Vector3(0.27,0.42,length),Vector3(x,3.73,(NORTH+SOUTH)*0.5),black)
         for i in range(6):
             var z: float=0.8+float(i)*16.5
@@ -170,19 +171,27 @@ func _column(z: float) -> void:
     var shape := CylinderShape3D.new();shape.radius=0.64;shape.height=CEILING_Y-FY
     var c := CollisionShape3D.new();c.shape=shape;collision.add_child(c);add_child(collision)
 
-func _crown(z: float) -> void:
+func _crown(z: float,half_span: float) -> void:
     var radius := 3.57
-    _round(radius,0.022,Vector3(CX,CEILING_Y-0.022,z),black)
-    annulus(Vector3(CX,0,z),radius-0.015,radius+0.025,CEILING_Y-0.145,CEILING_Y-0.125,ceiling_green,128)
-    # Open clipped lattice, including the circular opening around the pillar's black capital.
+    # Clip every crown at its cell boundary. Adjacent lobes join without overlapping lattice.
+    for j in range(96):
+        var a: float=float(j)*TAU/96.0;var b: float=float(j+1)*TAU/96.0
+        var pa := Vector3(CX+radius*cos(a),CEILING_Y-0.025,z+clampf(radius*sin(a),-half_span,half_span))
+        var pb := Vector3(CX+radius*cos(b),CEILING_Y-0.025,z+clampf(radius*sin(b),-half_span,half_span))
+        triangle(Vector3(CX,CEILING_Y-0.025,z),pa,pb,black,Vector3.DOWN)
+        if absf(radius*sin((a+b)*0.5))<=half_span:
+            rod(pa-Vector3(0,0.105,0),pb-Vector3(0,0.105,0),0.018,lattice_gold)
     for i in range(-29,30):
         var offset: float=float(i)*0.12
         var reach: float=sqrt(maxf(0.0,radius*radius-offset*offset))
         var gap: float=sqrt(maxf(0.0,0.99*0.99-offset*offset)) if absf(offset)<0.99 else 0.0
         for axis in range(2):
+            if axis==1 and absf(offset)>half_span:continue
+            var clipped: float=minf(reach,half_span) if axis==0 else reach
             for side in [-1.0,1.0]:
-                var length: float=reach-gap
-                var middle: float=side*(reach+gap)*0.5
+                var length: float=clipped-gap
+                if length<=0.0:continue
+                var middle: float=side*(clipped+gap)*0.5
                 var size := Vector3(0.012,0.090,length) if axis==0 else Vector3(length,0.090,0.012)
                 var p := Vector3(CX+offset,CEILING_Y-0.10,z+middle) if axis==0 else Vector3(CX+middle,CEILING_Y-0.10,z+offset)
                 box(size,p,lattice_gold)
@@ -218,6 +227,66 @@ func _televisions(z: float) -> void:
         box(Vector3(1.35,0.82,0.16),p,black)
         for face in [-1.0,1.0]:picture("advert.jpg",Vector2(1.24,0.70),p+Vector3(0,0,face*0.086),0 if face>0 else PI)
         rod(p+Vector3(0,0.43,0),p+Vector3(0,0.98,0),0.018,metal)
+
+func _structure_marker(name: String,p: Vector3) -> void:
+    var marker := Marker3D.new();marker.name=name;marker.position=p
+    get_node("PassengerAnchors").add_child(marker)
+
+func _circulation_markers() -> void:
+    _structure_marker("LiftDoorApproach",Vector3(CX+2.35,FY,float(layout.lift.centre_z_m)))
+    for side in [-1.0,1.0]:
+        _structure_marker("LiftBypass"+("Left" if side<0 else "Right"),Vector3(CX+side*2.80,FY,float(layout.lift.centre_z_m)))
+        _structure_marker("LongCoreBypass"+("Left" if side<0 else "Right"),Vector3(CX+side*2.85,FY,float(layout.long_core.centre_z_m)))
+        _structure_marker("ServiceEndAlcove"+("Left" if side<0 else "Right"),Vector3(CX+side*3.0,FY,SOUTH-0.5))
+
+func _lift_core() -> void:
+    var info: Dictionary=layout.lift
+    var z: float=float(info.centre_z_m);var w: float=float(info.width_m);var length: float=float(info.length_m)
+    var h: float=CEILING_Y-FY
+    var half: float=w*0.5;var dz: float=length*0.5;var door: float=1.24
+    box(Vector3(w+0.45,0.014,length+0.45),Vector3(CX,FY+0.019,z),dark_stone)
+    # Three blank walls. The only entrance is in the right platform-side face, as in 171121.
+    _solid(Vector3(0.16,h,length),Vector3(CX-half+0.08,FY+h*0.5,z),column_yellow)
+    for side in [-1.0,1.0]:
+        _solid(Vector3(w, h,0.16),Vector3(CX,FY+h*0.5,z+side*(dz-0.08)),column_yellow)
+        var strip: float=(length-door)*0.5
+        _solid(Vector3(0.16,h,strip),Vector3(CX+half-0.08,FY+h*0.5,z+side*(door*0.5+strip*0.5)),column_yellow)
+    _solid(Vector3(0.16,h-2.35,door),Vector3(CX+half-0.08,FY+2.35+(h-2.35)*0.5,z),column_yellow)
+    box(Vector3(w,0.12,length),Vector3(CX,CEILING_Y-0.06,z),ceiling_green)
+    for side in [-1.0,1.0]:
+        box(Vector3(0.024,0.40,length),Vector3(CX+side*(half+0.012),FY+0.20,z),green_stone)
+        box(Vector3(w,0.40,0.024),Vector3(CX,FY+0.20,z+side*(dz+0.012)),green_stone)
+        for zz in [-dz,0.0,dz]:rod(Vector3(CX+side*(half+0.017),FY+0.41,z+zz),Vector3(CX+side*(half+0.017),CEILING_Y-0.1,z+zz),0.004,black)
+    # Dark split sliding leaves sit within a metal jamb, clear of the surrounding skin.
+    box(Vector3(0.12,2.30,1.36),Vector3(CX+half-0.02,FY+1.15,z),metal)
+    for side in [-1.0,1.0]:
+        _solid(Vector3(0.035,2.16,0.588),Vector3(CX+half+0.052,FY+1.08,z+side*0.300),black)
+    box(Vector3(0.13,0.045,1.28),Vector3(CX+half+0.035,FY+0.024,z),metal)
+    box(Vector3(0.035,0.26,0.105),Vector3(CX+half+0.08,FY+1.11,z+0.83),metal)
+    sphere(Vector3(0.025,0.032,0.032),Vector3(CX+half+0.103,FY+1.17,z+0.83),glow)
+    picture("lift.svg",Vector2(0.90,0.25),Vector3(CX+half+0.09,FY+2.56,z),PI/2.0)
+    picture("accessible.svg",Vector2(0.18,0.20),Vector3(CX+half+0.09,FY+2.28,z+0.73),PI/2.0)
+
+func _elongated_core() -> void:
+    var info: Dictionary=layout.long_core
+    var z: float=float(info.centre_z_m);var width: float=float(info.width_m);var length: float=float(info.length_m)
+    var radius: float=width*0.5;var straight: float=length-width;var h: float=CEILING_Y-FY
+    box(Vector3(width+0.44,0.014,length+0.34),Vector3(CX,FY+0.019,z),dark_stone)
+    _solid(Vector3(width,h,straight),Vector3(CX,FY+h*0.5,z),column_yellow)
+    for side in [-1.0,1.0]:
+        var centre := Vector3(CX,FY,z+side*straight*0.5)
+        _round(radius,h,centre+Vector3(0,h*0.5,0),column_yellow)
+        _round(radius+0.012,0.40,centre+Vector3(0,0.20,0),green_stone)
+        _round(radius+0.03,0.07,centre+Vector3(0,h-0.035,0),ceiling_green)
+        var body := StaticBody3D.new();body.position=centre+Vector3(0,h*0.5,0)
+        var shape := CylinderShape3D.new();shape.radius=radius;shape.height=h
+        var collision := CollisionShape3D.new();collision.shape=shape;body.add_child(collision);add_child(body)
+        box(Vector3(0.025,0.40,straight),Vector3(CX+side*(radius+0.014),FY+0.20,z),green_stone)
+        for row in range(2):rod(Vector3(CX+side*(radius+0.018),FY+0.40+float(row)*1.90,z-straight*0.5),Vector3(CX+side*(radius+0.018),FY+0.40+float(row)*1.90,z+straight*0.5),0.004,black)
+        for j in range(5):
+            var zz: float=z-straight*0.5+float(j)*straight/4.0
+            rod(Vector3(CX+side*(radius+0.018),FY+0.40,zz),Vector3(CX+side*(radius+0.018),CEILING_Y-0.1,zz),0.004,black)
+    box(Vector3(width,0.07,straight),Vector3(CX,CEILING_Y-0.035,z),ceiling_green)
 
 func _stair_exit() -> void:
     # Only the photographed public exit is built; the opposite platform end is the service core.
@@ -280,13 +349,22 @@ func _upper_pear_hall(floor_y: float) -> void:
             var x: float=CX+side*7.65;var gz: float=z+0.60+float(gate)*1.10
             box(Vector3(0.85,0.90,0.25),Vector3(x,floor_y+0.45,gz),metal)
             rod(Vector3(x,floor_y+0.78,gz),Vector3(x-0.05,floor_y+0.78,gz+0.44),0.024,metal)
+    for side in [-1.0,1.0]:
+        var relief_wash := SpotLight3D.new();relief_wash.name="PearReliefShadowWash"
+        relief_wash.position=Vector3(CX+side*3.4,floor_y+2.9,z+3.4);add_child(relief_wash)
+        relief_wash.look_at(Vector3(CX+side*2.2,floor_y+1.5,z+0.2),Vector3.UP)
+        relief_wash.light_color=Color(1.0,0.92,0.88);relief_wash.light_energy=0.72
+        relief_wash.spot_range=7.0;relief_wash.spot_angle=64.0;relief_wash.shadow_enabled=true
+        relief_wash.shadow_bias=0.035;relief_wash.shadow_normal_bias=0.20
     _controller_booth(Vector3(CX-9.9,floor_y,z+2.0))
     var light := OmniLight3D.new();light.position=Vector3(CX,8.5,z+2.5);light.light_energy=1.35;light.omni_range=8;light.light_color=Color(1.0,0.93,0.87);add_child(light)
     for side in [-1.0,1.0]:
         var wash := OmniLight3D.new();wash.position=Vector3(CX+side*3.2,8.7,z+0.5);wash.light_color=Color(1.0,0.75,0.73);wash.light_energy=0.28;wash.omni_range=3.8;add_child(wash)
 
 func _pear_relief(origin: Vector3) -> void:
-    var branch := _material(Color("#b8a98f"),0.18,0.64)
+    var branch := ShaderMaterial.new();branch.shader=preload("res://modules/stations/grushevka/art/pear_surface.gdshader")
+    branch.set_shader_parameter("tint",Color("#b8ac95"))
+    branch.set_shader_parameter("metalness",0.08)
     var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(ART+"pear_relief_paths.json"))
     for side in [-1.0,1.0]:
         for path in data.branches:
@@ -298,7 +376,7 @@ func _pear_relief(origin: Vector3) -> void:
                     var p: Vector2=a.bezier_interpolate(b,c,d,t)
                     var vertex := Vector2(side*p.x,p.y)
                     if line.is_empty() or line[line.size()-1].distance_squared_to(vertex)>0.000001:line.append(vertex)
-            for shape in Geometry2D.offset_polyline(line,float(path.width)*0.5,Geometry2D.JOIN_ROUND,Geometry2D.END_ROUND):
+            for shape in Geometry2D.offset_polyline(line,float(path.width)*0.72,Geometry2D.JOIN_ROUND,Geometry2D.END_ROUND):
                 var indices := Geometry2D.triangulate_polygon(shape)
                 for i in range(0,indices.size(),3):
                     var a: Vector2=shape[indices[i]];var b: Vector2=shape[indices[i+1]];var c: Vector2=shape[indices[i+2]]
@@ -307,20 +385,62 @@ func _pear_relief(origin: Vector3) -> void:
                     var a: Vector2=shape[i];var b: Vector2=shape[(i+1)%shape.size()]
                     quad(origin+Vector3(a.x,a.y,0),origin+Vector3(b.x,b.y,0),origin+Vector3(b.x,b.y,0.07),origin+Vector3(a.x,a.y,0.07),branch)
         for point in data.fruits:_pear(origin+Vector3(side*float(point[0]),float(point[1]),0.14),0.075,0.25)
-    _pear(origin+Vector3(0,0,0.30),0.67,2.20)
+    _pear(origin+Vector3(0,0,0.04),0.73,2.02)
+
+func _pear_radius(t: float) -> float:
+    # Photo-matched lower lobe and tapering neck; cubic Hermite interpolation avoids polygonal rings.
+    var profile: Array=layout.pear.profile
+    for i in range(profile.size()-1):
+        var a := Vector2(float(profile[i][0]),float(profile[i][1]))
+        var b := Vector2(float(profile[i+1][0]),float(profile[i+1][1]))
+        if t>b.x:continue
+        var before: Array=profile[maxi(0,i-1)];var after: Array=profile[mini(profile.size()-1,i+2)]
+        var m0: float=(b.y-float(before[1]))/maxf(0.001,b.x-float(before[0]))
+        var m1: float=(float(after[1])-a.y)/maxf(0.001,float(after[0])-a.x)
+        var u: float=clampf((t-a.x)/(b.x-a.x),0.0,1.0)
+        return maxf(0.0,(2*u*u*u-3*u*u+1)*a.y+(u*u*u-2*u*u+u)*m0*(b.x-a.x)+(-2*u*u*u+3*u*u)*b.y+(u*u*u-u*u)*m1*(b.x-a.x))
+    return float(profile[-1][1])
+
+func _pear_vertex(t: float,angle: float,p: Vector3,width: float,height: float,depth: float) -> Vector3:
+    var r: float=_pear_radius(t)
+    var lean: float=-0.035*sin(t*PI)
+    return p+Vector3((cos(angle)*r+lean)*width,t*height,sin(angle)*r*depth)
 
 func _pear(p: Vector3,width: float,height: float) -> void:
-    var material := _material(Color("#786b50"),0.43,0.49)
-    var profile: Array[Vector2]=[Vector2(0,0.32),Vector2(0.05,0.72),Vector2(0.13,0.96),Vector2(0.24,1),Vector2(0.37,0.86),Vector2(0.52,0.62),Vector2(0.70,0.36),Vector2(0.84,0.23),Vector2(0.96,0.20),Vector2(1.0,0.12)]
-    for j in range(profile.size()-1):
-        var a: Vector2=profile[j];var b: Vector2=profile[j+1]
-        for i in range(48):
-            var t0: float=float(i)*TAU/48.0;var t1: float=float(i+1)*TAU/48.0
-            quad(p+Vector3(cos(t0)*a.y*width,a.x*height,sin(t0)*a.y*width),p+Vector3(cos(t1)*a.y*width,a.x*height,sin(t1)*a.y*width),p+Vector3(cos(t1)*b.y*width,b.x*height,sin(t1)*b.y*width),p+Vector3(cos(t0)*b.y*width,b.x*height,sin(t0)*b.y*width),material,Vector3(cos((t0+t1)*0.5),0,sin((t0+t1)*0.5)))
-    rod(p+Vector3(0,height,0),p+Vector3(width*0.12,height*1.08,0),width*0.035,material)
-    sphere(Vector3(width*0.38,height*0.06,width*0.08),p+Vector3(width*0.16,height*1.08,0),material)
-    if height>1.0:
-        for side in [-1.0,1.0]:sphere(Vector3(0.055,0.095,0.030),p+Vector3(side*0.18,0.38,width*0.87),black)
+    if pear_material==null:
+        pear_material=ShaderMaterial.new();pear_material.shader=preload("res://modules/stations/grushevka/art/pear_surface.gdshader")
+    var large: bool=height>1.0
+    var depth: float=width*(0.31 if large else 0.45)
+    var rows: int=64 if large else 20;var sides: int=72 if large else 24
+    var st := SurfaceTool.new();st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for row in range(rows):
+        for col in range(sides):
+            for uv in [Vector2(0,0),Vector2(1,0),Vector2(1,1),Vector2(0,0),Vector2(1,1),Vector2(0,1)]:
+                var t: float=(float(row)+uv.y)/float(rows)
+                var angle: float=(float(col)+uv.x)*PI/float(sides)
+                var slope: float=(_pear_radius(minf(1.0,t+0.001))-_pear_radius(maxf(0.0,t-0.001)))/0.002
+                var normal := Vector3(cos(angle)/width,-slope/height,sin(angle)/depth).normalized()
+                st.set_normal(normal);st.set_uv(Vector2(angle/PI,t));st.add_vertex(_pear_vertex(t,angle,p,width,height,depth))
+    var mesh := st.commit();mesh.surface_set_material(0,pear_material)
+    var node := MeshInstance3D.new();node.name="SculptedPearBasRelief";node.mesh=mesh;add_child(node)
+    var bronze := _material(Color("#514d42"),0.48,0.48)
+    var stem := p+Vector3(0,height,0.015)
+    rod(stem,stem+Vector3(-width*0.04,height*0.075,0.018),width*0.026,bronze)
+    _pear_leaf(stem+Vector3(0,height*0.075,0.028),Vector2(width*0.30,height*0.075),bronze)
+    if large:
+        for side in [-1.0,1.0]:
+            _pear_leaf(p+Vector3(side*width*0.19,height*0.17,depth*0.98),Vector2(width*0.075,height*0.043),bronze,side*0.35)
+
+func _pear_leaf(p: Vector3,size: Vector2,mat: Material,tilt: float=0.0) -> void:
+    var basis := Basis(Vector3.BACK,tilt)
+    var centre := p+Vector3(0,0,0.012)
+    for i in range(20):
+        var a: float=float(i)*TAU/20.0;var b: float=float(i+1)*TAU/20.0
+        var pa := Vector3(cos(a)*size.x*0.5,sin(a)*size.y*0.5,0)
+        var pb := Vector3(cos(b)*size.x*0.5,sin(b)*size.y*0.5,0)
+        pa.x*=0.6+0.4*absf(cos(a));pb.x*=0.6+0.4*absf(cos(b))
+        triangle(centre,p+basis*pa,p+basis*pb,mat,Vector3.BACK)
+    rod(p-basis*Vector3(size.x*0.45,0,0),p+basis*Vector3(size.x*0.45,0,0),0.004,mat)
 
 func _service_end() -> void:
     # Rounded yellow core with a real service door and dark ventilation louvres, observed at 171315-171334.
@@ -344,8 +464,14 @@ func _service_end() -> void:
     box(Vector3(1.02,2.18,0.025),Vector3(CX,FY+1.10,z-1.875),white)
     rod(Vector3(CX+0.36,FY+1.05,z-1.91),Vector3(CX+0.36,FY+0.89,z-1.91),0.013,metal)
     picture("service_door.svg",Vector2(0.32,0.30),Vector3(CX,FY+1.76,z-1.896),PI)
+    _solid(Vector3(8.32,CEILING_Y-FY,0.22),Vector3(CX,(FY+CEILING_Y)*0.5,SOUTH+0.11),service_stone)
     for side in [-1.0,1.0]:
-        box(Vector3(3.95,4.6,0.22),Vector3(CX+side*6.362,2.3,SOUTH+1.2),black)
+        # These lateral approaches terminate at the end wall; track portals stay open outside them.
+        var p := Vector3(CX+side*1.827,FY+1.12,SOUTH-0.60)
+        box(Vector3(0.055,2.30,1.12),p,metal)
+        box(Vector3(0.025,2.18,1.01),p+Vector3(side*0.043,-0.02,0),white)
+        rod(p+Vector3(side*0.065,-0.12,0.35),p+Vector3(side*0.065,-0.28,0.35),0.014,metal)
+    for side in [-1.0,1.0]:
         _solid(Vector3(0.30,4.4,1.0),Vector3(CX+side*4.16,2.2,SOUTH+0.6),service_stone)
         var gate := Vector3(CX+side*4.70,FY+0.5,SOUTH-0.2)
         for dx in [-0.40,0.40]:rod(gate+Vector3(float(dx),-0.5,0),gate+Vector3(float(dx),0.5,0),0.028,metal)

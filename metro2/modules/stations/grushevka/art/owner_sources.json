@@ -2,17 +2,6 @@
   {
     "source": "20261122_171306.jpg",
     "sha256": "c5c09781cbadd36c75d38d8f684e15dff5419c0523f64c74f029238c0641ccd8",
-    "asset": "floor_light.jpg",
-    "coordinates_at_preview_1500x1200": [
-      1030,
-      415,
-      1250,
-      580
-    ]
-  },
-  {
-    "source": "20261122_171306.jpg",
-    "sha256": "c5c09781cbadd36c75d38d8f684e15dff5419c0523f64c74f029238c0641ccd8",
     "asset": "floor_dark.jpg",
     "coordinates_at_preview_1500x1200": [
       602,
@@ -30,28 +19,6 @@
       574,
       1040,
       683
-    ]
-  },
-  {
-    "source": "20261122_171147.jpg",
-    "sha256": "9982c65b1bbb228535a738e4cc29b382efb94c0129d1315a10034cb04dacccea",
-    "asset": "stair_granite.jpg",
-    "coordinates_at_preview_1500x1200": [
-      95,
-      726,
-      960,
-      740
-    ]
-  },
-  {
-    "source": "20261122_171147.jpg",
-    "sha256": "9982c65b1bbb228535a738e4cc29b382efb94c0129d1315a10034cb04dacccea",
-    "asset": "marble.jpg",
-    "coordinates_at_preview_1500x1200": [
-      32,
-      134,
-      180,
-      310
     ]
   },
   {
@@ -828,5 +795,46 @@
     "reused_artwork": "advert.jpg / vector route and safety artwork",
     "source_module": "institut_kultury",
     "notes": "Owner-derived advertisement and reusable vector system copied locally; no runtime station-module dependency."
+  },
+  {
+    "source": "20261122_171306.jpg",
+    "sha256": "c5c09781cbadd36c75d38d8f684e15dff5419c0523f64c74f029238c0641ccd8",
+    "asset": "floor_light.jpg",
+    "coordinates_at_preview_1800x1500": [
+      1120,
+      400,
+      1300,
+      520
+    ],
+    "treatment": "Local stone grain; broad light removed; periodic overlap without mirrored photographic patterns"
+  },
+  {
+    "source": "20261122_171147.jpg",
+    "sha256": "9982c65b1bbb228535a738e4cc29b382efb94c0129d1315a10034cb04dacccea",
+    "asset": "marble.jpg",
+    "coordinates_at_preview_1800x1500": [
+      35,
+      220,
+      210,
+      320
+    ],
+    "treatment": "Local stone grain; broad light removed; periodic overlap without mirrored photographic patterns"
+  },
+  {
+    "source": "20261122_171147.jpg",
+    "sha256": "9982c65b1bbb228535a738e4cc29b382efb94c0129d1315a10034cb04dacccea",
+    "asset": "stair_granite.jpg",
+    "coordinates_at_preview_1800x1500": [
+      600,
+      938,
+      1200,
+      950
+    ],
+    "treatment": "Local stone grain; broad light removed; periodic overlap without mirrored photographic patterns"
+  },
+  {
+    "reference": "10431.jpg",
+    "kind": "owner_plan",
+    "notes": "Topology reference supplied 2026-11-28; column symbols are schematic, not a measured count. Used with the 145 original station photographs."
   }
 ]

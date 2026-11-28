@@ -1,0 +1,102 @@
+{
+  "format_version": 1,
+  "units": "metres",
+  "source": "145 owner photographs in Грушевка.zip, plus owner plan 10431.jpg; topology is authoritative, dimensions inferred from photos",
+  "column_z_m": [
+    -2.4,
+    25.0,
+    30.7,
+    36.4,
+    42.1,
+    47.8,
+    53.5,
+    59.2,
+    64.9,
+    70.6,
+    76.3,
+    82.0
+  ],
+  "main_column_pitch_m": 5.7,
+  "bench_z_m": [
+    39.25,
+    50.65,
+    62.05,
+    73.45
+  ],
+  "television_z_m": [
+    25.0,
+    42.1,
+    64.9
+  ],
+  "lift": {
+    "centre_z_m": 5.0,
+    "width_m": 2.8,
+    "length_m": 3.2,
+    "door_face": "+X",
+    "public_doors": 1
+  },
+  "long_core": {
+    "centre_z_m": 14.4,
+    "width_m": 2.55,
+    "length_m": 8.0
+  },
+  "service_end": {
+    "centre_z_m": 89.762,
+    "width_m": 3.6,
+    "closed_end_z_m": 92.222,
+    "public_stair": false
+  },
+  "pear": {
+    "profile": [
+      [
+        0,
+        0.4
+      ],
+      [
+        0.06,
+        0.76
+      ],
+      [
+        0.17,
+        0.98
+      ],
+      [
+        0.28,
+        1.0
+      ],
+      [
+        0.4,
+        0.85
+      ],
+      [
+        0.55,
+        0.59
+      ],
+      [
+        0.7,
+        0.38
+      ],
+      [
+        0.83,
+        0.27
+      ],
+      [
+        0.93,
+        0.23
+      ],
+      [
+        1,
+        0.12
+      ]
+    ],
+    "central_width_m": 1.46,
+    "central_height_m": 2.02,
+    "relief_depth_m": 0.2263
+  },
+  "limitations": [
+    "Round-pillar count and pitch inferred from receding bases and ceiling crowns in 171217/171343; sketch is not a measured count.",
+    "Lift and core sizes are photo-scaled, not survey dimensions.",
+    "Some bench bays and sculptural contours are occluded; placements retain visible occupied and empty bays without filling every gap.",
+    "Lift door geometry is static; no invented lift-shaft interior or operational lift logic."
+  ]
+}
