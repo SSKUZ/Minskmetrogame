@@ -770,14 +770,16 @@
       "world_files": []
     },
     "grushevka": {
-      "file": "grushevka-3b4d6649e5ed333f6e5c.pck",
-      "sha256": "3b4d6649e5ed333f6e5c864936bb8d98695065caaaac77a1e437f564f5d40a3e",
-      "bytes": 1954912,
+      "file": "grushevka-96a7378f2ac980410b35.pck",
+      "sha256": "96a7378f2ac980410b358bac905fdde00fcc77c0eb2dcf2ede9c2e6e0de76e63",
+      "bytes": 2395680,
       "warmup": [
+        "res://modules/stations/grushevka/art/accessible.svg",
         "res://modules/stations/grushevka/art/advert.jpg",
         "res://modules/stations/grushevka/art/exit.svg",
         "res://modules/stations/grushevka/art/floor_dark.jpg",
         "res://modules/stations/grushevka/art/floor_light.jpg",
+        "res://modules/stations/grushevka/art/lift.svg",
         "res://modules/stations/grushevka/art/marble.jpg",
         "res://modules/stations/grushevka/art/nameplate.jpg",
         "res://modules/stations/grushevka/art/no_smoking.svg",

@@ -72,8 +72,8 @@
       "dependencies": []
     },
     "grushevka": {
-      "source_commit": "e2d39ba4ec791517d24a1c8bcf38bc508bcccf23",
-      "pack_sha256": "3b4d6649e5ed333f6e5c864936bb8d98695065caaaac77a1e437f564f5d40a3e",
+      "source_commit": "2b8b9161246238d6ef08a4ff5e8e7d8feda3e8b3",
+      "pack_sha256": "96a7378f2ac980410b358bac905fdde00fcc77c0eb2dcf2ede9c2e6e0de76e63",
       "category": "station",
       "scene": "modules/stations/grushevka/grushevka.tscn",
       "dependencies": []
