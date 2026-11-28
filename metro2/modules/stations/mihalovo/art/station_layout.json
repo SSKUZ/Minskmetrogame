@@ -1,0 +1,55 @@
+{
+  "platform_width_m": 10,
+  "platform_length_m": 105,
+  "ceiling_y_m": 5.65,
+  "upper_landing_y_m": 5.5005,
+  "column_rows_x_m": [
+    -3.65,
+    3.65
+  ],
+  "column_z_m": [
+    -7.4,
+    -1.0,
+    5.4,
+    11.8,
+    18.2,
+    24.6,
+    31.0,
+    37.4,
+    43.8,
+    50.2,
+    56.6,
+    63.0,
+    69.4,
+    75.8,
+    82.2,
+    88.6
+  ],
+  "stairs": [
+    {
+      "direction": -1,
+      "start_z_m": 1.2
+    },
+    {
+      "direction": 1,
+      "start_z_m": 78.0
+    }
+  ],
+  "lift": {
+    "centre_z_m": 11.3,
+    "width_m": 2.65,
+    "length_m": 2.9
+  },
+  "service_core": {
+    "centre_z_m": 19.0,
+    "width_m": 3.0,
+    "length_m": 3.8
+  },
+  "benches_z_m": [
+    25.8,
+    38.6,
+    51.4,
+    64.2
+  ],
+  "estimated_dimensions": true
+}

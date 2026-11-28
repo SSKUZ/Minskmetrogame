@@ -1,0 +1,356 @@
+{
+  "format_version": 1,
+  "module": {
+    "id": "mihalovo",
+    "type": "station",
+    "scene": "res://modules/stations/mihalovo/mihalovo.tscn"
+  },
+  "source_frame": {
+    "engine": "Godot",
+    "engine_version": "4.3",
+    "metres_per_unit": 1,
+    "handedness": "right",
+    "up_axis": "+Y",
+    "forward_axis": "-Z",
+    "route_positive_axis": "+Z",
+    "origin": "module_root",
+    "matrix_layout": "column_major_4x4",
+    "quaternion_layout": "xyzw"
+  },
+  "target_frame": {
+    "platform": "Roblox",
+    "studs_per_metre": null,
+    "basis_from_source": null
+  },
+  "geometry_sources": [
+    {
+      "id": "mihalovo",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/mihalovo.gd",
+      "requires_initialization": true,
+      "status": "unassessed",
+      "parameters": {
+        "platform_length_m": 105,
+        "platform_width_m": 10,
+        "platform_top_y_m": 1.1805,
+        "side_ceiling_y_m": 5.65,
+        "central_ceiling_y_m": 6.55,
+        "upper_landing_y_m": 5.5005,
+        "stairs_per_end": 30,
+        "stair_rise_m": 0.144,
+        "stair_tread_m": 0.3,
+        "stair_width_m": 5.45,
+        "stair_mid_landing_m": 1.25,
+        "column_radius_m": 0.5,
+        "layout_resource": "res://modules/stations/mihalovo/art/station_layout.json"
+      }
+    },
+    {
+      "id": "station_builder",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/station_builder.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_base",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/station_base.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    },
+    {
+      "id": "track_detail",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/track_detail.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
+    }
+  ],
+  "materials": [
+    {
+      "id": "cream_cladding",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "navy_ceiling",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "burgundy_lift",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "stainless_steel",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "smoke_tinted_glass",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "photo_granite",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "photo_wood",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    },
+    {
+      "id": "photo_metal_relief",
+      "source_class": "StandardMaterial3D",
+      "source_path": "res://modules/stations/mihalovo/mihalovo.gd"
+    }
+  ],
+  "textures": [
+    {
+      "id": "birds_panorama",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/birds_panorama.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "exit",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/exit.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_dark",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/floor_dark.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "floor_light",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/floor_light.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "lift",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/lift.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "nameplate",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/nameplate.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "no_smoking",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/no_smoking.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "seat_wood",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/seat_wood.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "stair_granite",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/stair_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_granite",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/wall_granite.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_marble",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/wall_marble.jpg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route",
+      "source": "file",
+      "path": "res://modules/stations/mihalovo/art/wall_route.svg",
+      "usage": "albedo"
+    }
+  ],
+  "points": [
+    {
+      "id": "Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Entry"
+    },
+    {
+      "id": "Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0.992,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Exit"
+    },
+    {
+      "id": "Track2Entry",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        92.112,
+        1
+      ],
+      "node_path": "Connections/Track2Entry"
+    },
+    {
+      "id": "Track2Exit",
+      "role": "connection",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -11.732,
+        0,
+        -12.888,
+        1
+      ],
+      "node_path": "Connections/Track2Exit"
+    },
+    {
+      "id": "PlatformCentre",
+      "role": "waypoint",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -5.37,
+        1.1805,
+        39.612,
+        1
+      ],
+      "node_path": "PassengerAnchors/PlatformCentre"
+    }
+  ],
+  "zones": [],
+  "data": {
+    "parameters": [
+      {
+        "id": "authored_layout",
+        "purpose": "other",
+        "path": "res://modules/stations/mihalovo/art/station_layout.json",
+        "format": "json"
+      }
+    ],
+    "routes": [],
+    "equipment_states": [],
+    "animations": [],
+    "references": [
+      {
+        "id": "owner_archive",
+        "purpose": "other",
+        "path": "res://modules/stations/mihalovo/art/owner_sources.json",
+        "format": "json"
+      },
+      {
+        "id": "name_relief",
+        "purpose": "other",
+        "path": "res://modules/stations/mihalovo/art/name_relief.json",
+        "format": "json"
+      },
+      {
+        "id": "birds_relief",
+        "purpose": "other",
+        "path": "res://modules/stations/mihalovo/art/birds_relief.json",
+        "format": "json"
+      }
+    ]
+  },
+  "adapter_hints": [],
+  "limitations": [
+    {
+      "code": "photo_scaled_architecture",
+      "detail": "Source is the complete 190-image owner archive and 7.584 s video. Station Base metric rail/platform datum retained; two column rows, stair/core dimensions, repetition and obscured far-end arrangement are proportional estimates, not survey measurements."
+    },
+    {
+      "code": "photo_surface_inference",
+      "detail": "Photographic stone/wood and relief height fields retain source images; birds and name depth are inferred, not scanned. Glazing uses native smoke-tinted alpha panels without captured realtime reflections."
+    },
+    {
+      "code": "static_equipment",
+      "detail": "Lift doors and cabinet doors are static geometry. Upper landing and visible side alcoves are modelled; inaccessible street vestibules are not surveyed."
+    },
+    {
+      "code": "future_portability",
+      "detail": "Native mesh/MultiMesh, relief grids, images and layout retained. Track grain shader and world triplanar mapping require future baking/adaptation. No Roblox export or compatibility verification performed."
+    }
+  ]
+}
