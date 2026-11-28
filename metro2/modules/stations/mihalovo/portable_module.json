@@ -67,6 +67,20 @@
       "path": "res://modules/stations/mihalovo/track_detail.gd",
       "requires_initialization": true,
       "status": "unassessed"
+    },
+    {
+      "id": "track_path",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/track_path.gd",
+      "requires_initialization": false,
+      "status": "unassessed"
+    },
+    {
+      "id": "station_infrastructure",
+      "kind": "generator",
+      "path": "res://modules/stations/mihalovo/station_infrastructure.gd",
+      "requires_initialization": true,
+      "status": "unassessed"
     }
   ],
   "materials": [

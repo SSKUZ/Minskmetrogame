@@ -4,7 +4,7 @@ extends Node3D
 ## Source: feature/mobile-render-diagnostics (StationDefinition, TrackModule,
 ## PlatformModule, data/station-base/v106.js). Units: metres. No gameplay.
 
-const TRACK_PATH = preload("res://scripts/playable_track_path.gd")
+const TRACK_PATH = preload("res://modules/stations/mihalovo/track_path.gd")
 const PLATFORM_LENGTH := 105.0
 const PLATFORM_WIDTH := 10.0
 const TRAIN_LENGTH := 79.224
@@ -124,7 +124,7 @@ func _ready() -> void:
         light.shadow_enabled = false
         add_child(light)
 
-    var infrastructure := preload("res://scripts/infrastructure/station_infrastructure.gd").new()
+    var infrastructure := preload("res://modules/stations/mihalovo/station_infrastructure.gd").new()
     infrastructure.name = "StationInfrastructure"
     infrastructure.station_id = station_id
     infrastructure.track_min_z = track_min_z

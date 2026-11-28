@@ -1,6 +1,6 @@
 extends Node3D
 ## Mihalovo local Uruchye-style track detail. Same gauge, rail top and station centreline as Station Base.
-const PATH := preload("res://scripts/playable_track_path.gd")
+const PATH := preload("res://modules/stations/mihalovo/track_path.gd")
 const TRACKS := [0.992,-11.732]
 var start_z: float=-22.888
 var finish_z: float=102.112
