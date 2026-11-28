@@ -285,6 +285,10 @@ func open_module(key: String) -> void:
                 _home_radius = 160.0
         rig.move_speed = 28.0 if key == "depot" else 7.0
         reset_view()
+        if key == "mihalovo":
+            # Start inside the clear platform aisle, not in a nearby wall or column.
+            # The previous 3 m orbit placed the camera against station geometry.
+            rig.enter_interior(Transform3D(Basis.IDENTITY, Vector3(-5.37, 2.85, 39.612)))
     _set_status("Открыт: " + key + " · Свободный полёт")
     _publish_state()
 
