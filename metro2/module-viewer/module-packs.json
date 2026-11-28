@@ -62,6 +62,9 @@
     ],
     "petrovshchina": [
       "petrovshchina"
+    ],
+    "malinovka": [
+      "malinovka"
     ]
   },
   "names": {
@@ -82,7 +85,8 @@
     "grushevka": "Грушевка",
     "full_line": "Депо — Площадь Ленина",
     "mihalovo": "Михалово",
-    "petrovshchina": "Петровщина"
+    "petrovshchina": "Петровщина",
+    "malinovka": "mihalovo"
   },
   "packs": {
     "depot": {
@@ -1538,6 +1542,36 @@
         "res://modules/stations/petrovshchina/art/stair_granite.jpg",
         "res://modules/stations/petrovshchina/art/wall_route.png",
         "res://modules/stations/petrovshchina/art/wall_stone.jpg"
+      ],
+      "world_files": []
+    },
+    "malinovka": {
+      "file": "malinovka-ed853cb21f0148bc7f1d.pck",
+      "sha256": "ed853cb21f0148bc7f1d59c71e84b9af456cc061d26f944b69500c97c1d06dc4",
+      "bytes": 4959008,
+      "warmup": [
+        "res://modules/stations/malinovka/art/bark_stone.jpg",
+        "res://modules/stations/malinovka/art/column_relief.png",
+        "res://modules/stations/malinovka/art/departure_route.jpg",
+        "res://modules/stations/malinovka/art/exit.svg",
+        "res://modules/stations/malinovka/art/exit_north.jpg",
+        "res://modules/stations/malinovka/art/exit_south.jpg",
+        "res://modules/stations/malinovka/art/floor_dark.jpg",
+        "res://modules/stations/malinovka/art/floor_granite.jpg",
+        "res://modules/stations/malinovka/art/free_wifi.svg",
+        "res://modules/stations/malinovka/art/lift.svg",
+        "res://modules/stations/malinovka/art/name_height.png",
+        "res://modules/stations/malinovka/art/name_wall.jpg",
+        "res://modules/stations/malinovka/art/no_boarding.jpg",
+        "res://modules/stations/malinovka/art/no_smoking.svg",
+        "res://modules/stations/malinovka/art/raspberry_panels.jpg",
+        "res://modules/stations/malinovka/art/seat_wood.jpg",
+        "res://modules/stations/malinovka/art/side_exit.jpg",
+        "res://modules/stations/malinovka/art/stair_granite.jpg",
+        "res://modules/stations/malinovka/art/station_screen.svg",
+        "res://modules/stations/malinovka/art/wall_granite.jpg",
+        "res://modules/stations/malinovka/art/wall_route.jpg",
+        "res://modules/stations/malinovka/art/wall_stone.jpg"
       ],
       "world_files": []
     }

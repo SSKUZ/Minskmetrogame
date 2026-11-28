@@ -130,11 +130,18 @@
       "category": "station",
       "scene": "modules/stations/petrovshchina/petrovshchina.tscn",
       "dependencies": []
+    },
+    "malinovka": {
+      "source_commit": "1632153848c868f0dd4e89dc40d1518282b1e482",
+      "pack_sha256": "ed853cb21f0148bc7f1d59c71e84b9af456cc061d26f944b69500c97c1d06dc4",
+      "category": "station",
+      "scene": "modules/stations/malinovka/malinovka.tscn",
+      "dependencies": []
     }
   },
   "boot": {
-    "source_commit": "48a4db91dfb807363bf4ffe623fc154829cca3fa",
-    "file": "boot-93c82e555d4368b292b9.pck",
-    "bytes": 150304
+    "source_commit": "1632153848c868f0dd4e89dc40d1518282b1e482",
+    "file": "boot-83a7041eeaa04d75c02b.pck",
+    "bytes": 150464
   }
 }
