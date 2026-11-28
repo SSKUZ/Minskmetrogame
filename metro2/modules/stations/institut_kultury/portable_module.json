@@ -38,7 +38,20 @@
         "vault_spring_y_m": 3.15,
         "stained_arches": 13,
         "arch_pitch_m": 7.2,
-        "first_arch_z_m": -3.6
+        "first_arch_z_m": -3.6,
+        "vitral_recess_m": 0.12,
+        "central_coffer_recess_m": 0.09,
+        "information_post_count": 3,
+        "information_post_faces": 4,
+        "information_post_z_m": [
+          10.8,
+          39.6,
+          68.4
+        ],
+        "information_post_section_m": [
+          1.01,
+          1.01
+        ]
       }
     },
     {
@@ -78,8 +91,7 @@
         "path": "res://modules/stations/institut_kultury/plaster.gdshader",
         "adaptation": "required",
         "parameters": {
-          "arch_first_z": -3.6,
-          "arch_pitch": 7.2
+          "paint_color": "#deded6"
         }
       }
     },
@@ -219,6 +231,12 @@
       "id": "wall_route",
       "source": "file",
       "path": "res://modules/stations/institut_kultury/art/wall_route.svg",
+      "usage": "albedo"
+    },
+    {
+      "id": "wall_route_photo",
+      "source": "file",
+      "path": "res://modules/stations/institut_kultury/art/wall_route_photo.jpg",
       "usage": "albedo"
     }
   ],
@@ -449,7 +467,7 @@
   "limitations": [
     {
       "code": "photo_scaled_architecture",
-      "detail": "Vault proportions, 13 repeated arches, vestibule depth and furniture spacing are photo-scaled estimates. Station Base platform/gauge/connection dimensions are retained; no survey or exact spatial scan is claimed."
+      "detail": "Vault proportions, 13 repeated arches, 0.12 m vitral recess, 0.09 m central coffer, vestibule depth and three square information-pylon positions are photo-scaled estimates. Three pylons and four information faces follow the owner correction. Station Base platform/gauge/connection dimensions are retained; no survey or exact spatial scan is claimed."
     },
     {
       "code": "material_adaptation",

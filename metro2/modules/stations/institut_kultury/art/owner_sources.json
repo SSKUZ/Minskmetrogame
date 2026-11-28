@@ -1,16 +1,5 @@
 [
   {
-    "source": "20261122_172341.jpg",
-    "sha256": "cec4e02dbdb1c42166285c920e73a596715105babd0116e715a3b08c5ec8aa3b",
-    "asset": "wall_granite.jpg",
-    "coordinates_at_preview_1500x1200": [
-      221,
-      778,
-      548,
-      915
-    ]
-  },
-  {
     "source": "20261122_172052.jpg",
     "sha256": "24e8c687f7d1565f7d5eb2b2fda1cb260918bc29e098e78279ec110e459c7d7d",
     "asset": "floor_russet.jpg",
@@ -41,28 +30,6 @@
       175,
       1000,
       310
-    ]
-  },
-  {
-    "source": "20261122_172154.jpg",
-    "sha256": "c8cbc09092cd99a9df6c312c2d95b17007066589ca2defd8fc210855c18af4d2",
-    "asset": "stair_granite.jpg",
-    "coordinates_at_preview_1500x1200": [
-      42,
-      718,
-      560,
-      727
-    ]
-  },
-  {
-    "source": "20261122_172154.jpg",
-    "sha256": "c8cbc09092cd99a9df6c312c2d95b17007066589ca2defd8fc210855c18af4d2",
-    "asset": "vestibule_marble.jpg",
-    "coordinates_at_preview_1500x1200": [
-      195,
-      325,
-      360,
-      414
     ]
   },
   {
@@ -786,5 +753,65 @@
     "reference": "20261122_172347.jpg",
     "sha256": "9889111578c7f24d9da3b93c32ba05061f6a22b41146ac22135eb623665291e6",
     "reviewed": true
+  },
+  {
+    "source": "20261122_172347.jpg",
+    "sha256": "9889111578c7f24d9da3b93c32ba05061f6a22b41146ac22135eb623665291e6",
+    "asset": "wall_granite.jpg",
+    "coordinates_at_preview_1500x1200": [
+      820,
+      380,
+      1000,
+      430
+    ],
+    "treatment": "Uninterrupted stone; high-pass lighting removal; periodic overlapping grain, no mirroring"
+  },
+  {
+    "source": "20261122_172154.jpg",
+    "sha256": "c8cbc09092cd99a9df6c312c2d95b17007066589ca2defd8fc210855c18af4d2",
+    "asset": "vestibule_marble.jpg",
+    "coordinates_at_preview_1500x1200": [
+      100,
+      300,
+      180,
+      330
+    ],
+    "treatment": "Uninterrupted stone; high-pass lighting removal; periodic overlapping grain, no mirroring"
+  },
+  {
+    "source": "20261122_172154.jpg",
+    "sha256": "c8cbc09092cd99a9df6c312c2d95b17007066589ca2defd8fc210855c18af4d2",
+    "asset": "stair_granite.jpg",
+    "coordinates_at_preview_1500x1200": [
+      400,
+      738,
+      740,
+      752
+    ],
+    "treatment": "Uninterrupted stone; high-pass lighting removal; periodic overlapping grain, no mirroring"
+  },
+  {
+    "source": "20261122_172040.jpg",
+    "sha256": "fa2c2f371977e387fa31dca15e36241cef20d6397f28809fd0d2421e3f826f92",
+    "asset": "wall_route_photo.jpg",
+    "coordinates_at_preview_1500x1200": [
+      [
+        398,
+        490
+      ],
+      [
+        1173,
+        490
+      ],
+      [
+        1180,
+        661
+      ],
+      [
+        387,
+        665
+      ]
+    ],
+    "treatment": "Perspective-rectified complete original route board"
   }
 ]

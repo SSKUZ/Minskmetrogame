@@ -9,6 +9,8 @@ const RY := 4.25
 const ARCH_FIRST := -3.60
 const ARCH_PITCH := 7.20
 const ARCH_COUNT := 13
+const VITRAL_RECESS := -0.12
+const INFORMATION_POSTS := [10.8,39.6,68.4]
 var wall_stone: StandardMaterial3D
 var floor_russet: StandardMaterial3D
 var floor_taupe: StandardMaterial3D
@@ -24,7 +26,7 @@ func _ready() -> void:
     super._ready();begin_station()
     for child in get_children():
         if child is OmniLight3D:child.queue_free()
-    white=_photo("vault_plaster.jpg",Vector2(1.4,1.4),0.88)
+    white=_material(Color("#deded6"),0.0,0.88)
     wall_stone=_photo("wall_granite.jpg",Vector2(0.95,0.55),0.39)
     floor_russet=_photo("floor_russet.jpg",Vector2(0.60,0.60),0.47)
     floor_taupe=_photo("floor_taupe.jpg",Vector2(0.60,0.60),0.48)
@@ -34,7 +36,7 @@ func _ready() -> void:
     granite=wall_stone;yellow=_material(Color("#d6b240"),0.0,0.65)
     metal.albedo_color=Color("#a4a6a0");metal.roughness=0.37
     plaster=ShaderMaterial.new();plaster.shader=preload("res://modules/stations/institut_kultury/plaster.gdshader")
-    plaster.set_shader_parameter("paint",load(ART+"vault_plaster.jpg"))
+    plaster.set_shader_parameter("paint_color",Color("#deded6"))
     for tint in ["#9d7c30","#bda34a","#d0b85b","#8d7135","#b99339","#a19058","#735738","#c2af72"]:
         var mat := _material(Color(tint),0.18,0.28)
         mat.emission_enabled=true;mat.emission=Color(tint);mat.emission_energy_multiplier=0.09
@@ -42,7 +44,7 @@ func _ready() -> void:
     _platform_floor();_track_walls();_vault()
     for i in range(ARCH_COUNT):_vitral_arch(ARCH_FIRST+float(i)*ARCH_PITCH,i)
     _end(-1.0,NORTH);_end(1.0,SOUTH)
-    for z in [7.2,28.8,50.4,72.0]:_information_furniture(float(z))
+    for z in INFORMATION_POSTS:_information_furniture(float(z))
     _railway();_driver_equipment();_small_details()
     _finish_pictures();flush()
 
@@ -101,8 +103,8 @@ func _track_walls() -> void:
         for bay in range(ARCH_COUNT-1):
             var z: float=ARCH_FIRST+(float(bay)+0.5)*ARCH_PITCH
             box(Vector3(0.19,1.03,ARCH_PITCH-0.90),Vector3(x-side*0.08,2.66,z),white)
-            if bay%3==1:_station_name(Vector3(x-side*0.19,2.63,z),-side*PI/2.0,"ИНСТИТУТ КУЛЬТУРЫ" if side<0 else "ІНСТЫТУТ КУЛЬТУРЫ")
-            elif bay%3==2:picture("wall_route.svg",Vector2(5.65,0.82),Vector3(x-side*0.19,2.66,z),-side*PI/2.0,true)
+            if bay%2==0:_station_name(Vector3(x-side*0.19,2.63,z),-side*PI/2.0,"ИНСТИТУТ КУЛЬТУРЫ" if side<0 else "ІНСТЫТУТ КУЛЬТУРЫ")
+            else:picture("wall_route_photo.jpg",Vector2(6.15,1.0),Vector3(x-side*0.19,2.66,z),-side*PI/2.0)
         rod(Vector3(x-side*0.24,3.20,NORTH),Vector3(x-side*0.24,3.20,SOUTH),0.014,metal)
         for i in range(53):
             var z: float=NORTH+float(i)*1.8
@@ -111,7 +113,7 @@ func _track_walls() -> void:
 func _station_name(p: Vector3,yaw: float,text: String) -> void:
     var mesh := TextMesh.new();mesh.font=load(ART+"station_serif.ttf");mesh.text=text
     mesh.font_size=127;mesh.pixel_size=0.01;mesh.depth=0.032;mesh.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
-    var bronze := _material(Color("#aaa597"),0.72,0.37);mesh.material=bronze
+    var bronze := _material(Color("#98988e"),0.48,0.42);mesh.material=bronze
     var bounds: AABB=mesh.get_aabb()
     var node := MeshInstance3D.new();node.name="RaisedStationName";node.mesh=mesh;node.position=p;node.rotation.y=yaw
     node.scale=Vector3(4.95/maxf(bounds.size.x,0.001),0.285/maxf(bounds.size.y,0.001),1.0);add_child(node)
@@ -119,29 +121,53 @@ func _station_name(p: Vector3,yaw: float,text: String) -> void:
 func _roof(a: float,z: float,inset: float=0.0) -> Vector3:
     return Vector3(CX+(RX-inset)*cos(a),SPRING+(RY-inset)*sin(a),z)
 
+func _vault_normal(a: float) -> Vector3:
+    return Vector3(-RY*cos(a),-RX*sin(a),0).normalized()
+
+func _vault_bay(z0: float,z1: float) -> void:
+    # Smooth plaster bays stop at each stained-glass recess, with a raised central coffer.
+    var coffer_a: float=acos(2.6/RX)
+    var angles: Array[float]=[0.0,coffer_a,PI-coffer_a,PI]
+    for j in range(1,96):angles.append(float(j)*PI/96.0)
+    angles.sort()
+    for j in range(angles.size()-1):
+        var a: float=angles[j];var b: float=angles[j+1]
+        if b-a<0.00001:continue
+        var middle: bool=(a+b)*0.5>coffer_a and (a+b)*0.5<PI-coffer_a
+        var inset: float=-0.09 if middle else 0.0
+        quad(_roof(a,z0,inset),_roof(b,z0,inset),_roof(b,z1,inset),_roof(a,z1,inset),plaster,_vault_normal((a+b)*0.5))
+    for a in [coffer_a,PI-coffer_a]:
+        quad(_roof(a,z0),_roof(a,z1),_roof(a,z1,-0.09),_roof(a,z0,-0.09),white,Vector3.RIGHT if a>PI/2 else Vector3.LEFT)
+        var p: Vector3=_roof(a,(z0+z1)*0.5,-0.045)
+        box(Vector3(0.023,0.018,z1-z0),p,glow)
+    for z in [z0,z1]:
+        _arc_strip(coffer_a,PI-coffer_a,z-0.025,z+0.025,0.0,white)
+
 func _vault() -> void:
-    for bay in range(28):
-        var z0: float=lerpf(NORTH,SOUTH,float(bay)/28.0);var z1: float=lerpf(NORTH,SOUTH,float(bay+1)/28.0)
-        for j in range(96):
-            var a0: float=float(j)*PI/96.0;var a1: float=float(j+1)*PI/96.0
-            quad(_roof(a0,z0),_roof(a1,z0),_roof(a1,z1),_roof(a0,z1),plaster,Vector3(-cos((a0+a1)*0.5),-1,0))
-            quad(_roof(a0,z0,-0.16),_roof(a0,z1,-0.16),_roof(a1,z1,-0.16),_roof(a1,z0,-0.16),white,Vector3(cos((a0+a1)*0.5),1,0))
-    # Long shallow crown coffers with concealed edge light, rather than dark flat polygon strips.
+    var cursor: float=NORTH
+    for i in range(ARCH_COUNT):
+        var z: float=ARCH_FIRST+float(i)*ARCH_PITCH
+        _vault_bay(cursor,z-0.47)
+        cursor=z+0.47
+    _vault_bay(cursor,SOUTH)
+
+func _recess_reveal(z: float) -> void:
+    # A real opening in the vault; light and glass sit beyond its plaster lip.
+    _arc_strip(0,PI,z-0.39,z+0.39,VITRAL_RECESS-0.02,black)
     for side in [-1.0,1.0]:
-        var x: float=CX+side*2.60
-        var y: float=SPRING+RY*sqrt(1.0-pow(2.60/RX,2.0))
-        box(Vector3(0.18,0.16,SOUTH-NORTH),Vector3(x,y-0.06,MID),white)
-        box(Vector3(0.035,0.018,SOUTH-NORTH),Vector3(x-side*0.105,y-0.025,MID),glow)
+        for j in range(96):
+            var a: float=float(j)*PI/96.0;var b: float=float(j+1)*PI/96.0
+            quad(_roof(a,z+side*0.47),_roof(b,z+side*0.47),_roof(b,z+side*0.39,VITRAL_RECESS),_roof(a,z+side*0.39,VITRAL_RECESS),white,Vector3(0,0,-side))
+        _arc_strip(0,PI,z+side*0.39-0.009,z+side*0.39+0.009,VITRAL_RECESS+0.012,metal)
 
 func _arc_strip(a0: float,a1: float,z0: float,z1: float,inset: float,mat: Material) -> void:
     var count: int=maxi(1,int(ceil((a1-a0)*55.0)))
     for j in range(count):
         var a: float=lerpf(a0,a1,float(j)/float(count));var b: float=lerpf(a0,a1,float(j+1)/float(count))
-        quad(_roof(a,z0,inset),_roof(b,z0,inset),_roof(b,z1,inset),_roof(a,z1,inset),mat,Vector3(-cos((a+b)*0.5),-1,0))
+        quad(_roof(a,z0,inset),_roof(b,z0,inset),_roof(b,z1,inset),_roof(a,z1,inset),mat,_vault_normal((a+b)*0.5))
 
 func _vitral_arch(z: float,index: int) -> void:
-    _arc_strip(0,PI,z-0.46,z+0.46,0.025,white)
-    _arc_strip(0,PI,z-0.395,z+0.395,0.045,black)
+    _recess_reveal(z)
     for side in range(2):
         var offset: float=0.0 if side==0 else PI-1.18
         # Native amber glass tiles: thin silver leading, fine ribbed surfaces, no disconnected luminous cubes.
@@ -152,20 +178,20 @@ func _vitral_arch(z: float,index: int) -> void:
                 var z0: float=z-0.375+float(col)*0.75/8.0
                 var z1: float=z0+0.75/8.0
                 var mat: Material=glass_palette[(row*7+col*3+index*5+side)%glass_palette.size()]
-                _arc_strip(a+0.002,b-0.002,z0+0.004,z1-0.004,0.064,mat)
+                _arc_strip(a+0.002,b-0.002,z0+0.004,z1-0.004,VITRAL_RECESS+0.010,mat)
                 for rib in range(4):
                     var zr: float=lerpf(z0,z1,(float(rib)+0.5)/4.0)
-                    _arc_strip(a+0.003,b-0.003,zr-0.0014,zr+0.0014,0.067,glass_palette[(row*7+col*3+index*5+side+1)%glass_palette.size()])
-            _arc_strip(a,a+0.0025,z-0.38,z+0.38,0.075,metal)
+                    _arc_strip(a+0.003,b-0.003,zr-0.0014,zr+0.0014,VITRAL_RECESS+0.013,glass_palette[(row*7+col*3+index*5+side+1)%glass_palette.size()])
+            _arc_strip(a,a+0.0025,z-0.38,z+0.38,VITRAL_RECESS+0.021,metal)
         for col in range(9):
             var zz: float=z-0.38+float(col)*0.76/8.0
-            _arc_strip(offset,offset+1.18,zz-0.004,zz+0.004,0.078,metal)
+            _arc_strip(offset,offset+1.18,zz-0.004,zz+0.004,VITRAL_RECESS+0.024,metal)
         var file: String=["glass_builder.jpg","glass_musician.jpg","glass_player.jpg","glass_reader.jpg"][(index+side)%4]
         _figure(file,z,side==0)
     # The centre of each arch carries a curved bank of prismatic white fluorescent luminaires.
     for j in range(44):
         var a: float=lerpf(1.18,PI-1.18,(float(j)+0.5)/44.0)
-        var p: Vector3=_roof(a,z,0.105)
+        var p: Vector3=_roof(a,z,VITRAL_RECESS+0.045)
         var tangent := Vector3(-RX*sin(a),RY*cos(a),0).normalized()
         var inward := Vector3(-tangent.y,tangent.x,0)
         var basis := Basis(tangent,inward,Vector3.BACK)
@@ -174,8 +200,18 @@ func _vitral_arch(z: float,index: int) -> void:
         for segment in range(8):
             box(Vector3(0.058,0.023,0.068),p+inward*0.028+Vector3(0,0,-0.315+float(segment)*0.09),_lens_material(),basis)
         for end in [-1.0,1.0]:box(Vector3(0.085,0.07,0.045),p+Vector3(0,0,float(end)*0.38),black,basis)
-    var light := OmniLight3D.new();light.name="ArchLight"+str(index);light.position=Vector3(CX,6.4,z)
-    light.light_color=Color(1.0,0.98,0.90);light.light_energy=1.35;light.omni_range=10.0;light.omni_attenuation=0.85;add_child(light)
+    var light := OmniLight3D.new();light.name="ArchLight"+str(index);light.position=Vector3(CX,6.65,z)
+    light.light_color=Color(1.0,0.98,0.94);light.light_energy=0.95;light.omni_range=9.0;light.omni_attenuation=0.95;add_child(light)
+    # Shadow sources are confined to three arch groups; remaining arches use the diffuse light above.
+    if index not in [1,6,11]:return
+    for side in [-1.0,1.0]:
+        var wash := SpotLight3D.new();wash.name="VaultWash"+str(index)
+        wash.position=Vector3(CX+side*2.1,6.55,z);add_child(wash)
+        wash.look_at(Vector3(CX+side*7.9,2.15,z),Vector3.UP)
+        wash.light_color=Color(0.98,1.0,0.96);wash.light_energy=0.70
+        wash.spot_range=11.0;wash.spot_angle=65.0;wash.spot_attenuation=0.8
+        wash.shadow_enabled=true
+        wash.shadow_bias=0.035;wash.shadow_normal_bias=0.25
 
 var lens: StandardMaterial3D
 func _lens_material() -> StandardMaterial3D:
@@ -188,7 +224,7 @@ func _figure(file: String,z: float,right: bool) -> void:
         var t0: float=float(j)/14.0;var t1: float=float(j+1)/14.0
         var a: float=lerpf(0.015,0.33,t0);var b: float=lerpf(0.015,0.33,t1)
         if not right:a=PI-a;b=PI-b
-        _art_quad(file,_roof(a,z-0.369,0.085),_roof(a,z+0.369,0.085),_roof(b,z+0.369,0.085),_roof(b,z-0.369,0.085),Rect2(0,1.0-t1,1,t1-t0),true)
+        _art_quad(file,_roof(a,z-0.369,VITRAL_RECESS+0.030),_roof(a,z+0.369,VITRAL_RECESS+0.030),_roof(b,z+0.369,VITRAL_RECESS+0.030),_roof(b,z-0.369,VITRAL_RECESS+0.030),Rect2(0,1.0-t1,1,t1-t0),true)
 
 func _art_quad(file: String,a: Vector3,b: Vector3,c: Vector3,d: Vector3,uv: Rect2,emitting: bool=false) -> void:
     if not picture_surfaces.has(file):
@@ -302,25 +338,35 @@ func _controller_booth(p: Vector3) -> void:
     box(Vector3(0.38,0.28,0.035),p+Vector3(0.3,1.19,0.15),black)
 
 func _information_furniture(z: float) -> void:
-    # Long low timber bench and the framed two-sided route/exit information post in the owner's closeups.
-    for side in [-1.0,1.0]:box(Vector3(0.48,0.39,1.72),Vector3(CX,FY+0.195,z+side*1.30),wall_stone)
+    # Three square information pylons, readable from all four platform approaches.
+    for side in [-1.0,1.0]:box(Vector3(0.48,0.39,1.72),Vector3(CX,FY+0.195,z+side*1.42),wall_stone)
     for i in range(15):
-        if i==7:continue
+        if i in [6,7,8]:continue
         box(Vector3(0.66,0.065,0.273),Vector3(CX,FY+0.43,z-2.04+float(i)*0.292),timber)
-    var steel := _material(Color("#797a72"),0.72,0.40)
-    box(Vector3(0.43,3.85,0.28),Vector3(CX,FY+1.925,z),steel)
+    var steel := _material(Color("#79756b"),0.64,0.40)
+    box(Vector3(0.66,3.85,0.66),Vector3(CX,FY+1.925,z),steel)
     var panel := Vector3(CX,FY+2.08,z)
-    box(Vector3(1.01,2.30,0.24),panel,metal)
-    picture("pylon_routes.jpg",Vector2(0.89,2.10),panel+Vector3(0,0,0.128),0)
-    picture("pylon_exits.jpg",Vector2(0.89,2.10),panel-Vector3(0,0,0.128),PI)
-    box(Vector3(0.90,0.52,0.30),Vector3(CX,FY+3.57,z),black)
-    for i in range(15):box(Vector3(0.029,0.47,0.025),Vector3(CX-0.42+float(i)*0.06,FY+3.57,z+0.163),metal)
+    box(Vector3(1.01,2.30,1.01),panel,metal)
+    for face in range(4):
+        var yaw: float=float(face)*PI/2.0
+        var outward := Vector3(sin(yaw),0,cos(yaw))
+        var file: String="pylon_routes.jpg" if face%2==0 else "pylon_exits.jpg"
+        picture(file,Vector2(0.89,2.10),panel+outward*0.512,yaw)
+        # Separate extruded corner rails and illuminated poster surround.
+        var basis := Basis(Vector3.UP,yaw)
+        for edge in [-1.0,1.0]:
+            box(Vector3(0.035,2.20,0.028),panel+outward*0.526+basis.x*edge*0.462,steel,basis)
+        for edge in [-1.0,1.0]:
+            box(Vector3(0.93,0.035,0.028),panel+outward*0.526+Vector3(0,edge*1.075,0),steel,basis)
+        var head := Vector3(CX,FY+3.57,z)
+        box(Vector3(0.90,0.52,0.045),head+outward*0.38,black,basis)
+        for i in range(15):box(Vector3(0.029,0.47,0.025),head+outward*0.410+basis.x*(-0.42+float(i)*0.06),metal,basis)
     for side in [-1.0,1.0]:
         var p := Vector3(CX,FY+4.41,z+side*0.18)
         box(Vector3(1.87,1.10,0.10),p,black)
         picture("advert.jpg",Vector2(1.76,0.98),p+Vector3(0,0,side*0.056),0 if side>0 else PI)
     for side in [-1.0,1.0]:
-        var pts: Array[Vector3]=[Vector3(CX-0.54,FY+1.03,z),Vector3(CX-0.63,FY+0.98,z+side*0.25),Vector3(CX-0.54,FY+0.93,z+side*0.39),Vector3(CX+0.54,FY+0.93,z+side*0.39),Vector3(CX+0.63,FY+0.98,z+side*0.25),Vector3(CX+0.54,FY+1.03,z)]
+        var pts: Array[Vector3]=[Vector3(CX-0.58,FY+1.03,z),Vector3(CX-0.63,FY+0.98,z+side*0.48),Vector3(CX-0.54,FY+0.93,z+side*0.62),Vector3(CX+0.54,FY+0.93,z+side*0.62),Vector3(CX+0.63,FY+0.98,z+side*0.48),Vector3(CX+0.58,FY+1.03,z)]
         for j in range(pts.size()-1):rod(pts[j],pts[j+1],0.026,metal)
 
 func _railway() -> void:
