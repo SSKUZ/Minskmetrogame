@@ -1,7 +1,7 @@
 {
   "include": [
     "akademiya_nauk-fb751228ea77d5455a30.pck",
-    "boot-b1cb2f13ca8594ef7944.pck",
+    "boot-0c8aa740a252154f880c.pck",
     "borisovsky_trakt-106ee0302182e203642f.pck",
     "depot-7144658f5acaded16dbe.pck",
     "full_line-part-0cfc4c9ba6a706a7ffe0.bin",
@@ -30,6 +30,7 @@
     "full_line-part-dc3416c43dc4e3e697f8.bin",
     "grushevka-96a7378f2ac980410b35.pck",
     "institut_kultury-6e2c0e0670e53769e58b.pck",
+    "mihalovo-ae488f0e69d0a0a2476a.pck",
     "moskovskaya-part-4541ff7448d1f942596a.bin",
     "moskovskaya-part-70185cf33db73c09081d.bin",
     "moskovskaya-part-875e570e88b703dc27a5.bin",

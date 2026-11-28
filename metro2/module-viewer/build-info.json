@@ -1426,6 +1426,26 @@
           "sha256": "63cf594b8056c53823649918db676e970557d59dfa3d1ab6386bb47f29ec26a0"
         }
       ]
+    },
+    "mihalovo": {
+      "file": "mihalovo-ae488f0e69d0a0a2476a.pck",
+      "sha256": "ae488f0e69d0a0a2476adc12bec6f6ff4214f437e9b5ed0a474e48a4c3e3011c",
+      "bytes": 1677408,
+      "warmup": [
+        "res://modules/stations/mihalovo/art/birds_panorama.jpg",
+        "res://modules/stations/mihalovo/art/exit.svg",
+        "res://modules/stations/mihalovo/art/floor_dark.jpg",
+        "res://modules/stations/mihalovo/art/floor_light.jpg",
+        "res://modules/stations/mihalovo/art/lift.svg",
+        "res://modules/stations/mihalovo/art/nameplate.jpg",
+        "res://modules/stations/mihalovo/art/no_smoking.svg",
+        "res://modules/stations/mihalovo/art/seat_wood.jpg",
+        "res://modules/stations/mihalovo/art/stair_granite.jpg",
+        "res://modules/stations/mihalovo/art/wall_granite.jpg",
+        "res://modules/stations/mihalovo/art/wall_marble.jpg",
+        "res://modules/stations/mihalovo/art/wall_route.svg"
+      ],
+      "world_files": []
     }
   },
   "entry": "res://viewers/module_viewer.tscn",

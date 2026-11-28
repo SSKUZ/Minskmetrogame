@@ -116,11 +116,18 @@
       "dependencies": [
         "shared"
       ]
+    },
+    "mihalovo": {
+      "source_commit": "a5adb74e337010a5327de2e36fb5795044b95169",
+      "pack_sha256": "ae488f0e69d0a0a2476adc12bec6f6ff4214f437e9b5ed0a474e48a4c3e3011c",
+      "category": "station",
+      "scene": "modules/stations/mihalovo/mihalovo.tscn",
+      "dependencies": []
     }
   },
   "boot": {
-    "source_commit": "e3d24a3d7bc6a75e675a471c324c718473e8e09d",
-    "file": "boot-b1cb2f13ca8594ef7944.pck",
-    "bytes": 149600
+    "source_commit": "a5adb74e337010a5327de2e36fb5795044b95169",
+    "file": "boot-0c8aa740a252154f880c.pck",
+    "bytes": 149824
   }
 }
